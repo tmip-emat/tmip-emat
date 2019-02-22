@@ -1,0 +1,74 @@
+---
+# EMAT Scope Definition
+# 
+
+scope:
+    name: core_dummy_test
+    desc: prototype run
+
+
+# Risk and Policy Variables -------------------------------------------------------
+#
+# available distributions: uniform, PERT, triangle, binary, constant
+#
+# Uniform takes no parameters
+# triangle takes one : peak
+# PERT takes two: peak and gamma
+# Constant takes no parameters (always returns 1 that is multiplied by default)
+#
+# Example implementation 
+#
+#- Test Variable:
+#   type: exogenous uncertainty, policy lever or fixed
+#   desc: Example of a Risk or Policy Variable definition
+#   default: Default value of the variable
+#   active: Boolean to include variable as dimension in uncertainty/decision space
+#   min: 0
+#   max: 1
+#   dist: pert
+#       peak: .5
+#       gamma: 4
+#   corr: TBD
+
+inputs:
+    exp_var 1:
+        ptype: exogenous uncertainty
+        desc: Dummy Test 1
+        default: 1.0
+        min: 0
+        max: 10
+        dist: uniform
+        corr: []
+
+    exp_var 2:
+        ptype: exogenous uncertainty
+        desc: Dummy Test 2
+        default: 1.0
+        min: 10
+        max: 20
+        dist: uniform
+        corr: []
+
+
+# Performance Measures -------------------------------------------------------
+# Categories represent any transformations on the performance measure
+# before deriving a meta model, supported transportations are
+#   none (no change)
+#   ln (natural log)
+#
+
+
+outputs:
+    pm_1:
+        kind: info
+    pm_10:
+        kind: info
+    pm_100:
+        kind: info
+    pm_2:
+        transform: ln
+        kind: info
+
+
+
+...

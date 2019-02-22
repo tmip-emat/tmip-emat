@@ -1,0 +1,32 @@
+inputs:
+  exp_var 1:
+    corr: []
+    default: 1.0
+    desc: Dummy Test 1
+    dist:
+    - uniform
+    max: 10
+    min: 0
+    ptype: exogenous uncertainty
+  exp_var 2:
+    corr: []
+    default: 1.0
+    desc: Dummy Test 2
+    dist:
+    - uniform
+    max: 20
+    min: 10
+    ptype: exogenous uncertainty
+outputs:
+  pm_1:
+    kind: info
+  pm_10:
+    kind: info
+  pm_100:
+    kind: info
+  pm_2:
+    kind: info
+    transform: ln
+scope:
+  desc: prototype run
+  name: core_dummy_test

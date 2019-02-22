@@ -1,0 +1,616 @@
+
+# This example YAML files demonstrates setting up a scope and excel model interface.
+
+scope:
+    name: CFB
+    desc: Carbon Free Boston Model
+
+
+inputs:
+
+  "Grid GHG intensity": 
+    ptype: uncertainty
+    dtype:  INT
+    address:  Inputs!E2
+    min:  0 
+    max:  400
+    default: 228
+
+  ### CLEAN VEHICLES ###
+
+  "Clean Vehicles": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E3
+    default: True
+
+  "Light-duty vehicles":
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E4    
+    default: True
+
+  "Light-duty vehicles: % of LDV stock: EV":
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E5 
+    min:  0 
+    max:  100
+    default: 4
+
+  "Light-duty vehicles: % of LDV stock: PHEV": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E6 
+    min:  0 
+    max:  100
+    default: 1
+
+  "Trucks": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E7
+    default: True
+
+  "Trucks: % of MDT stock: EV": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E8 
+    min:  0 
+    max:  100
+    default: 2
+
+  "Transit vehicles": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E9
+    default: True
+
+  "Transit vehicles: % of transit bus fleet: EV":
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E10 
+    min:  0 
+    max:  100
+    default: 4
+
+  "Transit vehicles: % of school bus fleet: EV": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E11 
+    min:  0 
+    max:  100
+    default: 0
+
+  "Transit vehicles: % of commuter rail electrified": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E12 
+    min:  0 
+    max:  100
+    default: 0
+
+  ### LAND USE ###
+
+  "Land Use": 
+    ptype: uncertainty
+    dtype:  BOOL 
+    address:  Inputs!E13
+
+  ### TRANSIT ###
+
+  "Transit": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E14
+    default: True
+
+  "Prior drive mode share of new riders: bus": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E15 
+    min:  0 
+    max:  100
+    default: 44
+
+  "Prior drive mode share of new riders: urban rail": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E16 
+    min:  0 
+    max:  100
+    default: 50
+
+  "Operational improvements": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E17
+    default: True
+
+  "Operational improvements: Ridership elasticity": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E18 
+    min:  0 
+    max:  150
+    default: 80
+
+  "Operational improvements: One-way length of bus routes w/op. improvements":
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E19 
+    min:  0 
+    max:  500
+    default: 155
+
+  "Operational improvements: % travel time savings": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E20 
+    min:  0 
+    max:  200
+    default: 28
+
+  "New service": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E21
+    default: True
+
+  "New service: New one-way route-miles: rapid bus": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E22 
+    min:  0 
+    max:  150
+    default: 21
+
+  "New service: New one-way route-miles: urban rail": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E23 
+    min:  0 
+    max:  150
+    default: 17
+
+  "New service: Average load factor: new rapid bus": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E24 
+    min:  0 
+    max:  40
+    default: 13
+
+  "New service: Average load factor: new urban rail": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E25 
+    min:  0 
+    max:  60
+    default: 26
+
+  "New service: Fuel type of new bus service": 
+    ptype: uncertainty
+    dtype:  CAT 
+    address:  Inputs!E26
+    values:
+      - gasoline
+      - diesel
+      - CNG
+      - electricity
+    default: diesel
+
+  ### ACTIVE TRANSPORTATION ###
+
+  "Active Transportation": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E27
+    default: True
+
+  "Active Transportation: Use growth factor or elasticity?": 
+    ptype: uncertainty
+    dtype:  CAT 
+    address:  Inputs!E28
+    values:
+      - growth factor
+      - elasticity
+    default: growth factor
+
+  "Active Transportation: New bike facility miles": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E29 
+    min:  0 
+    max:  200
+    default: 0
+
+  "Active Transportation: Bike growth factor": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E30 
+    min:  10 
+    max:  100
+    default: 0
+
+  "Active Transportation: E-bike % of bike miles": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E31 
+    min:  0 
+    max:  100
+    default: 0
+
+  "Active Transportation: Share of <2 mi trips converted to walk": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E32 
+    min:  0 
+    max:  60
+    default: 0
+
+  "Active Transportation: Prior drive mode share of new bike & walk trips:": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E33 
+    min:  0 
+    max:  100
+    default: 45
+
+  ### CAV ###
+
+  "CAV (Private)": 
+    ptype: uncertainty
+    dtype:  BOOL 
+    address:  Inputs!E34
+
+  "% CAV market penetration: LDV": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E35 
+    min:  0 
+    max:  100
+    default: 0
+
+  "% CAV market penetration: MDT": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E36 
+    min:  0 
+    max:  100
+    default: 0
+
+  "CAV technology: LDV": 
+    ptype: uncertainty
+    dtype:  CAT 
+    address:  Inputs!E37 
+    values:
+      - baseline
+      - EV
+    default: baseline
+
+  "CAV technology: MDV": 
+    ptype: uncertainty
+    dtype:  CAT 
+    address:  Inputs!E38 
+    values:
+      - baseline
+      - EV
+    default: baseline
+
+  "CAV efficiency improvement": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E39 
+    min:  0 
+    max:  50
+    default: 10
+
+  "CAV - % VMT change: LDV": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E40 
+    min:  0 
+    max:  100
+    default: 0
+
+  "CAV - % VMT change: MDT": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E41 
+    min:  0 
+    max:  100
+    default: 0
+
+  ### SMART MOBILITY ###
+
+  "Smart Mobility": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E42
+    default: True
+
+  "Smart Mobility: Change in auto owership": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E43 
+    min:  0 
+    max:  20
+    default: 0
+
+  "Ridehailing": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E44
+    default: True
+
+  "Ridehailing: Technology": 
+    ptype: uncertainty
+    dtype:  CAT 
+    address:  Inputs!E45
+    values:
+      - fleet average
+      - EV
+    default: fleet average
+
+  "Ridehailing: Market penetration": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E46 
+    min:  0 
+    max:  30
+    default: 0
+
+  "Ridehailing: Vehicle occupancy: work": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E47 
+    min:  10 
+    max:  30
+    default: 11
+
+  "Ridehailing: Vehicle occupancy: non-work": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E48 
+    min:  10 
+    max:  30
+    default: 16
+
+  "Ridehailing: Circuity/deadhead factor": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E49 
+    min:  10 
+    max:  20
+    default: 15
+
+  "Ridehailing: Prior drive mode share": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E50 
+    min:  0 
+    max:  100
+    default: 40
+
+  "Demand response/microtransit:": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E51
+    default: True
+
+  "Demand Reponsive: Technology": 
+    ptype: uncertainty
+    dtype:  CAT 
+    address:  Inputs!E52  
+    values:
+      - fleet average
+      - EV
+    default: fleet average
+
+  "Demand Reponsive: Market penetration": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E53 
+    min:  0 
+    max:  25
+    default: 0
+
+  "Demand Reponsive: Vehicle occupancy": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E54 
+    min:  30 
+    max:  150
+    default: 50
+
+  "Demand Reponsive: Circuity/deadhead factor": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E55 
+    min:  10 
+    max:  20
+    default: 15
+
+  "Demand Reponsive: Prior drive mode share": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E56 
+    min:  0 
+    max:  100
+    default: 0
+
+  "Demand Reponsive: % electric vehicle": 
+    ptype: uncertainty
+    dtype:  INT 
+    address:  Inputs!E57 
+    min:  0 
+    max:  100
+    default: 50
+
+# Levers:
+  "Pricing": 
+    ptype: lever
+    dtype:  BOOL 
+    address:  Inputs!E58
+    default: True
+
+  "Pricing: Carbon price change": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E59 
+    min:  0 
+    max:  100
+
+  "Pricing: Fuel cost change (gasoline, diesel)": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E60 
+    min:  0 
+    max:  400
+
+  "Pricing: Price change per vehicle-trip ": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E61 
+    min:  0 
+    max:  10
+
+  "Pricing: Price change per VMT": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E62 
+    min:  0 
+    max:  20
+
+  "Pricing: Elasticity: VMT w/r/t fuel price (LDV)": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E63 
+    min:  0 
+    max:  50
+
+  ### TDM ###
+  "TDM": 
+    ptype: constant
+    dtype:  BOOL 
+    address:  Inputs!E64
+    default: True
+
+  "TDM: Additional % workers receiving transit benefit:": 
+    ptype: lever
+    dtype:  BOOL 
+    address:  Inputs!E65
+
+  "TDM: Additional % workers receiving transit benefit: <50 workers": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E66 
+    min:  0 
+    max:  50
+
+  "TDM: Additional % workers receiving transit benefit: 50-100 workers": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E67 
+    min:  0 
+    max:  50
+
+  "TDM: Additional % workers receiving transit benefit: >100 workers": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E68 
+    min:  0 
+    max:  50
+
+  "TDM: Additional % workers at workplace w/TDM program": 
+    ptype: lever
+    dtype:  BOOL 
+    address:  Inputs!E69
+
+  "TDM: Additional % workers at workplace w/TDM program: <50 workers": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E70 
+    min:  0 
+    max:  50
+
+  "TDM: Additional % workers at workplace w/TDM program: 50-100 workers": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E71 
+    min:  0 
+    max:  50
+
+  "TDM: Additional % workers at workplace w/TDM program: >100 workers": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E72 
+    min:  0 
+    max:  50
+
+  "TDM: Additional % workers at workplace w/TDM program: Change in drive-alone mode share w/TDM program": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E73 
+    min:  0 
+    max:  100
+
+  "Residential TDM:": 
+    ptype: lever
+    dtype:  BOOL 
+    address:  Inputs!E74
+
+  "Residential TDM: % of residential growth in TDM regulated units": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E75 
+    min:  0 
+    max:  100
+
+  "Residential TDM: Mode shift of affected residents": 
+    ptype: lever
+    dtype:  INT 
+    address:  Inputs!E76 
+    min:  0 
+    max:  100
+  
+  
+outputs:
+  "GHG Change 2030: Clean Vehicles":
+    address:  Outputs!O4
+  "GHG Change 2030: Land Use":
+    address:  Outputs!O5
+  "GHG Change 2030: Transit":
+    address:  Outputs!O6
+  "GHG Change 2030: Active Transportation":
+    address:  Outputs!O7
+  "GHG Change 2030: CAV":
+    address:  Outputs!O8
+  "GHG Change 2030: Smart Mobility":
+    address:  Outputs!O9
+  "GHG Change 2030: Travel Pricing":
+    address:  Outputs!O10
+  "GHG Change 2030: TDM":
+    address:  Outputs!O11
+  "GHG Change 2030: Combined":
+    address:  Outputs!O12
+
+  "GHG Change 2050: Clean Vehicles":
+    address:  Outputs!P4
+  "GHG Change 2050: Land Use":
+    address:  Outputs!P5
+  "GHG Change 2050: Transit":
+    address:  Outputs!P6
+  "GHG Change 2050: Active Transportation":
+    address:  Outputs!P7
+  "GHG Change 2050: CAV":
+    address:  Outputs!P8
+  "GHG Change 2050: Smart Mobility":
+    address:  Outputs!P9
+  "GHG Change 2050: Travel Pricing":
+    address:  Outputs!P10
+  "GHG Change 2050: TDM":
+    address:  Outputs!P11
+  "GHG Change 2050: Combined":
+    address:  Outputs!P12

@@ -1,0 +1,135 @@
+---
+# EMAT Scope Definition
+# 
+
+scope:
+    name: core_dummy_test
+    desc: prototype run
+
+
+# Risk and Policy Variables -------------------------------------------------------
+#
+# available distributions: uniform, PERT, triangle, binary, constant
+#
+# Uniform takes no parameters
+# triangle takes one : peak
+# PERT takes two: peak and gamma
+# Constant takes no parameters (always returns 1 that is multiplied by default)
+#
+# Example implementation
+#
+#- Test Variable:
+#   type: exogenous uncertainty, policy lever or fixed
+#   desc: Example of a Risk or Policy Variable definition
+#   default: Default value of the variable
+#   active: Boolean to include variable as dimension in uncertainty/decision space
+#   min: 0
+#   max: 1
+#   dist: pert
+#       peak: .5
+#       gamma: 4
+#   corr: TBD
+
+inputs:
+
+    lever1:
+        ptype: lever
+        desc: Dummy Lever 1
+        dtype: float
+        default: 1.0
+        min: 0
+        max: 20
+        dist: uniform
+        corr: []
+
+    lever2:
+        ptype: lever
+        desc: Dummy Lever 2
+        dtype: float
+        default: 1.0
+        min: 0
+        max: 20
+        dist: uniform
+        corr: []
+
+    uncertain1:
+        ptype: constant
+        desc: Dummy Uncertainty 1
+        default: 2.0
+        min: 0
+        max: 3
+        dist: uniform
+        corr: []
+
+    uncertain2:
+        ptype: exogenous uncertainty
+        desc: Dummy Uncertainty 2
+        default: 1.0
+        min: 0
+        max: 5
+        dist: uniform
+        corr: []
+
+    uncertain3:
+        ptype: exogenous uncertainty
+        desc: Dummy Uncertainty 3
+        default: 1.0
+        min: 0
+        max: 5
+        dist: uniform
+        corr: []
+
+    certain4:
+        ptype: constant
+        desc: Dummy Uncertainty 4, which is actually constant
+        default: 2.0
+        min: 2
+        max: 2
+        dist: constant
+        corr: []
+
+    noise_amplitude:
+        ptype: exogenous uncertainty
+        desc: Dummy Uncertainty 5
+        dtype: float
+        default: 1.0
+        min: 0
+        max: 5
+        dist: uniform
+        corr: []
+
+    noise_frequency:
+        ptype: exogenous uncertainty
+        desc: Dummy Uncertainty 6
+        dtype: float
+        default: 1.0
+        min: 0
+        max: 10
+        dist: uniform
+        corr: []
+
+
+
+# Performance Measures -------------------------------------------------------
+# Categories represent any transformations on the performance measure
+# before deriving a meta model, supported transportations are
+#   none (no change)
+#   ln (natural log)
+#
+
+
+outputs:
+    pm_1:
+        kind: maximize
+    pm_2:
+        transform: ln
+        kind: minimize
+    pm_3:
+        kind: info
+    pm_4:
+        transform: ln
+        kind: info
+
+
+
+...

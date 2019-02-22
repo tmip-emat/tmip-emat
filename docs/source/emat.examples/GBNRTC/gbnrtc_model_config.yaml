@@ -1,0 +1,13 @@
+#
+# GBNRTC TransCAD configuration
+#
+
+# TDM Specific Settings
+mod_path: C:\Projects\160007-EMA\software\GBNRTC\2050_LRTP_Vision
+model_archive: X:\Proj\2016\160007 - FHWA Plan15_OnCall\006 - ExplrMdlSim\TDM_Results\GBNRTC
+
+# the next paths are input directly to TransCAD and require double backslashes
+tdm_ui: C:\\Projects\\160007-EMA\\software\\GBNRTC\\UI\\GBNRTC_ui.dbd
+exp_param_ui: C:\\Projects\\160007-EMA\\software\\GBNRTC\\UI\\GBNRTC_expparams.dbd
+perf_meas_ui: C:\\Projects\\160007-EMA\\software\\GBNRTC\\UI\\GBNRTC_perfmeas.dbd
+tc_version_path: C:\\Program Files\\TransCAD 6.0\\

@@ -1,0 +1,231 @@
+---
+# EMAT Scope Definition
+# 
+
+scope:
+    name: GBNRTC
+    desc: EMAT Prototype using TransCAD
+
+inputs:
+
+    ## UNCERTAINTIES ##
+
+    Land Use - CBD Focus:
+        ptype: exogenous uncertainty
+        desc: Change in overall land use with greatest effect in CBD
+        default: 1.0
+        min: 0.82
+        max: 1.37
+        dist:
+            name: pert
+            rel_peak: 0.33
+            gamma: 4
+        corr: []
+
+    Freeway Capacity:
+        ptype: exogenous uncertainty
+        desc: Change in freeway capacity due to Vehicle Technology
+        default: 1.0
+        min: 1.0
+        max: 2.0
+        dist:
+            name: triangle
+            rel_peak: 0.5
+        corr: []
+        
+    Auto IVTT Sensitivity:
+        ptype: exogenous uncertainty
+        desc: Change in sensitivity to Auto travel time due to Vehicle Technology
+        default: 1.0
+        min: 0.75
+        max: 1.0
+        dist:
+            name: triangle
+            rel_peak: 0.5
+        corr: []
+        
+    Shared Mobility:
+        ptype: exogenous uncertainty
+        desc: Change in vehicle availability to represent ubiquity of shared mobility
+        default: 0
+        min: 0
+        max: 1.0
+        dist:
+            name: pert
+            rel_peak: 0.5
+            gamma: 4
+        corr: []
+    
+    ## LEVERS ##  
+        
+    Kensington Decommissioning:
+        ptype: policy lever
+        dtype: bool
+        desc: Change Kensington facility type from divided highway to arterial
+        default: 0
+        min: 0 
+        max: 1
+        dist: binary
+        corr: []
+        
+    LRT Extension:
+        ptype: policy lever
+        dtype: bool
+        desc: Amherst LRT extended to UB campus
+        default: 0
+        min: 0 
+        max: 1
+        dist: binary
+        corr: []
+
+
+# Performance Measures -------------------------------------------------------
+#
+
+outputs:
+
+    Region-wide VMT:
+#        transform: log
+        kind: minimize
+        metamodeltype: log-linear
+    Interstate + Expressway + Ramp/Connector VMT:
+        transform: log
+        kind: minimize
+    Major and Minor Arterials VMT:
+        transform: log
+        kind: minimize
+    Total Auto VMT:
+        transform: log
+        kind: minimize
+    Total Truck VMT:
+        transform: log
+        kind: minimize
+
+    AM Trip Time (minutes):
+        transform: log
+        kind: minimize
+    AM Trip Length (miles):
+        transform: log
+        kind: minimize
+    PM Trip Time (minutes):
+        transform: log
+        kind: minimize
+    PM Trip Length (miles):
+        transform: log
+        kind: minimize
+
+    Total Transit Boardings:
+        transform: log
+        kind: maximize
+    Total LRT Boardings:
+        transform: log
+        kind: maximize
+
+    Downtown to Airport Travel Time:
+        transform: log
+        kind: minimize
+    Households within 30 min of CBD:
+        transform: log
+        kind: minimize
+    Number of Home-based work tours taking <= 45 minutes via transit:
+        transform: log
+        kind: minimize
+
+    Corridor Kensington Daily VMT:
+        transform: log
+        kind: minimize
+    Corridor Kensington Daily VHT:
+        transform: log
+        kind: minimize
+    Corridor Kensington_OB PM VMT:
+        transform: log
+        kind: minimize
+    Corridor Kensington_OB PM VHT:
+        transform: log
+        kind: minimize
+    Corridor Kensington_IB AM VMT:
+        transform: log
+        kind: minimize
+    Corridor Kensington_IB AM VHT:
+        transform: log
+        kind: minimize
+    Corridor 190 Daily VMT:
+        transform: log
+        kind: minimize
+    Corridor 190 Daily VHT:
+        transform: log
+        kind: minimize
+    Corridor 190_OB Daily VMT:
+        transform: log
+        kind: minimize
+    Corridor 190_OB Daily VHT:
+        transform: log
+        kind: minimize
+    Corridor 190_IB Daily VMT:
+        transform: log
+        kind: minimize
+    Corridor 190_IB Daily VHT:
+        transform: log
+        kind: minimize
+    Corridor 33_west Daily VMT:
+        transform: log
+        kind: minimize
+    Corridor 33_west Daily VHT:
+        transform: log
+        kind: minimize
+    Corridor I90_south Daily VMT:
+        transform: log
+        kind: minimize
+    Corridor I90_south Daily VHT:
+        transform: log
+        kind: minimize
+
+    # distribution
+
+    OD Volume District 1 to 1:
+        transform: log
+        kind: info
+    OD Volume District 1 to 2:
+        transform: log
+        kind: info
+    OD Volume District 1 to 3:
+        transform: log
+        kind: info
+    OD Volume District 1 to 4:
+        transform: log
+        kind: info
+    OD Volume District 1 to 5:
+        transform: log
+        kind: info
+    OD Volume District 1 to 6:
+        transform: log
+        kind: info
+    OD Volume District 1 to 7:
+        transform: log
+        kind: info
+    OD Volume District 1 to 8:
+        transform: log
+        kind: info
+    OD Volume District 1 to 9:
+        transform: log
+        kind: info
+    OD Volume District 1 to 10:
+        transform: log
+        kind: info
+
+    # transit measures with no transform
+
+    Peak Transit Share:
+        kind: maximize
+    Peak NonMotorized Share:
+        kind: maximize
+    Off-Peak Transit Share:
+        kind: maximize
+    Off-Peak NonMotorized Share:
+        kind: maximize
+    Daily Transit Share:
+        kind: maximize
+    Daily NonMotorized Share:
+        kind: maximize
+
+...

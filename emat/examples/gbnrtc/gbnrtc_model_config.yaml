@@ -1,0 +1,14 @@
+#
+# GBNRTC TransCAD configuration
+#
+
+# EMAT Settings
+model_path: .\GBNRTC\2050_LRTP_Vision
+model_archive: archive
+
+# TransCAD Settings
+# the next paths are input directly to TransCAD and require double backslashes
+tdm_ui:  GBNRTC\\UI\\GBNRTC_ui.dbd
+exp_param_ui: GBNRTC\\UI\\GBNRTC_expparams.dbd
+perf_meas_ui: GBNRTC\\UI\\GBNRTC_perfmeas.dbd
+tc_version_path: C:\\Program Files\\TransCAD 6.0\\

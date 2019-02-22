@@ -1,0 +1,250 @@
+---
+# EMAT Scope Definition
+# 
+
+scope:
+    name: 20181101
+    desc: prototype run
+
+
+inputs:
+    Land Use - CBD Focus:
+        ptype: exogenous uncertainty
+        desc: Change in overall land use with greatest effect in CBD
+        default: 1.0
+        min: 0.82
+        max: 1.37
+        dist:
+            name: pert
+            rel_peak: 0.33
+            gamma: 4
+        corr: []
+
+    TestRiskVar:
+        ptype: fixed
+        desc: Test Variable
+        default: 1.0
+        min: 1.0
+        max: 1.0
+        dist: constant
+        corr: []
+
+    Freeway Capacity:
+        ptype: exogenous uncertainty
+        desc: Change in freeway capacity due to Vehicle Technology
+        default: 1.0
+        min: 1.0
+        max: 2.0
+        dist:
+            name: triangle
+            rel_peak: 0.5
+        corr: []
+        
+    Auto IVTT Sensitivity:
+        ptype: exogenous uncertainty
+        desc: Change in sensitivity to Auto travel time due to Vehicle Technology
+        default: 1.0
+        min: 0.75
+        max: 1.0
+        dist:
+            name: triangle
+            rel_peak: 0.5
+        corr: []
+        
+    Shared Mobility:
+        ptype: exogenous uncertainty
+        desc: Change in vehicle availability to represent ubiquity of shared mobility
+        default: 0
+        min: 0
+        max: 1.0
+        dist:
+            name: pert
+            rel_peak: 0.5
+            gamma: 4
+        corr: []
+        
+#strategy_variables:
+    Kensington Decommissioning:
+        ptype: policy lever
+        desc: Change Kensington facility type from divided highway to arterial
+        dtype: bool
+        default: false
+
+    LRT Extension:
+        ptype: policy lever
+        desc: Amherst LRT extended to UB campus
+        dtype: bool
+        default: false
+
+
+
+# Measures -------------------------------------------------------
+#
+
+outputs:
+# regional measures
+    Region-wide VMT:
+        transform: log
+        kind: minimize
+    Interstate + Expressway + Ramp/Connector VMT:
+        transform: log
+        kind: minimize
+    Major and Minor Arterials VMT:
+        transform: log
+        kind: minimize
+    Total Auto VMT:
+        transform: log
+        kind: minimize
+    Total Truck VMT:
+        transform: log
+        kind: minimize
+    AM Trip Time (minutes):
+        transform: log
+        kind: minimize
+    AM Trip Length (miles):
+        transform: log
+        kind: minimize
+    PM Trip Time (minutes):
+        transform: log
+        kind: minimize
+    PM Trip Length (miles):
+        transform: log
+        kind: minimize
+# transit
+    Peak Walk-to-transit Boarding:
+        transform: log
+        kind: maximize
+    Off-Peak Walk-to-transit Boarding:
+        transform: log
+        kind: maximize
+    Peak Drive-to-transit Boarding:
+        transform: log
+        kind: maximize
+    Off-Peak Drive-to-transit Boarding:
+        transform: log
+        kind: maximize
+    Total Transit Boardings:
+        transform: log
+        kind: maximize
+    Peak Walk-to-transit LRT Boarding:
+        transform: log
+        kind: maximize
+    Off-Peak Walk-to-transit LRT Boarding:
+        transform: log
+        kind: maximize
+    Peak Drive-to-transit LRT Boarding:
+        transform: log
+        kind: maximize
+    Off-Peak Drive-to-transit LRT Boarding:
+        transform: log
+        kind: maximize
+    Total LRT Boardings:
+        transform: log
+        kind: maximize
+# corridor
+    Kensington Daily VMT:
+        transform: log
+        kind: minimize
+    Kensington Daily VHT:
+        transform: log
+        kind: minimize
+    Kensington_OB PM VMT:
+        transform: log
+        kind: minimize
+    Kensington_OB PM VHT:
+        transform: log
+        kind: minimize
+    Kensington_IB AM VMT:
+        transform: log
+        kind: minimize
+    Kensington_IB AM VHT:
+        transform: log
+        kind: minimize
+    190 Daily VMT:
+        transform: log
+        kind: minimize
+    190 Daily VHT:
+        transform: log
+        kind: minimize
+    190_OB Daily VMT:
+        transform: log
+        kind: minimize
+    190_OB Daily VHT:
+        transform: log
+        kind: minimize
+    190_IB Daily VMT:
+        transform: log
+        kind: minimize
+    190_IB Daily VHT:
+        transform: log
+        kind: minimize
+    33_west Daily VMT:
+        transform: log
+        kind: minimize
+    33_west Daily VHT:
+        transform: log
+        kind: minimize
+    I90_south Daily VMT:
+        transform: log
+        kind: minimize
+    I90_south Daily VHT:
+        transform: log
+        kind: minimize
+# accessibility
+    Downtown to Airport Travel Time:
+        transform: log
+        kind: minimize
+    Households within 30 min of CBD:
+        transform: log
+        kind: maximize
+    Number of Home-based work tours taking <= 45 minutes via transit:
+        transform: log
+        kind: maximize
+# distribution
+    OD Volume District 1 to 1:
+        transform: log
+        kind: info
+    OD Volume District 1 to 2:
+        transform: log
+        kind: info
+    OD Volume District 1 to 3:
+        transform: log
+        kind: info
+    OD Volume District 1 to 4:
+        transform: log
+        kind: info
+    OD Volume District 1 to 5:
+        transform: log
+        kind: info
+    OD Volume District 1 to 6:
+        transform: log
+        kind: info
+    OD Volume District 1 to 7:
+        transform: log
+        kind: info
+    OD Volume District 1 to 8:
+        transform: log
+        kind: info
+    OD Volume District 1 to 9:
+        transform: log
+        kind: info
+    OD Volume District 1 to 10:
+        transform: log
+        kind: info
+# transit measures with no transform
+    Peak Transit Share:
+        kind: maximize
+    Peak NonMotorized Share:
+        kind: maximize
+    Off-Peak Transit Share:
+        kind: maximize
+    Off-Peak NonMotorized Share:
+        kind: maximize
+    Daily Transit Share:
+        kind: maximize
+    Daily NonMotorized Share:
+        kind: maximize
+
+
+
+...

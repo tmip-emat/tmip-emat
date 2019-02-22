@@ -1,0 +1,32 @@
+
+@import url("theme.css");
+
+
+.wy-nav-content {
+    max-width: 1200px !important;
+}
+
+.wy-nav-content .section p,
+.wy-nav-content .section ul,
+.wy-nav-content .section dd,
+.wy-nav-content .section dl,
+.wy-nav-content div.admonition,
+.wy-nav-content div.line-block
+{
+    max-width: 600px;
+}
+
+.rst-content table.field-list td li p {
+    font-size: 100%;
+    line-height: 24px;
+}
+
+
+img.banner {
+    float: none !important;
+}
+
+img.screencap {
+    float: none !important;
+    max-width: 800px;
+}

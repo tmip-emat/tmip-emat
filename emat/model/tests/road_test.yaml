@@ -1,0 +1,156 @@
+---
+# EMAT Road Test Scope Definition
+
+scope:
+    name: EMAT Road Test
+    desc: prototype run
+
+
+inputs:
+
+    free_flow_time:
+        ptype: constant
+        desc: Free flow travel time on road segment
+        dtype: float
+        default: 60
+        dist: constant
+        corr: []
+
+    initial_capacity:
+        ptype: constant
+        desc: Initial capacity on road segment
+        dtype: float
+        default: 100
+        dist: constant
+        corr: []
+
+    alpha:
+        ptype: uncertainty
+        desc: BPR Alpha parameter
+        dtype: float
+        default: 0.15
+        min: 0.10
+        max: 0.20
+        dist: uniform
+        corr: []
+
+    beta:
+        ptype: uncertainty
+        desc: BPR Beta parameter
+        default: 4.0
+        min: 3.5
+        max: 5.5
+        dist: uniform
+        corr: []
+
+    input_flow:
+        ptype: uncertainty
+        desc: Average Flow input on link
+        default: 100
+        min: 80
+        max: 150
+        dist: uniform
+        corr: []
+
+    value_of_time:
+        ptype: uncertainty
+        desc: Value of a unit of travel time savings per person
+        default: 0.01
+        min: 0.001
+        max: 0.08
+        dist: uniform
+        corr: []
+
+    unit_cost_expansion:
+        ptype: uncertainty
+        desc: Per unit cost of capacity expansion
+        dtype: float
+        default: 100
+        min: 95
+        max: 145
+        dist: uniform
+        corr: []
+
+    expand_capacity:
+        ptype: policy lever
+        desc: How much to expand capacity
+        dtype: float
+        default: 0.0
+        min: 0
+        max: 100
+
+    amortization_period:
+        ptype: policy lever
+        desc: Time period over which the investment is amortized
+        dtype: int
+        default: 30
+        min: 15
+        max: 50
+
+    debt_type:
+        desc: Type of financing
+        ptype: policy lever
+        dtype: cat
+        default: GO Bond
+        values:
+            - GO Bond
+            - Rev Bond
+            - Paygo
+
+    interest_rate_lock:
+        ptype: policy lever
+        desc: Whether to lock in present interest rates of 0.03 (15 year) to 0.04 (50 years)
+        dtype: bool
+        default: False
+
+    interest_rate:
+        ptype: uncertainty
+        desc: Interest rate for investment amortization in 15 years
+        dtype: float
+        default: 0.03
+        min: 0.025
+        max: 0.04
+        dist: uniform
+        corr: []
+
+    yield_curve:
+        ptype: uncertainty
+        desc: Excess interest rate for investment amortization in 50 years
+        dtype: float
+        default: 0.01
+        min: -0.0025
+        max: 0.02
+        dist: uniform
+        corr: []
+
+
+outputs:
+
+    no_build_travel_time:
+        kind: info
+        metamodeltype: logxp-linear(-59)
+
+    build_travel_time:
+        kind: minimize
+        metamodeltype: logxp-linear(-59)
+
+    time_savings:
+        kind: maximize
+        metamodeltype: log-linear
+
+    value_of_time_savings:
+        kind: maximize
+        metamodeltype: log-linear
+
+    net_benefits:
+        kind: maximize
+
+    cost_of_capacity_expansion:
+        kind: minimize
+        metamodeltype: log-linear
+
+    present_cost_expansion:
+        kind: info
+        metamodeltype: log-linear
+
+...
