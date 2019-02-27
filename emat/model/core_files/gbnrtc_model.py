@@ -488,7 +488,7 @@ class GBNRTCModel(FilesCoreModel):
         ),
 
         TableParser(
-            "hh_within_30min.csv",
+            "HH_within_30min.csv",
             {
                 "Households within 30 min of CBD": loc[0, 'HHs within 30 min of CBD'],
             }
