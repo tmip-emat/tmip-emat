@@ -29,7 +29,6 @@ before_install:
 - pip install nose-exclude
 - pip install salib
 - pip install future
-# jpype installation code to be added
 
 install:
   - pip install .
