@@ -1,6 +1,6 @@
 
 from ..database.database import Database
-import plotly_nb
+from ..viz.scatter import scatter_graph_row
 
 def scatter_graphs(
 		column,
@@ -75,7 +75,7 @@ def scatter_graphs(
 		else:
 			marker_opacity = 1.0
 
-	fig = plotly_nb.scatter_graph_row(
+	fig = scatter_graph_row(
 		[c for c in contrast if c in data.columns],
 		column,
 		df = data,

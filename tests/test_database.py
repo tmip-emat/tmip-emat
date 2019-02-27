@@ -192,6 +192,13 @@ class TestDatabaseGZ():
         assert db.read_scope_names() == ['EMAT Road Test']
 
         s1 = db.read_scope('EMAT Road Test')
+
+
+        assert type(s1) == type(s)
+
+        for k in ('_x_list', '_l_list', '_c_list', '_m_list', 'name', 'desc'):
+            assert getattr(s,k) == getattr(s1,k), k
+
         assert s == s1
 
         experiments = db.read_experiment_all('EMAT Road Test', 'lhs')

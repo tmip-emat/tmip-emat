@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Nov  5 18:50:28 2018
 
-@author: mmilkovits
-"""
 import os
 import re
-
-from ez_setup import use_setuptools
-use_setuptools()
-
+from setuptools import setup, find_packages
 
 def version(path):
     """Obtain the packge version from a python file e.g. pkg/__init__.py
@@ -26,21 +19,29 @@ def version(path):
 
 VERSION = version('emat/__init__.py')
 
-from setuptools import setup, find_packages
+with open('requirements.txt') as f:
+    requirements_lines = f.readlines()
+install_requires = [r.strip() for r in requirements_lines]
+
+def recursive_glob(front, back):
+    return [os.path.join(front, *(['*']*i), back) for i in range(10)]
 
 setup(
     name='emat',
     version=VERSION,
     packages=find_packages(),
-    install_requires=[
-        'numpy',
-        'pandas',
-        'appdirs',
-        'pydot',
-        'plotly',
-        'scipy',
-        'seaborn',
-        'ema_workbench',
-    ],
+    package_data={
+        # If sub-package contains these types of files, include them:
+        'emat': [
+            'model/tests/*.yaml',
+            'scope/tests/*.yaml',
+            'database/sqlite/*.sql',
+            *recursive_glob('examples', '*.yaml'),
+            *recursive_glob('examples', '*.csv'),
+            *recursive_glob('examples', '*.xlsx'),
+            *recursive_glob('examples', '*.db.gz'),
+        ],
+    },
+    install_requires=install_requires,
 )
 

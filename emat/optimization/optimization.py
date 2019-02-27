@@ -1,7 +1,8 @@
 
 from ema_workbench.em_framework.optimization import AbstractConvergenceMetric, Hypervolume, to_dataframe
 import pandas
-import plotly_nb
+from ..viz.line import line_graph
+from ..viz.table import table_figure
 from ipywidgets import widgets
 from IPython.display import display_html
 
@@ -16,7 +17,7 @@ class EpsilonProgress(AbstractConvergenceMetric):
 
 	def __init__(self):
 		super(EpsilonProgress, self).__init__("epsilon_progress")
-		self.figure = plotly_nb.line_graph(
+		self.figure = line_graph(
 			X=None, Y=None, widget=True, title="ε-Progress", xtitle='Generation', interpolate='linear',
 		)
 
@@ -48,7 +49,7 @@ class HyperVolume(AbstractConvergenceMetric):
 	def __init__(self, minimum, maximum):
 		super(HyperVolume, self).__init__("hypervolume")
 		self.hypervolume_func = Hypervolume(minimum=minimum, maximum=maximum)
-		self.figure = plotly_nb.line_graph(
+		self.figure = line_graph(
 			X=None, Y=None, widget=True, title = "Hypervolume", xtitle='Generation', interpolate='linear',
 		)
 
@@ -101,7 +102,7 @@ class SolutionViewer(AbstractConvergenceMetric):
 	def __init__(self, decision_varnames, outcome_varnames, dataframe_processor=None):
 		super().__init__('archive_viewer')
 
-		self.figure = plotly_nb.table_figure(
+		self.figure = table_figure(
 			pandas.DataFrame(
 				data=None,
 				index=[],

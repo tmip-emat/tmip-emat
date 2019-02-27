@@ -128,7 +128,7 @@ class Scope:
     def __eq__(self, other):
         if type(other) != type(self):
             return False
-        for k in ('_x_list', '_l_list', '_c_list', '_m_list', 'name', 'desc', 'scope_file'):
+        for k in ('_x_list', '_l_list', '_c_list', '_m_list', 'name', 'desc'):
             if getattr(self,k) != getattr(other,k):
                 return False
         return True

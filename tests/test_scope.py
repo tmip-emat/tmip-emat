@@ -36,7 +36,7 @@ class TestScopeMethods(unittest.TestCase):
         # print(dumped)
         # print("="*40)
         loaded = Scope(scope_def=dumped, scope_file="fake/filename.yaml")
-        assert loaded != scp # because filename is intentionally different
+        assert loaded == scp # filename is intentionally different but let it go
         # but everything else is the same
         assert loaded.name == scp.name
         assert loaded.get_measures() == scp.get_measures()
@@ -44,7 +44,7 @@ class TestScopeMethods(unittest.TestCase):
         assert loaded.scope_file != scp.scope_file
         assert loaded.scope_file == "fake/filename.yaml"
 
-        # fix name, get equality
+        # fix name, still get equality
         loaded.scope_file = scp.scope_file
         assert loaded == scp
 
