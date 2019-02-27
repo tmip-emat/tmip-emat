@@ -1,5 +1,6 @@
 # Travis config for TMIP-EMAT
 
+dist: xenial
 language: python
 sudo: false
 
@@ -10,8 +11,6 @@ env:
 - DEPS="numpy matplotlib pandas jupyter ipyparallel nose pytest scikit-learn mock seaborn appdirs pydot plotly scipy"
 
 before_install:
-- "export DISPLAY=:99.0"
-- "sh -e /etc/init.d/xvfb start"
 - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH="$HOME/miniconda/bin:$PATH"
@@ -21,7 +20,7 @@ before_install:
 - conda update -q conda --no-deps
 - conda info -a # Useful for debugging any issues with conda
 - conda install --yes $DEPS # Replace dep1 dep2 ... with your dependencies
-- conda install ema_workbench -c jpn
+- conda install ema_workbench -c jpn -c conda-forge
 - pip install zmq # zmq is not available via conda for some reason
 - pip install pydotplus
 - pip install coveralls
