@@ -11,6 +11,7 @@ Exploratory Scoping
     parameters
     measures
     boxes
+    scope.file
 
 
 
@@ -45,7 +46,11 @@ designate a set of relevant features, which are not themselves constrained
 but should be considered in any analytical report developed based on that
 |Box|.
 
+.. rubric:: :doc:`Scope File<scope.file>`
 
+The |Scope File| is where the scope is defined for the analysis. The file is
+implemented in YAML and contains the selected uncertainties, levers, and measures
+for the analysis. This file is used when initializing an EMAT Scope.
 
 
 .. |Scope| replace:: :class:`Scope`
@@ -54,3 +59,4 @@ but should be considered in any analytical report developed based on that
 .. |parameters| replace:: :term:`parameters <parameter>`
 .. |measures| replace:: :term:`measures <measure>`
 .. |Box| replace:: :class:`Box`
+.. |Scope File| replace:: :class:`Scope File`

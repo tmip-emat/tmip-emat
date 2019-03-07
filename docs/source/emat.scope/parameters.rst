@@ -1,5 +1,6 @@
 .. py:currentmodule:: emat
 
+.. _input_parameters:
 
 Parameters
 ----------

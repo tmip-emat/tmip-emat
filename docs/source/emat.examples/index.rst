@@ -18,6 +18,7 @@ Examples
     - :ref:`Scope File <road_test_scope_file>`
     - :doc:`Exploratory Analysis <RoadTest/road_test_direct>`
 
+.. _gbnrtc-example-model:
 
 * :doc:`GBNRTC/gbnrtc_example`
 

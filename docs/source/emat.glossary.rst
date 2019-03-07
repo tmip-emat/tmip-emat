@@ -109,7 +109,7 @@ that are specifically tailored to the TMIP-EMAT approach demonstrated here.
 
     XLRM
         A general framework for conducting exploratory analysis, as proposed in
-        :ref:`Lembert et al (2003) <Lempert2003>`.
+        :ref:`Lempert et al (2003) <Lempert2003>`.
         The letters refer two four principal components of the analysis:
 
         - **X**: |uncertainties|

@@ -1,5 +1,6 @@
 .. py:currentmodule:: emat
 
+.. _output_measures:
 
 Performance Measures
 --------------------
