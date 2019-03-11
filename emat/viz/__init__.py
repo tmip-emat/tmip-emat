@@ -1,6 +1,7 @@
 
 from ..database.database import Database
 from ..viz.scatter import scatter_graph_row
+from ..util import xmle
 
 def scatter_graphs(
 		column,
@@ -85,7 +86,7 @@ def scatter_graphs(
 	if render:
 		if render == 'png':
 			render = dict(format='png', width=1400, height=400, scale=2)
-		import xmle
+
 		import plotly.io as pio
 		img_bytes = pio.to_image(fig, **render)
 		return xmle.Elem.from_any(img_bytes)
@@ -115,7 +116,6 @@ def heatmap_table(
 		xmle.Elem: The xml data for a svg rendering.
 	"""
 	import seaborn as sns
-	import xmle
 	from matplotlib import pyplot as plt
 	fig, ax = plt.subplots(figsize=figsize)
 	axes = sns.heatmap(data, ax=ax, cmap=cmap, annot=True, fmt=fmt, linewidths=linewidths, **kwargs)
