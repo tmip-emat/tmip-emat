@@ -148,7 +148,7 @@ class XHTML():
 		elif filename.lower() == "temp":
 			filemaker = lambda: TemporaryHtml(nohead=True)
 		else:
-			from filez import open_file_writer
+			from ..filez import open_file_writer
 			filemaker = lambda: open_file_writer(filename, binary=True, overwrite=overwrite, archive_dir=archive_dir)
 		self._filename = filename
 		self._f = filemaker()

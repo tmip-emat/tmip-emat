@@ -2,7 +2,7 @@
 import os
 import re
 from io import BytesIO, StringIO, BufferedIOBase, TextIOBase
-import filez
+from .. import filez
 
 from .elem import Elem
 
