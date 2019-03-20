@@ -2,6 +2,7 @@
 
 import os
 import re
+import inspect
 import xml.etree.ElementTree
 from xml.etree.ElementTree import Element, SubElement, TreeBuilder, XMLParser
 from contextlib import contextmanager
@@ -117,7 +118,7 @@ class Elem(Element):
 					pass
 		if isinstance(arg, pandas.DataFrame):
 			return cls.from_dataframe(arg)
-		if 'plotly' in str(type(arg)):
+		if 'plotly' in str(type(arg)) or any('plotly' in str(i) for i in inspect.getmro(type(arg))):
 			import plotly.io as pio
 			# import platform
 			# if platform.system() == 'Windows':
