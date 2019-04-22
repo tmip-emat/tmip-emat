@@ -647,6 +647,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             self,
             design,
             return_raw=False,
+            random_state=None,
     ):
         """
         Calculate feature scores based on a design of experiments.
@@ -680,7 +681,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         else:
             raise TypeError('must name design or give DataFrame')
 
-        fs = feature_scoring.get_feature_scores_all(inputs, outcomes)
+        fs = feature_scoring.get_feature_scores_all(inputs, outcomes, random_state=random_state)
         if return_raw:
             return fs
         return heatmap_table(
