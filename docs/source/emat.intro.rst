@@ -122,10 +122,10 @@ Inputs
 Outputs
 ~~~~~~~
 
-*   A primary output of TMIP-EMAT is a database of Monte Carlo Simulation runs of
+*   A primary output of TMIP-EMAT is a database of simulation runs of
     the model, including the associated uncertainty and policy lever inputs for
     each simulation and the performance metric outputs for each run.
-    TMIP-EMAT uses a Monte Carlo simulation to sample across the uncertainty inputs
+    TMIP-EMAT uses either a Monte Carlo or Latin Hypercube approach to sample across the uncertainty inputs
     from their defined distributions and to sample across the potential values of
     each lever.  For each simulation, the collection of model inputs is used along
     with the core model (or meta-model representations of the core model) to generate
