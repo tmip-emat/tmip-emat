@@ -12,6 +12,19 @@ designate a set of relevant features, which are not themselves constrained
 but should be considered in any analytical report developed based on that
 |Box|.
 
+A |Box| can be created manually as part of the scoping process. For example,
+the initially defined scope may be too broad or may include more uncertainties
+or policy levers than an analyst wishes to study at a particular time.  For this
+situation, a |Box| can be used to define a more limited scope for study, by
+limiting the ranges of some set of |parameters|.  It is possible to effectively
+remove parameters from analysis by setting the minimum and maximum values to
+the same value (for scalar parameters) or by limiting the allowed set of values
+to a single value (for categorical parameters).  It is also possible to include
+|measures| in the set of restrictions, which results in a different kind of
+exploratory analysis, where the analyst can undertake scenario discovery, to
+analyze the variety of input values that might lead to certain kinds of output
+values.
+
 Box
 ---
 .. autoclass:: Box
