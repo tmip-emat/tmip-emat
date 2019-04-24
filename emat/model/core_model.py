@@ -351,6 +351,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         (a Policy). Unlike the perform_experiments function in the EMA Workbench,
         this method pairs each Scenario and Policy in sequence, instead
         of running all possible combinations of Scenario and Policy.
+        This change ensures compatability with the EMAT database modules, which
+        preserve the complete set of input information (both uncertainties
+        and levers) for each experiment.  To conduct a full cross-factorial set
+        of experiments similar to the default settings for EMA Workbench,
+        use a factorial design, by setting the `jointly` argument for the
+        `design_experiments` to False, or by designing experiments outside
+        of EMAT with your own approach.
 
         Args:
             design (pandas.DataFrame, optional): experiment definitions
