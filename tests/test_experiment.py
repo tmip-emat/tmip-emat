@@ -39,6 +39,23 @@ class TestExperimentMethods(unittest.TestCase):
         exp_def2 = self.db_test.read_experiment_parameters(self.scp.name,'lhs')
         assert (exp_def[exp_def2.columns] == exp_def2).all().all()
 
+    def test_latin_hypercube_not_joint(self):
+        exp_def = self.scp.design_experiments(
+            n_samples_per_factor=5,
+            random_seed=1234,
+            sampler='lhs',
+            db=self.db_test,
+            jointly=False,
+            design_name='lhs_not_joint',
+        )
+        assert len(exp_def) == len(self.scp.get_uncertainties())*5 * len(self.scp.get_levers())*5
+        assert (exp_def['TestRiskVar'] == 1.0).all()
+        assert (exp_def['Land Use - CBD Focus']).mean() == approx(1.033, abs=1e-2)
+        assert (exp_def['Freeway Capacity']).mean() == approx(1.5, abs=1e-2)
+
+        exp_def2 = self.db_test.read_experiment_parameters(self.scp.name,'lhs_not_joint')
+        assert (exp_def[exp_def2.columns] == exp_def2).all().all()
+
     def test_monte_carlo(self):
         exp_def = self.scp.design_experiments(
             n_samples_per_factor=10,

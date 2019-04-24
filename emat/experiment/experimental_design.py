@@ -30,6 +30,7 @@ def design_experiments(
         design_name: str = None,
         sampler = 'lhs',
         sample_from = 'all',
+        jointly = True,
 ):
     """
     Create a design of experiments based on a Scope.
@@ -38,8 +39,12 @@ def design_experiments(
         scope (Scope): The exploratory scope to use for the design.
         n_samples_per_factor (int, default 10): The number of samples in the
             design per random factor.
-        n_samples (int, optional): The total number of samples in the
-            design.  If this value is given, it overrides `n_samples_per_factor`.
+        n_samples (int or tuple, optional): The total number of samples in the
+            design.  If `jointly` is False, this is the number of samples in each
+            of the uncertainties and the levers, the total number of samples will
+            be the square of this value.  Give a 2-tuple to set values for
+            uncertainties and levers respectively, to set them independently.
+            If this argument is given, it overrides `n_samples_per_factor`.
         random_seed (int or None, default 1234): A random seed for reproducibility.
         db (Database, optional): If provided, this design will be stored in the
             database indicated.
@@ -62,6 +67,11 @@ def design_experiments(
         sample_from ('all', 'uncertainties', or 'levers'): Which scope components
             from which to sample.  Components not sampled are set at their default
             values in the design.
+        jointly (bool, default True): Whether to sample jointly all uncertainties
+            and levers in a single design, or, if False, to generate separate samples
+            for levers and uncertainties, and then combine the two in a full-factorial
+            manner.  This argument has no effect unless `sample_from` is 'all'.
+            Note that jointly may produce a very large design;
 
     Returns:
         pandas.DataFrame: The resulting design.
@@ -101,21 +111,42 @@ def design_experiments(
                 n += 1
             design_name = f'{proposed_design_name}_{n}'
 
-    parms = []
-    if sample_from in ('all', 'uncertainties'):
-        parms += [ i for i in scope.get_uncertainties() ]
-    if sample_from in ('all', 'levers'):
-        parms += [i for i in scope.get_levers()]
 
-    if n_samples is None:
-        n_samples = n_samples_per_factor * len(parms)
+    if sample_from == 'all' and not jointly:
 
-    # if sample_from in ('all', 'constants'):
-    #     parms += [i.get_parameter() for i in scope.get_constants()]
+        if n_samples is None:
+            n_samples_u = n_samples_per_factor * len(scope.get_uncertainties())
+            n_samples_l = n_samples_per_factor * len(scope.get_levers())
+        elif isinstance(n_samples, tuple):
+            n_samples_u, n_samples_l = n_samples
+        else:
+            n_samples_u = n_samples_l = n_samples
 
-    samples = sample_generator.generate_designs(parms, n_samples)
-    samples.kind = dict
-    design = pd.DataFrame.from_records([_ for _ in samples])
+        samples_u = sample_generator.generate_designs(scope.get_uncertainties(), n_samples_u)
+        samples_u.kind = dict
+        design_u = pd.DataFrame.from_records([_ for _ in samples_u])
+
+        samples_l = sample_generator.generate_designs(scope.get_levers(), n_samples_l)
+        samples_l.kind = dict
+        design_l = pd.DataFrame.from_records([_ for _ in samples_l])
+
+        design_u["____"] = 0
+        design_l["____"] = 0
+        design = pd.merge(design_u, design_l, on='____')
+        design.drop('____', 1, inplace=True)
+
+    else:
+        parms = []
+        if sample_from in ('all', 'uncertainties'):
+            parms += [i for i in scope.get_uncertainties()]
+        if sample_from in ('all', 'levers'):
+            parms += [i for i in scope.get_levers()]
+
+        if n_samples is None:
+            n_samples = n_samples_per_factor * len(parms)
+        samples = sample_generator.generate_designs(parms, n_samples)
+        samples.kind = dict
+        design = pd.DataFrame.from_records([_ for _ in samples])
 
     if sample_from in ('all', 'constants'):
         for i in scope.get_constants():

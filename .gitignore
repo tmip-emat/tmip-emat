@@ -106,3 +106,4 @@ venv.bak/
 # gh-pages
 public/
 
+docs/source/emat.examples/RoadTest/dask-worker-space
