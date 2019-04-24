@@ -43,7 +43,7 @@ VERSION = version('../emat/__init__.py')
 # The short X.Y version
 version = VERSION
 # The full version, including alpha/beta/rc tags
-release = '{}, February 2019'.format(VERSION)
+release = '{}, April 2019'.format(VERSION)
 
 
 # -- General configuration ---------------------------------------------------
