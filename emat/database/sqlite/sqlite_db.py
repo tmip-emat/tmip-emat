@@ -352,25 +352,8 @@ class SQLiteDB(Database):
         result = self.read_experiment_ids(scope_name, design_name, xl_df)
         return result[0]
 
+    @copydoc(Database.read_experiment_ids)
     def read_experiment_ids(self, scope_name, design_name: str, xl_df: pd.DataFrame):
-        """Read the experiment ids previously defined in the database
-
-        Args:
-            scope_name (str): scope name, used to identify experiments,
-                performance measures, and results associated with this run
-            design_name (str or None): experiment design name.  Set to None
-                to find experiments across all designs.
-            xl_df (pandas.DataFrame): columns are experiment parameters,
-                each row is a full experiment
-
-        Returns:
-            list: the experiment id's of the identified experiments
-
-        Raises:
-            ValueError: If scope name does not exist
-            ValueError: If multiple experiments match an experiment definition.
-                This can happen, for example, if the definition is incomplete.
-        """
 
         # local cursor
         fcur = self.conn.cursor()
@@ -420,6 +403,33 @@ class SQLiteDB(Database):
             import warnings
             warnings.warn(f'missing {missing_ids} ids')
         return ex_ids
+
+    def read_all_experiment_ids(self, scope_name:str, design_name:str=None):
+        """Read the experiment ids previously defined in the database
+
+        Args:
+            scope_name (str): scope name, used to identify experiments,
+                performance measures, and results associated with this run
+            design_name (str or None): experiment design name.  Set to None
+                to find experiments across all designs.
+
+        Returns:
+            list: the experiment id's of the identified experiments
+
+        Raises:
+            ValueError: If scope name does not exist
+
+        """
+        
+        
+        scope_name = self._validate_scope(scope_name, 'design_name')
+        if design_name is None:
+            experiment_ids = [i[0] for i in self.cur.execute(sq.GET_EXPERIMENT_IDS_ALL,
+                                                             [scope_name] ).fetchall()]
+        else:
+            experiment_ids = [i[0] for i in self.cur.execute(sq.GET_EXPERIMENT_IDS_IN_DESIGN,
+                                                             [scope_name, design_name] ).fetchall()]
+        return experiment_ids
 
     def _validate_scope(self, scope_name, design_parameter_name="design_name"):
         """Validate the scope argument to a function."""
@@ -686,17 +696,6 @@ class SQLiteDB(Database):
         scope_name = self._validate_scope(scope_name, None)
         designs = [i[0] for i in self.cur.execute(sq.GET_DESIGN_NAMES, [scope_name] ).fetchall()]
         return designs
-
-    @copydoc(Database.read_experiment_ids)
-    def read_experiment_ids(self, scope_name:str, design_name:str=None):
-        scope_name = self._validate_scope(scope_name, 'design_name')
-        if design_name is None:
-            experiment_ids = [i[0] for i in self.cur.execute(sq.GET_EXPERIMENT_IDS_ALL,
-                                                             [scope_name] ).fetchall()]
-        else:
-            experiment_ids = [i[0] for i in self.cur.execute(sq.GET_EXPERIMENT_IDS_IN_DESIGN,
-                                                             [scope_name, design_name] ).fetchall()]
-        return experiment_ids
 
     @copydoc(Database.read_uncertainties)
     def read_uncertainties(self, scope_name:str) -> list:
