@@ -1,8 +1,8 @@
 
 from .. import package_file, Scope, PythonCoreModel, SQLiteDB
 
-def road_test(*args, **kwargs):
-	road_test_scope_file = package_file('model', 'tests', 'road_test.yaml')
+def road_test(*args, yamlfile='road_test.yaml', **kwargs):
+	road_test_scope_file = package_file('model', 'tests', yamlfile)
 	s = Scope(road_test_scope_file)
 	db = SQLiteDB(*args, **kwargs)
 	s.store_scope(db)
