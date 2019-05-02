@@ -162,3 +162,18 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
         xl_df = pandas.DataFrame(params, index=[experiment_id])
         xl_df.to_csv(model_results_path + r'_def.csv')
 
+    def run_experiment(self, experiment):
+        """
+        Running a single instantiated model experiment.
+
+        The results are passed through the performance measure
+        processing steps to generate results.
+
+        Args:
+            experiment (dict-like)
+
+        Returns:
+            dict
+        """
+        self.outcomes_output = super().run_experiment(experiment)
+        return self.outcomes_output
