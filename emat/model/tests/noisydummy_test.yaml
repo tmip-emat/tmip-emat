@@ -122,12 +122,12 @@ outputs:
     pm_1:
         kind: maximize
     pm_2:
-        transform: ln
+        transform: log
         kind: minimize
     pm_3:
         kind: info
     pm_4:
-        transform: ln
+        transform: log
         kind: info
 
 

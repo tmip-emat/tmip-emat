@@ -26,7 +26,7 @@ outputs:
     kind: info
   pm_2:
     kind: info
-    transform: ln
+    transform: log
 scope:
   desc: prototype run
   name: core_dummy_test

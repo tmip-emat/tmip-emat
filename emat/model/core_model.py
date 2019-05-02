@@ -585,7 +585,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             configuration = None,
             scope=scope_,
             safe=True,
-            db = self.db,
+            db = db,
             name=self.name+"Meta",
             metamodel_id=metamodel_id,
         )

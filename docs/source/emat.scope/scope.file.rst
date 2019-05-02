@@ -118,17 +118,21 @@ Outputs
 -------
 
 The **outputs:** section of the scoping file lists all the measures to be captured from the core model.
-Each output is declared individually along with information about any transportation that should be
+Each output is declared individually along with information about any transformation that should be
 taken in development of the meta-model and how the output should be treated in the automated analysis,
 for example with `EMA Workbench <https://github.com/quaquel/EMAworkbench/tree/v2>`_.
 
-For a full set of output options, see the :ref:`Measures <output_measures>` documentation.
+For a full set of output options, see the :ref:`Measures <output_measures>` documentation.  Within
+each output measure definition, any keyword argument for the constructor of a :class:`Measure` can
+be given in this scope file (with the exception of *function* arguments, which are disabled for
+security reasons; use the *transform* argument instead).
 
 The example output below shows an output measure that has a log transformation (the meta-model will
-estimation the log value of this measure) and the measure should be minimized in an automated analysis.
+be based on the log of the value of this measure, instead of the original raw value) and the measure
+should be minimized in an automated analysis.
 
 ::
 
     Example output measure 1:
-        transform: log
+        metamodeltype: log
         kind: minimize

@@ -13,10 +13,6 @@ class Measure(ScalarOutcome):
         kind (str or int, optional): one of {'info', 'minimize', 'maximize'},
             defaults to 'info' if not given. This represents the
             generally preferred direction of the measure.
-        transform (str, optional): what kind of post-processing
-            transformation should be applied to the measure before
-            subsequent analysis, if any. Currently only "ln" is
-            implemented.
         min (number, optional): An expected minimum value that
             might be observed under any policy and scenario.  This
             value is currently only used by the HyperVolume convergence
@@ -30,17 +26,75 @@ class Measure(ScalarOutcome):
             and can potentially be any Python object. For example, if the
             model is an Excel model, this can be a cell reference given
             as a `str`.
+        dtype (dtype, optional): The desired dtype to be enforced for this
+            measure, e.g. 'int', 'float32', etc.  This is optional, and if
+            not given, some default dtype will be used, typically whatever
+            is returned by the core model, or a `float` for metamodels.
+        function (callable, optional): A callable function that will be
+            used to transform the raw measure as returned by a core model.
+            This transformation will be applied to core model results by
+            the evaluator before they are returned to the user or stored
+            in a database. It is recommended that EMAT analysis work with the
+            original untransformed raw values, and employ the `metamodeltype`
+            functionality as required for non-linear responses.
+        transform (str, optional): As an alternative to passing a callable
+            object, use this argument to pass the name of a `numpy` function.
+            This argument is ignored if `function` is given.
+        variable_name (str, optional): The name of the raw measure as
+            output by the underlying core model. If not given, this name is
+            assumed to be the same as `name`.  If no `transform` is set,
+            it is strongly recommended to not give this argument either.
+            A principal use of this argument is to descriptively rename
+            measures that have been transformed, for example if the raw
+            output measure is 'Total VMT' and a log transform function is
+            applied, the result can be more descriptively renamed
+            as 'log(Total VMT)'.
+        metamodeltype (str, optional): The transformation type to use for
+            metamodel estimation.  This transformation is applied only
+            internally within the metamodel, and all inputs and outputs
+            passed to or from the metamodel will not appear in a transformed
+            state, including measure values stored within the database.
+            Available metamodel types include:
+
+            + *log*: The natural log of the performance measure is taken before
+              fitting the regression model.  This is appropriate only when the performance
+              measure will always give a strictly positive outcome. If the performance
+              measure can take on non-positive values, this may result in errors.
+
+            + *log1p*: The natural log of 1 plus the performance measure is taken before
+              fitting the regression model.  This is preferred to log-linear when the
+              performance measure is only guaranteed to be non-negative, rather than
+              strictly positive.
+
+            + *logxp(X)*: The natural log of X plus the performance measure is taken before
+              fitting the regression model.  This allows shifting the position of the
+              regression intercept to a point other than 0.
+
+            + *linear*: No transforms are made.  This is the default.
+
 
     Attributes:
         name (str): Name of the measure.
         kind (int): {MINIMIZE, MAXIMIZE, INFO}
-
+        transform (str): The name of the transform function, if any.
+        address (obj): The address or instruction for how to
+            extract this measure from the model.
+        metamodeltype (str): The transformation type to use for
+            metamodel estimation.
     '''
 
     def __init__(
-            self, name, kind=ScalarOutcome.INFO, transform=None,
-            min=None, max=None, address=None, variable_name=None,
-            function=None, dtype=None, metamodeltype=None,
+            self,
+            name,
+            kind=ScalarOutcome.INFO,
+            min=None,
+            max=None,
+            address=None,
+            dtype=None,
+            function=None,
+            transform=None,
+            variable_name=None,
+            metamodeltype=None,
     ):
 
         if isinstance(kind, str):
@@ -57,8 +111,8 @@ class Measure(ScalarOutcome):
             func = function
             if function is not None:
                 transform = f'f:{function}'
-        elif isinstance(transform, str) and transform.lower() in ('ln', 'log'):
-            func = numpy.log
+        elif isinstance(transform, str) and hasattr(numpy, transform):
+            func = getattr(numpy, transform)
         elif isinstance(transform, str) and transform.lower() in ('none',):
             func = None
         else:

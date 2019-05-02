@@ -87,7 +87,7 @@ outputs:
     Region-wide VMT:
 #        transform: log
         kind: minimize
-        metamodeltype: log-linear
+        metamodeltype: log
     Interstate + Expressway + Ramp/Connector VMT:
         transform: log
         kind: minimize

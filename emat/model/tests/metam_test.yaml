@@ -60,9 +60,9 @@ inputs:
 outputs:
     pm_1:
         kind: info
-        transform: ln
+        transform: log
     pm_2:
         kind: info
-        transform: ln
+        transform: log
 
 ...

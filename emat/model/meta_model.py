@@ -28,17 +28,17 @@ class MetaModel:
             the metamodel type for each performance measure, given as `str`.  Available
             metamodel types include:
 
-            + *log-linear*: The natural log of the performance measure is taken before
+            + *log*: The natural log of the performance measure is taken before
               fitting the regression model.  This is appropriate only when the performance
               measure will always give a strictly positive outcome. If the performance
               measure can take on non-positive values, this may result in errors.
 
-            + *log1p-linear*: The natural log of 1 plus the performance measure is taken before
+            + *log1p*: The natural log of 1 plus the performance measure is taken before
               fitting the regression model.  This is preferred to log-linear when the
               performance measure is only guaranteed to be non-negative, rather than
               strictly positive.
 
-            + *logxp-linear(X)*: The natural log of X plus the performance measure is taken before
+            + *logxp(X)*: The natural log of X plus the performance measure is taken before
               fitting the regression model.  This allows shifting the position of the
               regression intercept to a point other than 0.
 

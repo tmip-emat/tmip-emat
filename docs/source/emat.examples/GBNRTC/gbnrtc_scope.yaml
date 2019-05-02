@@ -85,132 +85,131 @@ inputs:
 outputs:
 
     Region-wide VMT:
-#        transform: log
+        metamodeltype: log
         kind: minimize
-        metamodeltype: log-linear
     Interstate + Expressway + Ramp/Connector VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Major and Minor Arterials VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Total Auto VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Total Truck VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
 
     AM Trip Time (minutes):
-        transform: log
+        metamodeltype: log
         kind: minimize
     AM Trip Length (miles):
-        transform: log
+        metamodeltype: log
         kind: minimize
     PM Trip Time (minutes):
-        transform: log
+        metamodeltype: log
         kind: minimize
     PM Trip Length (miles):
-        transform: log
+        metamodeltype: log
         kind: minimize
 
     Total Transit Boardings:
-        transform: log
+        metamodeltype: log
         kind: maximize
     Total LRT Boardings:
-        transform: log
+        metamodeltype: log
         kind: maximize
 
     Downtown to Airport Travel Time:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Households within 30 min of CBD:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Number of Home-based work tours taking <= 45 minutes via transit:
-        transform: log
+        metamodeltype: log
         kind: minimize
 
     Corridor Kensington Daily VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor Kensington Daily VHT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor Kensington_OB PM VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor Kensington_OB PM VHT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor Kensington_IB AM VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor Kensington_IB AM VHT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor 190 Daily VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor 190 Daily VHT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor 190_OB Daily VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor 190_OB Daily VHT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor 190_IB Daily VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor 190_IB Daily VHT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor 33_west Daily VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor 33_west Daily VHT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor I90_south Daily VMT:
-        transform: log
+        metamodeltype: log
         kind: minimize
     Corridor I90_south Daily VHT:
-        transform: log
+        metamodeltype: log
         kind: minimize
 
     # distribution
 
     OD Volume District 1 to 1:
-        transform: log
+        metamodeltype: log
         kind: info
     OD Volume District 1 to 2:
-        transform: log
+        metamodeltype: log
         kind: info
     OD Volume District 1 to 3:
-        transform: log
+        metamodeltype: log
         kind: info
     OD Volume District 1 to 4:
-        transform: log
+        metamodeltype: log
         kind: info
     OD Volume District 1 to 5:
-        transform: log
+        metamodeltype: log
         kind: info
     OD Volume District 1 to 6:
-        transform: log
+        metamodeltype: log
         kind: info
     OD Volume District 1 to 7:
-        transform: log
+        metamodeltype: log
         kind: info
     OD Volume District 1 to 8:
-        transform: log
+        metamodeltype: log
         kind: info
     OD Volume District 1 to 9:
-        transform: log
+        metamodeltype: log
         kind: info
     OD Volume District 1 to 10:
-        transform: log
+        metamodeltype: log
         kind: info
 
     # transit measures with no transform
