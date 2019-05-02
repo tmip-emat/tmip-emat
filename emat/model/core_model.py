@@ -630,8 +630,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 from ..exceptions import PendingExperimentsError
                 raise PendingExperimentsError(f'design "{design_name}" has pending experiments')
 
-        experiment_inputs = self.db.read_experiment_parameters(self.scope.name, design_name)
-        experiment_outputs = self.db.read_experiment_measures(self.scope.name, design_name)
+        experiment_inputs = db.read_experiment_parameters(self.scope.name, design_name)
+        experiment_outputs = db.read_experiment_measures(self.scope.name, design_name)
 
         transforms = {
             i.name: i.metamodeltype
