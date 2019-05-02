@@ -11,7 +11,7 @@ Basic EMAT Model API
     :exclude-members: create_metamodel_from_data,
         create_metamodel_from_design,
         setup, run,
-        run_experiments_from_design, run_experiments,
+        run_experiments,
         robust_optimize, read_experiments,
         read_experiment_parameters, read_experiment_measures,
         load_measures, post_process, get_experiment_archive_path, archive,
@@ -50,7 +50,6 @@ these model execution methods should not need to be overridden.
 
 .. automethod:: AbstractCoreModel.design_experiments
 .. automethod:: AbstractCoreModel.run_experiments
-.. automethod:: AbstractCoreModel.run_experiments_from_design
 .. automethod:: AbstractCoreModel.robust_optimize
 .. automethod:: AbstractCoreModel.get_feature_scores
 

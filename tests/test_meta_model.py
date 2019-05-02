@@ -42,7 +42,7 @@ class TestMetaModelMethods(unittest.TestCase):
         with pytest.raises(emat.PendingExperimentsError):
             m.create_metamodel_from_design('tiny', random_state=123)
 
-        m.run_experiments_from_design('tiny')
+        m.run_experiments(design_name='tiny')
 
         mm = m.create_metamodel_from_design('tiny', random_state=123)
         assert mm.scope == m.scope
