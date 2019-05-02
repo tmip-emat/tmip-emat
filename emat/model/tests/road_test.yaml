@@ -128,29 +128,29 @@ outputs:
 
     no_build_travel_time:
         kind: info
-        metamodeltype: logxp(-59)
+        metamodeltype: logxp-linear(-59)
 
     build_travel_time:
         kind: minimize
-        metamodeltype: logxp(-59)
+        metamodeltype: logxp-linear(-59)
 
     time_savings:
         kind: maximize
-        metamodeltype: log
+        metamodeltype: log-linear
 
     value_of_time_savings:
         kind: maximize
-        metamodeltype: log
+        metamodeltype: log-linear
 
     net_benefits:
         kind: maximize
 
     cost_of_capacity_expansion:
         kind: minimize
-        metamodeltype: log
+        metamodeltype: log-linear
 
     present_cost_expansion:
         kind: info
-        metamodeltype: log
+        metamodeltype: log-linear
 
 ...
