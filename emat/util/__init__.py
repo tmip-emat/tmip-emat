@@ -1,5 +1,6 @@
 
 from . import distributions
+from scipy.stats._distn_infrastructure import rv_frozen
 
 def close_excess_files():
 	import psutil
@@ -64,3 +65,37 @@ def make_rv_frozen(name=None, discrete=False, min=None, max=None, **kwargs):
 		if not isinstance(frozen.dist, distributions.rv_discrete):
 			raise TypeError(f"distribution named '{name}' is not discrete")
 	return frozen
+
+
+def rv_frozen_as_dict(frozen, min=None, max=None):
+	if not isinstance(frozen, rv_frozen):
+		return frozen
+	x = {'name': frozen.dist.name}
+	if frozen.args:
+		x['args'] = frozen.args
+	if frozen.kwds:
+		x.update(frozen.kwds)
+
+	if x.get('name') == 'uniform':
+		if min is not None and x.get('loc') == min:
+			if max is not None and x.get('scale') == max - min:
+				return 'uniform'
+		if min is not None and max is not None and x.get('args') == (min, max - min):
+			return 'uniform'
+
+	if x.get('name') == 'triang':
+		if min is not None and x.get('loc') == min:
+			if max is not None and x.get('scale') == max - min:
+				peak = x.get('c') * x.get('scale') + x.get('loc')
+				return { 'name':'triangle', 'peak':peak }
+
+	if x.get('name') == 'randint':
+		if min is not None and x.get('low') == min:
+			if max is not None and x.get('high') == max + 1:
+				return 'uniform'
+		if min is not None and max is not None and x.get('args') == (min, max + 1):
+			return 'uniform'
+
+	# ToDo, unravel pert
+
+	return x

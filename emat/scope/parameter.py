@@ -5,9 +5,10 @@ import numpy
 
 from ema_workbench.em_framework import parameters as workbench_param
 from scipy import stats
+from scipy.stats._distn_infrastructure import rv_frozen
 
 from ..util import distributions
-from ..util import make_rv_frozen
+from ..util import make_rv_frozen, rv_frozen_as_dict
 
 def standardize_parameter_type(original_type):
     """Standardize parameter type descriptions
@@ -106,14 +107,15 @@ def make_parameter(
             of {'constant', 'uncertainty', 'lever'}.
         min (numeric, optional): The minimum value for this parameter.
         max (numeric, optional): The maximum value for this parameter.
-        dist (str or Mapping, optional): A definition of a distribution
+        dist (str or Mapping or rv_frozen, optional): A definition of a distribution
             to use for this parameter, which is only relevant for uncertainty
             parameters.  Can be specified just as the name of the distribution
             when that distribution is parameterized only by the min and max
             (e.g., 'uniform'). If the distribution requires other parameters,
             this argument should be a Mapping, with keys including 'name' for
             the name of the distribution, as well as giving one or more
-            named distributional parameters as appropriate.
+            named distributional parameters as appropriate. Or, just pass
+            a rv_frozen object directly (see scipy.stats).
         default (Any, optional): A default value for this parameter. The default
             value is used as the actual value for constant parameters. It is also
             used during univariate sensitivity testing as the value for this
@@ -169,13 +171,19 @@ def make_parameter(
 
     # Data checks
 
-    if dist is not None and not isinstance(dist, Mapping):
-        raise TypeError(f'dist must be a dict for {name}, not {type(dist)}')
+    if dist is not None and not isinstance(dist, Mapping) and not isinstance(dist, rv_frozen):
+        raise TypeError(f'dist must be a dict or rv_frozen for {name}, not {type(dist)}')
 
     if dist is None:
         dist_ = {}
+        rv_gen = None
+    elif isinstance(dist, rv_frozen):
+        dist_ = {'name': dist.dist.name}
+        dist_.update(dist.kwds)
+        rv_gen = dist
     else:
         dist_ = dist
+        rv_gen = None
 
     ptype = standardize_parameter_type(ptype)
 
@@ -222,36 +230,40 @@ def make_parameter(
             corr=corr,
         )
     elif dtype == 'int':
-        rv_gen = make_rv_frozen(**dist_, min=min, max=max, discrete=True)
+        rv_gen = rv_gen or make_rv_frozen(**dist_, min=min, max=max, discrete=True)
 
         if rv_gen is None:
             raise ValueError(f'failed to make {name} ({ptype}) from {dist_}')
             # p = Constant(name, default, desc=desc, address=address)
         else:
             p = IntegerParameter(
-                name, min, max,
+                name,
+                lower_bound=min,
+                upper_bound=max,
                 resolution=resolution,
                 default=default,
                 dist=rv_gen,
-                dist_def=dist,
+                dist_def=dist_,
                 desc=desc,
                 address=address,
                 ptype=ptype,
                 corr=corr,
             )
     elif dtype == 'real':
-        rv_gen = make_rv_frozen(**dist_, min=min, max=max)
+        rv_gen = rv_gen or make_rv_frozen(**dist_, min=min, max=max)
 
         if rv_gen is None:
             raise ValueError(f'failed to make {name} ({ptype}) from {dist_}')
             # p = Constant(name, default, desc=desc, address=address)
         else:
             p = RealParameter(
-                name, min, max,
+                name,
+                lower_bound=min,
+                upper_bound=max,
                 resolution=resolution,
                 default=default,
                 dist=rv_gen,
-                dist_def=dist,
+                dist_def=dist_,
                 desc=desc,
                 address=address,
                 ptype=ptype,
@@ -259,7 +271,7 @@ def make_parameter(
             )
 
     elif dtype == 'bool':
-        rv_gen = make_rv_frozen(**dist_, min=min, max=max, discrete=True)
+        rv_gen = rv_gen or make_rv_frozen(**dist_, min=min, max=max, discrete=True)
         if rv_gen is None:
             raise ValueError(f'failed to make {name} ({ptype}) from {dist_}')
             # p = Constant(name, default, desc=desc, address=address)
@@ -268,7 +280,7 @@ def make_parameter(
                 name,
                 default=default,
                 dist=rv_gen,
-                dist_def=dist,
+                dist_def=dist_,
                 desc=desc,
                 address=address,
                 ptype=ptype,
@@ -339,31 +351,83 @@ class Parameter(workbench_param.Parameter):
 
     dtype = None
 
-    def __init__(self, name, dist,
-                 resolution=None,
-                 default=None, variable_name=None, pff=False,
-                 desc="", address=None, ptype=None, corr=None,
-                 dist_def=None,
-                 ):
+    def __init__(
+            self,
+            name,
+            dist,
+            *,
+            lower_bound=None,
+            upper_bound=None,
+            resolution=None,
+            default=None,
+            variable_name=None,
+            pff=False,
+            desc="",
+            address=None,
+            ptype=None,
+            corr=None,
+            dist_def=None,
+    ):
+
+        # The default constructor for ema_workbench parameters uses no distribution
+        # But for EMAT, we want to always define a distribution explicitly
+        # for clarity.
+
+        if dist is None and (lower_bound is None or upper_bound is None):
+            raise ValueError("must give lower_bound and upper_bound, or dist")
 
         if dist is None:
-            raise ValueError('dist cannot be None for emat.Parameter')
+            from scipy.stats import uniform
+            dist = uniform(lower_bound, upper_bound-lower_bound)
+
+        if isinstance(dist, str):
+            dist = {'name':dist}
+
+        if isinstance(dist, Mapping):
+            dist = dict(**dist)
+            if lower_bound is not None:
+                dist['min'] = lower_bound
+            if upper_bound is not None:
+                dist['max'] = upper_bound
+            dist = make_rv_frozen(**dist)
+
+        # We extract and set the lower and upper bounds here,
+        # in order to use the default constructor from the workbench.
+
+        ppf_zero = 0
+        if isinstance(dist.dist, stats.rv_discrete):  # @UndefinedVariable
+            # ppf at actual zero for rv_discrete gives lower bound - 1
+            # due to a quirk in the scipy.stats implementation
+            # so we use the smallest positive float instead
+            ppf_zero = 5e-324
+
+        lower_bound = dist.ppf(ppf_zero)
+        upper_bound = dist.ppf(1.0)
+
+        if self.dtype == 'int':
+            lower_bound = int(lower_bound)
+            upper_bound = int(upper_bound)
 
         workbench_param.Parameter.__init__(
             self,
-            name,
-            None,  # lower_bound, ignored
-            None,  # upper_bound, ignored
+            name=name,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
             resolution=resolution,
-            default=default, variable_name=variable_name, pff=pff, dist=dist,
+            default=default,
+            variable_name=variable_name,
+            pff=pff,
         )
+
+        self.dist = dist
+
         self.desc = desc
         """str: Human readable description of this parameter, for reference only"""
 
         self.address = address
         """
         Any: The address to use to access this parameter in the model.
-        
+
         This is an implementation-specific detail. For example,
         in an Excel-based model, the address could be a sheet and cell reference
         given as a string.
@@ -375,7 +439,7 @@ class Parameter(workbench_param.Parameter):
         self.corr = corr if corr is not None else []
         """List: A correlation definition.  Not yet implemented."""
 
-        self.dist = dict(dist_def) if dist_def is not None else {}
+        self.dist_def = dict(dist_def) if dist_def is not None else {}
         """Dict: The arguments that define the underlying distribution."""
 
     @property
@@ -398,19 +462,48 @@ class Parameter(workbench_param.Parameter):
                 return False
             if self.corr != other.corr:
                 return False
-            if self.dist != other.dist:
+            if self.distdef != other.distdef:
+                print("NO! distdef", self.distdef, other.distdef)
                 return False
         except AttributeError:
             return False
-        return super().__eq__(other)
+        if not isinstance(self, other.__class__):
+            return False
 
+        self_keys = set(self.__dict__.keys())
+        other_keys = set(other.__dict__.keys())
+        if self_keys - other_keys:
+            return False
+        else:
+            for key in self_keys:
+                if key == 'dist_def':
+                    continue
+                if key != 'dist':
+                    if getattr(self, key) != getattr(other, key):
+                        return False
+                else:
+                    # name, parameters
+                    self_dist = getattr(self, key)
+                    other_dist = getattr(other, key)
+                    if self_dist.dist.name != other_dist.dist.name:
+                        return False
+                    if self_dist.args != other_dist.args:
+                        return False
+
+            else:
+                return True
+
+    @property
+    def distdef(self):
+        result = rv_frozen_as_dict(self.dist, self.min, self.max)
+        return result
 
 
 class RealParameter(Parameter, workbench_param.RealParameter):
 
     dtype = 'real'
 
-    def __init__(self, name, lower_bound=None, upper_bound=None, resolution=None,
+    def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
                  desc="", address=None, ptype=None, corr=None):
 
@@ -437,11 +530,11 @@ class RealParameter(Parameter, workbench_param.RealParameter):
         )
 
     @property
-    def lower_bound(self):
+    def min(self):
         return float(super().lower_bound)
 
     @property
-    def upper_bound(self):
+    def max(self):
         return float(super().upper_bound)
 
 
@@ -449,7 +542,7 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
 
     dtype = 'int'
 
-    def __init__(self, name, lower_bound=None, upper_bound=None, resolution=None,
+    def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
                  desc="", address=None, ptype=None, corr=None):
 
@@ -470,17 +563,18 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
             dist_def=dist_def,
         )
 
-        for entry in self.resolution:
-            if not isinstance(entry, numbers.Integral):
-                raise ValueError(('all entries in resolution should be '
-                                  'integers'))
+        if self.resolution is not None:
+            for entry in self.resolution:
+                if not isinstance(entry, numbers.Integral):
+                    raise ValueError(('all entries in resolution should be '
+                                      'integers'))
 
     @property
-    def lower_bound(self):
+    def min(self):
         return int(super().lower_bound)
 
     @property
-    def upper_bound(self):
+    def max(self):
         return int(super().upper_bound)
 
 
@@ -489,20 +583,9 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
 
     dtype = 'bool'
 
-    def __init__(self, name, lower_bound=None, upper_bound=None, resolution=None,
+    def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
                  desc="", address=None, ptype=None, corr=None):
-
-        if dist is not None:
-            lower_bound, upper_bound = _get_bounds_from_dist(dist)
-            if lower_bound != 0 or upper_bound != 1:
-                raise ValueError('a bool distribution must have unit range')
-        else:
-            from scipy.stats import randint
-            dist = randint(0, 2)
-
-        self.categories = [False, True]
-        resolution = [0, 1]
 
         Parameter.__init__(
             self,
@@ -514,12 +597,21 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
             dist_def=dist_def,
         )
 
+        cats = [workbench_param.create_category(cat) for cat in [False, True]]
+
+        self._categories = workbench_param.NamedObjectMap(workbench_param.Category)
+
+        self.categories = cats
+        self.resolution = [i for i in range(len(self.categories))]
+        self.multivalue = False
+
+
     @property
-    def lower_bound(self):
+    def min(self):
         return False
 
     @property
-    def upper_bound(self):
+    def max(self):
         return True
 
 
@@ -527,9 +619,10 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
 
     dtype = 'cat'
 
-    def __init__(self, name, categories, default=None, variable_name=None,
+    def __init__(self, name, categories, *, default=None, variable_name=None,
                  pff=False, multivalue=False,
-                 desc="", address=None, ptype=None, corr=None):
+                 desc="", address=None, ptype=None, corr=None,
+                 dist=None):
         lower_bound = 0
         upper_bound = len(categories) - 1
 
@@ -561,15 +654,15 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
         """List: The possible discrete values."""
         return list(i.value for i in self.categories)
 
-    @property
-    def lower_bound(self):
-        """None: Categorical parameters are not characterized by a lower bound."""
-        return None
-
-    @property
-    def upper_bound(self):
-        """None: Categorical parameters are not characterized by an upper bound."""
-        return None
+    # @property
+    # def lower_bound(self):
+    #     """None: Categorical parameters are not characterized by a lower bound."""
+    #     return None
+    #
+    # @property
+    # def upper_bound(self):
+    #     """None: Categorical parameters are not characterized by an upper bound."""
+    #     return None
 
 
 #############

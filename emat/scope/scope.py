@@ -7,15 +7,19 @@ import warnings
 from ema_workbench import ScalarOutcome
 from ema_workbench.em_framework.parameters import Category
 from typing import Mapping
+from scipy.stats._distn_infrastructure import rv_frozen
 
 from ..database.database import Database
 from .parameter import Parameter, standardize_parameter_type, make_parameter
 from .measure import Measure
 from ..util.docstrings import copydoc
+from ..util import rv_frozen_as_dict
 
 from ..exceptions import *
 
 def _name_or_dict(x):
+    if isinstance(x, rv_frozen):
+        x = rv_frozen_as_dict(x)
     if x is None or not isinstance(x, Mapping):
         return x
     if len(x)>1:
@@ -23,6 +27,14 @@ def _name_or_dict(x):
     if list(x.keys()) == ['name']:
         return x['name']
     return x
+
+def _as_float(x):
+    if x is None:
+        return None
+    try:
+        return float(x)
+    except:
+        return x
 
 class Scope:
     '''Definitions for the relevant inputs and outputs for a model.
@@ -128,7 +140,17 @@ class Scope:
     def __eq__(self, other):
         if type(other) != type(self):
             return False
-        for k in ('_x_list', '_l_list', '_c_list', '_m_list', 'name', 'desc'):
+        for k in ('_x_list', '_l_list', '_c_list', ):
+            if len(getattr(self,k)) != len(getattr(other,k)):
+                return False
+            for i,j in zip(getattr(self,k), getattr(other,k)):
+                if isinstance(i, rv_frozen):
+                    if rv_frozen_as_dict(i) != rv_frozen_as_dict(j):
+                        return False
+                else:
+                    if i != j:
+                        return False
+        for k in ('_m_list', 'name', 'desc'):
             if getattr(self,k) != getattr(other,k):
                 return False
         return True
@@ -279,9 +301,9 @@ class Scope:
             ('desc', lambda x: x),
             ('dtype', lambda x: x),
             ('default', lambda x: x),
-            ('min', lambda x: x),
-            ('max', lambda x: x),
-            ('dist', lambda x: _name_or_dict(x) or None),
+            ('min', lambda x: _as_float(x)),
+            ('max', lambda x: _as_float(x)),
+            # ('dist', lambda x: _name_or_dict(x) or None), # processed separately
             ('corr', lambda x: x or None),
             ('values', lambda x: x or None),
         ])
@@ -308,6 +330,9 @@ class Scope:
                     v = parameter_keys[k](getattr(i,k))
                     if v is not None:
                         s['inputs'][i.name][k] = v
+            v = i.distdef
+            if v is not None:
+                s['inputs'][i.name]['dist'] = _name_or_dict(v)
 
         for i in self._m_list:
             if include_measures is not None and i.name not in include_measures:

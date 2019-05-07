@@ -75,7 +75,7 @@ def triangle(
 		lower_bound, upper_bound, rel_peak, peak, width
 	)
 
-	return triang(rel_peak, lower_bound, width)
+	return triang(c=rel_peak, loc=lower_bound, scale=width)
 
 
 
@@ -132,7 +132,7 @@ def pert(
 	if not (a1 > 0 and a2 > 0):
 		raise ValueError('Beta "alpha" and "beta" parameters must be greater than zero')
 
-	return beta(a1, a2, loc=a, scale=c-a)
+	return beta(a=a1, b=a2, loc=a, scale=c-a)
 
 def binary(p=0.5):
 	return bernoulli(p=p)
