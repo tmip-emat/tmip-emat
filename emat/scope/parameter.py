@@ -498,6 +498,8 @@ class Parameter(workbench_param.Parameter):
         result = rv_frozen_as_dict(self.dist, self.min, self.max)
         return result
 
+    def __repr__(self):
+        return f"<emat.{self.__class__.__name__} '{self.name}'>"
 
 class RealParameter(Parameter, workbench_param.RealParameter):
 
@@ -654,15 +656,20 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
         """List: The possible discrete values."""
         return list(i.value for i in self.categories)
 
-    # @property
-    # def lower_bound(self):
-    #     """None: Categorical parameters are not characterized by a lower bound."""
-    #     return None
-    #
-    # @property
-    # def upper_bound(self):
-    #     """None: Categorical parameters are not characterized by an upper bound."""
-    #     return None
+    @property
+    def min(self):
+        """None: Categorical parameters are not characterized by a lower bound."""
+        return None
+
+    @property
+    def max(self):
+        """None: Categorical parameters are not characterized by an upper bound."""
+        return None
+
+    @property
+    def distdef(self):
+        """None: Categorical parameters distribution is not implemented."""
+        return None
 
 
 #############

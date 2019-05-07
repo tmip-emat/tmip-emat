@@ -301,8 +301,8 @@ class Scope:
             ('desc', lambda x: x),
             ('dtype', lambda x: x),
             ('default', lambda x: x),
-            ('min', lambda x: _as_float(x)),
-            ('max', lambda x: _as_float(x)),
+            ('min', lambda x: x),
+            ('max', lambda x: x),
             # ('dist', lambda x: _name_or_dict(x) or None), # processed separately
             ('corr', lambda x: x or None),
             ('values', lambda x: x or None),
