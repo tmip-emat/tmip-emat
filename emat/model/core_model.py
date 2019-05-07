@@ -648,21 +648,28 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         Args:
             robustness_functions (Collection[Measure]): A collection of
                 aggregate statistical performance measures.
-            scenarios : int, or collection
-            evaluator : Evaluator instance
-            algorithm : platypus Algorithm instance
-            nfe : int
-            constraints : list
-            kwargs : any additional arguments will be passed on to algorithm
+            scenarios (int or Collection): A collection of scenarios to
+                use in the evaluation(s), or give an integer to generate
+                that number of random scenarios.
+            evaluator (Evaluator, optional): The evaluator to use to
+                run the model. If not given, a SequentialEvaluator will
+                be created.
+            algorithm (platypus.Algorithm, optional): Select an
+                algorithm for multi-objective optimization.  See
+                `platypus` documentation for details.
+            nfe (int, default 10_000): Number of function evaluations.
+                This generally needs to be fairly large to achieve stable
+                results in all but the most trivial applications.
+            convergence (emat.optimization.ConvergenceMetrics, optional)
+            constraints (Collection[Constraint], optional)
+            kwargs: any additional arguments will be passed on to the
+                platypus algorithm.
 
-        Raises
-        ------
-        AssertionError if robustness_function is not a ScalarOutcome,
-        if robustness_funcion.kind is INFO, or
-        if robustness_function.function is None
-
-        robustness functions are scalar outcomes, kind should be MINIMIZE or
-        MAXIMIZE, function is the robustness function you want to use.
+        Returns:
+            results (pandas.DataFrame)
+            convergence_measures (pandas.DataFrame):
+                When `convergence` is given, the convergence measures are
+                also returned.
 
         """
 
@@ -703,3 +710,62 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         else:
             return robust_results, result_convergence
 
+    def robust_evaluate(
+            self,
+            robustness_functions,
+            scenarios,
+            policies,
+            evaluator=None,
+    ):
+        """
+        Perform robust evaluation(s).
+
+        The robust evaluation is used to generate statistical measures
+        of outcomes, instead of generating the individual outcomes themselves.
+        For each policy, the model is evaluated against all of the considered
+        scenarios, and then the robustness measures are evaluated using the
+        set of outcomes from the original runs.  The robustness measures
+        are aggregate measures that are computed from a set of outcomes.
+        For example, this may be expected value, median, n-th percentile,
+        minimum, or maximum value of any individual outcome.  It is also
+        possible to have joint measures, e.g. expected value of the larger
+        of outcome 1 or outcome 2.
+
+        Args:
+            robustness_functions (Collection[Measure]): A collection of
+                aggregate statistical performance measures.
+            scenarios (int or Collection): A collection of scenarios to
+                use in the evaluation(s), or give an integer to generate
+                that number of random scenarios.
+            policies (int, or collection): A collection of policies to
+                use in the evaluation(s), or give an integer to generate
+                that number of random policies.
+            evaluator (Evaluator, optional): The evaluator to use to
+                run the model. If not given, a SequentialEvaluator will
+                be created.
+
+        Returns:
+            pandas.DataFrame
+                The computed value of each item in `robustness_functions`,
+                for each policy in `policies`.
+        """
+
+        if evaluator is None:
+            from ema_workbench.em_framework import SequentialEvaluator
+            evaluator = SequentialEvaluator(self)
+
+        from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
+
+        if isinstance(scenarios, int):
+            n_scenarios = scenarios
+            scenarios = sample_uncertainties(self, n_scenarios)
+
+        with evaluator:
+            robust_results = evaluator.robust_evaluate(
+                robustness_functions,
+                scenarios,
+                policies,
+            )
+
+        robust_results = self.ensure_dtypes(robust_results)
+        return robust_results
