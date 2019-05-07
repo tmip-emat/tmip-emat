@@ -112,7 +112,9 @@ class TestRoadTest(unittest.TestCase):
 
 		scores = m.get_feature_scores('lhs', random_state=123)
 
-		assert scores.metadata.values == approx(correct_scores)
+		for _i in range(scores.metadata.values.shape[0]):
+			for _j in range(scores.metadata.values.shape[1]):
+				assert scores.metadata.values[_i,_j] == approx(correct_scores[_i,_j], rel=.1)
 
 		from ema_workbench.analysis import prim
 

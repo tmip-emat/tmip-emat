@@ -22,6 +22,7 @@ before_install:
 - conda install --yes $DEPS # Replace dep1 dep2 ... with your dependencies
 - conda install ema_workbench -c jpn -c conda-forge
 - conda install -c conda-forge nose-exclude salib coveralls pydot future
+- conda list
 - pip install zmq # zmq is not available via conda for some reason
 
 install:
