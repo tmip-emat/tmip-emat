@@ -197,14 +197,14 @@ def design_sensitivity_tests(
     n = 0
     for p in s.get_parameters():
         if not hasattr(p,'values') or p.values is None:
-            design.loc[n, p.name] = p.lower_bound
+            design.loc[n, p.name] = p.min
             if not np.isfinite(design.loc[n, p.name]):
                 try:
                     design.loc[n, p.name] = p.rv_gen.ppf(0.01)
                 except:
                     pass
             n += 1
-            design.loc[n, p.name] = p.upper_bound
+            design.loc[n, p.name] = p.max
             if not np.isfinite(design.loc[n, p.name]):
                 try:
                     design.loc[n, p.name] = p.rv_gen.ppf(0.99)
