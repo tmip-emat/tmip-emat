@@ -29,6 +29,9 @@ def list_rv_frozen():
 class DistributionTypeError(TypeError):
 	pass
 
+class DistributionFreezeError(Exception):
+	pass
+
 def make_rv_frozen(name=None, discrete=False, min=None, max=None, **kwargs):
 	"""
 	Create a new rv_frozen distribution.
@@ -62,7 +65,10 @@ def make_rv_frozen(name=None, discrete=False, min=None, max=None, **kwargs):
 			kwargs['low'] = min
 			kwargs['high'] = max+1
 
-	frozen = gen(**kwargs)
+	try:
+		frozen = gen(**kwargs)
+	except Exception as err:
+		raise DistributionFreezeError(f"cannot freeze {name} using:\n{kwargs}") from err
 
 	if discrete:
 		if not isinstance(frozen.dist, distributions.rv_discrete):

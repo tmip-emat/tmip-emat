@@ -7,7 +7,7 @@ from ema_workbench.em_framework import parameters as workbench_param
 from scipy import stats
 from scipy.stats._distn_infrastructure import rv_frozen
 
-from ..util import distributions, DistributionTypeError
+from ..util import distributions, DistributionTypeError, DistributionFreezeError
 from ..util import make_rv_frozen, rv_frozen_as_dict
 
 def standardize_parameter_type(original_type):
@@ -198,13 +198,13 @@ def make_parameter(
     if max is not None:
         dist_for_maker['max'] = max
 
-    # If inferred dtype is int but distribution is discrete, promote to real
-    try:
-        rv_gen_tentative = rv_gen or make_rv_frozen(**dist_for_maker, discrete=True)
-    except DistributionTypeError:
-        if dtype == 'int':
-            dtype = 'real'
-        rv_gen_tentative = rv_gen or make_rv_frozen(**dist_for_maker, discrete=False)
+    if dtype=='bool':
+        dist_for_maker['min'] = 0
+        dist_for_maker['max'] = 1
+    elif dtype=='cat':
+        dist_for_maker['min'] = 0
+        dist_for_maker['max'] = len(values)-1
+
 
     ptype = standardize_parameter_type(ptype)
 
@@ -213,6 +213,19 @@ def make_parameter(
             dist_['name'] = 'constant'
         if dist_.get('name') != 'constant':
             raise ValueError(f'constant cannot have non-constant distribution for {name}')
+        rv_gen_tentative = None
+    else:
+        # If inferred dtype is int but distribution is discrete, promote to real
+        try:
+            rv_gen_tentative = rv_gen or make_rv_frozen(**dist_for_maker, discrete=True)
+        except DistributionTypeError:
+            if dtype == 'int':
+                dtype = 'real'
+            rv_gen_tentative = rv_gen or make_rv_frozen(**dist_for_maker, discrete=False)
+        except DistributionFreezeError as err:
+            raise DistributionFreezeError(f'on freeze for {name}') from err
+
+
 
     if dtype == 'bool':
         if min is None:
