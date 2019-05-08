@@ -15,3 +15,7 @@ All notable changes to this project will be documented in this file.
 - Add `robust_evaluate` method to `AbstractCoreModel`.
 - Back-end code has been updated to be compatible with version 2.1 of
   the `ema_workbench` package.
+- Allow initialization of `Scope` objects with no 'desc' key at the top
+  level, which implies setting the description to an empty string.
+- Add a `DistributionTypeError` class, and use it to improve the 
+  infer-dtype capability for making parameters.

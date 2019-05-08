@@ -2,6 +2,35 @@
 
 from scipy.stats import *
 from scipy._lib._util import _lazyselect
+from scipy.stats._distn_infrastructure import rv_frozen
+
+
+def get_bounds(rv):
+	"""
+	Get the lower and upper bounds for a distribution.
+
+	Args:
+		rv: A frozen distribution that has a ppf method,
+			or an object with a `dist` attribute that is as such.
+
+	Returns:
+		tuple: (lower_bound, upper_bound)
+	"""
+
+	if not isinstance(rv, rv_frozen):
+		if hasattr(rv, 'dist') and isinstance(rv.dist, rv_frozen):
+			rv = rv.dist
+
+	ppf_zero = 0
+
+	if isinstance(rv.dist, rv_discrete):
+		# ppf at actual zero for rv_discrete gives lower bound - 1
+		# due to a quirk in the scipy.stats implementation
+		# so we use the smallest positive float instead
+		ppf_zero = 5e-324
+
+	return (rv.ppf(ppf_zero), rv.ppf(1.0))
+
 
 def _peaked_distribution_args(
 		lower_bound,
@@ -52,8 +81,9 @@ def triangle(
 	Generate a frozen scipy.stats.triang distribution.
 
 	This function provides the same actual distribution as ``triang``,
-	but offers multiple methods to identify the peak and upper bound of the
-	distribution, while ``triang`` is less flexible.
+	but offers multiple intuitive ways to identify the peak and upper bound of the
+	distribution, while ``triang`` is less flexible and intuitive (it must be defined
+	using arguments labeled as 'c', 'loc', and 'scale').
 
 	Args:
 		lower_bound (numeric):

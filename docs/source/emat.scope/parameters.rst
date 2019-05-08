@@ -22,6 +22,7 @@ will create an object of the appropriate (sub)class.
     :show-inheritance:
     :members:
     :inherited-members:
+    :exclude-members: from_dist
 
 .. autoclass:: emat.Constant
     :show-inheritance:
@@ -36,6 +37,18 @@ Float-Valued Parameters
     :show-inheritance:
     :members:
     :inherited-members:
+    :exclude-members: from_dist
+
+Continuous Distributions
+++++++++++++++++++++++++
+
+Float-valued parameters can use any continuous distribution available
+in :any:`scipy.stats`.  For convenience, a few extra (and simplified)
+distributions are available in the ``emat.util.distributions``
+module.
+
+.. toctree::
+    continuous_distributions
 
 Integer Parameters
 ~~~~~~~~~~~~~~~~~~
@@ -44,6 +57,17 @@ Integer Parameters
     :show-inheritance:
     :members:
     :inherited-members:
+    :exclude-members: from_dist
+
+Discrete Distributions
+++++++++++++++++++++++
+
+Integer-valued parameters can use any discrete distribution available
+in :any:`scipy.stats`.  Note that actually using a discrete distribution
+is required, one cannot use a continuous distribution that loosely
+approximates a discrete distribution.  The only exception to this rule
+is for "uniform", which is technically a continuous distribution,
+but is transparently interpreted by EMAT as an equivalently-bounded "randint".
 
 Boolean Parameters
 ~~~~~~~~~~~~~~~~~~
@@ -52,6 +76,7 @@ Boolean Parameters
     :show-inheritance:
     :members:
     :inherited-members:
+    :exclude-members: from_dist
 
 Categorical Parameters
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -60,4 +85,5 @@ Categorical Parameters
     :show-inheritance:
     :members:
     :inherited-members:
+    :exclude-members: from_dist
 

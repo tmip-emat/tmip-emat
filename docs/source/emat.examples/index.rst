@@ -6,7 +6,6 @@ Examples
 
     RoadTest/road_test_direct
     GBNRTC/gbnrtc_example
-    ..  CarbonFreeBoston/cfb_example
 
 
 * :doc:`RoadTest/road_test_direct`
