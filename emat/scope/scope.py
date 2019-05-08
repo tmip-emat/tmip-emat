@@ -4,6 +4,7 @@ import pandas
 import numpy
 import yaml
 import warnings
+import itertools
 from ema_workbench import ScalarOutcome
 from ema_workbench.em_framework.parameters import Category
 from typing import Mapping
@@ -446,6 +447,13 @@ class Scope:
     def get_measures(self):
         """Get a list of performance measures."""
         return [i for i in self._m_list]
+
+    def __getitem__(self, item):
+        """Get a parameter or measure by name."""
+        for i in itertools.chain(self._x_list, self._l_list, self._c_list, self._m_list):
+            if i.name == item:
+                return i
+        raise KeyError(item)
 
     def ensure_dtypes(self, df):
         """
