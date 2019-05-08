@@ -85,7 +85,7 @@ class Scope:
                 raise ScopeFormatError(f'scope file must include "{k}" as a top level key')
 
         self.name = str(scope['scope']['name'])
-        self.desc = scope['scope']['desc']
+        self.desc = scope['scope'].get('desc', '')
         self.xl_di = scope['inputs']
         self.m_di = scope['outputs']
 
