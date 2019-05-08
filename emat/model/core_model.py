@@ -59,7 +59,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 if safe:
                     configuration = yaml.safe_load(stream)
                 else:
-                    configuration = yaml.load(stream)
+                    configuration = yaml.load(stream, Loader=yaml.FullLoader)
             if configuration is None:
                 configuration = {}
 
@@ -639,11 +639,27 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             nfe=10000,
             convergence=None,
             constraints=None,
-            # epsilons=None,
             **kwargs,
     ):
         """
         Perform robust optimization.
+
+        The robust optimization generally a multi-objective optimization task.
+        It is undertaken using statistical measures of outcomes evaluated across
+        a number of scenarios, instead of using the individual outcomes themselves.
+        For each candidate policy, the model is evaluated against all of the considered
+        scenarios, and then the robustness measures are evaluated using the
+        set of outcomes from the original runs.  The robustness measures
+        are aggregate measures that are computed from a set of outcomes.
+        For example, this may be expected value, median, n-th percentile,
+        minimum, or maximum value of any individual outcome.  It is also
+        possible to have joint measures, e.g. expected value of the larger
+        of outcome 1 or outcome 2.
+
+        Each robustness function is indicated as a maximization or minimization
+        target, where higher or lower values are better, respectively.
+        The optimization process then tries to identify one or more
+        non-dominated solutions for the possible policy levers.
 
         Args:
             robustness_functions (Collection[Measure]): A collection of
@@ -666,11 +682,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 platypus algorithm.
 
         Returns:
-            results (pandas.DataFrame)
-            convergence_measures (pandas.DataFrame):
-                When `convergence` is given, the convergence measures are
-                also returned.
+            pandas.DataFrame: The set of non-dominated solutions found.
 
+            When `convergence` is given, the convergence measures are
+            also returned, as a second pandas.DataFrame.
         """
 
 
@@ -745,9 +760,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 be created.
 
         Returns:
-            pandas.DataFrame
-                The computed value of each item in `robustness_functions`,
-                for each policy in `policies`.
+            pandas.DataFrame: The computed value of each item
+            in `robustness_functions`, for each policy in `policies`.
         """
 
         if evaluator is None:

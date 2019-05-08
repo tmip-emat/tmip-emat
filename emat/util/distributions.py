@@ -51,6 +51,10 @@ def triangle(
 	"""
 	Generate a frozen scipy.stats.triang distribution.
 
+	This function provides the same actual distribution as ``triang``,
+	but offers multiple methods to identify the peak and upper bound of the
+	distribution, while ``triang`` is less flexible.
+
 	Args:
 		lower_bound (numeric):
 			The lower bound of the distribution.
@@ -92,7 +96,7 @@ def pert(
 	Generate a frozen scipy.stats.beta PERT distribution.
 
 	For details on the PERT distribution see
-	`https://en.wikipedia.org/wiki/PERT_distribution`_
+	`wikipedia <https://en.wikipedia.org/wiki/PERT_distribution>`_.
 
 	Args:
 		lower_bound (numeric):
