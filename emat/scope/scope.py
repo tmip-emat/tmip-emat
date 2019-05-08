@@ -75,9 +75,9 @@ class Scope:
         '''parser to read scope yaml file'''
         if scope_def is None:
             with open(self.scope_file, 'r') as stream:
-                scope = yaml.load(stream)
+                scope = yaml.load(stream, Loader=yaml.FullLoader)
         else:
-            scope = yaml.load(scope_def)
+            scope = yaml.load(scope_def, Loader=yaml.FullLoader)
 
         for k in ('scope', 'inputs', 'outputs'):
             if k not in scope:
