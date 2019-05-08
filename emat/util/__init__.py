@@ -26,6 +26,9 @@ def list_rv_frozen():
 	print(list(distributions.__dict__.keys()))
 
 
+class DistributionTypeError(TypeError):
+	pass
+
 def make_rv_frozen(name=None, discrete=False, min=None, max=None, **kwargs):
 	"""
 	Create a new rv_frozen distribution.
@@ -63,7 +66,7 @@ def make_rv_frozen(name=None, discrete=False, min=None, max=None, **kwargs):
 
 	if discrete:
 		if not isinstance(frozen.dist, distributions.rv_discrete):
-			raise TypeError(f"distribution named '{name}' is not discrete")
+			raise DistributionTypeError(f"distribution named '{name}' is not discrete")
 	return frozen
 
 

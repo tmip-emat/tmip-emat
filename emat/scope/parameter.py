@@ -7,7 +7,7 @@ from ema_workbench.em_framework import parameters as workbench_param
 from scipy import stats
 from scipy.stats._distn_infrastructure import rv_frozen
 
-from ..util import distributions
+from ..util import distributions, DistributionTypeError
 from ..util import make_rv_frozen, rv_frozen_as_dict
 
 def standardize_parameter_type(original_type):
@@ -163,6 +163,13 @@ def make_parameter(
             dtype = 'int'
         elif isinstance(min, numbers.Real) and isinstance(max, numbers.Real):
             dtype = 'real'
+        elif dist is not None and isinstance(dist, Mapping):
+            try:
+                make_rv_frozen(**dist, discrete=True)
+            except DistributionTypeError:
+                dtype = 'real'
+            else:
+                dtype = 'int'
         else:
             raise ValueError(f'cannot infer dtype for {name}, give it explicitly')
 
@@ -185,12 +192,19 @@ def make_parameter(
         dist_ = dist
         rv_gen = None
 
+    dist_for_maker = dist_.copy()
+    if min is not None:
+        dist_for_maker['min'] = min
+    if max is not None:
+        dist_for_maker['max'] = max
+
     # If inferred dtype is int but distribution is discrete, promote to real
-    if dtype == 'int':
-        try:
-            rv_gen_tentative = rv_gen or make_rv_frozen(**dist_, min=min, max=max, discrete=True)
-        except TypeError:
+    try:
+        rv_gen_tentative = rv_gen or make_rv_frozen(**dist_for_maker, discrete=True)
+    except DistributionTypeError:
+        if dtype == 'int':
             dtype = 'real'
+        rv_gen_tentative = rv_gen or make_rv_frozen(**dist_for_maker, discrete=False)
 
     ptype = standardize_parameter_type(ptype)
 
@@ -218,6 +232,9 @@ def make_parameter(
             if max is None and default is not None:
                 max = default
 
+        if rv_gen_tentative is not None:
+            min, max = _get_bounds_from_dist(rv_gen_tentative)
+
         if min is None:
             raise ValueError(f'min of {dtype} is required for {name}')
         if max is None:
@@ -237,7 +254,7 @@ def make_parameter(
             corr=corr,
         )
     elif dtype == 'int':
-        rv_gen = rv_gen or make_rv_frozen(**dist_, min=min, max=max, discrete=True)
+        rv_gen = rv_gen or make_rv_frozen(**dist_for_maker, discrete=True)
 
         if rv_gen is None:
             raise ValueError(f'failed to make {name} ({ptype}) from {dist_}')
@@ -257,7 +274,7 @@ def make_parameter(
                 corr=corr,
             )
     elif dtype == 'real':
-        rv_gen = rv_gen or make_rv_frozen(**dist_, min=min, max=max)
+        rv_gen = rv_gen or make_rv_frozen(**dist_for_maker)
 
         if rv_gen is None:
             raise ValueError(f'failed to make {name} ({ptype}) from {dist_}')
@@ -278,7 +295,7 @@ def make_parameter(
             )
 
     elif dtype == 'bool':
-        rv_gen = rv_gen or make_rv_frozen(**dist_, min=min, max=max, discrete=True)
+        rv_gen = rv_gen or make_rv_frozen(**dist_for_maker, discrete=True)
         if rv_gen is None:
             raise ValueError(f'failed to make {name} ({ptype}) from {dist_}')
             # p = Constant(name, default, desc=desc, address=address)
