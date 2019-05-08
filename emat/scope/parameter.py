@@ -164,7 +164,7 @@ def make_parameter(
         elif isinstance(min, numbers.Real) and isinstance(max, numbers.Real):
             dtype = 'real'
         else:
-            raise ValueError('cannot infer dtype, give it explicitly')
+            raise ValueError(f'cannot infer dtype for {name}, give it explicitly')
 
     if dtype not in ('cat', 'int', 'real', 'bool'):
         raise ValueError(f"invalid dtype {dtype}")
@@ -184,6 +184,13 @@ def make_parameter(
     else:
         dist_ = dist
         rv_gen = None
+
+    # If inferred dtype is int but distribution is discrete, promote to real
+    if dtype == 'int':
+        try:
+            rv_gen_tentative = rv_gen or make_rv_frozen(**dist_, min=min, max=max, discrete=True)
+        except TypeError:
+            dtype = 'real'
 
     ptype = standardize_parameter_type(ptype)
 
