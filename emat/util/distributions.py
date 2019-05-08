@@ -128,7 +128,7 @@ def pert(
 		raise ValueError('gamma must be non-negative')
 	mu = (a + gamma * b + c) / (gamma + 2)
 	if mu == b:
-		a1 = a2 = 3.0
+		a1 = a2 = (1 + gamma/2)
 	else:
 		a1 = ((mu - a) * (2 * b - a - c)) / ((b - mu) * (c - a))
 		a2 = a1 * (c - mu) / (mu - a)
