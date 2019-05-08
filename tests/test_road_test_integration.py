@@ -12,7 +12,7 @@ from pytest import approx
 import emat
 
 import ema_workbench
-import os, numpy, pandas, functools
+import os, numpy, pandas, functools, random
 from emat.experiment.experimental_design import design_experiments
 from emat.model.core_python import PythonCoreModel
 from emat.model.core_python import Road_Capacity_Investment
@@ -275,3 +275,157 @@ class TestRoadTest(unittest.TestCase):
 		design2 = design_experiments(road_scope, db=emat_db, n_samples_per_factor=10, sampler='lhs', random_seed=2)
 
 		design2_results = mm.run_experiments(design2)
+
+
+	def test_robust_evaluation(self):
+		# %%
+
+		import os
+		test_dir = os.path.dirname(__file__)
+
+		from ema_workbench import ema_logging, MultiprocessingEvaluator, SequentialEvaluator
+		from emat.examples import road_test
+		import numpy, pandas, functools
+		from emat import Measure
+		s, db, m = road_test()
+
+		MAXIMIZE = Measure.MAXIMIZE
+		MINIMIZE = Measure.MINIMIZE
+
+		robustness_functions = [
+			Measure(
+				'Expected Net Benefit',
+				kind=Measure.INFO,
+				variable_name='net_benefits',
+				function=numpy.mean,
+			),
+
+			Measure(
+				'Probability of Net Loss',
+				kind=MINIMIZE,
+				variable_name='net_benefits',
+				function=lambda x: numpy.mean(x < 0),
+				min=0,
+				max=1,
+			),
+
+			Measure(
+				'95%ile Travel Time',
+				kind=MINIMIZE,
+				variable_name='build_travel_time',
+				function=functools.partial(numpy.percentile, q=95),
+				min=60,
+				max=150,
+			),
+
+			Measure(
+				'99%ile Present Cost',
+				kind=Measure.INFO,
+				variable_name='present_cost_expansion',
+				function=functools.partial(numpy.percentile, q=99),
+			),
+
+			Measure(
+				'Expected Present Cost',
+				kind=Measure.INFO,
+				variable_name='present_cost_expansion',
+				function=numpy.mean,
+			),
+
+		]
+		# %%
+
+		numpy.random.seed(42)
+
+		with MultiprocessingEvaluator(m) as evaluator:
+			r1 = m.robust_evaluate(
+				robustness_functions,
+				scenarios=20,
+				policies=5,
+				evaluator=evaluator,
+			)
+
+		import pandas
+		correct = pandas.read_json(
+			'{"amortization_period":{"0":19,"1":23,"2":50,"3":43,"4":35},"debt_type":{"0":"Rev Bond","1":"Paygo"'
+			',"2":"GO Bond","3":"Paygo","4":"Rev Bond"},"expand_capacity":{"0":26.3384401031,"1":63.3898549337,"2'
+			'":51.1360252492,"3":18.7230954832,"4":93.9205959335},"interest_rate_lock":{"0":false,"1":true,"2":fal'
+			'se,"3":true,"4":false},"Expected Net Benefit":{"0":-157.486494925,"1":-244.2423401934,"2":-189.633908'
+			'4553,"3":-4.2656265778,"4":-481.1208898635},"Probability of Net Loss":{"0":0.95,"1":1.0,"2":0.95,"3":'
+			'0.7,"4":1.0},"95%ile Travel Time":{"0":74.6904209781,"1":65.8492894317,"2":67.6932507947,"3":79.09851'
+			'23853,"4":63.203313888},"99%ile Present Cost":{"0":3789.8036648358,"1":9121.0832380586,"2":7357.89572'
+			'71441,"3":2694.0416972887,"4":13514.111590462},"Expected Present Cost":{"0":3158.4461451444,"1":7601.'
+			'5679809722,"2":6132.1164500957,"3":2245.2312484183,"4":11262.7453643551}}')
+		correct['debt_type'] = correct['debt_type'].astype(
+			pandas.CategoricalDtype(categories=['GO Bond', 'Rev Bond', 'Paygo'], ordered=True))
+
+		pandas.testing.assert_frame_equal(r1, correct)
+
+		numpy.random.seed(7)
+
+		from ema_workbench.em_framework.samplers import sample_uncertainties
+		scenes = sample_uncertainties(m, 20)
+
+		scenes0 = pandas.DataFrame(scenes)
+		cachefile = os.path.join(test_dir,'test_robust_results.csv')
+		if not os.path.exists(cachefile):
+			scenes0.to_csv(os.path.join(test_dir,'test_robust_evaluation_scenarios.csv'), index=None)
+		scenes1 = pandas.read_csv(os.path.join(test_dir,'test_robust_evaluation_scenarios.csv'))
+		pandas.testing.assert_frame_equal(scenes0, scenes1)
+
+		from emat import Constraint
+
+		constraint_1 = Constraint(
+			"Maximum Log Expected Present Cost",
+			outcome_names="Expected Present Cost",
+			function=Constraint.must_be_less_than(4000),
+		)
+
+		constraint_2 = Constraint(
+			"Minimum Capacity Expansion",
+			parameter_names="expand_capacity",
+			function=Constraint.must_be_greater_than(10),
+		)
+
+		constraint_3 = Constraint(
+			"Maximum Paygo",
+			parameter_names='debt_type',
+			outcome_names='99%ile Present Cost',
+			function=lambda i, j: max(0, j - 1500) if i == 'Paygo' else 0,
+		)
+
+		from emat.optimization import HyperVolume, EpsilonProgress, SolutionViewer, ConvergenceMetrics
+
+		convergence_metrics = ConvergenceMetrics(
+			HyperVolume.from_outcomes(robustness_functions),
+			EpsilonProgress(),
+			SolutionViewer.from_model_and_outcomes(m, robustness_functions),
+		)
+
+		numpy.random.seed(8)
+		random.seed(8)
+
+		# Test robust optimize
+		with SequentialEvaluator(m) as evaluator:
+			robust_results, convergence = m.robust_optimize(
+					robustness_functions,
+					scenarios=scenes,
+					nfe=25,
+					constraints=[
+						constraint_1,
+						constraint_2,
+						constraint_3,
+					],
+					epsilons=[0.05,]*len(robustness_functions),
+					convergence=convergence_metrics,
+					evaluator=evaluator,
+			)
+
+		cachefile = os.path.join(test_dir,'test_robust_results.csv')
+		if not os.path.exists(cachefile):
+			robust_results.to_csv(cachefile, index=None)
+		correct2 = pandas.read_csv(cachefile)
+		correct2['debt_type'] = correct2['debt_type'].astype(
+			pandas.CategoricalDtype(categories=['GO Bond', 'Rev Bond', 'Paygo'], ordered=True))
+		pandas.testing.assert_frame_equal(robust_results, correct2, check_less_precise=True)
+
