@@ -474,7 +474,7 @@ class Parameter(workbench_param.Parameter):
         """str: Parameter type, one of {'constant', 'uncertainty', 'lever'}"""
 
         self.corr = corr if corr is not None else []
-        """List: A correlation definition.  Not yet implemented."""
+        """Dict: A correlation definition.  Key give names of other parameters, values give correlation."""
 
         self.dist_def = dict(dist_def) if dist_def is not None else {}
         """Dict: The arguments that define the underlying distribution."""

@@ -8,15 +8,16 @@ import pandas as pd
 from ..scope.scope import Scope
 from ..database.database import Database
 
-from ema_workbench.em_framework.samplers import (
+from .samplers import (
     LHSSampler,
     AbstractSampler,
     UniformLHSSampler,
-    MonteCarloSampler
+    MonteCarloSampler,
+    CorrelatedLHSSampler,
 )
 
 samplers = {
-    'lhs': LHSSampler,
+    'lhs': CorrelatedLHSSampler,
     'ulhs': UniformLHSSampler,
     'mc': MonteCarloSampler,
 }
