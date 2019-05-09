@@ -1,6 +1,7 @@
 
 import unittest
 import os
+import pytest
 from pytest import approx
 import pandas as pd
 import numpy as np
@@ -94,6 +95,44 @@ class TestExperimentMethods(unittest.TestCase):
         exp_def2 = self.db_test.read_experiment_parameters(self.scp.name,'uni')
         for k in cols:
             assert (exp_def2[k].values == approx(correct[k].values))
+
+
+
+
+class TestCorrelatedExperimentMethods(unittest.TestCase):
+    '''
+        tests generating experiments
+    '''
+    #
+    # one time test setup
+    #
+
+    def test_correlated_latin_hypercube(self):
+        scope_file = emat.package_file("model", "tests", "road_test_corr.yaml")
+        scp = Scope(scope_file)
+        exp_def = scp.design_experiments(
+            n_samples_per_factor=10,
+            random_seed=1234,
+            sampler='lhs',
+        )
+        assert len(exp_def) == scp.n_sample_factors() * 10
+        assert (exp_def['free_flow_time'] == 60).all()
+        assert (exp_def['initial_capacity'] == 100).all()
+        assert np.corrcoef([exp_def.alpha, exp_def.beta])[0, 1] == approx(0.75, rel=0.05)
+        assert np.corrcoef([exp_def.alpha, exp_def.expand_capacity])[0, 1] == approx(0.0, abs=0.01)
+        assert np.corrcoef([exp_def.input_flow, exp_def.value_of_time])[0, 1] == approx(-0.5, rel=0.05)
+        assert np.corrcoef([exp_def.unit_cost_expansion, exp_def.value_of_time])[0, 1] == approx(0.9, rel=0.05)
+
+    def test_correlated_latin_hypercube_bad(self):
+        scope_file = emat.package_file("model", "tests", "road_test_corr_bad.yaml")
+        scp = Scope(scope_file)
+        with pytest.raises(np.linalg.LinAlgError):
+            scp.design_experiments(
+                n_samples_per_factor=10,
+                random_seed=1234,
+                sampler='lhs',
+            )
+
 
 
 if __name__ == '__main__':
