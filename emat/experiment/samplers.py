@@ -58,32 +58,10 @@ def induce_correlation(std_uniform_sample, correlation_matrix, inplace=False):
 class AssymetricCorrelationError(ValueError):
     pass
 
-
-
-class CorrelatedLHSSampler(LHSSampler):
-    """
-    generates a Latin Hypercube sample for each of the parameters
-    """
-
-    def __init__(self):
-        super().__init__()
+class CorrelatedSampler(AbstractSampler):
 
     def sample_std_uniform(self, size):
-        '''
-        Generate a standard uniform Latin Hypercube Sample.
-
-        Args:
-            size (int): the number of samples to generate
-
-        Returns:
-            numpy.ndarray
-
-        '''
-
-        perc = numpy.linspace(0, (size - 1) / size, size)
-        numpy.random.shuffle(perc)
-        smp = stats.uniform(perc, 1. / size).rvs()
-        return smp
+        raise NotImplementedError
 
     def generate_std_uniform_samples(self, parameters, size):
         '''
@@ -208,5 +186,51 @@ class CorrelatedLHSSampler(LHSSampler):
         designs = DefaultDesigns(designs, parameters, nr_samples)
 
         return designs
+
+
+class CorrelatedLHSSampler(CorrelatedSampler, LHSSampler):
+    """
+    generates a Latin Hypercube sample for each of the parameters
+    """
+
+    def sample_std_uniform(self, size):
+        '''
+        Generate a standard uniform Latin Hypercube Sample.
+
+        Args:
+            size (int): the number of samples to generate
+
+        Returns:
+            numpy.ndarray
+
+        '''
+
+        perc = numpy.linspace(0, (size - 1) / size, size)
+        numpy.random.shuffle(perc)
+        smp = stats.uniform(perc, 1. / size).rvs()
+        return smp
+
+
+
+class CorrelatedMonteCarloSampler(CorrelatedSampler, MonteCarloSampler):
+    """
+    Generator for correlated Monte Carlo samples for each of the parameters
+    """
+
+    def sample_std_uniform(self, size):
+        '''
+        Generate a standard uniform monte carlo sample.
+
+        Args:
+            size (int): the number of samples to generate
+
+        Returns:
+            numpy.ndarray
+
+        '''
+
+        smp = stats.uniform().rvs(size)
+        return smp
+
 
 

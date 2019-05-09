@@ -14,12 +14,13 @@ from .samplers import (
     UniformLHSSampler,
     MonteCarloSampler,
     CorrelatedLHSSampler,
+    CorrelatedMonteCarloSampler,
 )
 
 samplers = {
     'lhs': CorrelatedLHSSampler,
     'ulhs': UniformLHSSampler,
-    'mc': MonteCarloSampler,
+    'mc': CorrelatedMonteCarloSampler,
 }
 
 def design_experiments(

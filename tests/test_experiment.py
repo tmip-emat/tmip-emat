@@ -66,7 +66,7 @@ class TestExperimentMethods(unittest.TestCase):
         )
         assert len(exp_def) == self.scp.n_sample_factors()*10
         assert (exp_def['TestRiskVar'] == 1.0).all()
-        assert (exp_def['Land Use - CBD Focus']).mean() == approx(1.04, abs=0.01)
+        assert (exp_def['Land Use - CBD Focus']).mean() == approx(1.0326, abs=0.01)
         assert (exp_def['Freeway Capacity']).mean() == approx(1.5, abs=0.01)
 
         exp_def2 = self.db_test.read_experiment_parameters(self.scp.name,'mc')
@@ -132,6 +132,22 @@ class TestCorrelatedExperimentMethods(unittest.TestCase):
                 random_seed=1234,
                 sampler='lhs',
             )
+
+    def test_correlated_monte_carlo(self):
+        scope_file = emat.package_file("model", "tests", "road_test_corr.yaml")
+        scp = Scope(scope_file)
+        exp_def = scp.design_experiments(
+            n_samples_per_factor=100,
+            random_seed=1234,
+            sampler='mc',
+        )
+        assert len(exp_def) == scp.n_sample_factors() * 100
+        assert (exp_def['free_flow_time'] == 60).all()
+        assert (exp_def['initial_capacity'] == 100).all()
+        assert np.corrcoef([exp_def.alpha, exp_def.beta])[0, 1] == approx(0.75, rel=0.05)
+        assert np.corrcoef([exp_def.alpha, exp_def.expand_capacity])[0, 1] == approx(0.0, abs=0.05)
+        assert np.corrcoef([exp_def.input_flow, exp_def.value_of_time])[0, 1] == approx(-0.5, rel=0.05)
+        assert np.corrcoef([exp_def.unit_cost_expansion, exp_def.value_of_time])[0, 1] == approx(0.9, rel=0.05)
 
 
 
