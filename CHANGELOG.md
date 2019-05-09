@@ -3,7 +3,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## v0.1.2 -- May 2019
+## v0.1.3 -- May 2019
 
 ### New Features
 
