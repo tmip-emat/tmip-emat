@@ -26,11 +26,7 @@ def list_rv_frozen():
 	print(list(distributions.__dict__.keys()))
 
 
-class DistributionTypeError(TypeError):
-	pass
-
-class DistributionFreezeError(Exception):
-	pass
+from ..exceptions import DistributionTypeError, DistributionFreezeError
 
 def make_rv_frozen(name=None, discrete=False, min=None, max=None, **kwargs):
 	"""

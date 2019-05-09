@@ -133,6 +133,16 @@ class TestCorrelatedExperimentMethods(unittest.TestCase):
                 sampler='lhs',
             )
 
+    def test_correlated_latin_hypercube_conflict(self):
+        scope_file = emat.package_file("model", "tests", "road_test_corr_conflict.yaml")
+        scp = Scope(scope_file)
+        with pytest.raises(emat.exceptions.AsymmetricCorrelationError):
+            scp.design_experiments(
+                n_samples_per_factor=10,
+                random_seed=1234,
+                sampler='lhs',
+            )
+
     def test_correlated_monte_carlo(self):
         scope_file = emat.package_file("model", "tests", "road_test_corr.yaml")
         scp = Scope(scope_file)

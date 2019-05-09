@@ -14,6 +14,8 @@ from ema_workbench.em_framework.samplers import (
     DefaultDesigns,
 )
 
+from ..exceptions import AsymmetricCorrelationError
+
 def induce_correlation(std_uniform_sample, correlation_matrix, inplace=False):
     """
     Induce correlation in an independent standard uniform sample.
@@ -54,9 +56,6 @@ def induce_correlation(std_uniform_sample, correlation_matrix, inplace=False):
         cor_uniform_sample = norm.cdf(cor_normal_sample)
         return cor_uniform_sample
 
-
-class AssymetricCorrelationError(ValueError):
-    pass
 
 class CorrelatedSampler(AbstractSampler):
 
@@ -127,7 +126,7 @@ class CorrelatedSampler(AbstractSampler):
                     # When correlation is already set, confirm it is identical
                     # or raise an exception
                     if correlation.loc[p.name, other_name] != other_corr:
-                        raise AssymetricCorrelationError(f"{p.name}, {other_name}")
+                        raise AsymmetricCorrelationError(f"{p.name}, {other_name}")
                 else:
                     any_corr = True
                     correlation.loc[p.name, other_name] = other_corr

@@ -42,9 +42,12 @@ parameters across the range. Correlations may also be defined between multiple u
 measures.
 
 An example uncertainty input is below. This example implements an uncertainty variable with a
-range between 0.82 and 1.37 with a PERT distribution shaped by a relative peak at 33% and a
-gamma value of 4. There is no correlation between the distribution of this uncertainty variable
-and other variables in the scope. For testing purposes, the default value of this variable is 1.0.
+range between 0.82 and 1.37 with a PERT distribution shaped by a relative peak 33% of the
+distance between lower and upper bounds, and a
+gamma value of 4. There is also a defined correlation between the distribution of this uncertainty variable
+and two other variables in the scope. The default value of this variable is 1.0, which is used for
+sensitivity testing as the "baseline" value for this parameter on tests where it is not the
+focus (i.e., when examining single-variable sensitivity on other parameters).
 
 ::
 
@@ -59,7 +62,25 @@ and other variables in the scope. For testing purposes, the default value of thi
             name: pert
             rel_peak: 0.33
             gamma: 4
-        corr: []
+        corr:
+            Uncertainty Variable 2: 0.5
+            Uncertainty Variable 3: -0.25
+
+Notes on Correlations
+~~~~~~~~~~~~~~~~~~~~~
+
+Correlations are by definition bi-directional -- if 'Uncertainty Variable 1' is
+set to be correlated at +0.5 with 'Uncertainty Variable 2', then that same correlation
+automatically applies in reverse as well, and it is not necessary to give it explicitly
+for both parameters (and, if they are both given but at different values, an error is generated
+when using the scope file).
+
+Additionally, correlations in aggregate across the entire scope must make sense:  if 'A'
+is highly correlated with 'B' and 'B' is highly correlated with 'C', then there must
+be at least some correlation between 'A' and 'C'.  Exactly how much is required is a
+matter of linear algebra (i.e. the correlation matrix must be positive semi-definite).
+In practical applications, logical and consistent assumptions about correlation across
+uncertainties should naturally come out fine, and if not, an ``LinAlgError`` will be generated.
 
 Levers
 ######
