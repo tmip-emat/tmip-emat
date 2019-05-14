@@ -40,6 +40,7 @@ A brief discussion of the differences between these projects is
    source/emat.models/index
    source/emat.metamodels
    source/emat.database/index
+   source/emat.analysis/index
    source/emat.examples/index
    source/emat.glossary
    source/emat.references

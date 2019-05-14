@@ -403,6 +403,12 @@ class Box(Mapping, GenericBoxMixin):
 				members.append("◌ "+k.rjust(m))
 
 			head = f"{self.__class__.__name__}: {self.name}"
+			if hasattr(self, 'coverage'):
+				head += f'\n   coverage: {self.coverage:.5f}'
+			if hasattr(self, 'density'):
+				head += f'\n   density:  {self.density:.5f}'
+			if hasattr(self, 'mass'):
+				head += f'\n   mass:     {self.mass:.5f}'
 			return head+"\n   " + '\n   '.join(members)
 		else:
 			return "<empty "+ self.__class__.__name__ + ">"
@@ -567,6 +573,12 @@ class ChainedBox(Mapping, GenericBoxMixin):
 				members.append("◌ "+k.rjust(m))
 
 			head = f"{self.__class__.__name__}: {self.name}"
+			if hasattr(self, 'coverage'):
+				head += f'\n   coverage: {self.coverage:.5f}'
+			if hasattr(self, 'density'):
+				head += f'\n   density:  {self.density:.5f}'
+			if hasattr(self, 'mass'):
+				head += f'\n   mass:     {self.mass:.5f}'
 			return head+"\n   " + '\n   '.join(members)
 		else:
 			return "<empty "+ self.__class__.__name__ + ">"
