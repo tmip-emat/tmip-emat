@@ -548,6 +548,9 @@ class RealParameter(Parameter, workbench_param.RealParameter):
 
         if dist is None and (lower_bound is None or upper_bound is None):
             raise ValueError("must give lower_bound and upper_bound, or dist")
+        
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
 
         if dist is None:
             from scipy.stats import uniform
@@ -570,11 +573,11 @@ class RealParameter(Parameter, workbench_param.RealParameter):
 
     @property
     def min(self):
-        return float(super().lower_bound)
+        return float(self.lower_bound)
 
     @property
     def max(self):
-        return float(super().upper_bound)
+        return float(self.upper_bound)
 
 
 class IntegerParameter(Parameter, workbench_param.IntegerParameter):
@@ -587,6 +590,9 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
 
         if dist is None and (lower_bound is None or upper_bound is None):
             raise ValueError("must give lower_bound and upper_bound, or dist")
+            
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound            
 
         if dist is None:
             from scipy.stats import randint
@@ -610,11 +616,11 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
 
     @property
     def min(self):
-        return int(super().lower_bound)
+        return int(self.lower_bound)
 
     @property
     def max(self):
-        return int(super().upper_bound)
+        return int(self.upper_bound)
 
 
 

@@ -283,9 +283,16 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if db is None:
             raise ValueError('no database to read from')
 
-        return self.ensure_dtypes(
+        measures =  self.ensure_dtypes(
             db.read_experiment_measures(self.scope.name, design_name, experiment_id)
         )
+        
+        # only return measures within scope
+        measures = measures[[i for i in self.scope.get_measure_names()
+                             if i in measures.columns]]
+        
+        return measures
+        
 
     def ensure_dtypes(self, df:pd.DataFrame):
         """
@@ -503,8 +510,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if include_measures is not None:
             experiment_outputs = experiment_outputs[[i for i in include_measures
                                                      if i in experiment_outputs.columns]]
+            output_transforms = {i: output_transforms[i] for i in include_measures}
+            
         if exclude_measures is not None:
             experiment_outputs = experiment_outputs.drop(exclude_measures, axis=1)
+            for i in exclude_measures:
+                del output_transforms[i]
 
         disabled_outputs = [i for i in self.scope.get_measure_names()
                             if i not in experiment_outputs.columns]
@@ -512,7 +523,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         func = MetaModel(experiment_inputs, experiment_outputs,
                          output_transforms, disabled_outputs, random_state)
 
-        scope_ = self.scope.duplicate(strip_measure_transforms=True)
+        scope_ = self.scope.duplicate(strip_measure_transforms=True, 
+                                      include_measures=include_measures,
+                                      exclude_measures=exclude_measures)
 
         return PythonCoreModel(
             func,
