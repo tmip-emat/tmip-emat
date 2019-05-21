@@ -108,14 +108,18 @@ def make_parameter(
         min (numeric, optional): The minimum value for this parameter.
         max (numeric, optional): The maximum value for this parameter.
         dist (str or Mapping or rv_frozen, optional): A definition of a distribution
-            to use for this parameter, which is only relevant for uncertainty
-            parameters.  Can be specified just as the name of the distribution
+            to use for this parameter.  Can be specified just as the name of the distribution
             when that distribution is parameterized only by the min and max
             (e.g., 'uniform'). If the distribution requires other parameters,
             this argument should be a Mapping, with keys including 'name' for
             the name of the distribution, as well as giving one or more
             named distributional parameters as appropriate. Or, just pass
-            a rv_frozen object directly (see scipy.stats).
+            a rv_frozen object directly (see scipy.stats).  The distribution
+            defined here is of primary use for uncertainty parameters, as the
+            features of defined uncertainty distributions can be used to
+            derive probability distributions on outputs.  However, distributions
+            can also be used for policy lever parameters to guide the development
+            of appropriate experimental designs.
         default (Any, optional): A default value for this parameter. The default
             value is used as the actual value for constant parameters. It is also
             used during univariate sensitivity testing as the value for this
