@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## PENDING 
+
+### New Features
+
+- Additional documentation and features for PRIM, including
+  the ability to convert EMA Workbench's PrimBox to the EMAT Box
+  format.
+- A version check to ensure a compatible version of the EMA Workbench
+  is installed. 
+
 ## v0.1.3 -- May 2019
 
 ### New Features
@@ -31,3 +41,13 @@ All notable changes to this project will be documented in this file.
   using the `function` attribute offered by `ema_workbench`.
 - Back-end code has been updated to be compatible with version 2.1 of
   the `ema_workbench` package.
+
+## v.0.1.2 -- April 2019
+
+### New Features
+
+- Add the ability to design experiments that sample jointly from 
+  uncertainties and levers (the default for EMAT) or to sample 
+  independently from uncertainties and levers, and then combine these
+  two sets of samples in a full-factorial manner (the default for 
+  EMA Workbench).

@@ -315,8 +315,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         Args:
             n_samples_per_factor (int, default 10): The number of samples in the
                 design per random factor.
-            n_samples (int, optional): The total number of samples in the
-                design.  If this value is given, it overrides `n_samples_per_factor`.
+            n_samples (int or tuple, optional): The total number of samples in the
+                design.  If `jointly` is False, this is the number of samples in each
+                of the uncertainties and the levers, the total number of samples will
+                be the square of this value.  Give a 2-tuple to set values for
+                uncertainties and levers respectively, to set them independently.
+                If this argument is given, it overrides `n_samples_per_factor`.
             random_seed (int or None, default 1234): A random seed for reproducibility.
             db (Database, optional): If provided, this design will be stored in the
                 database indicated.  If not provided, the `db` for this model will
@@ -325,10 +329,26 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 database. If not given, a unique name will be generated based on the
                 selected sampler.  Has no effect if no `db` is given.
             sampler (str or AbstractSampler, default 'lhs'): The sampler to use for this
-                design.
+                design.  Available pre-defined samplers include:
+                    - 'lhs': Latin Hypercube sampling
+                    - 'ulhs': Uniform Latin Hypercube sampling, which ignores defined
+                        distribution shapes from the scope and samples everything
+                        as if it was from a uniform distribution
+                    - 'mc': Monte carlo sampling
+                    - 'uni': Univariate sensitivity testing, whereby experiments are
+                        generated setting each parameter individually to minimum and
+                        maximum values (for numeric dtypes) or all possible values
+                        (for boolean and categorical dtypes).  Note that designs for
+                        univariate sensitivity testing are deterministic and the number
+                        of samples given is ignored.
             sample_from ('all', 'uncertainties', or 'levers'): Which scope components
                 from which to sample.  Components not sampled are set at their default
                 values in the design.
+            jointly (bool, default True): Whether to sample jointly all uncertainties
+                and levers in a single design, or, if False, to generate separate samples
+                for levers and uncertainties, and then combine the two in a full-factorial
+                manner.  This argument has no effect unless `sample_from` is 'all'.
+                Note that jointly may produce a very large design;
 
         Returns:
             pandas.DataFrame: The resulting design.
@@ -358,7 +378,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         (a Policy). Unlike the perform_experiments function in the EMA Workbench,
         this method pairs each Scenario and Policy in sequence, instead
         of running all possible combinations of Scenario and Policy.
-        This change ensures compatability with the EMAT database modules, which
+        This change ensures compatibility with the EMAT database modules, which
         preserve the complete set of input information (both uncertainties
         and levers) for each experiment.  To conduct a full cross-factorial set
         of experiments similar to the default settings for EMA Workbench,
