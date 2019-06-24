@@ -225,3 +225,131 @@ def design_sensitivity_tests(
 
     return design
 
+
+def minimum_weighted_distance(df1, df2, weights):
+    """
+    Compute minimum weighted distance from one DataFrame to another.
+
+    Args:
+        df1 (pandas.DataFrame):
+            The fixed reference points.  Each column is a dimension, and
+            each row is a point.
+        df2 (pandas.DataFrame):
+            The candidate measurement points.  Each column is a dimension,
+            and each row is a point.  The columns in this DataFrame must
+            exactly match the columns in `df1`, while the number of rows
+            and the content thereof can be (and probably should be)
+            entirely different.
+        weights (pandas.DataFrame):
+            A set of weights as a DataFrame.  Each column is a complete
+            set of weights to use in calculating the weighted distance.
+            The rows in this DataFrame should correspond to the columns
+            in `df1` and `df2`.
+
+    Returns:
+        pandas.DataFrame:
+            The columns of the returned data correspond to the columns
+            in the `weights` input, and the row correspond to the rows
+            int the `df2` argument.
+    """
+    array1 = np.asarray(df1, dtype=float)
+    array2 = np.asarray(df2, dtype=float)
+
+    result = pd.DataFrame(0, columns=weights.columns, index=df2.index)
+    for i, idx in enumerate(df2.index):
+        row = array2[i, :].reshape(1, -1)
+        sq_dist_by_axis = (array1 - row) ** 2
+        for name, w in weights.iteritems():
+            result.loc[idx, name] = (sq_dist_by_axis / w.values).sum(1).min()
+    return result
+
+
+def batch_pick_new_experiments(
+        existing_experiments,
+        possible_experiments,
+        batch_size,
+        output_weights,
+        distance_scales,
+):
+    """
+    Pick a batch of new experiments from a candidate population.
+
+    Args:
+        existing_experiments (pandas.DataFrame):
+            A set of existing experiments.  These experiments have
+            already been run through the core model and results are
+            available.  The data of this DataFrame should all be
+            of a format that is or can be cast to floating point
+            (i.e., no strings or categorical data).
+        possible_experiments (pandas.DataFrame):
+            A set of possible experiments.  These experiments have
+            not been run through the core model and computed full results
+            are not available.  The format of this DataFrame should be
+            identical to `existing_experiments` in data types and columns.
+        batch_size (int):
+            How many new experiments should be selected for this batch.
+        output_weights (Mapping):
+            The keys of this mapping correspond to output measures from
+            the core model and the values are relative importance weights.
+        distance_scales (pandas.DataFrame):
+            The distance scales to use.  The rows of this DataFrame should
+            correspond to the columns in the `experiments` arguments, and
+            the columns to keys in the `output_weights`.  Typically, this
+            argument is the inverse of the result from the
+            `get_length_scales` method of a `emat.MetaModel` that has been
+            fit on the existing experiment results.
+
+    Returns:
+        pandas.DataFrame:
+            This contains `batch_size` rows selected from
+            `possible_experiments`.
+    """
+    proposed_experiments = existing_experiments.copy()
+
+    ww = pd.DataFrame({j: output_weights.get(j, 0) for j in distance_scales.columns}, index=[0])
+
+    # Initial selection, greedy
+    for i in range(batch_size):
+        meta_wgt = pd.DataFrame(
+            (minimum_weighted_distance(
+                proposed_experiments,
+                possible_experiments,
+                distance_scales
+            ).values * ww.values).sum(1),
+            index=possible_experiments.index,
+        )
+        new_candidate_experiment = meta_wgt.values.argmax()
+        proposed_experiments = proposed_experiments.append(possible_experiments.iloc[new_candidate_experiment])
+        print(f"Selecting {proposed_experiments.index[-1]}")
+
+    new_experiments = proposed_experiments.iloc[-batch_size:]
+
+    # Fedorov Exchanges
+    n_exchanges = 1
+    while n_exchanges > 0:
+        n_exchanges = 0
+        for i in range(batch_size):
+            provisionally_dropping = new_experiments.index[i]
+            proposed_experiments = pd.concat([
+                existing_experiments,
+                new_experiments.drop(new_experiments.index[i])
+            ])
+            meta_wgt = pd.DataFrame(
+                (minimum_weighted_distance(
+                    proposed_experiments,
+                    possible_experiments,
+                    distance_scales
+                ).values * ww.values).sum(1),
+                index=possible_experiments.index,
+            )
+            new_candidate_experiment = meta_wgt.values.argmax()
+            provisional_replacement = possible_experiments.index[new_candidate_experiment]
+            if provisional_replacement != provisionally_dropping:
+                n_exchanges += 1
+                new_index = new_experiments.index.tolist()
+                new_index[i] = provisional_replacement
+                new_experiments.index = new_index
+                new_experiments.iloc[i] = possible_experiments.iloc[new_candidate_experiment]
+                print(f"Replacing {provisionally_dropping} with {provisional_replacement}")
+        print(f"{n_exchanges} Fedorov Exchanges completed.")
+    return new_experiments
