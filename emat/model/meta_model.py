@@ -2,8 +2,15 @@
 
 import pandas
 import numpy
+from typing import Mapping
 from .. import multitarget
 from ..util.one_hot import OneHotCatEncoder
+from ..experiment.experimental_design import batch_pick_new_experiments, minimum_weighted_distance
+from ..database.database import Database
+from ..scope.scope import Scope
+
+from ..util.loggers import get_module_logger
+_logger = get_module_logger(__name__)
 
 
 class MetaModel:
@@ -265,3 +272,160 @@ class MetaModel:
             columns=self.input_sample.columns,
         ).T
 
+    def mix_length_scales(self, balance=None, inv=True):
+        """
+        Mix the length scales from the GPR kernels of this metamodel.
+
+        This MetaModel must already be `fit` to use this method, although
+        the fit process is generally completed when the MetaModel is
+        instantiated.
+
+        Args:
+            balance (Mapping or Collection, optional):
+                When given as a mapping, the keys are the output measures
+                that are included in the mix, and the values are the
+                relative weights to use for mixing.
+                When given as a collection, the items are the output
+                measures that are included in the mix, all with equal
+                weight.
+            inv (bool, default True):
+                Take the inverse of the length scales before mixing.
+
+        Returns:
+            ndarray:
+                The columns correspond to the columns of pre-processed
+                input (not raw input) and the rows correspond to the
+                outputs.
+        """
+        s = self.get_length_scales()
+        if inv:
+            s = s.rtruediv(1, fill_value=1)  # s = 1/s
+        if balance is None:
+            w = numpy.full(len(s.columns), 1.0/len(s.columns))
+        elif isinstance(balance, Mapping):
+            w = numpy.zeros(len(s.columns))
+            for i,col in enumerate(s.columns):
+                w[i] = balance.get(col, 0)
+        else:
+            w = numpy.zeros(len(s.columns))
+            balance = set(balance)
+            each_w = 1/len(balance)
+            for i,col in enumerate(s.columns):
+                w[i] = each_w if col in balance else 0
+        return numpy.dot(s, w)
+
+    def pick_new_experiments(
+            self,
+            possible_experiments,
+            batch_size,
+            output_focus=None,
+            scope: Scope=None,
+            db: Database=None,
+            design_name: str=None,
+            debug=None,
+    ):
+        """
+        Select a set of new experiments to perform from a pool of candidates.
+
+        This method implements the "maximin" approach described by Johnson et al (1990),
+        as proposed for batch-sequential augmentation of designs by Loeppky et al (2010).
+        New experiments are selected from a pool of possible new experiments by
+        maximizing the minimum distance between the set of selected experiments,
+        with distances between experiments scaled by the correlation parameters
+        from a GP regression fitted to the initial experimental results. Note that
+        the "binning" aspect of Loeppky is not presently implemented here,
+        instead favoring the analyst's capability to manually focus the new experiments
+        by manipulating the input `possible_experiments`.
+
+        We also extend Loeppky et al by allowing for multiple output models, mixing the
+        results from a selected set of outputs, to potentially focus the information
+        from the new experiments on a subset of output measures.
+
+        Args:
+            possible_experiments:
+                A pool of possible experiments.  All selected experiments will
+                be selected from this pool, so the pool should be sufficiently
+                large and diverse to provide requried support for this process.
+            batch_size (int):
+                How many experiments to select from `possible_experiments`.
+            output_focus (Mapping or Collection, optional):
+                 A subset of output measures that will be the focus of these new
+                 experiments. The length scales of these measures will be mixed
+                 when developing relative weights.
+            scope (Scope, optional): The exploratory scope to use for writing the
+                design to a database. Ignored unless `db` is also given.
+            db (Database, optional): If provided, this design will be stored in the
+                database indicated.  Ignored unless `scope` is also given.
+            design_name (str, optional): A name for this design, to identify it in the
+                database. If not given, a unique name will be generated.  Has no effect
+                if no `db` or `scope` is given.
+            debug (Tuple[str,str], optional): The names of x and y axis to plot for
+                debugging.
+
+        Returns:
+            pandas.DataFrame:
+                A subset of rows from `possible_experiments`
+
+        References:
+            Johnson, M.E., Moore, L.M., and Ylvisaker, D., 1990. "Minimax and maximin
+                distance designs." Journal of Statistical Planning and Inference 26, 131–148.
+            Loeppky, J., Moore, L., and Williams, B.J., 2010. "Batch sequential designs
+                for computer experiments." Journal of Statistical Planning and Inference 140,
+                1452–1464.
+
+        """
+
+        if debug:
+            debug_x, debug_y = debug
+
+        dimension_weights = self.mix_length_scales(output_focus, inv=True)
+        if debug:
+            _logger.debug(f"output_focus={output_focus}")
+            _logger.debug(f"length_scales=\n{self.get_length_scales()}")
+            _logger.debug(f"dimension_weights={dimension_weights}")
+
+        possible_experiments_processed = self.preprocess_raw_input(possible_experiments, float)
+
+        if debug:
+            mwd = minimum_weighted_distance(
+                self.input_sample,
+                possible_experiments,
+                dimension_weights
+            )
+
+            from matplotlib import pyplot as plt
+            plt.scatter(possible_experiments[debug_x], possible_experiments[debug_y], c=mwd)
+            plt.scatter(self.input_sample[debug_x], self.input_sample[debug_y], color='red')
+
+        picks = batch_pick_new_experiments(
+                self.input_sample,
+                possible_experiments_processed,
+                batch_size,
+                dimension_weights,
+        )
+
+        design = possible_experiments.loc[picks.index]
+
+        # If using the default design_name, append the design_name with a number
+        # until a new unused name is found.
+        if db is not None and scope is not None and design_name is None:
+            proposed_design_name = 'augment'
+            existing_design_names = set(db.read_design_names(scope.name))
+            if proposed_design_name not in existing_design_names:
+                design_name = proposed_design_name
+            else:
+                n = 2
+                while f'{proposed_design_name}_{n}' in existing_design_names:
+                    n += 1
+                design_name = f'{proposed_design_name}_{n}'
+
+        if db is not None and scope is not None:
+            experiment_ids = db.write_experiment_parameters(scope.name, design_name, design)
+            design.index = experiment_ids
+            design.index.name = 'experiment'
+
+        if debug:
+            plt.scatter(design[debug_x], design[debug_y], color="red", marker='x')
+            plt.show()
+
+        return design
