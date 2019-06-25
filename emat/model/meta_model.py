@@ -380,9 +380,9 @@ class MetaModel:
 
         dimension_weights = self.mix_length_scales(output_focus, inv=True)
         if debug:
-            _logger.debug(f"output_focus={output_focus}")
-            _logger.debug(f"length_scales=\n{self.get_length_scales()}")
-            _logger.debug(f"dimension_weights={dimension_weights}")
+            _logger.info(f"output_focus = {output_focus}")
+            _logger.info(f"length_scales =\n{self.get_length_scales()}")
+            _logger.info(f"dimension_weights = {dimension_weights}")
 
         possible_experiments_processed = self.preprocess_raw_input(possible_experiments, float)
 
