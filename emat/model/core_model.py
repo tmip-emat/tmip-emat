@@ -395,11 +395,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 will be instantiated.
             design_name (str, optional): The name of a design of experiments to
                 load from the database.  This design is only used if
-                `experiment_parameters` is None.
+                `design` is None.
             db (Database, optional): The database to use for loading and saving experiments.
                 If none is given, the default database for this model is used.
                 If there is no default db, and none is given here,
-                the results are not stored in a database.
+                the results are not stored in a database. Set to False to explicitly
+                not use the default database, even if it exists.
 
         Returns:
             pandas.DataFrame:
@@ -427,7 +428,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db = self.db
 
         if design_name is not None and design is None:
-            if db is None:
+            if not db:
                 raise ValueError(f'cannot load design "{design_name}", there is no db')
             design = db.read_experiment_parameters(self.scope.name, design_name)
 
@@ -459,7 +460,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         outcomes = pd.DataFrame.from_dict(outcomes)
         outcomes.index = design.index
 
-        if db is not None:
+        if db:
             db.write_experiment_measures(self.scope.name, self.metamodel_id, outcomes)
 
         return self.ensure_dtypes(pd.concat([
