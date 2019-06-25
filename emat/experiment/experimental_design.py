@@ -18,12 +18,16 @@ from .samplers import (
     MonteCarloSampler,
     CorrelatedLHSSampler,
     CorrelatedMonteCarloSampler,
+    TrimmedUniformLHSSampler,
 )
 
 samplers = {
     'lhs': CorrelatedLHSSampler,
     'ulhs': UniformLHSSampler,
     'mc': CorrelatedMonteCarloSampler,
+    'ulhs99': lambda: TrimmedUniformLHSSampler(0.01),
+    'ulhs98': lambda: TrimmedUniformLHSSampler(0.02),
+    'ulhs95': lambda: TrimmedUniformLHSSampler(0.05),
 }
 
 def design_experiments(

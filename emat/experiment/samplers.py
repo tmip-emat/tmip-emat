@@ -232,4 +232,35 @@ class CorrelatedMonteCarloSampler(CorrelatedSampler, MonteCarloSampler):
         return smp
 
 
+class TrimmedUniformLHSSampler(LHSSampler):
+
+    def __init__(self, trim_value=0.01):
+        super().__init__()
+        self.trim_level = trim_value / 2
+
+    def generate_samples(self, parameters, size):
+        '''
+
+        Parameters
+        ----------
+        parameters : collection
+        size : int
+
+        Returns
+        -------
+        dict
+            dict with the paramertainty.name as key, and the sample as value
+
+        '''
+
+        samples = {}
+        for param in parameters:
+            lower_bound = param.dist.ppf(self.trim_level)
+            upper_bound = param.dist.ppf(1.0-self.trim_level)
+            if isinstance(param.dist.dist, stats.rv_continuous):
+                dist = stats.uniform(lower_bound, upper_bound - lower_bound)
+            else:
+                dist = stats.randint(lower_bound, upper_bound + 1)
+            samples[param.name] = self.sample(dist, size)
+        return samples
 
