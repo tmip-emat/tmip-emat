@@ -8,6 +8,9 @@ import pandas as pd
 from ..scope.scope import Scope
 from ..database.database import Database
 
+from ..util.loggers import get_module_logger
+_logger = get_module_logger(__name__)
+
 from .samplers import (
     LHSSampler,
     AbstractSampler,
@@ -226,7 +229,43 @@ def design_sensitivity_tests(
     return design
 
 
-def minimum_weighted_distance(df1, df2, weights):
+def minimum_weighted_distance(fixed_points, other_points, weights):
+    """
+    Compute minimum weighted distance from one DataFrame to another.
+
+    Args:
+        fixed_points (array-like):
+            The fixed reference points.  Each column is a dimension, and
+            each row is a point.
+        other_points (array-like):
+            The candidate measurement points.  Each column is a dimension,
+            and each row is a point.  The columns must exactly
+            match the columns in `fixed_points`, while the number of rows
+            and the content thereof can be (and probably should be)
+            entirely different.
+        weights (vector):
+            A set of weights by dimension.
+            The values in this vector should correspond to the columns
+            in `fixed_points` and `other_points`.
+
+    Returns:
+        pandas.DataFrame:
+            The columns of the returned data correspond to the columns
+            in the `weights` input, and the row correspond to the rows
+            int the `df2` argument.
+    """
+    array1 = np.asarray(fixed_points, dtype=float)
+    array2 = np.asarray(other_points, dtype=float)
+    w = np.asarray(weights, dtype=float).reshape(1, -1)
+    result = np.zeros(array2.shape[0], dtype=float)
+
+    for i in range(array2.shape[0]):
+        row = array2[i, :].reshape(1, -1)
+        sq_dist_by_axis = (array1 - row) ** 2
+        result[i] = (sq_dist_by_axis * w).sum(1).min()
+    return result
+
+def minimum_weighted_distances(df1, df2, weights):
     """
     Compute minimum weighted distance from one DataFrame to another.
 
@@ -268,8 +307,7 @@ def batch_pick_new_experiments(
         existing_experiments,
         possible_experiments,
         batch_size,
-        output_weights,
-        distance_scales,
+        dimension_weights,
 ):
     """
     Pick a batch of new experiments from a candidate population.
@@ -306,21 +344,15 @@ def batch_pick_new_experiments(
     """
     proposed_experiments = existing_experiments.copy()
 
-    ww = pd.DataFrame({j: output_weights.get(j, 0) for j in distance_scales.columns}, index=[0])
-
     # Initial selection, greedy
     for i in range(batch_size):
-        meta_wgt = pd.DataFrame(
-            (minimum_weighted_distance(
-                proposed_experiments,
-                possible_experiments,
-                distance_scales
-            ).values * ww.values).sum(1),
-            index=possible_experiments.index,
-        )
-        new_candidate_experiment = meta_wgt.values.argmax()
+        new_candidate_experiment = minimum_weighted_distance(
+            proposed_experiments,
+            possible_experiments,
+            dimension_weights
+        ).argmax()
         proposed_experiments = proposed_experiments.append(possible_experiments.iloc[new_candidate_experiment])
-        print(f"Selecting {proposed_experiments.index[-1]}")
+        _logger.info(f"Selecting {proposed_experiments.index[-1]}")
 
     new_experiments = proposed_experiments.iloc[-batch_size:]
 
@@ -334,15 +366,11 @@ def batch_pick_new_experiments(
                 existing_experiments,
                 new_experiments.drop(new_experiments.index[i])
             ])
-            meta_wgt = pd.DataFrame(
-                (minimum_weighted_distance(
-                    proposed_experiments,
-                    possible_experiments,
-                    distance_scales
-                ).values * ww.values).sum(1),
-                index=possible_experiments.index,
-            )
-            new_candidate_experiment = meta_wgt.values.argmax()
+            new_candidate_experiment = minimum_weighted_distance(
+                proposed_experiments,
+                possible_experiments,
+                dimension_weights
+            ).argmax()
             provisional_replacement = possible_experiments.index[new_candidate_experiment]
             if provisional_replacement != provisionally_dropping:
                 n_exchanges += 1
@@ -350,6 +378,6 @@ def batch_pick_new_experiments(
                 new_index[i] = provisional_replacement
                 new_experiments.index = new_index
                 new_experiments.iloc[i] = possible_experiments.iloc[new_candidate_experiment]
-                print(f"Replacing {provisionally_dropping} with {provisional_replacement}")
-        print(f"{n_exchanges} Fedorov Exchanges completed.")
+                _logger.info(f"Replacing {provisionally_dropping} with {provisional_replacement}")
+        _logger.info(f"{n_exchanges} Fedorov Exchanges completed.")
     return new_experiments
