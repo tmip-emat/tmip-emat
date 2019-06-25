@@ -616,6 +616,70 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             random_state=random_state,
         )
 
+    def create_metamodel_from_designs(
+            self,
+            design_names:str,
+            metamodel_id:int = None,
+            include_measures=None,
+            exclude_measures=None,
+            db=None,
+            random_state=None,
+    ):
+        """
+        Create a MetaModel from multiple sets of input and output observations.
+
+        Args:
+            design_names (Collection[str]): The names of the designs to use.
+            metamodel_id (int, optional): An identifier for this meta-model.
+                If not given, a unique id number will be created randomly.
+            include_measures (Collection[str], optional): If provided, only
+                output performance measures with names in this set will be included.
+            exclude_measures (Collection[str], optional): If provided, only
+                output performance measures with names not in this set will be included.
+            random_state (int, optional): A random state to use in the metamodel
+                regression fitting.
+
+        Returns:
+            MetaModel:
+                a callable object that, when called as if a
+                function, accepts keyword arguments as inputs and
+                returns a dictionary of (measure name: value) pairs.
+
+        Raises:
+            ValueError: If the named design still has pending experiments.
+        """
+        db = db if db is not None else self.db
+
+        if db is not None:
+            for design_name in design_names:
+                check_df = db.read_experiment_parameters(self.scope.name, design_name, only_pending=True)
+                if not check_df.empty:
+                    from ..exceptions import PendingExperimentsError
+                    raise PendingExperimentsError(f'design "{design_name}" has pending experiments')
+
+        experiment_inputs = pd.concat([
+            db.read_experiment_parameters(self.scope.name, design_name) for design_name in design_names
+        ])
+        experiment_outputs = pd.concat([
+            db.read_experiment_measures(self.scope.name, design_name) for design_name in design_names
+        ])
+
+        transforms = {
+            i.name: i.metamodeltype
+            for i in self.scope.get_measures()
+        }
+
+        return self.create_metamodel_from_data(
+            experiment_inputs,
+            experiment_outputs,
+            transforms,
+            metamodel_id=metamodel_id,
+            include_measures=include_measures,
+            exclude_measures=exclude_measures,
+            db=db,
+            random_state=random_state,
+        )
+
 
     def get_feature_scores(
             self,
