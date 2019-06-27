@@ -235,7 +235,41 @@ def design_sensitivity_tests(
 
 def minimum_weighted_distance(fixed_points, other_points, weights):
     """
-    Compute minimum weighted distance from one DataFrame to another.
+    Compute minimum weighted distance from one array of points to another.
+
+    Args:
+        fixed_points (array-like):
+            The fixed reference points.  Each column is a dimension, and
+            each row is a point.
+        other_points (array-like):
+            The candidate measurement points.  Each column is a dimension,
+            and each row is a point.  The columns must exactly
+            match the columns in `fixed_points`, while the number of rows
+            and the content thereof can be (and probably should be)
+            entirely different.
+        weights (vector):
+            A set of weights by dimension.
+            The values in this vector should correspond to the columns
+            in `fixed_points` and `other_points`.
+
+    Returns:
+        numpy.ndarray:
+            The values correspond to the rows in `other_points`.
+    """
+    array1 = np.asarray(fixed_points, dtype=float)
+    array2 = np.asarray(other_points, dtype=float)
+    w = np.asarray(weights, dtype=float).reshape(1, -1)
+    result = np.zeros(array2.shape[0], dtype=float)
+
+    for i in range(array2.shape[0]):
+        row = array2[i, :].reshape(1, -1)
+        sq_dist_by_axis = (array1 - row) ** 2
+        result[i] = (sq_dist_by_axis * w).sum(1).min()
+    return result
+
+def count_within_buffer(fixed_points, other_points, weights, buffer_dist):
+    """
+    Count the number of fixed points in a buffer from one array of points to another.
 
     Args:
         fixed_points (array-like):
@@ -261,13 +295,14 @@ def minimum_weighted_distance(fixed_points, other_points, weights):
     array1 = np.asarray(fixed_points, dtype=float)
     array2 = np.asarray(other_points, dtype=float)
     w = np.asarray(weights, dtype=float).reshape(1, -1)
-    result = np.zeros(array2.shape[0], dtype=float)
+    result = np.zeros(array2.shape[0], dtype=int)
 
     for i in range(array2.shape[0]):
         row = array2[i, :].reshape(1, -1)
-        sq_dist_by_axis = (array1 - row) ** 2
-        result[i] = (sq_dist_by_axis * w).sum(1).min()
+        distances = np.sqrt(((array1 - row) ** 2) * w)
+        result[i] = (distances <= buffer_dist).sum()
     return result
+
 
 def minimum_weighted_distances(df1, df2, weights):
     """
