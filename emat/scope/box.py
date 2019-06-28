@@ -4,6 +4,9 @@ from collections.abc import MutableMapping, Mapping
 import itertools
 from typing import Collection
 import pandas
+import numpy
+import copy
+from ..util.distributions import truncated, get_distribution_bounds
 
 from .scope import Scope, ScopeError
 
@@ -412,6 +415,68 @@ class Box(Mapping, GenericBoxMixin):
 			return head+"\n   " + '\n   '.join(members)
 		else:
 			return "<empty "+ self.__class__.__name__ + ">"
+
+	def __get_truncated_parameters(self, source):
+		"""Get a list of truncate parameters.
+
+		This method requires a scope to be set, and will adjust
+		the uncertainty distributions in the scope to be
+		appropriately truncated.
+
+		Args:
+			source (Collection): The list of parameters to possibly truncate.
+		"""
+		result = []
+		for i in source:
+			i = copy.deepcopy(i)
+			if i.name in self.thresholds:
+				bounds = self.thresholds[i.name]
+				if isinstance(bounds, Bounds):
+					lowerbound, upperbound = bounds
+					if lowerbound is None:
+						lowerbound = -numpy.inf
+					if upperbound is None:
+						upperbound = numpy.inf
+					i.dist = truncated(i.dist, lowerbound, upperbound)
+					i.lower_bound, i.upper_bound = get_distribution_bounds(i.dist)
+				else:
+					from .parameter import CategoricalParameter
+					i = CategoricalParameter(i.name, bounds, singleton_ok=True)
+			result.append(i)
+		return result
+
+	def get_uncertainties(self):
+		"""Get a list of exogenous uncertainties.
+
+		This method requires a scope to be set, and will adjust
+		the uncertainty distributions in the scope to be
+		appropriately truncated.
+		"""
+		return self.__get_truncated_parameters(self.scope.get_uncertainties())
+
+	def get_levers(self):
+		"""Get a list of policy levers.
+
+		This method requires a scope to be set, and will adjust
+		the policy lever distributions in the scope to be
+		appropriately truncated.
+		"""
+		return self.__get_truncated_parameters(self.scope.get_levers())
+
+	def get_constants(self):
+		"""Get a list of model constants.
+
+		This method requires a scope to be set, and will pass through
+		constants in the scope unaltered."""
+		return self.scope.get_constants()
+
+	def get_parameters(self):
+		"""Get a list of model parameters (uncertainties+levers+constants)."""
+		return self.get_constants() + self.get_uncertainties() + self.get_levers()
+
+	def get_measures(self):
+		"""Get a list of performance measures."""
+		return self.scope.get_measures()
 
 
 class ChainedBox(Mapping, GenericBoxMixin):
