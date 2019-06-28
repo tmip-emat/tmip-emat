@@ -342,6 +342,8 @@ class MetaModel:
             db: Database=None,
             design_name: str=None,
             debug=None,
+            future_experiments=None,
+            future_experiments_std=None,
     ):
         """
         Select a set of new experiments to perform from a pool of candidates.
@@ -394,9 +396,6 @@ class MetaModel:
 
         """
 
-        if debug:
-            debug_x, debug_y = debug
-
         dimension_weights = self.mix_length_scales(output_focus, inv=True)
         if debug:
             _logger.info(f"output_focus = {output_focus}")
@@ -405,22 +404,14 @@ class MetaModel:
 
         possible_experiments_processed = self.preprocess_raw_input(possible_experiments, float)
 
-        if debug:
-            mwd = minimum_weighted_distance(
-                self.input_sample,
-                possible_experiments,
-                dimension_weights
-            )
-
-            from matplotlib import pyplot as plt
-            plt.scatter(possible_experiments[debug_x], possible_experiments[debug_y], c=mwd)
-            plt.scatter(self.input_sample[debug_x], self.input_sample[debug_y], color='red')
-
         picks = batch_pick_new_experiments(
                 self.input_sample,
                 possible_experiments_processed,
                 batch_size,
                 dimension_weights,
+                future_experiments,
+                future_experiments_std,
+                debug=debug,
         )
 
         design = possible_experiments.loc[picks.index]
@@ -444,6 +435,17 @@ class MetaModel:
             design.index.name = 'experiment'
 
         if debug:
+            debug_x, debug_y = debug
+            mwd = minimum_weighted_distance(
+                self.input_sample,
+                possible_experiments,
+                dimension_weights
+            )
+
+            from matplotlib import pyplot as plt
+            plt.clf()
+            plt.scatter(possible_experiments[debug_x], possible_experiments[debug_y], c=mwd)
+            plt.scatter(self.input_sample[debug_x], self.input_sample[debug_y], color='red')
             plt.scatter(design[debug_x], design[debug_y], color="red", marker='x')
             plt.show()
 
