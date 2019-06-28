@@ -137,6 +137,8 @@ class MultipleTargetRegression(
 
 		if self.standardize_Y is not None:
 			Yhat1 *= self.standardize_Y[None, :]
+			if Yhat1_std is not None:
+				Yhat1_std *= self.standardize_Y[None, :]
 
 		cols = None
 		if self.Y_columns is not None:
