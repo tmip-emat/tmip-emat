@@ -240,6 +240,25 @@ class MetaModel:
             return regression.cross_val_scores(self.input_sample, residuals, cv=cv)
         return self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv)
 
+    def cross_val_predicts(self, cv=5):
+        """
+        Generate cross validated predictions using this meta-model.
+
+        Args:
+            cv (int, default 5): The number of folds to use in
+                cross-validation. Set to zero for leave-one-out
+                (i.e., the maximum number of folds), which may be
+                quite slow.
+
+        Returns:
+            pandas.DataFrame: The cross-validated predictions.
+
+        """
+        if cv==0:
+            cv = len(self.input_sample)
+        return self.regression.cross_val_predict(self.input_sample, self.output_sample, cv=cv)
+
+
     def __repr__(self):
         in_dim = len(self.raw_input_columns)
         out_dim = len(self.output_sample.columns)
