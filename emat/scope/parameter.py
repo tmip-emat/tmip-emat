@@ -666,14 +666,14 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
     def __init__(self, name, categories, *, default=None, variable_name=None,
                  pff=False, multivalue=False,
                  desc="", address=None, ptype=None, corr=None,
-                 dist=None):
+                 dist=None, singleton_ok=False):
         lower_bound = 0
         upper_bound = len(categories) - 1
 
         from scipy.stats import randint
         dist = randint(lower_bound, upper_bound+1)
 
-        if upper_bound == 0:
+        if upper_bound == 0 and not singleton_ok:
             raise ValueError('there should be more than 1 category')
 
         Parameter.__init__(
