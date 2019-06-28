@@ -85,6 +85,9 @@ def design_experiments(
     Returns:
         pandas.DataFrame: The resulting design.
     """
+    if db is False:
+        db = None
+
     if sampler == 'uni':
         return design_sensitivity_tests(scope, db, design_name or 'uni')
 
