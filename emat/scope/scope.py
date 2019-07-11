@@ -577,3 +577,26 @@ class Scope:
 
         from ..experiment import experimental_design
         return experimental_design.design_experiments(self, *args, **kwargs)
+
+    def _any_correlated_parameters(self):
+        for p in self.get_parameters():
+            if len(p.corr):
+                return True
+        return False
+
+    def get_density(self, *args, **kwargs):
+        """
+        Compute the parametric density at any point.
+        """
+        if self._any_correlated_parameters():
+            raise NotImplementedError("density with correlated parameters is coming soon")
+
+        if args:
+            for arg in args:
+                kwargs.update(arg)
+
+        density = 1.0
+        for p in self.get_parameters():
+            value = kwargs.get(p.name, p.default)
+            density *= p.dist.pdf(value)
+        return density
