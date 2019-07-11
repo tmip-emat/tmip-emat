@@ -519,41 +519,6 @@ def batch_pick_new_experiments(
 
     # Initial selection, greedy
     for i in range(batch_size):
-        # mwd = minimum_weighted_distance(
-        #     proposed_experiments,
-        #     possible_experiments,
-        #     dimension_weights
-        # )
-        #
-        # if future_experiments is not None:
-        #     cwb = count_within_buffer(
-        #         future_experiments,
-        #         possible_experiments,
-        #         dimension_weights,
-        #         buffer_dist=1,
-        #     ).astype(float)
-        #     cwb /= cwb.max()
-        #
-        #     if debug:
-        #         from matplotlib import pyplot as plt
-        #         plt.clf()
-        #         scat = plt.scatter(possible_experiments[debug[0]], possible_experiments[debug[1]], c=mwd)
-        #         plt.colorbar(scat)
-        #         plt.scatter(proposed_experiments[debug[0]], proposed_experiments[debug[1]], color='red')
-        #         plt.scatter(existing_experiments[debug[0]], existing_experiments[debug[1]], color='pink', marker='x')
-        #         plt.title("minimum weighted distance")
-        #         plt.show()
-        #         plt.clf()
-        #         scat = plt.scatter(possible_experiments[debug[0]], possible_experiments[debug[1]], c=cwb)
-        #         plt.colorbar(scat)
-        #         plt.scatter(proposed_experiments[debug[0]], proposed_experiments[debug[1]], color='red')
-        #         plt.scatter(existing_experiments[debug[0]], existing_experiments[debug[1]], color='pink', marker='x')
-        #         plt.title("count within buffer")
-        #         plt.show()
-        #
-        #     mwd = mwd + buffer_weighting * cwb
-        #
-        # new_candidate_experiment = mwd.argmax()
         new_candidate_experiment = _pick_one_new_experiment(
             existing_experiments,
             proposed_experiments,
@@ -604,3 +569,96 @@ def batch_pick_new_experiments(
                 _logger.info(f"Replacing {provisionally_dropping} with {provisional_replacement}")
         _logger.info(f"{n_exchanges} Fedorov Exchanges completed.")
     return new_experiments
+
+
+
+def heuristic_pick_experiment(
+    metamodel,
+    candidate_experiments,
+    poorness_of_fit,
+    candidate_density,
+    plot=True,
+):
+    candidate_std = metamodel.compute_std(candidate_experiments)
+    candidate_raw_value = (poorness_of_fit * candidate_std).sum(axis=1)
+    candidate_wgt_value = candidate_raw_value * candidate_density
+    proposed_experiment = candidate_wgt_value.idxmax()
+    if plot:
+        from matplotlib import pyplot as plt
+        fig, axs = plt.subplots(1,1, figsize=(4,4))
+        axs.scatter(
+            candidate_experiments.iloc[:,0],
+            candidate_experiments.iloc[:,1],
+            c=candidate_wgt_value,
+        )
+        axs.scatter(
+            candidate_experiments.iloc[:,0].loc[proposed_experiment],
+            candidate_experiments.iloc[:,1].loc[proposed_experiment],
+            color="red", marker='x',
+        )
+        plt.show()
+        plt.close(fig)
+    return proposed_experiment
+
+
+def heuristic_batch_pick_experiment(
+        batch_size,
+        metamodel,
+        candidate_experiments,
+        scope,
+        poorness_of_fit=None,
+        plot=True,
+):
+    _logger.info(f"Computing Density")
+    candidate_density = candidate_experiments.apply(lambda x: scope.get_density(x), axis=1)
+
+    if poorness_of_fit is None:
+        _logger.info(f"Computing Poorness of Fit")
+        crossval = metamodel.function.cross_val_scores()
+        poorness_of_fit = dict(1 - crossval)
+
+    proposed_candidate_ids = set()
+    proposed_candidates = None
+
+    for i in range(batch_size):
+        metamodel.function.regression.set_hypothetical_training_points(proposed_candidates)
+        proposed_id = heuristic_pick_experiment(
+            metamodel,
+            candidate_experiments,
+            poorness_of_fit,
+            candidate_density,
+            plot=plot,
+        )
+        proposed_candidate_ids.add(proposed_id)
+        proposed_candidates = candidate_experiments.loc[proposed_candidate_ids]
+
+    proposed_candidate_ids = list(proposed_candidate_ids)
+
+    # Exchanges
+    n_exchanges = 1
+    while n_exchanges > 0:
+        n_exchanges = 0
+        for i in range(batch_size):
+            provisionally_dropping = proposed_candidate_ids[i]
+            metamodel.function.regression.set_hypothetical_training_points(
+                candidate_experiments.loc[set(proposed_candidate_ids) - {provisionally_dropping}]
+            )
+            provisional_replacement = heuristic_pick_experiment(
+                metamodel,
+                candidate_experiments,
+                poorness_of_fit,
+                candidate_density,
+                plot=plot,
+            )
+            if provisional_replacement not in proposed_candidate_ids:
+                n_exchanges += 1
+                proposed_candidate_ids[i] = provisional_replacement
+                _logger.info(f"Replacing {provisionally_dropping} with {provisional_replacement}")
+        _logger.info(f"{n_exchanges} Exchanges completed.")
+
+
+
+    metamodel.function.regression.clear_hypothetical_training_points()
+    return proposed_candidates
+
+

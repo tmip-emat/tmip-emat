@@ -477,3 +477,89 @@ class MetaModel:
             plt.show()
 
         return design
+
+    def heuristic_pick_experiment(
+            self,
+            candidate_experiments,
+            poorness_of_fit,
+            candidate_density,
+            plot=True,
+    ):
+        candidate_std = self.compute_std(candidate_experiments)
+        candidate_raw_value = (poorness_of_fit * candidate_std).sum(axis=1)
+        candidate_wgt_value = candidate_raw_value * candidate_density
+        proposed_experiment = candidate_wgt_value.idxmax()
+        if plot:
+            from matplotlib import pyplot as plt
+            fig, axs = plt.subplots(1, 1, figsize=(4, 4))
+            axs.scatter(
+                candidate_experiments.iloc[:, 0],
+                candidate_experiments.iloc[:, 1],
+                c=candidate_wgt_value,
+            )
+            axs.scatter(
+                candidate_experiments.iloc[:, 0].loc[proposed_experiment],
+                candidate_experiments.iloc[:, 1].loc[proposed_experiment],
+                color="red", marker='x',
+            )
+            plt.show()
+            plt.close(fig)
+        return proposed_experiment
+
+    def heuristic_batch_pick_experiment(
+            self,
+            batch_size,
+            candidate_experiments,
+            scope,
+            poorness_of_fit=None,
+            plot=True,
+    ):
+        _logger.info(f"Computing Density")
+        candidate_density = candidate_experiments.apply(lambda x: scope.get_density(x), axis=1)
+
+        if poorness_of_fit is None:
+            _logger.info(f"Computing Poorness of Fit")
+            crossval = self.cross_val_scores()
+            poorness_of_fit = dict(1 - crossval)
+
+        proposed_candidate_ids = set()
+        proposed_candidates = None
+
+        _logger.info(f"Populating Initial Batch")
+        for i in range(batch_size):
+            self.regression.set_hypothetical_training_points(proposed_candidates)
+            proposed_id = self.heuristic_pick_experiment(
+                candidate_experiments,
+                poorness_of_fit,
+                candidate_density,
+                plot=plot,
+            )
+            proposed_candidate_ids.add(proposed_id)
+            proposed_candidates = candidate_experiments.loc[proposed_candidate_ids]
+
+        proposed_candidate_ids = list(proposed_candidate_ids)
+
+        # Exchanges
+        n_exchanges = 1
+        while n_exchanges > 0:
+            n_exchanges = 0
+            for i in range(batch_size):
+                provisionally_dropping = proposed_candidate_ids[i]
+                self.regression.set_hypothetical_training_points(
+                    candidate_experiments.loc[set(proposed_candidate_ids) - {provisionally_dropping}]
+                )
+                provisional_replacement = self.heuristic_pick_experiment(
+                    candidate_experiments,
+                    poorness_of_fit,
+                    candidate_density,
+                    plot=plot,
+                )
+                if provisional_replacement not in proposed_candidate_ids:
+                    n_exchanges += 1
+                    proposed_candidate_ids[i] = provisional_replacement
+                    _logger.info(f"Replacing {provisionally_dropping} with {provisional_replacement}")
+            _logger.info(f"{n_exchanges} Exchanges completed.")
+
+        self.regression.clear_hypothetical_training_points()
+        return proposed_candidates
+
