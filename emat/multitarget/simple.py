@@ -5,6 +5,8 @@ import numpy
 import scipy.stats
 import warnings
 
+from scipy.linalg import cholesky, cho_solve
+
 from sklearn.base import RegressorMixin, BaseEstimator
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.pipeline import make_pipeline
@@ -382,4 +384,66 @@ class DetrendedMultipleTargetRegression(
 	# 		X = self.step1.estimators_[0].X_train_,
 	# 		Y = numpy.stack([i.y_train_ for i in self.step1.estimators_]).T
 	# 	return super().cross_val_scores(X,Y,cv)
+
+	def _change_training_data(self, X, Y):
+		"""
+		Swap out X and Y in training data for new arrays.
+
+		This method will also pass the new array references to the step1
+		submodels.
+
+		The replacement Y should be pre-standardized if the previous
+		Y was standardized.
+		"""
+		self.X_train_ = numpy.copy(X) if self.copy_X_train else X
+		self.Y_train_ = numpy.copy(Y) if (self.copy_X_train or self.standardize_before_fit) else Y
+
+		if hasattr(self, 'step1'):
+			for n, estimator in enumerate(self.step1.estimators_):
+				estimator.X_train_ = self.X_train_
+				estimator.y_train_ = self.Y_train_[:,n]
+
+				# Precompute quantities required for predictions which are independent
+				# of actual query points
+				K = estimator.kernel_(estimator.X_train_)
+				K[numpy.diag_indices_from(K)] += estimator.alpha
+				try:
+					estimator.L_ = cholesky(K, lower=True)  # Line 2
+					estimator._K_inv = None  # because self.L_ changed
+				except numpy.linalg.LinAlgError as exc:
+					exc.args = ("The kernel, %s, is not returning a "
+								"positive definite matrix. Try gradually "
+								"increasing the 'alpha' parameter of your "
+								"GaussianProcessRegressor estimator."
+								% estimator.kernel_,) + exc.args
+					raise
+				estimator.alpha_ = cho_solve((estimator.L_, True), estimator.y_train_)  # Line 3
+
+	def set_hypothetical_training_points(self, hX):
+
+		if not hasattr(self, 'X_train_original_'):
+			self.X_train_original_ = self.X_train_.copy()
+		if not hasattr(self, 'Y_train_original_'):
+			self.Y_train_original_ = self.Y_train_.copy()
+
+		if hX is None:
+			hY = None
+		else:
+			if self.standardize_Y is None:
+				hY = self.residual_predict(hX).values
+			else:
+				hY = (
+					self.residual_predict(hX) / self.standardize_Y
+				).values
+
+		extra_X = [hX] if hX is not None else []
+		extra_Y = [hY] if hY is not None else []
+
+		self._change_training_data(
+			numpy.vstack([self.X_train_original_]+extra_X),
+			numpy.vstack([self.Y_train_original_]+extra_Y)
+		)
+
+	def clear_hypothetical_training_points(self):
+		return self.set_hypothetical_training_points(None)
 
