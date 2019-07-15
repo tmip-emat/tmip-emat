@@ -530,7 +530,7 @@ def batch_pick_new_experiments(
             debug=debug,
         )
         proposed_experiments = proposed_experiments.append(possible_experiments.iloc[new_candidate_experiment])
-        _logger.info(f"Selecting {proposed_experiments.index[-1]}")
+        _logger.info(f"selecting {proposed_experiments.index[-1]}")
 
     new_experiments = proposed_experiments.iloc[-batch_size:]
 
@@ -566,8 +566,8 @@ def batch_pick_new_experiments(
                 new_index[i] = provisional_replacement
                 new_experiments.index = new_index
                 new_experiments.iloc[i] = possible_experiments.iloc[new_candidate_experiment]
-                _logger.info(f"Replacing {provisionally_dropping} with {provisional_replacement}")
-        _logger.info(f"{n_exchanges} Fedorov Exchanges completed.")
+                _logger.info(f"replacing {provisionally_dropping} with {provisional_replacement}")
+        _logger.info(f"{n_exchanges} exchanges completed.")
     return new_experiments
 
 
