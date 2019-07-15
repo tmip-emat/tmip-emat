@@ -243,6 +243,56 @@ class MetaModel:
 
         return result
 
+    def predict(self, *args, trend_only=False, residual_only=False, **kwargs):
+        """
+        Generate predictions using the meta-model.
+
+        Args:
+            df (pandas.DataFrame, optional)
+            trend_only, residual_only (bool)
+            **kwargs:
+                All defined (meta)model parameters are passed as keyword
+                arguments, including both uncertainties and levers.
+
+        Returns:
+            dict:
+                A single dictionary containing the standard deviaition of the
+                estimate of all performance measure outcomes.
+        """
+        if len(args) == 1:
+            if isinstance(args[0], pandas.DataFrame):
+                return args[0].apply(
+                    lambda x: pandas.Series(self.predict(**x, trend_only=trend_only, residual_only=residual_only)),
+                    axis=1,
+                )
+            else:
+                raise TypeError(f'predict() optionally takes a DataFrame as a '
+                                f'positional argument, not {type(args[0])}')
+        elif len(args) > 1:
+            raise TypeError(f'predict() takes at most one '
+                            f'positional argument, not {len(args)}')
+
+        input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
+        input_row = self.cat_encoder.transform(input_row)
+
+        if trend_only:
+            output_row = self.regression.detrend_predict(input_row)
+        elif residual_only:
+            output_row = self.regression.residual_predict(input_row)
+        else:
+            output_row = self.regression.predict(input_row)
+
+        result = dict(output_row.iloc[0])
+
+        # undo the output transforms
+        for k, (_,v_func) in self.output_transforms.items():
+            result[k] = v_func(result[k])
+
+        for i in self.disabled_outputs:
+            result[i] = None
+
+        return result
+
 
     def cross_val_scores(self, cv=5, gpr_only=False):
         """
