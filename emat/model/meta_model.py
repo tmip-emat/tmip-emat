@@ -514,18 +514,18 @@ class MetaModel:
             poorness_of_fit=None,
             plot=True,
     ):
-        _logger.info(f"Computing Density")
+        _logger.info(f"computing density")
         candidate_density = candidate_experiments.apply(lambda x: scope.get_density(x), axis=1)
 
         if poorness_of_fit is None:
-            _logger.info(f"Computing Poorness of Fit")
+            _logger.info(f"computing poorness of fit")
             crossval = self.cross_val_scores()
             poorness_of_fit = dict(1 - crossval)
 
         proposed_candidate_ids = set()
         proposed_candidates = None
 
-        _logger.info(f"Populating Initial Batch")
+        _logger.info(f"populating initial batch")
         for i in range(batch_size):
             self.regression.set_hypothetical_training_points(proposed_candidates)
             proposed_id = self.heuristic_pick_experiment(
@@ -539,6 +539,7 @@ class MetaModel:
 
         proposed_candidate_ids = list(proposed_candidate_ids)
 
+        _logger.info(f"initial batch complete, checking for exchanges")
         # Exchanges
         n_exchanges = 1
         while n_exchanges > 0:
@@ -557,8 +558,8 @@ class MetaModel:
                 if provisional_replacement not in proposed_candidate_ids:
                     n_exchanges += 1
                     proposed_candidate_ids[i] = provisional_replacement
-                    _logger.info(f"Replacing {provisionally_dropping} with {provisional_replacement}")
-            _logger.info(f"{n_exchanges} Exchanges completed.")
+                    _logger.info(f"replacing {provisionally_dropping} with {provisional_replacement}")
+            _logger.info(f"{n_exchanges} exchanges completed.")
 
         self.regression.clear_hypothetical_training_points()
         return proposed_candidates
