@@ -80,7 +80,8 @@ class MetaModel:
             output_sample,
             metamodel_types=None,
             disabled_outputs=None,
-            random_state=None
+            random_state=None,
+            sample_stratification=None,
     ):
 
         if not isinstance(input_sample, pandas.DataFrame):
@@ -100,6 +101,7 @@ class MetaModel:
 
         self.input_sample = input_sample
         self.output_sample = output_sample.copy(deep=(metamodel_types is not None))
+        self.sample_stratification = sample_stratification
 
         self.output_transforms = {}
         if metamodel_types is not None:
@@ -311,6 +313,10 @@ class MetaModel:
             pandas.Series: The cross-validation scores, by output.
 
         """
+        if self.sample_stratification is not None:
+            from ..multitarget.splits import ExogenouslyStratifiedKFold
+            cv = ExogenouslyStratifiedKFold(exo_data=self.sample_stratification, n_splits=cv)
+
         if gpr_only:
             residuals = self.regression.residual_predict(self.input_sample)
             regression = multitarget.MultipleTargetRegression()

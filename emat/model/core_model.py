@@ -480,6 +480,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures = None,
             db = None,
             random_state = None,
+            experiment_stratification = None,
     ):
         """
         Create a MetaModel from a set of input and output observations.
@@ -507,6 +508,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 the metamodel is not stored in a database.
             random_state (int, optional): A random state to use in the metamodel
                 regression fitting.
+            experiment_stratification (pandas.Series, optional):
+                A stratification of experiments, used in cross-validation.
 
         Returns:
             MetaModel:
@@ -542,7 +545,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                             if i not in experiment_outputs.columns]
 
         func = MetaModel(experiment_inputs, experiment_outputs,
-                         output_transforms, disabled_outputs, random_state)
+                         output_transforms, disabled_outputs, random_state,
+                         experiment_stratification)
 
         scope_ = self.scope.duplicate(strip_measure_transforms=True, 
                                       include_measures=include_measures,
@@ -658,12 +662,19 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     from ..exceptions import PendingExperimentsError
                     raise PendingExperimentsError(f'design "{design_name}" has pending experiments')
 
-        experiment_inputs = pd.concat([
-            db.read_experiment_parameters(self.scope.name, design_name) for design_name in design_names
-        ])
-        experiment_outputs = pd.concat([
-            db.read_experiment_measures(self.scope.name, design_name) for design_name in design_names
-        ])
+        experiment_inputs = []
+        for design_name in design_names:
+            f = db.read_experiment_parameters(self.scope.name, design_name)
+            f['_design_'] = design_name
+            experiment_inputs.append(f)
+        experiment_inputs = pd.concat(experiment_inputs)
+
+        experiment_outputs = []
+        for design_name in design_names:
+            f =  db.read_experiment_measures(self.scope.name, design_name)
+            # f['_design_'] = design_name
+            experiment_outputs.append(f)
+        experiment_outputs = pd.concat(experiment_outputs)
 
         transforms = {
             i.name: i.metamodeltype
@@ -671,7 +682,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         }
 
         return self.create_metamodel_from_data(
-            experiment_inputs,
+            experiment_inputs.drop('_design_', axis=1),
             experiment_outputs,
             transforms,
             metamodel_id=metamodel_id,
@@ -679,6 +690,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures=exclude_measures,
             db=db,
             random_state=random_state,
+            experiment_stratification=experiment_inputs['_design_'],
         )
 
 
