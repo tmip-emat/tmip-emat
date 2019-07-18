@@ -25,6 +25,12 @@ The interface for these methods is defined in this abstract base class,
 but any implementation must provide implementation-specific overrides
 for each of these methods.
 
+.. note::
+    An important feature of overriding these functions is that the
+    function signature (what arguments and types each function accepts,
+    and what types it returns) should not be changed, even though
+    technically Python itself allows doing so.
+
 .. automethod:: AbstractCoreModel.setup
 .. automethod:: AbstractCoreModel.run
 .. automethod:: AbstractCoreModel.load_measures
