@@ -92,7 +92,7 @@ class ODOTModel(FilesCoreModel):
         os.chdir(self.model_path)
 
         # Save a csv copy of the experimental parameters      
-        params.to_csv('Emat_Parameters.csv',header=False)
+        pd.Series(params).to_csv('Emat_Parameters.csv',header=False)
                 
         # Call the bat file to update ABM input files based on EMAT scenarios
         os.system("EMAT_Inputs.bat")

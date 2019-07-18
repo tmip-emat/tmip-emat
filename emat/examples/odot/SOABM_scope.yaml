@@ -149,7 +149,7 @@ outputs:
 
     Number of Autos Owned Per Household:
         kind: maximize    
-    Percent of Non-Mandatory Tours
+    Percent of Non-Mandatory Tours:
         kind: maximize
         
 ...
