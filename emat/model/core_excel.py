@@ -5,7 +5,7 @@ import time
 import inspect
 import pandas
 
-from typing import Union, Mapping, Callable
+from typing import Union, Mapping, Callable, Collection
 from ema_workbench.connectors.excel import ExcelModel
 
 from ..scope.scope import Scope
@@ -146,7 +146,13 @@ class ExcelCoreModel(AbstractCoreModel, ExcelModel):
         """This method is not needed for Excel models."""
 
     @copydoc(AbstractCoreModel.load_measures)
-    def load_measures(self, measure_names, output_path=None):
+    def load_measures(
+            self,
+			measure_names: Collection[str],
+			*,
+			rel_output_path=None,
+			abs_output_path=None,
+    ):
         """This method is not needed for Excel models."""
 
     @copydoc(AbstractCoreModel.archive)

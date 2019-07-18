@@ -94,6 +94,9 @@ class FilesCoreModel(AbstractCoreModel):
 		self.model_path = self.config['model_path']
 		"""Path: The directory of the 'live' model instance."""
 
+		self.rel_output_path = self.config.get('rel_output_path', 'Outputs')
+		"""Path: The path to 'live' model outputs, relative to `model_path`."""
+
 		self.archive_path = self.config['model_archive']
 		"""Path: The directory where archived models are stored."""
 
@@ -224,13 +227,19 @@ class FilesCoreModel(AbstractCoreModel):
 	def load_measures(
 			self,
 			measure_names: List[str],
-			output_path=None,
+			*,
+			rel_output_path=None,
+			abs_output_path=None,
 	):
 
-		if output_path is None:
-			output_path = os.path.join(self.model_path, "Outputs")
-		else:
-			output_path = os.path.join(output_path, "Outputs")
+		if rel_output_path is not None and abs_output_path is not None:
+			raise ValueError("cannot give both `rel_output_path` and `abs_output_path`")
+		elif rel_output_path is None and abs_output_path is None:
+			output_path = os.path.join(self.model_path, self.rel_output_path)
+		elif rel_output_path is not None:
+			output_path = os.path.join(self.model_path, rel_output_path)
+		else: # abs_output_path is not None
+			output_path = abs_output_path
 
 		if not os.path.isdir(output_path):
 			raise NotADirectoryError(output_path)

@@ -152,21 +152,34 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         """
     
     @abc.abstractmethod
-    def load_measures(self, measure_names, output_path=None) -> dict:
+    def load_measures(
+            self,
+            measure_names: Collection[str],
+            *,
+            rel_output_path=None,
+            abs_output_path=None,
+	) -> dict:
         """
-        Import selected measures into dataframe
+        Import selected measures from the core model.
         
         Imports measures from active scenario
         
         Args:
-            measure_names (List[str]): List of measures to be processed
-            output_path (str): Path to model output locations
-        
+            measure_names (Collection[str]):
+                Collection of measures to be processed
+            rel_output_path, abs_output_path (str, optional):
+                Path to model output locations, either relative
+                to the `model_path` directory (when a subclass
+                is a type that has a model path) or as an absolute
+                directory.  If neither is given, the default
+                value is equivalent to setting `rel_output_path` to
+                'Outputs'.
+
         Returns:
             dict of measure name and values from active scenario
         
         Raises:
-            KeyError: If post process is not available for specified
+            KeyError: If load_measures is not available for specified
                 measure
         """           
         
