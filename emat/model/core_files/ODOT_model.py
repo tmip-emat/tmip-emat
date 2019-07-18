@@ -12,7 +12,6 @@ from ...database.database import Database
 from .core_files import FilesCoreModel
 from .parsers import TableParser, loc, iloc, loc_sum
 from ...util.docstrings import copydoc
-from .core_files import copy_model_outputs_1, copy_model_outputs_ext
 
 from ...util.loggers import get_module_logger
 _logger = get_module_logger(__name__)
@@ -49,14 +48,12 @@ class ODOTModel(FilesCoreModel):
     """
 
 
-
-
     def __init__(self,
                  configuration:Union[str,Mapping],
                  scope: Union[Scope, str],
                  safe:bool=True,
                  db:Database=None,
-                 name:str='GBNRTC',
+                 name:str='ODOT',
                  ):
         super().__init__(
                  configuration=configuration,
@@ -66,6 +63,7 @@ class ODOTModel(FilesCoreModel):
                  name=name,
         )
 
+        self._parsers = self.__MEASURE_PARSERS
 
     def copyeverything(self, src, dst):
         try:
@@ -74,36 +72,30 @@ class ODOTModel(FilesCoreModel):
           if exc.errno == errno.ENOTDIR:
               copy(src, dst)
           else: raise
+              
 
-    
-    def setup(self, design, scen, path):
+    def setup(self, params: dict):
         """
         Configure the core model with the experiment variable values
 
         Args:
-            design data table: experiment variables including both exogenous
+            params (dict): experiment variables including both exogenous
                 uncertainty and policy levers
-            scen: the scenario number to be setup within the full design
-            path: the starting (clean) model path provided by "SOABM_model_config.yaml"    
 
+        Raises:
+            KeyError: if experiment variable defined is not supported               
         """
-        
-        # New Scenario directory 
-        NewScen = path + '_' + str(scen) 
-        
-        # check if new directory already exists, and if so don't worry about creating
-        if not os.path.isdir(NewScen):
-          # Run the scenario to copy the reference directory
-          self.copyeverything(path,NewScen) 
+        # Run the scenario to copy the reference directory
+        self.copyeverything(self.config['model_ref'],self.model_path) 
 
         # change working directory to new scenario
-        os.chdir(NewScen)
+        os.chdir(self.model_path)
 
         # Save a csv copy of the experimental parameters      
-        design.iloc[scen].to_csv('Emat_Parameters.csv',header=False)
+        params.to_csv('Emat_Parameters.csv',header=False)
                 
-        # Call the model run function, which call the bat file
-        #self.run()
+        # Call the bat file to update ABM input files based on EMAT scenarios
+        os.system("EMAT_Inputs.bat")
         
           
     def run(self):
@@ -118,60 +110,32 @@ class ODOTModel(FilesCoreModel):
 
         os.system("RunModel.bat") 
         
+        
     def post_process(self,
                      params: dict,
                      measure_names: List[str],
                      output_path=None):
+ 
         """
-        Runs post processors associated with measures.
+        Runs the EMAT_Process bat file
+        The bat file runs an R script which creates all the 
+        outputs developed for the TMIP-EMAT evaulation.
+        
+        Assumes setup and run have been compelted.
 
-        For the GBNRTC model, this method calls
-        TransCAD macros to generate output files.
-
-        The model should have previously been executed using
-        the `run` method.
-
-        Args:
-            params (dict):
-                Dictionary of experiment variables - indices
-                are variable names, values are the experiment settings
-            measure_names (List[str]):
-                List of measures to be processed
-            output_path (str):
-                Path to model outputs - if set to none
-                will use local values
-
-        Raises:
-            KeyError:
-                If post process is not available for specified
-                measure
         """
 
-        _logger.info("Running post process scripts at {0}".format(time.strftime("%Y_%m_%d %H%M%S")))
+        _logger.info("Starting model post process at at {0}".format(time.strftime("%Y_%m_%d %H%M%S")))        
+
+        os.system("EMAT_Process.bat") 
         
-        if self.tc is None:
-            self.start_transcad()
-        
-        if output_path is None:
-            output_path = self.model_path
-            
-        output_path = output_path.replace("\\", "\\\\") + "\\\\"
-        
-        pm_done = []
-        for pm in measure_names:
-            # skip if performance measure handled by other macro
-            if pm in pm_done: continue
-            
-            try:
-                func, macro = self.__TRANSCAD_MACRO_BY_PM[pm]
-                pm_done += func(self, macro, params, output_path)
-            except KeyError:
-                _logger.exception(f"Post process method for pm {pm} not available")
-                raise
+        # back out a folder for the working directory so that the working folder can be renamed
+        os.chdir("..")
+    
     
     def archive(self, params: dict, model_results_path: str, experiment_id:int=0):
         """
-        Copies TransCAD settings, outputs and common input files
+        Re-name Scenario folder to 
 
         Args:
             params (dict): Dictionary of experiment variables
@@ -180,108 +144,126 @@ class ODOTModel(FilesCoreModel):
 
         """
 
-        # create output folder
-        if not os.path.exists(model_results_path):
-            os.makedirs(model_results_path)
-            time.sleep(2)
-            os.makedirs(os.path.join(model_results_path, "ModelConfig"))
-            time.sleep(2)
-            os.makedirs(os.path.join(model_results_path, "Outputs"))
-            time.sleep(2)
+        # rename the model / sandbox directory to the experiment number / id
+        os.rename(self.model_path,self.model_path + '_' + experiment_id)
 
-        # record experiment definitions
-        xl_df = pd.DataFrame(params, index=[experiment_id])
-        xl_df.to_csv(model_results_path + '.csv')
 
-        self.tc.RunMacro(
-            "G30 File Close All",
-            self.exp_param_ui)  # good idea incase TransCAD is holding any cards
+    # final list to push all csv results to TMIP-EMAT
 
-        # copy model settings
-        self.tc.RunMacro("Copy Model Parameters", self.exp_param_ui,
-                         self.mod_path_tc +"\\\\",
-                         model_results_path.replace("\\", "\\\\") + "\\\\")
+    __MEASURE_PARSERS = [
 
-        copy_model_outputs_ext(self.model_path, model_results_path, "AM_LinkVolumes")
-        copy_model_outputs_ext(self.model_path, model_results_path, "PM_LinkVolumes")
-        copy_model_outputs_ext(self.model_path, model_results_path, "MD_LinkVolumes")
-        copy_model_outputs_ext(self.model_path, model_results_path, "NT_LinkVolumes")
-        copy_model_outputs_ext(self.model_path, model_results_path, "TASN_ONO_pkwk")
-        copy_model_outputs_ext(self.model_path, model_results_path, "TASN_ONO_opwk")
-        copy_model_outputs_ext(self.model_path, model_results_path, "TASN_ONO_pkdr")
-        copy_model_outputs_ext(self.model_path, model_results_path, "TASN_ONO_opdr")
-        copy_model_outputs_ext(self.model_path, model_results_path, "pktrips")
+        TableParser(
+            "Access.csv",
+            {
+                'Percentage of Population with Access to 50k Jobs by Car within 5mins in PM': loc['Per_Pop_w_50K_Jobs_in_5_mins', 'x'],
+                'Percentage of Population with Access to 50k Jobs by Car within 10mins in PM': loc['Per_Pop_w_50K_Jobs_in_10_mins', 'x'],
+                'Percentage of Population with Access to 50k Jobs by Car within 20mins in PM': loc['Per_Pop_w_50K_Jobs_in_20_mins', 'x'],
+                'Percentage of Population with Access to 50k Jobs by Car within 30mins in PM': loc['Per_Pop_w_50K_Jobs_in_30_mins', 'x'],
+            }
+        ),
 
-        copy_model_outputs_1(self.model_path, model_results_path, "pkdr.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "pkwk.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "opdr.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "opwk.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "skim_walk.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "skim_hwypk.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "skim_hwyop.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "AM_hwytrips.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "PM_hwytrips.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "ModeChoice_Daily_Sum_Trips_pk.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "ModeChoice_Daily_Sum_Trips_op.mtx")
-        copy_model_outputs_1(self.model_path, model_results_path, "msa_log.txt")
-        
-        # copy other files to support performance measures
-        for file in glob.glob(
-                os.path.join(
-                    self.model_path,
-                    "EMAExperimentFiles", "PerfMeasSupport", "*"
-                )
-        ):
-            copy(file, os.path.join(model_results_path, "Outputs"))
-            
-        # copy output summaries (all csv's)
-        for file in glob.glob(
-                os.path.join(self.model_path, "Outputs", "*.csv")
-        ):
-            copy(file, os.path.join(model_results_path, "Outputs"))
+        TableParser(
+            "ModeSplit.csv",
+            {
+                'Auto SOV Mode Share': loc['AutoSOV', 'x'],
+                'Auto 2 Passengers Mode Share': loc['Auto2Per', 'x'],
+                'Auto 3 or More Passengers Mode Share': loc['Auto3Plus', 'x'],
+                'Walk Mode Share': loc['Walk', 'x'],
+                'Bike Mode Share': loc['Bike', 'x'],
+                'Transit Mode Share': loc['Transit', 'x'],
+                'PNR Mode Share': loc['PNR', 'x'],
+                'KNR Mode Share': loc['KNR', 'x'],
+                'School Bus Mode Share': loc['SchoolBus', 'x'],
+                'Bike and Walk Mode Share': loc['Active', 'x'],
+                'Transit with PNR and KNR Mode Share': loc['Transit_PNR_KNR', 'x'],
+            }
+        ),
 
-    # =============================================================================
-    #     Experiment variable setting methods
-    # =============================================================================
+        TableParser(
+            "million_PMT.csv",
+            {
+                'Millions of Miles Traveled - Drive Alone Free': loc['DriveAloneFree', 'x'],
+                'Millions of Miles Traveled - Shared 2 Person General Purpose': loc['Shared2GP', 'x'],
+                'Millions of Miles Traveled - Shared 3 or more Person General Purpose': loc['Shared3GP', 'x'],
+                'Millions of Miles Traveled - Walk': loc['Walk', 'x'],
+                'Millions of Miles Traveled - Bike': loc['Bike', 'x'],
+                'Millions of Miles Traveled - Transit': loc['Transit', 'x'],
+                'Millions of Miles Traveled - PNR': loc['PNR', 'x'],
+                'Millions of Miles Traveled - KNR': loc['KNR', 'x'],
+                'Millions of Miles Traveled - School Bus': loc['SchoolBus', 'x'],
+                'Millions of Person Miles Traveled': loc['Total', 'x'],
+            },
+        ),
 
-    def __set_simple_evar(self, macro, evar, exp_var):       
-        ''' call TransCAD macro and return variable to completed list'''
-        self.tc.RunMacro("G30 File Close All", self.exp_param_ui)  
-        ret = self.tc.RunMacro(macro, 
-                               self.exp_param_ui, 
-                               self.mod_path_tc,
-                               float(exp_var[evar]))
-        if ret != 0:
-            raise SystemError("Error {2} in setting {0} to {1}" 
-                              .format(evar, exp_var[evar], ret)) 
-        return [evar]
-        
-    
+        TableParser(
+            "million_VMT.csv",
+            {
+                'Millions of Auto Miles Traveled in EA': loc['EA_VOL_AUTO', 'x'],
+                'Millions of Truck Miles Traveled in EA': loc['EA_VOL_TRUCK', 'x'],
+                'Millions of Vehicle Miles Traveled in EA': loc['EA_VOL_TOTAL', 'x'],
+                'Millions of Auto Miles Traveled in AM': loc['AM_VOL_AUTO', 'x'],
+                'Millions of Truck Miles Traveled in AM': loc['AM_VOL_TRUCK', 'x'],
+                'Millions of Vehicle Miles Traveled in AM': loc['AM_VOL_TOTAL', 'x'],
+                'Millions of Auto Miles Traveled in MD': loc['MD_VOL_AUTO', 'x'],
+                'Millions of Truck Miles Traveled in MD': loc['MD_VOL_TRUCK', 'x'],
+                'Millions of Vehicle Miles Traveled in MD': loc['MD_VOL_TOTAL', 'x'],
+                'Millions of Auto Miles Traveled in PM': loc['PM_VOL_AUTO', 'x'],
+                'Millions of Truck Miles Traveled in PM': loc['PM_VOL_TRUCK', 'x'],
+                'Millions of Vehicle Miles Traveled in PM': loc['PM_VOL_TOTAL', 'x'],
+                'Millions of Auto Miles Traveled in EV': loc['EV_VOL_AUTO', 'x'],
+                'Millions of Truck Miles Traveled in EV': loc['EV_VOL_TRUCK', 'x'],
+                'Millions of Vehicle Miles Traveled in EV': loc['EV_VOL_TOTAL', 'x'],
+                'Millions of Auto Miles Traveled': loc['DAILY_VOL_AUTO', 'x'],
+                'Millions of Truck Miles Traveled': loc['DAILY_VOL_TRUCK', 'x'],
+                'Millions of Vehicle Miles Traveled': loc['DAILY_VOL_TOTAL', 'x'],
+            }
+        ),
 
-     
-    # =============================================================================
-    #   Performance measure processing methods
-    # =============================================================================
-    
-    def __pp_path(self, macro, exp_var, out_path):
-        '''call TransCAD macro with the path argument'''
-        self.tc.RunMacro("G30 File Close All", self.exp_param_ui)  
-        self.tc.RunMacro(macro, 
-                         self.perf_meas_ui, 
-                         out_path)
-        return self.__PM_BY_TRANSCAD_MACRO[macro][1]
+        TableParser(
+            "thousand_VHT.csv",
+            {
+                'Thousands of Auto Hours Traveled in EA': loc['EA_AUTO_VHT', 'x'],
+                'Thousands of Truck Hours Traveled in EA': loc['EA_TRUCK_VHT', 'x'],
+                'Thousands of Vehicle Hours Traveled in EA': loc['EA_TOTAL_VHT', 'x'],
+                'Thousands of Auto Hours Traveled in AM': loc['AM_AUTO_VHT', 'x'],
+                'Thousands of Truck Hours Traveled in AM': loc['AM_TRUCK_VHT', 'x'],
+                'Thousands of Vehicle Hours Traveled in AM': loc['AM_TOTAL_VHT', 'x'],
+                'Thousands of Auto Hours Traveled in MD': loc['MD_AUTO_VHT', 'x'],
+                'Thousands of Truck Hours Traveled in MD': loc['MD_TRUCK_VHT', 'x'],
+                'Thousands of Vehicle Hours Traveled in MD': loc['MD_TOTAL_VHT', 'x'],
+                'Thousands of Auto Hours Traveled in PM': loc['PM_AUTO_VHT', 'x'],
+                'Thousands of Truck Hours Traveled in PM': loc['PM_TRUCK_VHT', 'x'],
+                'Thousands of Vehicle Hours Traveled in PM': loc['PM_TOTAL_VHT', 'x'],
+                'Thousands of Auto Hours Traveled in EV': loc['EV_AUTO_VHT', 'x'],
+                'Thousands of Truck Hours Traveled in EV': loc['EV_TRUCK_VHT', 'x'],
+                'Thousands of Vehicle Hours Traveled in EV': loc['EV_TOTAL_VHT', 'x'],
+                'Thousands of Auto Hours Traveled': loc['DAILY_AUTO_VHT', 'x'],
+                'Thousands of Truck Hours Traveled': loc['DAILY_TRUCK_VHT', 'x'],
+                'Thousands of Vehicle Hours Traveled': loc['DAILY_TOTAL_VHT', 'x'],
+            }
+        ),
 
-    def __pp_path_kens(self, macro, exp_var, out_path):
-        '''call TransCAD macro with path and kensington arguments'''
-        kens = int(exp_var['Kensington Decommissioning'])
-                
-        self.tc.RunMacro("G30 File Close All", self.exp_param_ui)  
-        
-        self.tc.RunMacro(macro, 
-                         self.perf_meas_ui, 
-                         out_path,
-                         kens)
-        return self.__PM_BY_TRANSCAD_MACRO[macro][1]    
-    
-  
+        TableParser(
+            "percentVC_byFC_above90.csv",
+            {
+                'Percent of Interstate Miles over 90% V/C Ratio During the PM Peak': loc['1', 'x'],
+                'Percent of Principal Arterial Miles over 90% V/C Ratio During the PM Peak': loc['3', 'x'],
+                'Percent of Minor Arterial Miles over 90% V/C Ratio During the PM Peak': loc['4', 'x'],
+                'Percent of Major Collector Miles over 90% V/C Ratio During the PM Peak': loc['5', 'x'],
+                'Percent of Minor Collector Miles over 90% V/C Ratio During the PM Peak': loc['6', 'x'],
+                'Percent of Local Road Miles over 90% V/C Ratio During the PM Peak': loc['7', 'x'],
+                'Percent of Ramp Miles over 90% V/C Ratio During the PM Peak': loc['30', 'x'],
+            },
+        ),
+
+        TableParser(
+            "hhMeasures.csv",
+            {
+                'Number of Autos Owned Per Household': loc['AutosOwned', 'x'],
+                'Percent of Non-Mandatory Tours': loc['PerNonMand', 'x'],
+            }
+        ),
+
+    ]
+
      

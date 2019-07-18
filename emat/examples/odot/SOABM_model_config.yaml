@@ -1,0 +1,8 @@
+#
+#  configuration
+
+# EMAT Settings
+model_path: C:\WORK\ABM\EMAT_Run
+model_ref: C:\WORK\ABM\EMAT_Ref
+model_archive: archive
+
