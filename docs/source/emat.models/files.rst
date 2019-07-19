@@ -37,3 +37,8 @@ illustration of how to use parsers, see the source code for the :class:`GBNRTCMo
     :members:
 
 .. autoclass:: emat.model.core_files.parsers.Getter
+
+
+.. toctree::
+
+    table_parse_example
