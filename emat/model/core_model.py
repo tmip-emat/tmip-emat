@@ -481,6 +481,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db = None,
             random_state = None,
             experiment_stratification = None,
+            suppress_converge_warnings = False,
     ):
         """
         Create a MetaModel from a set of input and output observations.
@@ -510,6 +511,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 regression fitting.
             experiment_stratification (pandas.Series, optional):
                 A stratification of experiments, used in cross-validation.
+            suppress_converge_warnings (bool, default False):
+                Suppress convergence warnings during metamodel fitting.
 
         Returns:
             MetaModel:
@@ -544,9 +547,15 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         disabled_outputs = [i for i in self.scope.get_measure_names()
                             if i not in experiment_outputs.columns]
 
-        func = MetaModel(experiment_inputs, experiment_outputs,
-                         output_transforms, disabled_outputs, random_state,
-                         experiment_stratification)
+        func = MetaModel(
+            experiment_inputs,
+            experiment_outputs,
+            output_transforms,
+            disabled_outputs,
+            random_state,
+            experiment_stratification,
+            suppress_converge_warnings=suppress_converge_warnings,
+        )
 
         scope_ = self.scope.duplicate(strip_measure_transforms=True, 
                                       include_measures=include_measures,
@@ -570,6 +579,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures=None,
             db=None,
             random_state=None,
+            suppress_converge_warnings=False,
     ):
         """
         Create a MetaModel from a set of input and output observations.
@@ -584,6 +594,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 output performance measures with names not in this set will be included.
             random_state (int, optional): A random state to use in the metamodel
                 regression fitting.
+            suppress_converge_warnings (bool, default False):
+                Suppress convergence warnings during metamodel fitting.
 
         Returns:
             MetaModel:
@@ -619,6 +631,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures=exclude_measures,
             db=db,
             random_state=random_state,
+            suppress_converge_warnings=suppress_converge_warnings,
         )
 
     def create_metamodel_from_designs(
@@ -629,6 +642,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures=None,
             db=None,
             random_state=None,
+            suppress_converge_warnings=False,
     ):
         """
         Create a MetaModel from multiple sets of input and output observations.
@@ -643,6 +657,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 output performance measures with names not in this set will be included.
             random_state (int, optional): A random state to use in the metamodel
                 regression fitting.
+            suppress_converge_warnings (bool, default False):
+                Suppress convergence warnings during metamodel fitting.
 
         Returns:
             MetaModel:
@@ -691,6 +707,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db=db,
             random_state=random_state,
             experiment_stratification=experiment_inputs['_design_'],
+            suppress_converge_warnings=suppress_converge_warnings,
         )
 
 

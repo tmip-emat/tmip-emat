@@ -5,6 +5,7 @@ import numpy
 from typing import Mapping
 from .. import multitarget
 from ..util.one_hot import OneHotCatEncoder
+from ..util.variance_threshold import VarianceThreshold
 from ..experiment.experimental_design import batch_pick_new_experiments, minimum_weighted_distance
 from ..database.database import Database
 from ..scope.scope import Scope
@@ -82,6 +83,7 @@ class MetaModel:
             disabled_outputs=None,
             random_state=None,
             sample_stratification=None,
+            suppress_converge_warnings=False,
     ):
 
         if not isinstance(input_sample, pandas.DataFrame):
@@ -98,6 +100,9 @@ class MetaModel:
         self.cat_encoder = OneHotCatEncoder().fit(input_sample)
         input_sample = self.cat_encoder.transform(input_sample)
         input_sample = input_sample.astype(numpy.float64)
+
+        self.var_thresh = VarianceThreshold().fit(input_sample)
+        input_sample = self.var_thresh.transform(input_sample)
 
         self.input_sample = input_sample
         self.output_sample = output_sample.copy(deep=(metamodel_types is not None))
@@ -135,7 +140,15 @@ class MetaModel:
             self.output_sample[k] = v_func(self.output_sample[k])
 
         self.regression = multitarget.DetrendedMultipleTargetRegression(random_state=random_state)
-        self.regression.fit(self.input_sample, self.output_sample)
+
+        if suppress_converge_warnings:
+            from sklearn.gaussian_process.gpr import ConvergenceWarning
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=ConvergenceWarning)
+                self.regression.fit(self.input_sample, self.output_sample)
+        else:
+            self.regression.fit(self.input_sample, self.output_sample)
 
     def preprocess_raw_input(self, df, to_type=None):
         """
@@ -158,6 +171,7 @@ class MetaModel:
         result = self.cat_encoder.transform(df[self.raw_input_columns])
         if to_type is not None:
             result = result.astype(to_type)
+        result = self.var_thresh.transform(result)
         return result
 
     def __call__(self, *args, **kwargs):
@@ -187,7 +201,7 @@ class MetaModel:
                             f'positional argument, not {len(args)}')
 
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.cat_encoder.transform(input_row)
+        input_row = self.preprocess_raw_input(input_row)
 
         output_row = self.regression.predict(input_row)
         result = dict(output_row.iloc[0])
@@ -230,7 +244,7 @@ class MetaModel:
                             f'positional argument, not {len(args)}')
 
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.cat_encoder.transform(input_row)
+        input_row = self.preprocess_raw_input(input_row)
 
         output_row, output_std = self.regression.predict(input_row, return_std=True)
 
@@ -275,7 +289,7 @@ class MetaModel:
                             f'positional argument, not {len(args)}')
 
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.cat_encoder.transform(input_row)
+        input_row = self.preprocess_raw_input(input_row)
 
         if trend_only:
             output_row = self.regression.detrend_predict(input_row)

@@ -557,15 +557,20 @@ class SQLiteDB(Database):
 
 
     @copydoc(Database.read_experiment_all)
-    def read_experiment_all(self, scope_name: str, design: str, only_pending=False) ->pd.DataFrame:
+    def read_experiment_all(self, scope_name, design_name, only_pending=False) ->pd.DataFrame:
         scope_name = self._validate_scope(scope_name, 'design')
-        if design is None:
+        if design_name is None:
             ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_ALL,
                                                    [scope_name,]).fetchall())
-        else:
+        elif isinstance(design_name, str):
             ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM,
                                                    [scope_name,
-                                                    design]).fetchall())
+                                                    design_name]).fetchall())
+        else:
+            ex_xlm = pd.concat([
+                pd.DataFrame(self.cur.execute(sq.GET_EX_XLM, [scope_name, dn]).fetchall())
+                for dn in design_name
+            ])
         if ex_xlm.empty is False:
             ex_xlm = ex_xlm.pivot(index=0, columns=1, values=2)
         ex_xlm.index.name = 'experiment'

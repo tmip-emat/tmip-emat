@@ -244,7 +244,13 @@ class Scope:
         y = self.dump(strip_measure_transforms=strip_measure_transforms,
                       include_measures=include_measures,
                       exclude_measures=exclude_measures,)
-        return type(self)(self.scope_file, scope_def=y)
+        try:
+            return type(self)(self.scope_file, scope_def=y)
+        except:
+            print("~"*20)
+            print(y)
+            print("~"*20)
+            raise
 
     def dump(
             self,

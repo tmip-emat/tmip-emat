@@ -207,7 +207,7 @@ def make_parameter(
         dist_for_maker['max'] = 1
     elif dtype=='cat':
         dist_for_maker['min'] = 0
-        dist_for_maker['max'] = len(values)-1
+        dist_for_maker['max'] = (len(values)-1) if values is not None else 0
 
 
     ptype = standardize_parameter_type(ptype)
@@ -259,7 +259,10 @@ def make_parameter(
 
     # Create the Parameter
     if ptype == 'constant':
-        p = Constant(name, default, desc=desc, address=address)
+        if dtype == 'cat':
+            p = Constant(name, default, desc=desc, address=address, dtype='cat')
+        else:
+            p = Constant(name, default, desc=desc, address=address)
     elif dtype == 'cat':
         p = CategoricalParameter(
             name,
@@ -362,7 +365,12 @@ class Constant(workbench_param.Constant):
         given as a string.
         """
 
-        self.dtype = standardize_data_type(numpy.asarray(value).dtype)
+        if dtype is None:
+            dtype = numpy.asarray(value).dtype
+
+        dtype = standardize_data_type(dtype)
+
+        self.dtype = dtype
         """str: The dtype for the value, as a string."""
 
     @property
