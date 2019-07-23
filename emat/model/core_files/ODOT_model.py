@@ -110,6 +110,17 @@ class ODOTModel(FilesCoreModel):
 
         os.system("RunModel.bat") 
         
+    def run_mid(self):
+        """
+        Runs the SOABM bat file
+        
+        Model should be prepared using `setup` first.
+
+        """
+
+        _logger.info("Re-Starting model run at {0}".format(time.strftime("%Y_%m_%d %H%M%S")))        
+
+        os.system("RunModel_Mid.bat") 
         
     def post_process(self,
                      params: dict,
@@ -145,7 +156,7 @@ class ODOTModel(FilesCoreModel):
         """
 
         # rename the model / sandbox directory to the experiment number / id
-        os.rename(self.model_path,self.model_path + '_' + experiment_id)
+        os.rename(self.model_path,self.model_path + '_' + str(experiment_id))
 
 
     # final list to push all csv results to TMIP-EMAT
