@@ -1,9 +1,19 @@
 #
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 
 import logging
+
+def require_version(required_version, pkg):
+	if required_version.split('.') > pkg.__version__.split('.'):
+		raise ValueError(f"this {pkg.__name__} is version {pkg.__version__}")
+	if 'CS' in required_version and 'CS' not in pkg.__version__:
+		raise ValueError(f"this {pkg.__name__} is version {pkg.__version__}, a 'CS' patched version is required\n"
+						 "try using: conda update ema_workbench -c jpn")
+
+import ema_workbench
+require_version('2.1.CS1', ema_workbench)
 
 _currently_captured = (logging._warnings_showwarning is not None)
 logging.captureWarnings(True)

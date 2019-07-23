@@ -121,15 +121,19 @@ class MultipleTargetRegression(
 			determined in the `fit` method.
 		"""
 
-		if return_std or return_cov:
-			raise NotImplementedError('return_std' if return_std else 'return_cov')
+		if return_cov:
+			raise NotImplementedError('return_cov')
 
 		if isinstance(X, pandas.DataFrame):
 			idx = X.index
 		else:
 			idx = None
 
-		Yhat1 = self.step1.predict(X)
+		if return_std:
+			Yhat1, Yhat1_std = self.step1.predict_std(X)
+		else:
+			Yhat1 = self.step1.predict(X)
+			Yhat1_std = None
 
 		if self.standardize_Y is not None:
 			Yhat1 *= self.standardize_Y[None, :]
@@ -140,11 +144,20 @@ class MultipleTargetRegression(
 				cols = self.Y_columns
 
 		if idx is not None or cols is not None:
-			return pandas.DataFrame(
+			Yhat1 = pandas.DataFrame(
 				Yhat1,
 				index=idx,
 				columns=cols,
 			)
+
+		if Yhat1_std is not None:
+			if idx is not None or cols is not None:
+				Yhat1_std = pandas.DataFrame(
+					Yhat1_std,
+					index=idx,
+					columns=cols,
+				)
+			return Yhat1, Yhat1_std
 		return Yhat1
 
 	def scores(self, X, Y, sample_weight=None):
@@ -356,7 +369,11 @@ class DetrendedMultipleTargetRegression(
 			Returns predicted values. The n_targets dimension is
 			determined in the `fit` method.
 		"""
-		return super().detrend_predict(X) + self.residual_predict(X)
+		if return_std:
+			rp, se = self.residual_predict(X, return_std=return_std)
+			return super().detrend_predict(X) + rp, se
+		else:
+			return super().detrend_predict(X) + self.residual_predict(X)
 
 	# def cross_val_scores(self, X=None, Y=None, cv=3):
 	# 	if X is None and Y is None:

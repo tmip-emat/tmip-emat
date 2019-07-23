@@ -152,21 +152,34 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         """
     
     @abc.abstractmethod
-    def load_measures(self, measure_names, output_path=None) -> dict:
+    def load_measures(
+            self,
+            measure_names: Collection[str],
+            *,
+            rel_output_path=None,
+            abs_output_path=None,
+	) -> dict:
         """
-        Import selected measures into dataframe
+        Import selected measures from the core model.
         
         Imports measures from active scenario
         
         Args:
-            measure_names (List[str]): List of measures to be processed
-            output_path (str): Path to model output locations
-        
+            measure_names (Collection[str]):
+                Collection of measures to be processed
+            rel_output_path, abs_output_path (str, optional):
+                Path to model output locations, either relative
+                to the `model_path` directory (when a subclass
+                is a type that has a model path) or as an absolute
+                directory.  If neither is given, the default
+                value is equivalent to setting `rel_output_path` to
+                'Outputs'.
+
         Returns:
             dict of measure name and values from active scenario
         
         Raises:
-            KeyError: If post process is not available for specified
+            KeyError: If load_measures is not available for specified
                 measure
         """           
         
@@ -283,9 +296,16 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if db is None:
             raise ValueError('no database to read from')
 
-        return self.ensure_dtypes(
+        measures =  self.ensure_dtypes(
             db.read_experiment_measures(self.scope.name, design_name, experiment_id)
         )
+        
+        # only return measures within scope
+        measures = measures[[i for i in self.scope.get_measure_names()
+                             if i in measures.columns]]
+        
+        return measures
+        
 
     def ensure_dtypes(self, df:pd.DataFrame):
         """
@@ -308,8 +328,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         Args:
             n_samples_per_factor (int, default 10): The number of samples in the
                 design per random factor.
-            n_samples (int, optional): The total number of samples in the
-                design.  If this value is given, it overrides `n_samples_per_factor`.
+            n_samples (int or tuple, optional): The total number of samples in the
+                design.  If `jointly` is False, this is the number of samples in each
+                of the uncertainties and the levers, the total number of samples will
+                be the square of this value.  Give a 2-tuple to set values for
+                uncertainties and levers respectively, to set them independently.
+                If this argument is given, it overrides `n_samples_per_factor`.
             random_seed (int or None, default 1234): A random seed for reproducibility.
             db (Database, optional): If provided, this design will be stored in the
                 database indicated.  If not provided, the `db` for this model will
@@ -318,10 +342,26 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 database. If not given, a unique name will be generated based on the
                 selected sampler.  Has no effect if no `db` is given.
             sampler (str or AbstractSampler, default 'lhs'): The sampler to use for this
-                design.
+                design.  Available pre-defined samplers include:
+                    - 'lhs': Latin Hypercube sampling
+                    - 'ulhs': Uniform Latin Hypercube sampling, which ignores defined
+                        distribution shapes from the scope and samples everything
+                        as if it was from a uniform distribution
+                    - 'mc': Monte carlo sampling
+                    - 'uni': Univariate sensitivity testing, whereby experiments are
+                        generated setting each parameter individually to minimum and
+                        maximum values (for numeric dtypes) or all possible values
+                        (for boolean and categorical dtypes).  Note that designs for
+                        univariate sensitivity testing are deterministic and the number
+                        of samples given is ignored.
             sample_from ('all', 'uncertainties', or 'levers'): Which scope components
                 from which to sample.  Components not sampled are set at their default
                 values in the design.
+            jointly (bool, default True): Whether to sample jointly all uncertainties
+                and levers in a single design, or, if False, to generate separate samples
+                for levers and uncertainties, and then combine the two in a full-factorial
+                manner.  This argument has no effect unless `sample_from` is 'all'.
+                Note that jointly may produce a very large design;
 
         Returns:
             pandas.DataFrame: The resulting design.
@@ -351,7 +391,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         (a Policy). Unlike the perform_experiments function in the EMA Workbench,
         this method pairs each Scenario and Policy in sequence, instead
         of running all possible combinations of Scenario and Policy.
-        This change ensures compatability with the EMAT database modules, which
+        This change ensures compatibility with the EMAT database modules, which
         preserve the complete set of input information (both uncertainties
         and levers) for each experiment.  To conduct a full cross-factorial set
         of experiments similar to the default settings for EMA Workbench,
@@ -368,11 +408,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 will be instantiated.
             design_name (str, optional): The name of a design of experiments to
                 load from the database.  This design is only used if
-                `experiment_parameters` is None.
+                `design` is None.
             db (Database, optional): The database to use for loading and saving experiments.
                 If none is given, the default database for this model is used.
                 If there is no default db, and none is given here,
-                the results are not stored in a database.
+                the results are not stored in a database. Set to False to explicitly
+                not use the default database, even if it exists.
 
         Returns:
             pandas.DataFrame:
@@ -400,7 +441,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db = self.db
 
         if design_name is not None and design is None:
-            if db is None:
+            if not db:
                 raise ValueError(f'cannot load design "{design_name}", there is no db')
             design = db.read_experiment_parameters(self.scope.name, design_name)
 
@@ -432,7 +473,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         outcomes = pd.DataFrame.from_dict(outcomes)
         outcomes.index = design.index
 
-        if db is not None:
+        if db:
             db.write_experiment_measures(self.scope.name, self.metamodel_id, outcomes)
 
         return self.ensure_dtypes(pd.concat([
@@ -503,8 +544,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if include_measures is not None:
             experiment_outputs = experiment_outputs[[i for i in include_measures
                                                      if i in experiment_outputs.columns]]
+            output_transforms = {i: output_transforms[i] for i in include_measures}
+            
         if exclude_measures is not None:
             experiment_outputs = experiment_outputs.drop(exclude_measures, axis=1)
+            for i in exclude_measures:
+                del output_transforms[i]
 
         disabled_outputs = [i for i in self.scope.get_measure_names()
                             if i not in experiment_outputs.columns]
@@ -512,7 +557,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         func = MetaModel(experiment_inputs, experiment_outputs,
                          output_transforms, disabled_outputs, random_state)
 
-        scope_ = self.scope.duplicate(strip_measure_transforms=True)
+        scope_ = self.scope.duplicate(strip_measure_transforms=True, 
+                                      include_measures=include_measures,
+                                      exclude_measures=exclude_measures)
 
         return PythonCoreModel(
             func,
@@ -566,6 +613,70 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         experiment_inputs = db.read_experiment_parameters(self.scope.name, design_name)
         experiment_outputs = db.read_experiment_measures(self.scope.name, design_name)
+
+        transforms = {
+            i.name: i.metamodeltype
+            for i in self.scope.get_measures()
+        }
+
+        return self.create_metamodel_from_data(
+            experiment_inputs,
+            experiment_outputs,
+            transforms,
+            metamodel_id=metamodel_id,
+            include_measures=include_measures,
+            exclude_measures=exclude_measures,
+            db=db,
+            random_state=random_state,
+        )
+
+    def create_metamodel_from_designs(
+            self,
+            design_names:str,
+            metamodel_id:int = None,
+            include_measures=None,
+            exclude_measures=None,
+            db=None,
+            random_state=None,
+    ):
+        """
+        Create a MetaModel from multiple sets of input and output observations.
+
+        Args:
+            design_names (Collection[str]): The names of the designs to use.
+            metamodel_id (int, optional): An identifier for this meta-model.
+                If not given, a unique id number will be created randomly.
+            include_measures (Collection[str], optional): If provided, only
+                output performance measures with names in this set will be included.
+            exclude_measures (Collection[str], optional): If provided, only
+                output performance measures with names not in this set will be included.
+            random_state (int, optional): A random state to use in the metamodel
+                regression fitting.
+
+        Returns:
+            MetaModel:
+                a callable object that, when called as if a
+                function, accepts keyword arguments as inputs and
+                returns a dictionary of (measure name: value) pairs.
+
+        Raises:
+            ValueError: If the named design still has pending experiments.
+        """
+        db = db if db is not None else self.db
+
+        if db is not None:
+            for design_name in design_names:
+                check_df = db.read_experiment_parameters(self.scope.name, design_name, only_pending=True)
+                if not check_df.empty:
+                    from ..exceptions import PendingExperimentsError
+                    raise PendingExperimentsError(f'design "{design_name}" has pending experiments')
+
+        experiment_inputs = pd.concat([
+            db.read_experiment_parameters(self.scope.name, design_name) for design_name in design_names
+        ])
+        experiment_outputs = pd.concat([
+            db.read_experiment_measures(self.scope.name, design_name) for design_name in design_names
+        ])
 
         transforms = {
             i.name: i.metamodeltype

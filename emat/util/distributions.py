@@ -168,7 +168,29 @@ def pert(
 
 	return beta(a=a1, b=a2, loc=a, scale=c-a)
 
-def binary(p=0.5):
+def binary(p=0.5, p_true=None, p_false=None):
+	"""
+	Generate a frozen scipy.stats.bernoulli distribution.
+
+	The bernoulli distribution is for True/False outcomes,
+	but allows for weighted (i.e. not 50%) probability of True.
+
+	Args:
+		p (numeric, default 0.5):
+			The probability of a 'True' outcome.
+		p_true (numeric, optional):
+			Alias for `p`.
+		p_false (numeric, optional):
+			Alternative argument, will set `p` to the complement.  Ignored if
+			`p_true` is also given.
+
+	Returns:
+		scipy.stats.rv_frozen
+	"""
+	if p_true is not None:
+		p = p_true
+	elif p_false is not None:
+		p = 1-p_false
 	return bernoulli(p=p)
 
 def constant(

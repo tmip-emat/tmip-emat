@@ -17,3 +17,5 @@ def ignore_warnings(category=Warning):
 
 
 from .simple import MultipleTargetRegression, DetrendedMultipleTargetRegression
+
+from . import multiout_patch
