@@ -3,6 +3,7 @@ from collections import namedtuple
 from collections.abc import MutableMapping, Mapping
 import itertools
 from typing import Collection
+import pandas
 
 from .scope import Scope, ScopeError
 
@@ -20,7 +21,30 @@ Args:
 		if there is no upper bound.
 """
 
-class Box(Mapping):
+class GenericBoxMixin:
+	# Generic methods applicable to both Box and ChainedBox
+
+	def inside(self, df):
+		"""
+		For each row of a DataFrame, identify if it is inside the box.
+
+		Args:
+			df (pandas.DataFrame): Must include a column matching every
+				thresholded feature.
+
+		Returns:
+			pandas.Series
+				With dtype bool.
+		"""
+		within = pandas.Series(True, index=df.index)
+		for label, bounds in self.thresholds.items():
+			if bounds.lowerbound is not None:
+				within &= (df[label] >= bounds.lowerbound)
+			if bounds.upperbound is not None:
+				within &= (df[label] <= bounds.upperbound)
+		return within
+
+class Box(Mapping, GenericBoxMixin):
 	"""
 	A Box defines a set of restricted dimensions for a Scope.
 
@@ -379,12 +403,18 @@ class Box(Mapping):
 				members.append("◌ "+k.rjust(m))
 
 			head = f"{self.__class__.__name__}: {self.name}"
+			if hasattr(self, 'coverage'):
+				head += f'\n   coverage: {self.coverage:.5f}'
+			if hasattr(self, 'density'):
+				head += f'\n   density:  {self.density:.5f}'
+			if hasattr(self, 'mass'):
+				head += f'\n   mass:     {self.mass:.5f}'
 			return head+"\n   " + '\n   '.join(members)
 		else:
 			return "<empty "+ self.__class__.__name__ + ">"
 
 
-class ChainedBox(Mapping):
+class ChainedBox(Mapping, GenericBoxMixin):
 	"""
 	A Box defines a set of restricted dimensions for a Scope.
 
@@ -543,6 +573,12 @@ class ChainedBox(Mapping):
 				members.append("◌ "+k.rjust(m))
 
 			head = f"{self.__class__.__name__}: {self.name}"
+			if hasattr(self, 'coverage'):
+				head += f'\n   coverage: {self.coverage:.5f}'
+			if hasattr(self, 'density'):
+				head += f'\n   density:  {self.density:.5f}'
+			if hasattr(self, 'mass'):
+				head += f'\n   mass:     {self.mass:.5f}'
 			return head+"\n   " + '\n   '.join(members)
 		else:
 			return "<empty "+ self.__class__.__name__ + ">"

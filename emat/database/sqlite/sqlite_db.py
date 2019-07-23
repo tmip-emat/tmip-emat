@@ -634,6 +634,7 @@ class SQLiteDB(Database):
     def delete_experiments(self, scope_name: str, design: str):
         scope_name = self._validate_scope(scope_name, 'design')
         self.cur.execute(sq.DELETE_EX, [scope_name, design])
+        self.conn.commit()
         
     @copydoc(Database.write_experiment_all)
     def write_experiment_all(self,
