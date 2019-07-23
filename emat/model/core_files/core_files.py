@@ -273,7 +273,10 @@ class FilesCoreModel(AbstractCoreModel):
 		"""
 		return self.load_measures(
 			measure_names,
-			output_path=self.get_experiment_archive_path(experiment_id)
+			abs_output_path=os.path.join(
+				self.get_experiment_archive_path(experiment_id),
+				self.rel_output_path,
+			)
 		)
 
 	def archive(self, params, model_results_path, experiment_id:int=0):
