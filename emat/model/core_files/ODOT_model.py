@@ -170,7 +170,13 @@ class ODOTModel(FilesCoreModel):
                 'Percentage of Population with Access to 50k Jobs by Car within 10mins in PM': loc['Per_Pop_w_50K_Jobs_in_10_mins', 'x'],
                 'Percentage of Population with Access to 50k Jobs by Car within 20mins in PM': loc['Per_Pop_w_50K_Jobs_in_20_mins', 'x'],
                 'Percentage of Population with Access to 50k Jobs by Car within 30mins in PM': loc['Per_Pop_w_50K_Jobs_in_30_mins', 'x'],
-            }
+            },
+            index_col=0,
+            # The example archive data does not include the screenline
+            # data items, so these will by default raise an error.
+            # We can skip the error and just retrieve NaN values
+            # using the handle_errors argument.
+            handle_errors='nan',
         ),
 
         TableParser(
@@ -187,7 +193,13 @@ class ODOTModel(FilesCoreModel):
                 'School Bus Mode Share': loc['SchoolBus', 'x'],
                 'Bike and Walk Mode Share': loc['Active', 'x'],
                 'Transit with PNR and KNR Mode Share': loc['Transit_PNR_KNR', 'x'],
-            }
+            },
+            index_col=0,
+            # The example archive data does not include the screenline
+            # data items, so these will by default raise an error.
+            # We can skip the error and just retrieve NaN values
+            # using the handle_errors argument.
+            handle_errors='nan',
         ),
 
         TableParser(
@@ -199,11 +211,15 @@ class ODOTModel(FilesCoreModel):
                 'Millions of Miles Traveled - Walk': loc['Walk', 'x'],
                 'Millions of Miles Traveled - Bike': loc['Bike', 'x'],
                 'Millions of Miles Traveled - Transit': loc['Transit', 'x'],
-                'Millions of Miles Traveled - PNR': loc['PNR', 'x'],
-                'Millions of Miles Traveled - KNR': loc['KNR', 'x'],
                 'Millions of Miles Traveled - School Bus': loc['SchoolBus', 'x'],
                 'Millions of Person Miles Traveled': loc['Total', 'x'],
             },
+            index_col=0,
+            # The example archive data does not include the screenline
+            # data items, so these will by default raise an error.
+            # We can skip the error and just retrieve NaN values
+            # using the handle_errors argument.
+            handle_errors='nan',
         ),
 
         TableParser(
@@ -227,7 +243,13 @@ class ODOTModel(FilesCoreModel):
                 'Millions of Auto Miles Traveled': loc['DAILY_VOL_AUTO', 'x'],
                 'Millions of Truck Miles Traveled': loc['DAILY_VOL_TRUCK', 'x'],
                 'Millions of Vehicle Miles Traveled': loc['DAILY_VOL_TOTAL', 'x'],
-            }
+            },
+            index_col=0,
+            # The example archive data does not include the screenline
+            # data items, so these will by default raise an error.
+            # We can skip the error and just retrieve NaN values
+            # using the handle_errors argument.
+            handle_errors='nan',
         ),
 
         TableParser(
@@ -251,28 +273,46 @@ class ODOTModel(FilesCoreModel):
                 'Thousands of Auto Hours Traveled': loc['DAILY_AUTO_VHT', 'x'],
                 'Thousands of Truck Hours Traveled': loc['DAILY_TRUCK_VHT', 'x'],
                 'Thousands of Vehicle Hours Traveled': loc['DAILY_TOTAL_VHT', 'x'],
-            }
+            },
+            index_col=0,
+            # The example archive data does not include the screenline
+            # data items, so these will by default raise an error.
+            # We can skip the error and just retrieve NaN values
+            # using the handle_errors argument.
+            handle_errors='nan',
         ),
 
         TableParser(
             "percentVC_byFC_above90.csv",
             {
-                'Percent of Interstate Miles over 90% V/C Ratio During the PM Peak': loc['1', 'x'],
-                'Percent of Principal Arterial Miles over 90% V/C Ratio During the PM Peak': loc['3', 'x'],
-                'Percent of Minor Arterial Miles over 90% V/C Ratio During the PM Peak': loc['4', 'x'],
-                'Percent of Major Collector Miles over 90% V/C Ratio During the PM Peak': loc['5', 'x'],
-                'Percent of Minor Collector Miles over 90% V/C Ratio During the PM Peak': loc['6', 'x'],
-                'Percent of Local Road Miles over 90% V/C Ratio During the PM Peak': loc['7', 'x'],
-                'Percent of Ramp Miles over 90% V/C Ratio During the PM Peak': loc['30', 'x'],
+                'Percent of Interstate Miles over 90% V/C Ratio During the PM Peak': loc['Interstate', 'x'],
+                'Percent of Principal Arterial Miles over 90% V/C Ratio During the PM Peak': loc['PA', 'x'],
+                'Percent of Minor Arterial Miles over 90% V/C Ratio During the PM Peak': loc['MA', 'x'],
+                'Percent of Major Collector Miles over 90% V/C Ratio During the PM Peak': loc['MajorC', 'x'],
+                'Percent of Minor Collector Miles over 90% V/C Ratio During the PM Peak': loc['MinorC', 'x'],
+                'Percent of Local Road Miles over 90% V/C Ratio During the PM Peak': loc['Local', 'x'],
+                'Percent of Ramp Miles over 90% V/C Ratio During the PM Peak': loc['Ramp', 'x'],
             },
+            index_col=0,
+            # The example archive data does not include the screenline
+            # data items, so these will by default raise an error.
+            # We can skip the error and just retrieve NaN values
+            # using the handle_errors argument.
+            handle_errors='nan',
         ),
-
+           
         TableParser(
             "hhMeasures.csv",
             {
                 'Number of Autos Owned Per Household': loc['AutosOwned', 'x'],
                 'Percent of Non-Mandatory Tours': loc['PerNonMand', 'x'],
-            }
+            },
+            index_col=0,
+            # The example archive data does not include the screenline
+            # data items, so these will by default raise an error.
+            # We can skip the error and just retrieve NaN values
+            # using the handle_errors argument.
+            handle_errors='nan',
         ),
 
     ]
