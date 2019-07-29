@@ -206,7 +206,7 @@ class FilesCoreModel(AbstractCoreModel):
 			pass
 		else:
 			_logger.debug(f"run_core_model archive {experiment_id}")
-			self.archive(xl, archive_path)
+			self.archive(xl, archive_path, experiment_id)
 
 	@copydoc(AbstractCoreModel.get_experiment_archive_path)
 	def get_experiment_archive_path(self, experiment_id: int) -> str:
