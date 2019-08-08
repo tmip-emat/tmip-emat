@@ -85,19 +85,6 @@ def design_experiments(
     Returns:
         pandas.DataFrame: The resulting design.
     """
-    if sampler == 'uni':
-        return design_sensitivity_tests(scope, db, design_name or 'uni')
-
-    if not isinstance(sampler, AbstractSampler):
-        if sampler not in samplers:
-            raise ValueError(f"unknown sampler {sampler}")
-        else:
-            sample_generator = samplers[sampler]()
-    else:
-        sample_generator = sampler
-
-    np.random.seed(random_seed)
-
     if db is not None and design_name is not None:
         if design_name in db.read_design_names(scope.name):
             raise ValueError(f'the design "{design_name}" already exists for scope "{scope.name}"')
@@ -118,8 +105,20 @@ def design_experiments(
             n = 2
             while f'{proposed_design_name}_{n}' in existing_design_names:
                 n += 1
-            design_name = f'{proposed_design_name}_{n}'
+            design_name = f'{proposed_design_name}_{n}'    
+    
+    if sampler == 'uni':
+        return design_sensitivity_tests(scope, db, design_name or 'uni')
 
+    if not isinstance(sampler, AbstractSampler):
+        if sampler not in samplers:
+            raise ValueError(f"unknown sampler {sampler}")
+        else:
+            sample_generator = samplers[sampler]()
+    else:
+        sample_generator = sampler
+
+    np.random.seed(random_seed)
 
     if sample_from == 'all' and not jointly:
 
