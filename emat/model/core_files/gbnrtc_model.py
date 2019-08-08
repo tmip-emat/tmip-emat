@@ -15,7 +15,7 @@ from ...util.docstrings import copydoc
 from .core_files import copy_model_outputs_1, copy_model_outputs_ext
 
 try:
-    import emat.model.gbnrtc.caliper as cp
+    import emat.model.core_files.caliper as cp
 except ImportError:
     cp = None
 
