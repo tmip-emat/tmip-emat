@@ -159,7 +159,7 @@ class GBNRTCModel(FilesCoreModel):
             raise UserWarning("ERROR: failed to attach to a TransCAD instance")
 
         self.tc.RunMacro("G30 File Close All", self.tdm_ui)
-        #self.tc.RunMacro("GBNRTC Model - AutoRun 2050", self.tdm_ui)   
+        self.tc.RunMacro("GBNRTC Model - AutoRun 2050", self.tdm_ui)   
         
     def post_process(self,
                      params: dict,
@@ -224,7 +224,6 @@ class GBNRTCModel(FilesCoreModel):
         """
         
         _logger.info("Archiving model runs at {0}".format(time.strftime("%Y_%m_%d %H%M%S")))
-        '''
         if self.tc is None:
             self.start_transcad()        
 
@@ -294,7 +293,6 @@ class GBNRTCModel(FilesCoreModel):
                 os.path.join(self.model_path, "Outputs", "*.csv")
         ):
             copy(file, os.path.join(model_results_path, "Outputs"))
-        '''
 
     # =============================================================================
     #     Experiment variable setting methods
