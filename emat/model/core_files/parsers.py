@@ -12,6 +12,12 @@ class FileParser(abc.ABC):
 	"""
 	A tool to parse performance measure(s) from an arbitrary file format.
 
+	This is an abstract base class, which defines the basic API for
+	file parsing objects.  Most users will want to use `TableParser`
+	for reading perforamce measures from any kind of file that
+	contains a table of data (including one-column, one-row, and
+	one-value tables).
+
 	Args:
 		filename (str):
 			The name of the file in which the measure(s) are stored.
@@ -52,20 +58,30 @@ class TableParser(FileParser):
 	"""
 	A tool to parse performance measure from an arbitrary table format.
 
+	This object provides a way to systematically extract values
+	from an output file that has a well defined name and format.  This is
+	exactly what we would expect for a files-based core model, which when
+	run (and post-processed, if applicable) will generate one or more
+	named and regularly formatted output files.
+
 	Args:
 		filename (str):
 			The name of the file in which the tabular data is stored.
 			The filename is a relative path to the file, and will be
 			evaluated relative to the `from_dir` argument in the `read`
-			method.
+			method.  Generally the `from_dir` will be a directory
+			containing a set of model output files from a single model
+			run, and this `filename` will be just the name of the file,
+			unless the core model run constructs a sub-directory hierarchy
+			within the output directory (this is unusual).
 		measure_getters (Mapping[str, Getter]): A mapping that
 			relates scalar performance measure values to Getters that
 			extract values from the tabular data.
 		reader_method (Callable, default pandas.read_csv): A function that
 			accepts one positional argument (the filename to be read) and
 			optionally some keyword arguments, and returns a pandas.DataFrame.
-		handle_errors (str, default 'raise'): How to handle errors when reading a table, one
-			of {'raise', 'nan'}
+		handle_errors (str, default 'raise'): How to handle errors when
+			reading a table, one of {'raise', 'nan'}
 		**kwargs (Mapping, optional): A set of fixed keyword arguments
 			that will be passed to `reader_method` each time it is called.
 
@@ -92,6 +108,14 @@ class TableParser(FileParser):
 	def raw(self, from_dir):
 		"""
 		Read the raw tabular data.
+
+		This method will read the raw file, using the `reader_method`
+		defined for this `TableParser` and any designated keyword
+		arguments for that reader, but it will not actually run
+		any of the `measure_getters` that convert the table into
+		individual performance measures.  This method is exposed for
+		users primarily to test be able to conveniently test `TableParser`
+		objects during development.
 
 		Args:
 			from_dir (Path-like): The base directory from which to read the data.
