@@ -23,6 +23,7 @@ from .cross_val import CrossValMixin
 from .detrend import DetrendMixin
 from .base import MultiOutputRegressor
 from .select import SelectNAndKBest, feature_concat
+from .frameable import FrameableMixin
 
 def _make_as_vector(y):
 	# if isinstance(y, (pandas.DataFrame, pandas.Series)):
@@ -35,6 +36,7 @@ class MultipleTargetRegression(
 		BaseEstimator,
 		RegressorMixin,
 		CrossValMixin,
+		FrameableMixin,
 ):
 
 	def __init__(
@@ -69,6 +71,7 @@ class MultipleTargetRegression(
 		self : MultipleTargetRegression
 			Returns an instance of self, the the sklearn standard practice.
 		"""
+		self._pre_fit(X, Y)
 
 		with ignore_warnings(DataConversionWarning):
 
@@ -89,13 +92,6 @@ class MultipleTargetRegression(
 				self.standardize_Y = None
 
 			self.step1.fit(self.X_train_, self.Y_train_)
-
-			if isinstance(Y, pandas.DataFrame):
-				self.Y_columns = Y.columns
-			elif isinstance(Y, pandas.Series):
-				self.Y_columns = Y.name
-			else:
-				self.Y_columns = None
 
 		return self
 
@@ -126,10 +122,10 @@ class MultipleTargetRegression(
 		if return_cov:
 			raise NotImplementedError('return_cov')
 
-		if isinstance(X, pandas.DataFrame):
-			idx = X.index
-		else:
-			idx = None
+		# if isinstance(X, pandas.DataFrame):
+		# 	idx = X.index
+		# else:
+		# 	idx = None
 
 		if return_std:
 			Yhat1, Yhat1_std = self.step1.predict_std(X)
@@ -142,25 +138,28 @@ class MultipleTargetRegression(
 			if Yhat1_std is not None:
 				Yhat1_std *= self.standardize_Y[None, :]
 
-		cols = None
-		if self.Y_columns is not None:
-			if len(self.Y_columns) == Yhat1.shape[1]:
-				cols = self.Y_columns
+		Yhat1 = self._post_predict(X, Yhat1)
 
-		if idx is not None or cols is not None:
-			Yhat1 = pandas.DataFrame(
-				Yhat1,
-				index=idx,
-				columns=cols,
-			)
+		# cols = None
+		# if self.Y_columns is not None:
+		# 	if len(self.Y_columns) == Yhat1.shape[1]:
+		# 		cols = self.Y_columns
+		#
+		# if idx is not None or cols is not None:
+		# 	Yhat1 = pandas.DataFrame(
+		# 		Yhat1,
+		# 		index=idx,
+		# 		columns=cols,
+		# 	)
 
 		if Yhat1_std is not None:
-			if idx is not None or cols is not None:
-				Yhat1_std = pandas.DataFrame(
-					Yhat1_std,
-					index=idx,
-					columns=cols,
-				)
+			Yhat1_std = self._post_predict(X, Yhat1_std)
+			# if idx is not None or cols is not None:
+			# 	Yhat1_std = pandas.DataFrame(
+			# 		Yhat1_std,
+			# 		index=idx,
+			# 		columns=cols,
+			# 	)
 			return Yhat1, Yhat1_std
 		return Yhat1
 
@@ -331,23 +330,23 @@ class DetrendedMultipleTargetRegression(
 		"""
 
 		Yhat = super().detrend_predict(X)
-
-		if isinstance(X, pandas.DataFrame):
-			idx = X.index
-		else:
-			idx = None
-
-		cols = None
-		if self.Y_columns is not None:
-			if len(self.Y_columns) == Yhat.shape[1]:
-				cols = self.Y_columns
-
-		if idx is not None or cols is not None:
-			return pandas.DataFrame(
-				Yhat,
-				index=idx,
-				columns=cols,
-			)
+		Yhat = self._post_predict(X, Yhat)
+		# if isinstance(X, pandas.DataFrame):
+		# 	idx = X.index
+		# else:
+		# 	idx = None
+		#
+		# cols = None
+		# if self.Y_columns is not None:
+		# 	if len(self.Y_columns) == Yhat.shape[1]:
+		# 		cols = self.Y_columns
+		#
+		# if idx is not None or cols is not None:
+		# 	return pandas.DataFrame(
+		# 		Yhat,
+		# 		index=idx,
+		# 		columns=cols,
+		# 	)
 		return Yhat
 
 	def predict(self, X, return_std=False, return_cov=False):

@@ -495,6 +495,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             random_state = None,
             experiment_stratification = None,
             suppress_converge_warnings = False,
+            regressor = None,
     ):
         """
         Create a MetaModel from a set of input and output observations.
@@ -526,6 +527,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 A stratification of experiments, used in cross-validation.
             suppress_converge_warnings (bool, default False):
                 Suppress convergence warnings during metamodel fitting.
+            regressor (Estimator, optional): A scikit-learn estimator implementing a
+                multi-target regression.  If not given, a detrended simple Gaussian
+                process regression is used.
 
         Returns:
             MetaModel:
@@ -568,6 +572,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             random_state,
             experiment_stratification,
             suppress_converge_warnings=suppress_converge_warnings,
+            regressor=regressor,
         )
 
         scope_ = self.scope.duplicate(strip_measure_transforms=True, 
@@ -593,6 +598,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db=None,
             random_state=None,
             suppress_converge_warnings=False,
+            regressor=None,
     ):
         """
         Create a MetaModel from a set of input and output observations.
@@ -609,6 +615,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 regression fitting.
             suppress_converge_warnings (bool, default False):
                 Suppress convergence warnings during metamodel fitting.
+            regressor (Estimator, optional): A scikit-learn estimator implementing a
+                multi-target regression.  If not given, a detrended simple Gaussian
+                process regression is used.
 
         Returns:
             MetaModel:
@@ -645,6 +654,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db=db,
             random_state=random_state,
             suppress_converge_warnings=suppress_converge_warnings,
+            regressor=regressor,
         )
 
     def create_metamodel_from_designs(

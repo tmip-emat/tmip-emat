@@ -66,7 +66,11 @@ class VarianceThreshold(_VarianceThreshold):
 
 		if isinstance(self.invariant_values, pd.Series):
 			if not self.invariant_values.equals(X.iloc[0].loc[~mask]):
-				raise ValueError("unexpected change in invariant inputs")
+				raise ValueError("unexpected change in invariant inputs:\n{}\n{}\nMASK: {}".format(
+					self.invariant_values,
+					X.iloc[0],
+					mask
+				))
 		else:
 			if not np.all(self.invariant_values == (X[0,~mask])):
 				raise ValueError("unexpected change in invariant inputs")

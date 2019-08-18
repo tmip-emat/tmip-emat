@@ -3,6 +3,7 @@
 import pandas
 import numpy
 from typing import Mapping
+from sklearn.base import clone
 from .. import multitarget
 from ..util.one_hot import OneHotCatEncoder
 from ..util.variance_threshold import VarianceThreshold
@@ -62,6 +63,10 @@ class MetaModel:
             prevent these values from being included in the computational process.
 
         random_state (int, optional): A random state, passed to the created regression.
+
+        regressor (Estimator, optional): A scikit-learn estimator implementing a
+            multi-target regression.  If not given, a detrended simple Gaussian
+            process regression is used.
     """
 
     _metamodel_types = {
@@ -84,6 +89,7 @@ class MetaModel:
             random_state=None,
             sample_stratification=None,
             suppress_converge_warnings=False,
+            regressor=None,
     ):
 
         if not isinstance(input_sample, pandas.DataFrame):
@@ -139,7 +145,15 @@ class MetaModel:
         for k, (v_func,_) in self.output_transforms.items():
             self.output_sample[k] = v_func(self.output_sample[k])
 
-        self.regression = multitarget.DetrendedMultipleTargetRegression(random_state=random_state)
+        if regressor is None:
+            regressor = multitarget.DetrendedMultipleTargetRegression
+
+        try:
+            self.regression = clone(regressor)
+        except TypeError:
+            self.regression = regressor(random_state=random_state)
+        else:
+            self.regression.random_state=random_state
 
         if suppress_converge_warnings:
             from sklearn.gaussian_process.gpr import ConvergenceWarning
@@ -201,7 +215,7 @@ class MetaModel:
                             f'positional argument, not {len(args)}')
 
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.preprocess_raw_input(input_row)
+        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float)
 
         output_row = self.regression.predict(input_row)
         result = dict(output_row.iloc[0])
@@ -244,7 +258,7 @@ class MetaModel:
                             f'positional argument, not {len(args)}')
 
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.preprocess_raw_input(input_row)
+        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float)
 
         output_row, output_std = self.regression.predict(input_row, return_std=True)
 
@@ -289,7 +303,7 @@ class MetaModel:
                             f'positional argument, not {len(args)}')
 
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.preprocess_raw_input(input_row)
+        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float)
 
         if trend_only:
             output_row = self.regression.detrend_predict(input_row)

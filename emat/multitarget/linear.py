@@ -4,9 +4,9 @@ import numpy
 import warnings
 import scipy.stats
 from sklearn.linear_model import LinearRegression as _sklearn_LinearRegression
+from .frameable import FrameableMixin
 
-
-class LinearRegression(_sklearn_LinearRegression):
+class LinearRegression(_sklearn_LinearRegression, FrameableMixin):
 	"""
 	Ordinary least squares Linear Regression.
 
@@ -49,7 +49,22 @@ class LinearRegression(_sklearn_LinearRegression):
 		Independent term in the linear model.
 	"""
 
+	def __init__(
+			self,
+			fit_intercept=True,
+			normalize=False,
+			copy_X=True,
+			n_jobs=None,
+			frame_out=False,
+	):
+		self.fit_intercept = fit_intercept
+		self.normalize = normalize
+		self.copy_X = copy_X
+		self.n_jobs = n_jobs
+		self.frame_out = frame_out
+
 	def fit(self, X, y, sample_weight=None):
+		self._pre_fit(X, y)
 		super().fit(X, y, sample_weight=sample_weight)
 
 		if isinstance(X, pandas.DataFrame):
@@ -60,7 +75,11 @@ class LinearRegression(_sklearn_LinearRegression):
 		elif isinstance(y, pandas.Series):
 			self.y_names_ = [y.name,]
 		else:
-			self.y_names_ = [f'y{i+1}' for i in range(y.shape[1])]
+			try:
+				y_shape_1 = y.shape[1]
+			except IndexError:
+				y_shape_1 = 1
+			self.y_names_ = [f'y{i + 1}' for i in range(y_shape_1)]
 
 		sse = numpy.sum((self.predict(X) - y) ** 2, axis=0) / float(X.shape[0] - X.shape[1])
 
@@ -70,7 +89,10 @@ class LinearRegression(_sklearn_LinearRegression):
 		self.sse_ = sse
 
 		if self.fit_intercept:
-			X1 = X.copy(deep=True)
+			if not isinstance(X, pandas.DataFrame):
+				X1 = pandas.DataFrame(X)
+			else:
+				X1 = X.copy(deep=True)
 			X1['__constant__'] = 1.0
 		else:
 			X1 = X
@@ -112,7 +134,10 @@ class LinearRegression(_sklearn_LinearRegression):
 		return self
 
 	def predict(self, X):
-		return super().predict(X)
+		y_hat = super().predict(X)
+		if self.frame_out:
+			y_hat = self._post_predict(X, y_hat)
+		return y_hat
 
 	def coefficients_summary(self):
 		"""
