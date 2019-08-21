@@ -23,7 +23,10 @@ class MultiToggleButtons(Box):
 												width='auto'
 											))
 							for label in self._selection_obj._options_labels]
-			self.label = Label(self.description, layout=Layout(width=self.style.get('description_width', '100px')))
+			if self.description:
+				self.label = Label(self.description, layout=Layout(width=self.style.get('description_width', '100px')))
+			else:
+				self.label = Label(self.description, layout=Layout(width=self.style.get('description_width', '0px')))
 			self.children = [self.label]+self.buttons
 
 			@observer(self.buttons, 'value')

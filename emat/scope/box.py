@@ -7,8 +7,13 @@ import pandas
 import numpy
 import copy
 from ..util.distributions import truncated, get_distribution_bounds
+from math import isclose
 
 from .scope import Scope, ScopeError
+from .parameter import IntegerParameter, CategoricalParameter, BooleanParameter
+from .. import styles
+import ipywidgets as widget
+import plotly.graph_objects as go
 
 Bounds = namedtuple('Bounds', ['lowerbound', 'upperbound'])
 
@@ -24,7 +29,7 @@ Args:
 		if there is no upper bound.
 """
 
-class GenericBoxMixin:
+class GenericBox:
 	# Generic methods applicable to both Box and ChainedBox
 
 	def inside(self, df):
@@ -41,13 +46,190 @@ class GenericBoxMixin:
 		"""
 		within = pandas.Series(True, index=df.index)
 		for label, bounds in self.thresholds.items():
-			if bounds.lowerbound is not None:
-				within &= (df[label] >= bounds.lowerbound)
-			if bounds.upperbound is not None:
-				within &= (df[label] <= bounds.upperbound)
+			if isinstance(bounds, set):
+				within &= numpy.in1d(df[label], list(bounds))
+			else:
+				if bounds.lowerbound is not None:
+					within &= (df[label] >= bounds.lowerbound)
+				if bounds.upperbound is not None:
+					within &= (df[label] <= bounds.upperbound)
 		return within
 
-class Box(Mapping, GenericBoxMixin):
+	def __init__(self):
+		self._figures = {}
+		self._viz_data = None
+
+	@property
+	def demanded_features(self):
+		"""
+		Set[str]: A set of features upon which thresholds are set.
+		"""
+		raise NotImplementedError
+
+	@property
+	def relevant_and_demanded_features(self):
+		"""
+		Set[str]: The union of relevant and demanded features.
+		"""
+		return self.relevant_features | self.demanded_features
+
+	@property
+	def scope(self):
+		"""Scope: A scope associated with this Box."""
+		raise NotImplementedError
+
+	def _compute_histogram(self, col, selection, bins=20):
+		if self._viz_data is None:
+			return
+		bar_heights, bar_x = numpy.histogram(self._viz_data[col], bins=bins)
+		bar_heights_select, bar_x = numpy.histogram(self._viz_data[col][selection], bins=bar_x)
+		return pandas.DataFrame({
+			'Total Freq': bar_heights,
+			'Inside Freq': bar_heights_select,
+			'Bins_Left': bar_x[:-1],
+			'Bins_Width': bar_x[1:] - bar_x[:-1],
+		})
+
+	def _compute_frequencies(self, col, selection, labels):
+		if self._viz_data is None:
+			return
+		v = self._viz_data[col].astype(
+			pandas.CategoricalDtype(categories=labels, ordered=False)
+		).cat.codes
+		bar_heights, _ = numpy.histogram(v, bins=numpy.arange(0, len(labels) + 1))
+		bar_heights_select, _ = numpy.histogram(v[selection], bins=numpy.arange(0, len(labels) + 1))
+
+		return pandas.DataFrame({
+			'Total Freq': bar_heights,
+			'Inside Freq': bar_heights_select,
+			'Label': labels,
+		})
+
+	def _update_histogram_figure(self, col, *, selection=None):
+		if col in self._figures and self._viz_data is not None:
+			fig = self._figures[col]
+			bins = fig._bins
+			if selection is None:
+				selection = self.inside(self._viz_data)
+			h_data = self._compute_histogram(col, selection, bins=bins)
+			with fig.batch_update():
+				fig.data[0].y = h_data['Inside Freq']
+				fig.data[1].y = h_data['Total Freq'] - h_data['Inside Freq']
+
+	def _update_frequencies_figure(self, col, *, selection=None):
+		if col in self._figures and self._viz_data is not None:
+			fig = self._figures[col]
+			labels = fig._labels
+			if selection is None:
+				selection = self.inside(self._viz_data)
+			h_data = self._compute_frequencies(col, selection, labels=labels)
+			with fig.batch_update():
+				fig.data[0].y = h_data['Inside Freq']
+				fig.data[1].y = h_data['Total Freq'] - h_data['Inside Freq']
+
+	def _update_all_histogram_figures(self):
+		selection = self.inside(self._viz_data)
+		for col in self._figures:
+			if self._figures[col]._figure_kind == 'histogram':
+				self._update_histogram_figure(col, selection=selection)
+			elif self._figures[col]._figure_kind == 'frequency':
+				self._update_frequencies_figure(col, selection=selection)
+
+	def _create_histogram_figure(self, col, bins=20):
+		if self._viz_data is None:
+			return
+		if col in self._figures:
+			self._update_histogram_figure(col)
+		else:
+			selection = self.inside(self._viz_data)
+			h_data = self._compute_histogram(col, selection, bins=bins)
+			fig = go.FigureWidget(
+				data=[
+					go.Bar(
+						x=h_data['Bins_Left'],
+						y=h_data['Inside Freq'],
+						width=h_data['Bins_Width'],
+						name='Inside',
+						marker_color='orange',
+					),
+					go.Bar(
+						x=h_data['Bins_Left'],
+						y=h_data['Total Freq'] - h_data['Inside Freq'],
+						width=h_data['Bins_Width'],
+						name='Outside',
+						marker_color='blue',
+					),
+				],
+				layout=dict(
+					barmode='stack',
+					showlegend=False,
+					margin=dict(l=10, r=10, t=10, b=10),
+					**styles.figure_dims,
+				),
+			)
+			fig._bins = bins
+			fig._figure_kind = 'histogram'
+			self._figures[col] = fig
+
+	def _create_frequencies_figure(self, col, labels=None):
+		if self._viz_data is None:
+			return
+		if col in self._figures:
+			self._update_frequencies_figure(col)
+		else:
+			selection = self.inside(self._viz_data)
+			h_data = self._compute_frequencies(col, selection, labels=labels)
+			fig = go.FigureWidget(
+				data=[
+					go.Bar(
+						x=h_data['Label'],
+						y=h_data['Inside Freq'],
+						name='Inside',
+						marker_color='orange',
+					),
+					go.Bar(
+						x=h_data['Label'],
+						y=h_data['Total Freq'] - h_data['Inside Freq'],
+						name='Outside',
+						marker_color='blue',
+					),
+				],
+				layout=dict(
+					barmode='stack',
+					showlegend=False,
+					margin=dict(l=10, r=10, t=10, b=10),
+					width=250,
+					height=150,
+				),
+			)
+			fig._labels = labels
+			fig._figure_kind = 'frequency'
+			self._figures[col] = fig
+
+
+	def set_viz_data(self, df):
+		self._viz_data = df
+
+	def get_histogram_figure(self, col, bins=20):
+		try:
+			this_type = self.scope.get_dtype(col)
+		except:
+			this_type = 'float'
+		if this_type in ('cat','bool'):
+			return self.get_frequency_figure(col)
+		self._create_histogram_figure(col, bins=bins)
+		return self._figures[col]
+
+	def get_frequency_figure(self, col):
+		if self.scope.get_dtype(col) == 'cat':
+			labels = self.scope.get_cat_values(col)
+		else:
+			labels = [False, True]
+		self._create_frequencies_figure(col, labels=labels)
+		return self._figures[col]
+
+
+class Box(Mapping, GenericBox):
 	"""
 	A Box defines a set of restricted dimensions for a Scope.
 
@@ -100,6 +282,7 @@ class Box(Mapping, GenericBoxMixin):
 			allowed=None,
 			relevant=None,
 	):
+		super().__init__()
 		self.thresholds = {}
 
 		if relevant is None:
@@ -180,6 +363,14 @@ class Box(Mapping, GenericBoxMixin):
 
 	def __getitem__(self, key):
 		return self.thresholds[key]
+
+	@property
+	def demanded_features(self):
+		"""
+		Set[str]: A set of features upon which thresholds are set at any step of the chain.
+		"""
+		t = set(self.thresholds.keys())
+		return t
 
 	def set_lower_bound(self, key, value):
 		"""
@@ -391,7 +582,7 @@ class Box(Mapping, GenericBoxMixin):
 				if isinstance(v, Bounds):
 					if v.lowerbound is None:
 						if v.upperbound is None:
-							v_ = ' Unbounded'
+							v_ = ': unbounded'
 						else:
 							v_ = f' <= {v.upperbound}'
 					else:
@@ -478,8 +669,219 @@ class Box(Mapping, GenericBoxMixin):
 		"""Get a list of performance measures."""
 		return self.scope.get_measures()
 
+	def _make_range_widget(
+			self,
+			i,
+			min_value=None,
+			max_value=None,
+			readout_format=None,
+			integer=False,
+			steps=20,
+			label=True,
+	):
+		"""Construct a RangeSlider to manipulate a Box threshold."""
 
-class ChainedBox(Mapping, GenericBoxMixin):
+		current_setting = self.get(i, (None, None))
+
+		# Use current setting as min and max if still unknown
+		if current_setting[0] is not None and min_value is None:
+			min_value = current_setting[0]
+		if current_setting[1] is not None and max_value is None:
+			max_value = current_setting[1]
+
+		if min_value is None:
+			raise ValueError("min_value cannot be None if there is no current setting")
+		if max_value is None:
+			raise ValueError("max_value cannot be None if there is no current setting")
+
+		current_min = min_value if current_setting[0] is None else current_setting[0]
+		current_max = max_value if current_setting[1] is None else current_setting[1]
+
+		slider_type = widget.IntRangeSlider if integer else widget.FloatRangeSlider
+
+		controller = slider_type(
+			value=[current_min, current_max],
+			min=min_value,
+			max=max_value,
+			step=((max_value - min_value) / steps) if not integer else 1,
+			disabled=False,
+			continuous_update=False,
+			orientation='horizontal',
+			readout=True,
+			readout_format=readout_format,
+			description='',
+			style=styles.slider_style,
+			layout=styles.slider_layout,
+		)
+
+		def on_value_change(change):
+			new_setting = change['new']
+			if new_setting[0] <= min_value or isclose(new_setting[0], min_value):
+				new_setting = (None, new_setting[1])
+			if new_setting[1] >= max_value or isclose(new_setting[1], max_value):
+				new_setting = (new_setting[0], None)
+			self.set_bounds(i, *new_setting)
+			self._update_all_histogram_figures()
+
+		controller.observe(on_value_change, names='value')
+
+		return controller
+
+	def _make_togglebutton_widget(
+			self,
+			i,
+			cats=None,
+			*,
+			df=None,
+	):
+		"""Construct a MultiToggleButtons to manipulate a Box categorical set."""
+
+		if cats is None and df is not None:
+			if isinstance(df[i].dtype, pandas.CategoricalDtype):
+				cats = df[i].cat.categories
+
+		current_setting = self.get(i, set())
+
+		from ..interactive.multitoggle import MultiToggleButtons
+		controller = MultiToggleButtons(
+			description='',
+			style=styles.slider_style,
+			options=list(cats),
+			disabled=False,
+			button_style='',  # 'success', 'info', 'warning', 'danger' or ''
+			layout=styles.slider_layout,
+		)
+		controller.values = current_setting
+
+		def on_value_change(change):
+			new_setting = change['new']
+			self.replace_allowed_set(i, new_setting)
+			self._update_all_histogram_figures()
+
+		controller.observe(on_value_change, names='value')
+
+		return controller
+
+
+	def get_widget(
+			self,
+			i,
+			min_value=None,
+			max_value=None,
+			readout_format='.0f',
+			steps=20,
+			*,
+			df=None,
+			histogram=None,
+			tall=True,
+	):
+		"""Get a control widget for a Box threshold."""
+
+		if self.scope is None:
+			raise ValueError('cannot get_widget with no scope')
+
+		if not hasattr(self, '_widgets'):
+			self._widgets = {}
+
+		if i not in self._widgets:
+			# Extract min and max from scope if not given explicitly
+			if i not in self.scope.get_measure_names():
+				if min_value is None:
+					min_value = self.scope[i].min
+				if max_value is None:
+					max_value = self.scope[i].max
+
+			# Extract min and max from `df` if still missing (i.e. for Measures)
+			if df is not None:
+				if min_value is None:
+					min_value = df[i].min()
+				if max_value is None:
+					max_value = df[i].max()
+
+			# Extract min and max from `_viz_data` if still missing
+			if self._viz_data is not None:
+				if min_value is None:
+					min_value = self._viz_data[i].min()
+				if max_value is None:
+					max_value = self._viz_data[i].max()
+
+			if isinstance(self.scope[i], BooleanParameter):
+				self._widgets[i] = self._make_togglebutton_widget(
+					i,
+					cats=[False, True],
+				)
+			elif isinstance(self.scope[i], CategoricalParameter):
+				cats = self.scope.get_cat_values(i)
+				self._widgets[i] = self._make_togglebutton_widget(
+					i,
+					cats=cats,
+				)
+			elif isinstance(self.scope[i], IntegerParameter):
+				self._widgets[i] = self._make_range_widget(
+					i,
+					min_value=min_value,
+					max_value=max_value,
+					readout_format=readout_format,
+					integer=True,
+					steps=steps,
+					label=not tall,
+				)
+			else:
+				self._widgets[i] = self._make_range_widget(
+					i,
+					min_value=min_value,
+					max_value=max_value,
+					readout_format=readout_format,
+					integer=False,
+					steps=steps,
+					label=not tall,
+				)
+
+		if tall:
+			if not isinstance(histogram, Mapping):
+				histogram = {}
+			return widget.VBox(
+				[
+					widget.Label(i),
+					self.get_histogram_figure(i, **histogram),
+					self._widgets[i],
+				],
+				layout=styles.widget_frame,
+			)
+
+		if histogram is not None:
+			if not isinstance(histogram, Mapping):
+				histogram = {}
+			return widget.HBox(
+				[self._widgets[i], self.get_histogram_figure(i, **histogram)],
+				layout=dict(align_items = 'center'),
+			)
+		else:
+			return self._widgets[i]
+
+	def visualization(self, include=None, data=None):
+
+		if self.scope is None:
+			raise ValueError('cannot create visualization with no scope')
+
+		if data is not None:
+			self.set_viz_data(data)
+			self._figures.clear()
+
+		if include is None:
+			include = []
+
+		viz_widgets = []
+		include = set(include)
+		include = include | self.relevant_and_demanded_features
+		for i in self.scope.get_parameter_names() + self.scope.get_measure_names():
+			if i in include:
+				viz_widgets.append(self.get_widget(i))
+
+		return widget.Box(viz_widgets, layout=widget.Layout(flex_flow='row wrap'))
+
+
+class ChainedBox(Mapping, GenericBox):
 	"""
 	A Box defines a set of restricted dimensions for a Scope.
 
@@ -602,14 +1004,6 @@ class ChainedBox(Mapping, GenericBoxMixin):
 			t |= set(single.thresholds.keys())
 		return t
 
-	@property
-	def relevant_and_demanded_features(self):
-		"""
-		Set[str]: The union of relevant and demanded features.
-		"""
-		return self.relevant_features | self.demanded_features
-
-
 	def __repr__(self):
 		if self.keys() or self.relevant_features:
 			demands = list(self.keys()) or [" "]
@@ -623,7 +1017,7 @@ class ChainedBox(Mapping, GenericBoxMixin):
 				if isinstance(v, Bounds):
 					if v.lowerbound is None:
 						if v.upperbound is None:
-							v_ = ' Unbounded'
+							v_ = ': unbounded'
 						else:
 							v_ = f' <= {v.upperbound}'
 					else:
@@ -651,6 +1045,18 @@ class ChainedBox(Mapping, GenericBoxMixin):
 
 	def chain_repr(self):
 		return "\n".join(f"{repr(c)}" for n,c in zip(self.names,self.chain))
+
+	@property
+	def scope(self):
+		"""Scope: A scope associated with this Box."""
+		return self.chain[-1]._scope
+
+	@scope.setter
+	def scope(self, x):
+		if x is None or isinstance(x, Scope):
+			self.chain[-1]._scope = x
+		else:
+			raise TypeError('scope must be Scope or None')
 
 
 
