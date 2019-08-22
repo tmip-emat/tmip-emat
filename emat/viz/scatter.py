@@ -4,6 +4,7 @@ import plotly.graph_objs as go
 import itertools
 import numpy
 import pandas
+from typing import Mapping
 
 from .widget import FigureWidget
 from .common import get_name, any_names
@@ -85,6 +86,7 @@ def scatter_graph(
 		sizemin=None,
 		sizemode='area',
 		sizeref=None,
+		opacity=1.0,
 		cats=None,
 		n_cats=None,
 		cat_fmt=".2g",
@@ -161,6 +163,8 @@ def scatter_graph(
 		Y = [Y]
 	if not isinstance(S, list):
 		S = [S]
+	if not isinstance(opacity, list):
+		opacity = [opacity]
 
 	longer_XY = X if (len(X) >= len(Y)) else Y
 
@@ -238,15 +242,17 @@ def scatter_graph(
 					sizemode=sizemode,
 					sizeref=sizeref,
 					sizemin=sizemin,
+					opacity=opaque,
 				),
 				name=n if legend_label=='' else legend_label,
 			)
-			for x,y,s,tracenum,legend_label in zip(
+			for x,y,s,tracenum,legend_label,opaque in zip(
 				itertools.cycle(X_data[n]),
 				itertools.cycle(Y_data[n]),
 				itertools.cycle(S_data[n]),
 				range(max(len(X_data[n]), len(Y_data[n]), len(S_data[n]))),
 				itertools.cycle(legend_labels) if legend_labels is not None else itertools.cycle(['']),
+				itertools.cycle(opacity),
 			)
 		]
 
