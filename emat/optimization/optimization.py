@@ -150,7 +150,10 @@ class ConvergenceMetrics(widgets.HBox):
 
 	def __init__(self, *members):
 		self._members = list(members)
-		widgets.HBox.__init__(self, [member.figure for member in members])
+		widgets.HBox.__init__(
+			self, [member.figure for member in members],
+			layout=dict(flex_flow='row wrap'),
+		)
 
 	def __getitem__(self, item):
 		return self._members[item]
