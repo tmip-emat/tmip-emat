@@ -551,10 +551,15 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             else:
                 metamodel_id = np.random.randint(1,2**63,dtype='int64')
 
+        if output_transforms is None:
+            output_transforms = {}
+
         if include_measures is not None:
             experiment_outputs = experiment_outputs[[i for i in include_measures
                                                      if i in experiment_outputs.columns]]
-            output_transforms = {i: output_transforms[i] for i in include_measures}
+            output_transforms = {i: output_transforms[i]
+                                 for i in include_measures
+                                 if i in output_transforms }
             
         if exclude_measures is not None:
             experiment_outputs = experiment_outputs.drop(exclude_measures, axis=1)

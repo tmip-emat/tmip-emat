@@ -5,6 +5,9 @@ import warnings
 import scipy.stats
 from sklearn.linear_model import LinearRegression as _sklearn_LinearRegression
 from .frameable import FrameableMixin
+from .select import PolynomialFeatures, SelectKBest
+from sklearn.feature_selection import mutual_info_regression
+from sklearn.base import clone
 
 class LinearRegression(_sklearn_LinearRegression, FrameableMixin):
 	"""
@@ -192,5 +195,74 @@ class LinearRegression(_sklearn_LinearRegression, FrameableMixin):
 
 		return pandas.concat([beta, se, t, p], axis=1)
 
+
+
+class LinearRegressionInteract(LinearRegression):
+
+	def __init__(
+			self,
+			fit_intercept=True,
+			normalize=False,
+			copy_X=True,
+			n_jobs=None,
+			frame_out=True,
+			n_interactions=None,
+	):
+		super().__init__(
+			fit_intercept=fit_intercept,
+			normalize=normalize,
+			copy_X=copy_X,
+			n_jobs=n_jobs,
+			frame_out=frame_out,
+		)
+
+		self.n_interactions = n_interactions
+
+	def fit(self, X, y, sample_weight=None):
+
+		if len(y.shape) == 1 or y.shape[1] == 1:
+			# Single Output Dim
+			n_interactions = self.n_interactions
+			if n_interactions is None:
+				n_interactions = X.shape[1]
+			self._poly = PolynomialFeatures(2, include_bias=False).fit(X)
+			X1 = self._poly.transform(X).iloc[:, X.shape[1]:]
+			self._kbest = SelectKBest(mutual_info_regression, k=n_interactions).fit(X1, y)
+			X2 = self._kbest.transform(X1)
+			X_ = pandas.concat([X, X2], axis=1)
+			self._pre_fit(X, y)
+			_sklearn_LinearRegression.fit(self, X_, y, sample_weight=sample_weight)
+
+		else:
+			# multiple output dim
+			self._dim_models = [clone(self) for j in range(y.shape[1])]
+			self._dim_names = y.columns
+			for j in range(y.shape[1]):
+				try:
+					self._dim_models[j].fit(X, y.iloc[:,j], sample_weight=sample_weight)
+				except:
+					print("j=",j)
+					raise
+
+		return self
+
+	def predict(self, X):
+
+		if not hasattr(self, '_dim_models'):
+			# Single Output Dim
+			n_interactions = self.n_interactions
+			if n_interactions is None:
+				n_interactions = X.shape[1]
+			X1 = self._poly.transform(X).iloc[:, X.shape[1]:]
+			X2 = self._kbest.transform(X1)
+			X_ = pandas.concat([X, X2], axis=1)
+			return super().predict(X_)
+
+		else:
+			# multiple output dim
+			return pandas.concat([
+				pandas.Series(self._dim_models[j].predict(X), index=X.index, name=self._dim_names[j])
+				for j in range(len(self._dim_models))
+			], axis=1)
 
 
