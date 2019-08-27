@@ -4,13 +4,9 @@ import warnings
 
 from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.model_selection._split import _RepeatedSplits
-from sklearn.utils import indexable, check_random_state, safe_indexing
-from sklearn.utils.validation import _num_samples, column_or_1d
+from sklearn.utils.validation import column_or_1d
 from sklearn.utils.validation import check_array
 from sklearn.utils.multiclass import type_of_target
-from sklearn.externals.six import with_metaclass
-from sklearn.utils.fixes import signature, comb
-from sklearn.base import _pprint
 
 
 class ExogenouslyStratifiedKFold(StratifiedKFold):

@@ -7,7 +7,7 @@ from sklearn.metrics import r2_score, make_scorer
 from sklearn.exceptions import DataConversionWarning
 from sklearn.model_selection import cross_val_score, cross_val_predict, cross_validate
 
-from sklearn.model_selection import StratifiedKFold, KFold
+from sklearn.model_selection import StratifiedKFold, KFold, RepeatedKFold, RepeatedStratifiedKFold
 
 def multiscore(Y, Y_pred, sample_weight=None):
 	"""
@@ -53,7 +53,7 @@ def single_multiscore(n=0):
 	return lambda *args, **kwargs: multiscore(*args, **kwargs)[n]
 
 
-def check_cv(cv='warn', y=None, classifier=False, random_state=None):
+def check_cv(cv='warn', y=None, classifier=False, random_state=None, n_repeats=1):
 	"""Input checker utility for building a cross-validator
 
 	Parameters
@@ -95,9 +95,15 @@ def check_cv(cv='warn', y=None, classifier=False, random_state=None):
 
 	if isinstance(cv, numbers.Integral):
 		if (classifier and (y is not None) and (type_of_target(y) in ('binary', 'multiclass'))):
-			return StratifiedKFold(cv, random_state=random_state)
+			if n_repeats>1:
+				return RepeatedStratifiedKFold(cv, random_state=random_state, n_repeats=n_repeats)
+			else:
+				return StratifiedKFold(cv, random_state=random_state)
 		else:
-			return KFold(cv, random_state=random_state)
+			if n_repeats>1:
+				return RepeatedKFold(cv, random_state=random_state, n_repeats=n_repeats)
+			else:
+				return KFold(cv, random_state=random_state)
 
 	return cv  # New style cv objects are passed without any modification
 
@@ -105,7 +111,17 @@ def check_cv(cv='warn', y=None, classifier=False, random_state=None):
 
 class CrossValMixin:
 
-	def _cross_validate(self, X, Y, cv=5, S=None, random_state=None, meta_data=None, use_cache=True):
+	def _cross_validate(
+			self,
+			X,
+			Y,
+			cv=5,
+			S=None,
+			random_state=None,
+			cache_metadata=None,
+			use_cache=True,
+			n_repeats=1,
+	):
 		"""
 		Compute the cross validation scores for this model.
 
@@ -147,7 +163,8 @@ class CrossValMixin:
 				cv,
 				hash_pandas_object(S).sum() if S is not None else None,
 				random_state,
-				meta_data,
+				cache_metadata,
+				n_repeats,
 			))
 		except:
 			p = None
@@ -157,8 +174,20 @@ class CrossValMixin:
 
 		if p is None:
 			if S is not None:
-				from ..multitarget.splits import ExogenouslyStratifiedKFold
-				cv = ExogenouslyStratifiedKFold(exo_data=S, n_splits=cv, random_state=random_state)
+				from .splits import ExogenouslyStratifiedKFold, RepeatedExogenouslyStratifiedKFold
+				if n_repeats > 1:
+					cv = RepeatedExogenouslyStratifiedKFold(
+						exo_data=S,
+						n_splits=cv,
+						random_state=random_state,
+						n_repeats=n_repeats,
+					)
+				else:
+					cv = ExogenouslyStratifiedKFold(
+						exo_data=S,
+						n_splits=cv,
+						random_state=random_state,
+					)
 
 			if isinstance(Y, pandas.DataFrame):
 				self.Y_columns = Y.columns
@@ -172,14 +201,14 @@ class CrossValMixin:
 					for n,j in enumerate(self.Y_columns)
 				}
 				from sklearn.base import is_classifier
-				cv = check_cv(cv, Y, classifier=is_classifier(self), random_state=random_state)
+				cv = check_cv(cv, Y, classifier=is_classifier(self), random_state=random_state, n_repeats=n_repeats)
 				p = cross_validate(self, X, Y, cv=cv, scoring=ms, n_jobs=-1)
 
 		if hashkey is not None:
 			self._cross_validate_results[hashkey] = p
 		return p
 
-	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, repeat=None):
+	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, n_repeats=1, cache_metadata=None):
 		"""
 		Calculate the cross validation scores for this model.
 
@@ -203,7 +232,7 @@ class CrossValMixin:
 				vector of length equal to the first dimension
 				(i.e. number of observations) in the `X` and `Y`
 				arrays.
-			repeat : int, optional
+			n_repeats : int, optional
 				Repeat the cross validation exercise this many
 				times, with different random seeds, and return
 				the average result.
@@ -212,14 +241,10 @@ class CrossValMixin:
 			pandas.Series: The cross-validation scores, by output.
 
 		"""
-		if repeat is not None:
-			ps = []
-			for r in range(repeat):
-				p_ = self._cross_validate(X, Y, cv=cv, S=S, random_state=r)
-				ps.append(pandas.Series({j:p_[f"test_{j}"].mean() for j in self.Y_columns}))
-			return pandas.concat(ps, axis=1).mean(axis=1)
-
-		p = self._cross_validate(X,Y,cv=cv,S=S,random_state=random_state)
+		p = self._cross_validate(
+			X, Y, cv=cv, S=S, random_state=random_state,
+			cache_metadata=cache_metadata, n_repeats=n_repeats,
+		)
 		try:
 			return pandas.Series({j:p[f"test_{j}"].mean() for j in self.Y_columns})
 		except:

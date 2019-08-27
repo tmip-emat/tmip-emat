@@ -1,11 +1,84 @@
 
+import numpy
 import pandas
 from sklearn.feature_selection import SelectKBest as _SelectKBest
+from sklearn.feature_selection.base import SelectorMixin
 
 from sklearn.base import BaseEstimator, clone
 from sklearn.feature_selection.base import SelectorMixin
 
+from sklearn.feature_selection import VarianceThreshold
+
 from .preprocessing import PolynomialFeatures
+from .frameable import FrameableMixin
+
+def drop_deficient_columns(df, remaining=None):
+	"""
+	Drop columns from a dataframe until it is full column rank.
+
+	Parameters
+	----------
+	df : array-like, prefer pandas.DataFrame
+	remaining : array-like, optional
+		A mask that shows which columns have previously been not dropped.
+	"""
+	if remaining is not None:
+		if isinstance(df, pandas.DataFrame):
+			df_ = df.loc[:,remaining]
+		else:
+			df_ = df[:,remaining]
+	else:
+		remaining = numpy.ones(df.shape[1], bool)
+		df_ = df
+	w, v = numpy.linalg.eigh(numpy.dot(df_.T, df_))
+	if w[0] < 1e-4:
+		toss = numpy.where(numpy.round(v[:,0],7))[0][-1]
+		toss = numpy.where(remaining)[0][toss]
+		remaining[toss] = False
+		slim, remaining = drop_deficient_columns(df, remaining)
+		return slim, remaining
+	else:
+		return df_, remaining
+
+
+
+class SelectUniqueColumns(BaseEstimator, SelectorMixin):
+
+	def __init__(self):
+		super().__init__()
+
+	def fit(self, X, y=None):
+		"""
+		Run filter on X to get unique columns.
+
+		Parameters
+		----------
+		X : array-like, shape = [n_samples, n_features]
+			The training input samples.
+
+		y : array-like, shape = [n_samples]
+			Not used.
+
+		Returns
+		-------
+		self
+		"""
+		_, self.mask_ = drop_deficient_columns(X)
+		return self
+
+	def _get_support_mask(self):
+		return self.mask_
+
+	def transform(self, X):
+		y = super().transform(X)
+		if isinstance(X, pandas.DataFrame):
+			return pandas.DataFrame(
+				data=y,
+				index=X.index,
+				columns=X.columns[self.get_support()]
+			)
+		return y
+
 
 class SelectKBest(_SelectKBest):
 	"""
@@ -14,22 +87,22 @@ class SelectKBest(_SelectKBest):
 	Parameters
 	----------
 	score_func : callable
-	    Function taking two arrays X and y, and returning a pair of arrays
-	    (scores, pvalues) or a single array with scores.
-	    Default is f_classif (see below "See also"). The default function only
-	    works with classification tasks.
+		Function taking two arrays X and y, and returning a pair of arrays
+		(scores, pvalues) or a single array with scores.
+		Default is f_classif (see below "See also"). The default function only
+		works with classification tasks.
 
 	k : int or "all", optional, default=10
-	    Number of top features to select.
-	    The "all" option bypasses selection, for use in a parameter search.
+		Number of top features to select.
+		The "all" option bypasses selection, for use in a parameter search.
 
 	Attributes
 	----------
 	scores_ : array-like, shape=(n_features,)
-	    Scores of features.
+		Scores of features.
 
 	pvalues_ : array-like, shape=(n_features,)
-	    p-values of feature scores, None if `score_func` returned only scores.
+		p-values of feature scores, None if `score_func` returned only scores.
 
 	"""
 
@@ -161,6 +234,9 @@ class SelectKBestPolynomialFeatures(BaseEstimator):
 			self._kbest = SelectKBest(score_func, k=n_interactions)
 			self._kbest.fit(X1, y)
 
+			if self.drop_duplicate_cols:
+				self.select_unique_ = SelectUniqueColumns().fit(self._kbest.transform(X1))
+
 		else:
 
 			raise ValueError("SelectKBestPolynomialFeatures only works with single target data")
@@ -206,6 +282,7 @@ class SelectKBestPolynomialFeatures(BaseEstimator):
 				columns=cols
 			)
 
-		y = _drop_duplicate_columns(y)
+		if self.drop_duplicate_cols:
+			y = self.select_unique_.transform(y)
 
 		return y

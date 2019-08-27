@@ -123,11 +123,11 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 		if repeat is not None:
 			ps = []
 			for r in range(repeat):
-				p_ = self._cross_validate(X, Y, cv=cv, S=S, random_state=r, meta_data=self.prediction_tier)
+				p_ = self._cross_validate(X, Y, cv=cv, S=S, random_state=r, cache_metadata=self.prediction_tier)
 				ps.append(pandas.Series({j: p_[f"test_{j}"].mean() for j in self.Y_columns}))
 			return pandas.concat(ps, axis=1).mean(axis=1)
 
-		p = self._cross_validate(X, Y, cv=cv, S=S, random_state=random_state, meta_data=self.prediction_tier)
+		p = self._cross_validate(X, Y, cv=cv, S=S, random_state=random_state, cache_metadata=self.prediction_tier)
 		try:
 			return pandas.Series({j: p[f"test_{j}"].mean() for j in self.Y_columns})
 		except:
