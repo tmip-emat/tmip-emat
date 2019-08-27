@@ -47,6 +47,20 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 					Y_ = Y_ - self._post_predict(X,e_.predict(X))
 		return self
 
+	def _set_prediction_tier(self, tier):
+		tier_ = tier
+		if tier is not None:
+			import numbers
+			if not isinstance(tier, numbers.Integral):
+				raise ValueError('tier must be integer')
+			if tier == 0:
+				tier = 9999
+			if tier < 0:
+				tier = len(self.estimators) + tier
+			if tier <= 0:
+				raise IndexError(f'invalid tier {tier_}')
+			self.prediction_tier = tier
+
 	def predict(self, X, tier=None):
 		"""
 		Generate predictions from a set of exogenous data.
@@ -71,7 +85,7 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 		Yhat = self._post_predict(X, Yhat)
 		return Yhat
 
-	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, repeat=None):
+	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, repeat=None, tier=None):
 		"""
 		Calculate the cross validation scores for this model.
 
@@ -104,6 +118,8 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 			pandas.Series: The cross-validation scores, by output.
 
 		"""
+		self._set_prediction_tier(tier)
+
 		if repeat is not None:
 			ps = []
 			for r in range(repeat):
