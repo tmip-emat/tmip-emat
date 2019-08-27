@@ -1,0 +1,46 @@
+
+# To use this file::
+#  conda env create -f EMAT.yml
+name: EMAT
+
+channels:
+- tmip
+- conda-forge
+- plotly
+
+dependencies:
+- python=3.7
+
+# Math
+- numpy>=1.16
+- pandas>=0.23.4
+- scipy>=1.2
+- scikit-learn>=0.20.1
+- appdirs>=1.4.3
+- matplotlib>=3.0.1
+- seaborn>=0.9
+- pydot
+- graphviz>=2.40.1
+- plotly>=3.2.1
+- plotly-orca  # Plotly Static Image Export
+- ipywidgets>=7.2
+- joblib>=0.13.2
+- dask>=1.0
+- distributed>=1.25
+- cloudpickle>=0.6.1
+- ipykernel>=5.1
+- nb_conda>=2.2.1
+- jupyter_contrib_nbextensions>=0.4.0   # on conda-forge only
+- jupyter
+- notebook
+- pytest>=4.0.1
+- pyscaffold
+- ipyparallel
+- pyzmq
+- platypus-opt
+- altair
+- salib
+
+
+# After setting up and activating this environment, register with jupyter-notebook::
+#   python -m ipykernel install --user --name EMAT --display-name "EMAT"
