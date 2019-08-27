@@ -105,7 +105,7 @@ def check_cv(cv='warn', y=None, classifier=False, random_state=None):
 
 class CrossValMixin:
 
-	def _cross_validate(self, X, Y, cv=5, S=None, random_state=None):
+	def _cross_validate(self, X, Y, cv=5, S=None, random_state=None, meta_data=None, use_cache=True):
 		"""
 		Compute the cross validation scores for this model.
 
@@ -139,7 +139,7 @@ class CrossValMixin:
 			self._cross_validate_results = {}
 
 		try:
-			if random_state is None:
+			if random_state is None or not use_cache:
 				raise KeyError()
 			hashkey = hash((
 				hash_pandas_object(X).sum(),
@@ -147,6 +147,7 @@ class CrossValMixin:
 				cv,
 				hash_pandas_object(S).sum() if S is not None else None,
 				random_state,
+				meta_data,
 			))
 		except:
 			p = None

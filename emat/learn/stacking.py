@@ -1,5 +1,5 @@
 
-
+import pandas
 from typing import Sequence
 from sklearn.base import RegressorMixin, BaseEstimator, clone
 from sklearn.model_selection import cross_val_predict
@@ -18,9 +18,11 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 			self,
 			estimators,
 			use_cv_predict=False,
+			prediction_tier=9999,
 	):
 		self.estimators = estimators
 		self.use_cv_predict = use_cv_predict
+		self.prediction_tier = prediction_tier
 
 	def _use_cv_predict_n(self, n):
 		if isinstance(self.use_cv_predict, Sequence):
@@ -45,7 +47,7 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 					Y_ = Y_ - self._post_predict(X,e_.predict(X))
 		return self
 
-	def predict(self, X, tier=9999):
+	def predict(self, X, tier=None):
 		"""
 		Generate predictions from a set of exogenous data.
 
@@ -53,16 +55,70 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 		----------
 		X : array-like, prefer pandas.DataFrame
 			Exogenous data.
-		tier : int, default 9999
-
+		tier : int, optional
+			Limit the prediction to using only the first `tier`
+			levels of stacking. For example, setting to 1 results
+			in only using the very first level of the stack.  If not
+			given, the existing value of `prediction_tier` is used.
 
 		"""
+		if tier is None:
+			tier = self.prediction_tier
 		Yhat = self.estimators_[0].predict(X)
 		for n_, e_ in enumerate(self.estimators_[1:]):
-			if n_ < tier:
+			if n_+1 < tier:
 				Yhat += e_.predict(X)
 		Yhat = self._post_predict(X, Yhat)
 		return Yhat
+
+	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, repeat=None):
+		"""
+		Calculate the cross validation scores for this model.
+
+		Unlike other scikit-learn scores, this method returns
+		a separate score value for each output when the estimator
+		is for a multi-output process.
+
+		If the estimator includes a `sample_stratification`
+		attribute, it is used along with
+
+		Args:
+			X, Y : array-like
+				The independent and dependent data to use for
+				cross-validation.
+			cv : int, default 5
+				The number of folds to use in cross-validation.
+			S : array-like
+				The stratification data to use for stratified
+				cross-validation.  This data must be categorical
+				(or convertible into such), and should be a
+				vector of length equal to the first dimension
+				(i.e. number of observations) in the `X` and `Y`
+				arrays.
+			repeat : int, optional
+				Repeat the cross validation exercise this many
+				times, with different random seeds, and return
+				the average result.
+
+		Returns:
+			pandas.Series: The cross-validation scores, by output.
+
+		"""
+		if repeat is not None:
+			ps = []
+			for r in range(repeat):
+				p_ = self._cross_validate(X, Y, cv=cv, S=S, random_state=r, meta_data=self.prediction_tier)
+				ps.append(pandas.Series({j: p_[f"test_{j}"].mean() for j in self.Y_columns}))
+			return pandas.concat(ps, axis=1).mean(axis=1)
+
+		p = self._cross_validate(X, Y, cv=cv, S=S, random_state=random_state, meta_data=self.prediction_tier)
+		try:
+			return pandas.Series({j: p[f"test_{j}"].mean() for j in self.Y_columns})
+		except:
+			print("p=", p)
+			print(len(self.Y_columns))
+			print("self.Y_columns=", self.Y_columns)
+			raise
 
 
 def LinearInteractAndGaussian(
