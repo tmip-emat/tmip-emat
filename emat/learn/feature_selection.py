@@ -155,7 +155,8 @@ class SelectKBestPolynomialFeatures(BaseEstimator):
 			score_func = self.score_func
 			if score_func is None:
 				from sklearn.feature_selection import mutual_info_regression
-				score_func = mutual_info_regression
+				# fixed random state on mutual_info_regression for stability
+				score_func = lambda *arg, **kwarg: mutual_info_regression(*arg, random_state=42, **kwarg)
 
 			self._kbest = SelectKBest(score_func, k=n_interactions)
 			self._kbest.fit(X1, y)
