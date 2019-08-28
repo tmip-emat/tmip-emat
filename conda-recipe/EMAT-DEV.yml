@@ -49,3 +49,4 @@ dependencies:
 - sphinxcontrib-restbuilder
 - nbsphinx
 
+## For development, install ema_workbench and emat locally
