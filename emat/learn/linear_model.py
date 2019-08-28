@@ -100,7 +100,10 @@ class LinearRegression(_LinearRegression, FrameableMixin, CrossValMixin):
 			else:
 				X1 = X
 
-			inv_X_XT = numpy.linalg.inv(numpy.dot(X1.T, X1))
+			try:
+				inv_X_XT = numpy.linalg.inv(numpy.dot(X1.T, X1))
+			except numpy.linalg.LinAlgError:
+				inv_X_XT = numpy.full_like(numpy.dot(X1.T, X1), fill_value=numpy.nan)
 
 			with warnings.catch_warnings():
 				warnings.simplefilter("ignore", category=RuntimeWarning)
