@@ -2,7 +2,7 @@
 import numpy
 import pandas
 from sklearn.feature_selection import SelectKBest as _SelectKBest
-from sklearn.feature_selection.base import SelectorMixin
+from sklearn.feature_selection.base import SelectorMixin, check_array, safe_mask
 
 from sklearn.base import BaseEstimator, clone
 from sklearn.feature_selection.base import SelectorMixin
@@ -40,6 +40,28 @@ def drop_deficient_columns(df, remaining=None):
 	else:
 		return df_, remaining
 
+class SelectorMixinNoZeroWarn(SelectorMixin):
+
+	def transform(self, X):
+		"""Reduce X to the selected features.
+
+		Parameters
+		----------
+		X : array of shape [n_samples, n_features]
+			The input samples.
+
+		Returns
+		-------
+		X_r : array of shape [n_samples, n_selected_features]
+			The input samples with only the selected features.
+		"""
+		X = check_array(X, dtype=None, accept_sparse='csr')
+		mask = self.get_support()
+		if not mask.any():
+			return numpy.empty(0).reshape((X.shape[0], 0))
+		if len(mask) != X.shape[1]:
+			raise ValueError("X has a different shape than during fitting.")
+		return X[:, safe_mask(X, mask)]
 
 
 class SelectUniqueColumns(BaseEstimator, SelectorMixin):
@@ -85,7 +107,7 @@ class SelectUniqueColumns(BaseEstimator, SelectorMixin):
 		return y
 
 
-class SelectKBest(_SelectKBest):
+class SelectKBest(_SelectKBest, SelectorMixinNoZeroWarn):
 	"""
 	Select features according to the k highest scores, preserving DataFrame labels.
 
