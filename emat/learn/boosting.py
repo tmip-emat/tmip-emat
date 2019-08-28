@@ -7,7 +7,7 @@ from .frameable import FrameableMixin
 from .model_selection import CrossValMixin
 from .multioutput import MultiOutputRegressor
 
-class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMixin):
+class BoostedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMixin):
 	"""
 	A stack of regressors.
 
@@ -149,7 +149,7 @@ def LinearAndGaussian(
 ):
 	from .linear_model import LinearRegression
 	from .anisotropic import AnisotropicGaussianProcessRegressor
-	return StackedRegressor(
+	return BoostedRegressor(
 		[
 			LinearRegression(
 				fit_intercept=fit_intercept,
@@ -190,7 +190,7 @@ def LinearInteractAndGaussian(
 ):
 	from .linear_model import LinearRegression_KBestPoly
 	from .anisotropic import AnisotropicGaussianProcessRegressor
-	return StackedRegressor(
+	return BoostedRegressor(
 		[
 			LinearRegression_KBestPoly(
 				k=k,
@@ -233,7 +233,7 @@ def LinearInteractRangeAndGaussian(
 ):
 	from .linear_model import LinearRegression_KRangeBestPoly
 	from .anisotropic import AnisotropicGaussianProcessRegressor
-	return StackedRegressor(
+	return BoostedRegressor(
 		[
 			LinearRegression_KRangeBestPoly(
 				k_max=k_max,
