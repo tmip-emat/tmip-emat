@@ -212,20 +212,59 @@ def LinearRegression_KBestPoly(
 		stats_on_fit=True,
 ):
 
-	from sklearn.pipeline import make_pipeline
+	from sklearn.pipeline import make_pipeline, Pipeline
 	from .feature_selection import SelectKBestPolynomialFeatures, SelectUniqueColumns
 	from .multioutput import MultiOutputRegressor
 
 	return MultiOutputRegressor(
-		make_pipeline(
-			SelectKBestPolynomialFeatures(k=k, degree=degree),
-			SelectUniqueColumns(),
-			LinearRegression(
-				fit_intercept=fit_intercept,
-				normalize=normalize,
-				copy_X=copy_X,
-				stats_on_fit=stats_on_fit,
-			),
+		Pipeline([
+			('KBestPoly', SelectKBestPolynomialFeatures(k=k, degree=degree)),
+			('Uniques',   SelectUniqueColumns()),
+			('LR',        LinearRegression(
+							fit_intercept=fit_intercept,
+							normalize=normalize,
+							copy_X=copy_X,
+							stats_on_fit=stats_on_fit,
+			              )
+			 ),
+		]),
+		n_jobs=n_jobs,
+	)
+
+
+def LinearRegression_KRangeBestPoly(
+		k_min=0,
+		k_max=8,
+		degree=2,
+		fit_intercept=True,
+		normalize=False,
+		copy_X=True,
+		n_jobs=None,
+		stats_on_fit=True,
+		cv=5,
+):
+
+	from sklearn.pipeline import make_pipeline, Pipeline
+	from .feature_selection import SelectKBestPolynomialFeatures, SelectUniqueColumns
+	from .multioutput import MultiOutputRegressor
+	from sklearn.model_selection import GridSearchCV
+
+	return MultiOutputRegressor(
+		GridSearchCV(
+			Pipeline([
+				('KBestPoly', SelectKBestPolynomialFeatures(degree=degree)),
+				('Uniques',   SelectUniqueColumns()),
+				('LR',        LinearRegression(
+								fit_intercept=fit_intercept,
+								normalize=normalize,
+								copy_X=copy_X,
+								stats_on_fit=stats_on_fit,
+							  )
+				 ),
+			]),
+			cv=cv,
+			param_grid={'KBestPoly__k': range(k_min, k_max+1)},
+			iid=False,
 		),
 		n_jobs=n_jobs,
 	)

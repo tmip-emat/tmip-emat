@@ -214,3 +214,45 @@ def LinearInteractAndGaussian(
 		use_cv_predict=use_cv_predict,
 	)
 
+
+def LinearInteractRangeAndGaussian(
+		k_max=5,
+		degree=2,
+		fit_intercept=True,
+		n_jobs=None,
+		stats_on_fit=True,
+		kernel_generator=None,
+		alpha=1e-10,
+		optimizer="fmin_l_bfgs_b",
+		n_restarts_optimizer=250,
+		normalize_y=False,
+		standardize_before_fit=True,
+		copy_X_train=True,
+		random_state=None,
+		use_cv_predict=False,
+):
+	from .linear_model import LinearRegression_KRangeBestPoly
+	from .anisotropic import AnisotropicGaussianProcessRegressor
+	return StackedRegressor(
+		[
+			LinearRegression_KRangeBestPoly(
+				k_max=k_max,
+				degree=degree,
+				fit_intercept=fit_intercept,
+				copy_X=True,
+				n_jobs=n_jobs,
+				stats_on_fit=stats_on_fit,
+			),
+			MultiOutputRegressor(AnisotropicGaussianProcessRegressor(
+				kernel_generator=kernel_generator,
+				alpha=alpha,
+				optimizer=optimizer,
+				n_restarts_optimizer=n_restarts_optimizer,
+				normalize_y=normalize_y,
+				standardize_before_fit=standardize_before_fit,
+				copy_X_train=copy_X_train,
+				random_state=random_state,
+			)),
+		],
+		use_cv_predict=use_cv_predict,
+	)

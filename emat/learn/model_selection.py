@@ -93,6 +93,9 @@ def check_cv(cv='warn', y=None, classifier=False, random_state=None, n_repeats=1
 	import numbers
 	from sklearn.utils.multiclass import type_of_target
 
+	if n_repeats is None:
+		n_repeats = 1
+
 	if isinstance(cv, numbers.Integral):
 		if (classifier and (y is not None) and (type_of_target(y) in ('binary', 'multiclass'))):
 			if n_repeats>1:
