@@ -5,6 +5,7 @@ from sklearn.base import RegressorMixin, BaseEstimator, clone
 from sklearn.model_selection import cross_val_predict
 from .frameable import FrameableMixin
 from .model_selection import CrossValMixin
+from .multioutput import MultiOutputRegressor
 
 class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMixin):
 	"""
@@ -137,6 +138,45 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 			raise
 
 
+def LinearAndGaussian(
+		fit_intercept=True,
+		n_jobs=None,
+		stats_on_fit=True,
+		kernel_generator=None,
+		alpha=1e-10,
+		optimizer="fmin_l_bfgs_b",
+		n_restarts_optimizer=250,
+		normalize_y=False,
+		standardize_before_fit=True,
+		copy_X_train=True,
+		random_state=None,
+		use_cv_predict=False,
+):
+	from .linear_model import LinearRegression
+	from .anisotropic import AnisotropicGaussianProcessRegressor
+	return StackedRegressor(
+		[
+			LinearRegression(
+				fit_intercept=fit_intercept,
+				copy_X=False,
+				n_jobs=n_jobs,
+				stats_on_fit=stats_on_fit,
+			),
+			MultiOutputRegressor(AnisotropicGaussianProcessRegressor(
+				kernel_generator=kernel_generator,
+				alpha=alpha,
+				optimizer=optimizer,
+				n_restarts_optimizer=n_restarts_optimizer,
+				normalize_y=normalize_y,
+				standardize_before_fit=standardize_before_fit,
+				copy_X_train=copy_X_train,
+				random_state=random_state,
+			)),
+		],
+		use_cv_predict=use_cv_predict,
+	)
+
+
 def LinearInteractAndGaussian(
 		k=None,
 		degree=2,
@@ -165,7 +205,7 @@ def LinearInteractAndGaussian(
 				n_jobs=n_jobs,
 				stats_on_fit=stats_on_fit,
 			),
-			AnisotropicGaussianProcessRegressor(
+			MultiOutputRegressor(AnisotropicGaussianProcessRegressor(
 				kernel_generator=kernel_generator,
 				alpha=alpha,
 				optimizer=optimizer,
@@ -174,7 +214,7 @@ def LinearInteractAndGaussian(
 				standardize_before_fit=standardize_before_fit,
 				copy_X_train=copy_X_train,
 				random_state=random_state,
-			),
+			)),
 		],
 		use_cv_predict=use_cv_predict,
 	)

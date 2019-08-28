@@ -213,12 +213,13 @@ def LinearRegression_KBestPoly(
 ):
 
 	from sklearn.pipeline import make_pipeline
-	from .feature_selection import SelectKBestPolynomialFeatures
+	from .feature_selection import SelectKBestPolynomialFeatures, SelectUniqueColumns
 	from .multioutput import MultiOutputRegressor
 
 	return MultiOutputRegressor(
 		make_pipeline(
 			SelectKBestPolynomialFeatures(k=k, degree=degree),
+			SelectUniqueColumns(),
 			LinearRegression(
 				fit_intercept=fit_intercept,
 				normalize=normalize,

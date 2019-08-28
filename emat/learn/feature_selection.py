@@ -70,7 +70,12 @@ class SelectUniqueColumns(BaseEstimator, SelectorMixin):
 		return self.mask_
 
 	def transform(self, X):
-		y = super().transform(X)
+		try:
+			y = super().transform(X)
+		except:
+			print("shape.X",X.shape)
+			print("self.mask_.shape",self.mask_.shape)
+			raise
 		if isinstance(X, pandas.DataFrame):
 			return pandas.DataFrame(
 				data=y,
@@ -195,7 +200,6 @@ class SelectKBestPolynomialFeatures(BaseEstimator):
 			interaction_only=False,
 			exclude_degree_1=True,
 			retain_degree_1=True,
-			drop_duplicate_cols=True,
 	):
 		self.score_func = score_func
 		self.k = k
@@ -203,7 +207,6 @@ class SelectKBestPolynomialFeatures(BaseEstimator):
 		self.interaction_only = interaction_only
 		self.exclude_degree_1 = exclude_degree_1
 		self.retain_degree_1 = retain_degree_1
-		self.drop_duplicate_cols = drop_duplicate_cols
 
 	def fit(self, X, y, sample_weight=None):
 
@@ -233,9 +236,6 @@ class SelectKBestPolynomialFeatures(BaseEstimator):
 
 			self._kbest = SelectKBest(score_func, k=n_interactions)
 			self._kbest.fit(X1, y)
-
-			if self.drop_duplicate_cols:
-				self.select_unique_ = SelectUniqueColumns().fit(self._kbest.transform(X1))
 
 		else:
 
@@ -281,8 +281,5 @@ class SelectKBestPolynomialFeatures(BaseEstimator):
 				index=X.index,
 				columns=cols
 			)
-
-		if self.drop_duplicate_cols:
-			y = self.select_unique_.transform(y)
 
 		return y
