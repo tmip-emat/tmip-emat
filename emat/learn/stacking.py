@@ -158,7 +158,7 @@ def LinearAndGaussian(
 		[
 			LinearRegression(
 				fit_intercept=fit_intercept,
-				copy_X=False,
+				copy_X=True,
 				n_jobs=n_jobs,
 				stats_on_fit=stats_on_fit,
 			),
@@ -201,7 +201,7 @@ def LinearInteractAndGaussian(
 				k=k,
 				degree=degree,
 				fit_intercept=fit_intercept,
-				copy_X=False,
+				copy_X=True,
 				n_jobs=n_jobs,
 				stats_on_fit=stats_on_fit,
 			),
