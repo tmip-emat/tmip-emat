@@ -324,7 +324,7 @@ class MetaModel:
         return result
 
 
-    def cross_val_scores(self, cv=5, gpr_only=False):
+    def cross_val_scores(self, cv=5, gpr_only=False, **kwargs):
         """
         Calculate the cross validation scores for this meta-model.
 
@@ -349,7 +349,7 @@ class MetaModel:
             residuals = self.regression.residual_predict(self.input_sample)
             regression = multitarget.MultipleTargetRegression()
             return regression.cross_val_scores(self.input_sample, residuals, cv=cv)
-        return self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv)
+        return self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv, **kwargs)
 
     def cross_val_predicts(self, cv=5):
         """

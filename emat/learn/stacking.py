@@ -86,7 +86,7 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 		Yhat = self._post_predict(X, Yhat)
 		return Yhat
 
-	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, repeat=None, tier=None):
+	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, n_repeats=None, tier=None):
 		"""
 		Calculate the cross validation scores for this model.
 
@@ -110,7 +110,7 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 				vector of length equal to the first dimension
 				(i.e. number of observations) in the `X` and `Y`
 				arrays.
-			repeat : int, optional
+			n_repeats : int, optional
 				Repeat the cross validation exercise this many
 				times, with different random seeds, and return
 				the average result.
@@ -120,15 +120,10 @@ class StackedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 
 		"""
 		self._set_prediction_tier(tier)
-
-		if repeat is not None:
-			ps = []
-			for r in range(repeat):
-				p_ = self._cross_validate(X, Y, cv=cv, S=S, random_state=r, cache_metadata=self.prediction_tier)
-				ps.append(pandas.Series({j: p_[f"test_{j}"].mean() for j in self.Y_columns}))
-			return pandas.concat(ps, axis=1).mean(axis=1)
-
-		p = self._cross_validate(X, Y, cv=cv, S=S, random_state=random_state, cache_metadata=self.prediction_tier)
+		p = self._cross_validate(
+			X, Y, cv=cv, S=S, random_state=random_state,
+			cache_metadata=self.prediction_tier, n_repeats=n_repeats,
+		)
 		try:
 			return pandas.Series({j: p[f"test_{j}"].mean() for j in self.Y_columns})
 		except:
