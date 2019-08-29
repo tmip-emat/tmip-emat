@@ -118,8 +118,8 @@ def StackedLinearAndGaussian(
 	from .anisotropic import AnisotropicGaussianProcessRegressor
 
 	return StackedSingleTargetRegressor(
-		LinearAndGaussian(),
-		LinearAndGaussian(),
+		LinearAndGaussian(single_target=True),
+		LinearAndGaussian(single_target=True),
 		keep_other_features=keep_other_features,
 		cv=cv,
 	)
