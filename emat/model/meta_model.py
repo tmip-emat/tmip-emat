@@ -3,7 +3,7 @@
 import pandas
 import numpy
 from typing import Mapping
-from sklearn.base import clone
+from ..learn.base import clone_or_construct
 from .. import multitarget
 from ..util.one_hot import OneHotCatEncoder
 from ..util.variance_threshold import VarianceThreshold
@@ -62,7 +62,8 @@ class MetaModel:
             names that are *not* included, as disabling outputs that are included will not
             prevent these values from being included in the computational process.
 
-        random_state (int, optional): A random state, passed to the created regression.
+        random_state (int, optional): A random state, passed to the created regression
+            (but only if that regressor includes a 'random_state' parameter).
 
         regressor (Estimator, optional): A scikit-learn estimator implementing a
             multi-target regression.  If not given, a detrended simple Gaussian
@@ -146,14 +147,12 @@ class MetaModel:
             self.output_sample[k] = v_func(self.output_sample[k])
 
         if regressor is None:
-            regressor = multitarget.DetrendedMultipleTargetRegression
+            regressor = multitarget.DetrendedMultipleTargetRegression()
 
-        try:
-            self.regression = clone(regressor)
-        except TypeError:
-            self.regression = regressor(random_state=random_state)
-        else:
-            self.regression.random_state=random_state
+        self.regression = clone_or_construct(regressor)
+
+        if random_state is not None and 'random_state' in self.regression.get_params():
+            self.regression.set_params(random_state=random_state)
 
         if suppress_converge_warnings:
             from sklearn.gaussian_process.gpr import ConvergenceWarning
