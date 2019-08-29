@@ -215,7 +215,7 @@ class TestMetaModelMethods(unittest.TestCase):
 
 
     def test_exogenously_stratified_k_fold(self):
-        from emat.multitarget.splits import ExogenouslyStratifiedKFold
+        from emat.learn.splits import ExogenouslyStratifiedKFold
         X = np.arange(20)
         Y = np.asarray([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1])
         S = np.asarray([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])

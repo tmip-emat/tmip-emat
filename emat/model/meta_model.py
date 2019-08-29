@@ -4,7 +4,7 @@ import pandas
 import numpy
 from typing import Mapping
 from ..learn.base import clone_or_construct
-from .. import multitarget
+from ..learn.boosting import LinearAndGaussian
 from ..util.one_hot import OneHotCatEncoder
 from ..util.variance_threshold import VarianceThreshold
 from ..experiment.experimental_design import batch_pick_new_experiments, minimum_weighted_distance
@@ -147,7 +147,7 @@ class MetaModel:
             self.output_sample[k] = v_func(self.output_sample[k])
 
         if regressor is None:
-            regressor = multitarget.DetrendedMultipleTargetRegression()
+            regressor = LinearAndGaussian()
 
         self.regression = clone_or_construct(regressor)
 
@@ -341,13 +341,14 @@ class MetaModel:
 
         """
         if self.sample_stratification is not None:
-            from ..multitarget.splits import ExogenouslyStratifiedKFold
+            from ..learn.splits import ExogenouslyStratifiedKFold
             cv = ExogenouslyStratifiedKFold(exo_data=self.sample_stratification, n_splits=cv)
 
         if gpr_only:
-            residuals = self.regression.residual_predict(self.input_sample)
-            regression = multitarget.MultipleTargetRegression()
-            return regression.cross_val_scores(self.input_sample, residuals, cv=cv)
+            raise NotImplementedError
+            # residuals = self.regression.residual_predict(self.input_sample)
+            # regression = multitarget.MultipleTargetRegression()
+            # return regression.cross_val_scores(self.input_sample, residuals, cv=cv)
         return self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv, **kwargs)
 
     def cross_val_predicts(self, cv=5):
