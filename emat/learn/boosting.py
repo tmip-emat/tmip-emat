@@ -146,9 +146,16 @@ def LinearAndGaussian(
 		copy_X_train=True,
 		random_state=None,
 		use_cv_predict=False,
+		single_target=False
 ):
 	from .linear_model import LinearRegression
 	from .anisotropic import AnisotropicGaussianProcessRegressor
+
+	if single_target:
+		regressor2 = lambda x: x
+	else:
+		regressor2 = lambda x: MultiOutputRegressor(x)
+
 	return BoostedRegressor(
 		[
 			LinearRegression(
@@ -157,7 +164,7 @@ def LinearAndGaussian(
 				n_jobs=n_jobs,
 				stats_on_fit=stats_on_fit,
 			),
-			MultiOutputRegressor(AnisotropicGaussianProcessRegressor(
+			regressor2(AnisotropicGaussianProcessRegressor(
 				kernel_generator=kernel_generator,
 				alpha=alpha,
 				optimizer=optimizer,
