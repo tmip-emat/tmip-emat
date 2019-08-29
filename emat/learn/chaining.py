@@ -30,7 +30,7 @@ def EnsembleRegressorChain(
 			order='random',
 			random_state=n,
 		)
-		ensemble.append(e)
+		ensemble.append((f'chain_{n}',e))
 	return VotingRegressor(
 		ensemble
 	)
