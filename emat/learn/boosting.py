@@ -6,14 +6,17 @@ from sklearn.model_selection import cross_val_predict
 from .frameable import FrameableMixin
 from .model_selection import CrossValMixin
 from .multioutput import MultiOutputRegressor
+from sklearn.utils.metaestimators import _BaseComposition
+from sklearn.utils import Bunch
 
-class BoostedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMixin):
+class BoostedRegressor(_BaseComposition, RegressorMixin, FrameableMixin, CrossValMixin):
 	"""
 	A stack of regressors.
 
 	Each regressor is fit sequentially, and the remaining residual
 	is the target of the next model in the chain.
 	"""
+	_required_parameters = ['estimators']
 
 	def __init__(
 			self,
@@ -21,9 +24,63 @@ class BoostedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 			use_cv_predict=False,
 			prediction_tier=9999,
 	):
+		super().__init__()
 		self.estimators = estimators
 		self.use_cv_predict = use_cv_predict
 		self.prediction_tier = prediction_tier
+
+	@property
+	def named_estimators(self):
+		return Bunch(**dict(self.estimators))
+
+	def set_params(self, **params):
+		"""
+		Setting the parameters for the boosted estimator
+
+		Valid parameter keys can be listed with get_params().
+
+		Parameters
+		----------
+		**params : keyword arguments
+			Specific parameters using e.g. set_params(parameter_name=new_value)
+			In addition, to setting the parameters of the boosted estimator,
+			the individual estimators of the boosted estimator can also be
+			set or replaced by setting them to None.
+
+		"""
+		return self._set_params('estimators', **params)
+
+	def get_params(self, deep=True):
+		"""
+		Get the parameters of the boosted estimator
+
+		Parameters
+		----------
+		deep : bool
+			Setting it to True gets the various estimators and the parameters
+			of the estimators as well
+		"""
+		return self._get_params('estimators', deep=deep)
+
+	@property
+	def estimator_names(self):
+		return [i[0] for i in self.estimators]
+
+	def __getattr__(self, attr_name):
+		# if attr_name in self.named_estimators:
+		# 	return self.named_estimators[attr_name]
+		# raise AttributeError(attr_name)
+		position = None
+		for n, name in enumerate(self.estimator_names):
+			if name == attr_name:
+				position = n
+				break
+		if position is None:
+			raise AttributeError(attr_name)
+		if hasattr(self, 'estimators_'):
+			return self.estimators_[position]
+		else:
+			return self.estimators[position]
 
 	def _use_cv_predict_n(self, n):
 		if isinstance(self.use_cv_predict, Sequence):
@@ -37,7 +94,7 @@ class BoostedRegressor(BaseEstimator, RegressorMixin, FrameableMixin, CrossValMi
 		self._pre_fit(X, Y)
 		self.estimators_ = []
 		Y_ = Y
-		for n,e in enumerate(self.estimators):
+		for n,(_,e) in enumerate(self.estimators):
 			e_ = clone(e)
 			e_.fit(X, Y_)
 			self.estimators_.append(e_)
@@ -158,22 +215,28 @@ def LinearAndGaussian(
 
 	return BoostedRegressor(
 		[
-			LinearRegression(
-				fit_intercept=fit_intercept,
-				copy_X=True,
-				n_jobs=n_jobs,
-				stats_on_fit=stats_on_fit,
+			(
+				'lr',
+				LinearRegression(
+					fit_intercept=fit_intercept,
+					copy_X=True,
+					n_jobs=n_jobs,
+					stats_on_fit=stats_on_fit,
+				)
 			),
-			regressor2(AnisotropicGaussianProcessRegressor(
-				kernel_generator=kernel_generator,
-				alpha=alpha,
-				optimizer=optimizer,
-				n_restarts_optimizer=n_restarts_optimizer,
-				normalize_y=normalize_y,
-				standardize_before_fit=standardize_before_fit,
-				copy_X_train=copy_X_train,
-				random_state=random_state,
-			)),
+			(
+				'gpr',
+				regressor2(AnisotropicGaussianProcessRegressor(
+					kernel_generator=kernel_generator,
+					alpha=alpha,
+					optimizer=optimizer,
+					n_restarts_optimizer=n_restarts_optimizer,
+					normalize_y=normalize_y,
+					standardize_before_fit=standardize_before_fit,
+					copy_X_train=copy_X_train,
+					random_state=random_state,
+				))
+			),
 		],
 		use_cv_predict=use_cv_predict,
 	)
@@ -194,32 +257,44 @@ def LinearInteractAndGaussian(
 		copy_X_train=True,
 		random_state=None,
 		use_cv_predict=False,
+		single_target=False
 ):
 	from .linear_model import LinearRegression_KBestPoly
 	from .anisotropic import AnisotropicGaussianProcessRegressor
-	return BoostedRegressor(
+	if single_target:
+		regressor2 = lambda x: x
+	else:
+		regressor2 = lambda x: MultiOutputRegressor(x)
+	return regressor2(BoostedRegressor(
 		[
-			LinearRegression_KBestPoly(
-				k=k,
-				degree=degree,
-				fit_intercept=fit_intercept,
-				copy_X=True,
-				n_jobs=n_jobs,
-				stats_on_fit=stats_on_fit,
+			(
+				'lr',
+				LinearRegression_KBestPoly(
+					k=k,
+					degree=degree,
+					fit_intercept=fit_intercept,
+					copy_X=True,
+					n_jobs=n_jobs,
+					stats_on_fit=stats_on_fit,
+					single_target=True,
+				)
 			),
-			MultiOutputRegressor(AnisotropicGaussianProcessRegressor(
-				kernel_generator=kernel_generator,
-				alpha=alpha,
-				optimizer=optimizer,
-				n_restarts_optimizer=n_restarts_optimizer,
-				normalize_y=normalize_y,
-				standardize_before_fit=standardize_before_fit,
-				copy_X_train=copy_X_train,
-				random_state=random_state,
-			)),
+			(
+				'gpr',
+				AnisotropicGaussianProcessRegressor(
+					kernel_generator=kernel_generator,
+					alpha=alpha,
+					optimizer=optimizer,
+					n_restarts_optimizer=n_restarts_optimizer,
+					normalize_y=normalize_y,
+					standardize_before_fit=standardize_before_fit,
+					copy_X_train=copy_X_train,
+					random_state=random_state,
+				)
+			),
 		],
 		use_cv_predict=use_cv_predict,
-	)
+	))
 
 
 def LinearInteractRangeAndGaussian(
@@ -237,29 +312,61 @@ def LinearInteractRangeAndGaussian(
 		copy_X_train=True,
 		random_state=None,
 		use_cv_predict=False,
+		single_target=False
 ):
 	from .linear_model import LinearRegression_KRangeBestPoly
 	from .anisotropic import AnisotropicGaussianProcessRegressor
+	if single_target:
+		regressor2 = lambda x: x
+	else:
+		regressor2 = lambda x: MultiOutputRegressor(x)
 	return BoostedRegressor(
 		[
-			LinearRegression_KRangeBestPoly(
-				k_max=k_max,
-				degree=degree,
-				fit_intercept=fit_intercept,
-				copy_X=True,
-				n_jobs=n_jobs,
-				stats_on_fit=stats_on_fit,
+			(
+				'lr',
+				LinearRegression_KRangeBestPoly(
+					k_max=k_max,
+					degree=degree,
+					fit_intercept=fit_intercept,
+					copy_X=True,
+					n_jobs=n_jobs,
+					stats_on_fit=stats_on_fit,
+				),
 			),
-			MultiOutputRegressor(AnisotropicGaussianProcessRegressor(
-				kernel_generator=kernel_generator,
-				alpha=alpha,
-				optimizer=optimizer,
-				n_restarts_optimizer=n_restarts_optimizer,
-				normalize_y=normalize_y,
-				standardize_before_fit=standardize_before_fit,
-				copy_X_train=copy_X_train,
-				random_state=random_state,
-			)),
+			(
+				'gpr',
+				regressor2(AnisotropicGaussianProcessRegressor(
+					kernel_generator=kernel_generator,
+					alpha=alpha,
+					optimizer=optimizer,
+					n_restarts_optimizer=n_restarts_optimizer,
+					normalize_y=normalize_y,
+					standardize_before_fit=standardize_before_fit,
+					copy_X_train=copy_X_train,
+					random_state=random_state,
+				)),
+			),
 		],
 		use_cv_predict=use_cv_predict,
 	)
+
+
+def LinearPossibleInteractAndGaussian(
+		cv=5,
+		n_jobs=-1,
+		**kwargs,
+):
+
+	from .multioutput import MultiOutputRegressor
+	from sklearn.model_selection import GridSearchCV
+
+	return MultiOutputRegressor(
+		GridSearchCV(
+			LinearInteractAndGaussian(single_target=True,**kwargs),
+			cv=cv,
+			param_grid={'lr__KBestPoly__k': [0,None]},
+			iid=False,
+		),
+		n_jobs=n_jobs,
+	)
+
