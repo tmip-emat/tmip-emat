@@ -213,13 +213,17 @@ def LinearRegression_KBestPoly(
 		copy_X=True,
 		n_jobs=None,
 		stats_on_fit=True,
+		single_target=False,
 ):
 
 	from sklearn.pipeline import make_pipeline, Pipeline
 	from .feature_selection import SelectKBestPolynomialFeatures, SelectUniqueColumns
 	from .multioutput import MultiOutputRegressor
-
-	return MultiOutputRegressor(
+	if single_target:
+		regressor2 = lambda x: x
+	else:
+		regressor2 = lambda x: MultiOutputRegressor(x, n_jobs=n_jobs,)
+	return regressor2(
 		Pipeline([
 			('KBestPoly', SelectKBestPolynomialFeatures(k=k, degree=degree)),
 			('Uniques',   SelectUniqueColumns()),
@@ -230,8 +234,7 @@ def LinearRegression_KBestPoly(
 							stats_on_fit=stats_on_fit,
 			              )
 			 ),
-		]),
-		n_jobs=n_jobs,
+		])
 	)
 
 
