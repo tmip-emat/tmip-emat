@@ -311,6 +311,7 @@ def scatter_graph_row(
 		output='widget',
 		metadata=None,
 		marker_opacity=1.0,
+		layout=None,
 		**kwargs
 ):
 	"""Generate a scatter plot.
@@ -500,6 +501,7 @@ def scatter_graph_row(
 			xaxis_dicts[f'xaxis{i + 1}']['tickvals'] = X_data_ticks[i][1]
 			xaxis_dicts[f'xaxis{i + 1}']['ticktext'] = X_data_ticks[i][2]
 
+	layout_kwds = {} if layout is None else layout
 	layout= go.Layout(
 		title= title,
 		hovermode= 'closest',
@@ -509,6 +511,7 @@ def scatter_graph_row(
 		paper_bgcolor=paper_bgcolor,
 		plot_bgcolor=plot_bgcolor,
 		**xaxis_dicts,
+		**layout_kwds,
 	)
 
 	# if not axis_labels:

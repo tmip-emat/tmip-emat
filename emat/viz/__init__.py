@@ -76,16 +76,26 @@ def scatter_graphs(
 		else:
 			marker_opacity = 1.0
 
+	y_title = column
+	try:
+		y_title = scope[column].shortname
+	except AttributeError:
+		pass
+
 	fig = scatter_graph_row(
 		[c for c in contrast if c in data.columns],
 		column,
 		df = data,
 		marker_opacity=marker_opacity,
+		y_title=y_title,
+		layout=dict(
+			margin=dict(l=50, r=2, t=5, b=40)
+		)
 	)
 
 	if render:
 		if render == 'png':
-			render = dict(format='png', width=1400, height=400, scale=2)
+			render = dict(format='png', width=1400, height=270, scale=2)
 
 		import plotly.io as pio
 		img_bytes = pio.to_image(fig, **render)
