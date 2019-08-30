@@ -53,7 +53,7 @@ def single_multiscore(n=0):
 	return lambda *args, **kwargs: multiscore(*args, **kwargs)[n]
 
 
-def check_cv(cv='warn', y=None, classifier=False, random_state=None, n_repeats=1):
+def check_cv(cv='warn', y=None, classifier=False, random_state=None, n_repeats=1, shuffle=False):
 	"""Input checker utility for building a cross-validator
 
 	Parameters
@@ -84,6 +84,17 @@ def check_cv(cv='warn', y=None, classifier=False, random_state=None, n_repeats=1
 		Whether the task is a classification task, in which case
 		stratified KFold will be used.
 
+	n_repeats : int, default 1
+		If greater than 1, a 'RepeatedKFold' or 'RepeatedStratifiedKFold'
+		will be used.
+
+	shuffle : bool, default False
+		Whether to shuffle the observation indexes before cross-validation.
+		This happens automatically when n_repeats is greater than 1.
+
+	random_state : int or RandomState
+		Used for shuffling.
+
 	Returns
 	-------
 	checked_cv : a cross-validator instance.
@@ -99,14 +110,14 @@ def check_cv(cv='warn', y=None, classifier=False, random_state=None, n_repeats=1
 	if isinstance(cv, numbers.Integral):
 		if (classifier and (y is not None) and (type_of_target(y) in ('binary', 'multiclass'))):
 			if n_repeats>1:
-				return RepeatedStratifiedKFold(cv, random_state=random_state, n_repeats=n_repeats)
+				return RepeatedStratifiedKFold(cv, random_state=random_state, n_repeats=n_repeats, shuffle=shuffle)
 			else:
-				return StratifiedKFold(cv, random_state=random_state)
+				return StratifiedKFold(cv, random_state=random_state, shuffle=shuffle)
 		else:
 			if n_repeats>1:
-				return RepeatedKFold(cv, random_state=random_state, n_repeats=n_repeats)
+				return RepeatedKFold(cv, random_state=random_state, n_repeats=n_repeats, shuffle=shuffle)
 			else:
-				return KFold(cv, random_state=random_state)
+				return KFold(cv, random_state=random_state, shuffle=shuffle)
 
 	return cv  # New style cv objects are passed without any modification
 
@@ -124,6 +135,7 @@ class CrossValMixin:
 			cache_metadata=None,
 			use_cache=True,
 			n_repeats=1,
+			shuffle=False,
 	):
 		"""
 		Compute the cross validation scores for this model.
@@ -204,23 +216,24 @@ class CrossValMixin:
 					for n,j in enumerate(self.Y_columns)
 				}
 				from sklearn.base import is_classifier
-				cv = check_cv(cv, Y, classifier=is_classifier(self), random_state=random_state, n_repeats=n_repeats)
+				cv = check_cv(cv, Y, classifier=is_classifier(self),
+							  random_state=random_state, n_repeats=n_repeats,
+							  shuffle=shuffle)
 				p = cross_validate(self, X, Y, cv=cv, scoring=ms, n_jobs=-1)
 
 		if hashkey is not None:
 			self._cross_validate_results[hashkey] = p
 		return p
 
-	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, n_repeats=1, cache_metadata=None):
+	def cross_val_scores(self, X, Y, cv=5, S=None,
+						 random_state=None, n_repeats=1,
+						 cache_metadata=None):
 		"""
 		Calculate the cross validation scores for this model.
 
 		Unlike other scikit-learn scores, this method returns
 		a separate score value for each output when the estimator
 		is for a multi-output process.
-
-		If the estimator includes a `sample_stratification`
-		attribute, it is used along with
 
 		Args:
 			X, Y : array-like
@@ -235,6 +248,9 @@ class CrossValMixin:
 				vector of length equal to the first dimension
 				(i.e. number of observations) in the `X` and `Y`
 				arrays.
+			random_state : int or RandomState
+				Used primarily to shuffle observations for
+				making cross-validation splits.
 			n_repeats : int, optional
 				Repeat the cross validation exercise this many
 				times, with different random seeds, and return
