@@ -294,3 +294,14 @@ class CrossValMixin:
 			print(len(self.Y_columns))
 			print(Yix.shape)
 			raise
+
+
+def take_best(estimator):
+
+	if hasattr(estimator, 'take_best_estimators'):
+		return estimator.take_best_estimators()
+
+	if hasattr(estimator, 'best_estimator_'):
+		return estimator.best_estimator_
+
+	return estimator

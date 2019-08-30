@@ -91,6 +91,7 @@ class MetaModel:
             sample_stratification=None,
             suppress_converge_warnings=False,
             regressor=None,
+            use_best_cv=True,
     ):
 
         if not isinstance(input_sample, pandas.DataFrame):
@@ -162,6 +163,10 @@ class MetaModel:
                 self.regression.fit(self.input_sample, self.output_sample)
         else:
             self.regression.fit(self.input_sample, self.output_sample)
+
+        if use_best_cv:
+            from ..learn.model_selection import take_best
+            self.regression = take_best(self.regression)
 
     def preprocess_raw_input(self, df, to_type=None):
         """
