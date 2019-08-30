@@ -1,7 +1,7 @@
 
 
 from sklearn.multioutput import RegressorChain as _RegressorChain
-from sklearn.ensemble import VotingRegressor
+from .ensemble import VotingRegressor
 from .frameable import FrameableMixin
 
 class RegressorChain(
