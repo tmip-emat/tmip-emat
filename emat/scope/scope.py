@@ -461,6 +461,12 @@ class Scope:
                 return i
         raise KeyError(item)
 
+    def __contains__(self, item):
+        for i in itertools.chain(self._x_list, self._l_list, self._c_list, self._m_list):
+            if i.name == item:
+                return True
+        return False
+
     def ensure_dtypes(self, df):
         """
         Convert columns of dataframe to correct dtype as needed.

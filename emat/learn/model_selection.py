@@ -298,10 +298,18 @@ class CrossValMixin:
 
 def take_best(estimator):
 
+	def _bring_other(orig,copy):
+		for attr in ['_Y_columns',]:
+			if hasattr(orig, attr):
+				setattr(copy, attr, getattr(orig, attr))
+		return copy
+
 	if hasattr(estimator, 'take_best_estimators'):
-		return estimator.take_best_estimators()
+		result = estimator.take_best_estimators()
+		return _bring_other(estimator, result)
 
 	if hasattr(estimator, 'best_estimator_'):
-		return estimator.best_estimator_
+		result = estimator.best_estimator_
+		return _bring_other(estimator, result)
 
 	return estimator

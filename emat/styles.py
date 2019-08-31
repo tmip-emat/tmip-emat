@@ -10,6 +10,10 @@ slider_layout = widgets.Layout(
     width='250px',
 )
 
+togglebuttons_layout = widgets.Layout(
+
+)
+
 figure_dims = dict(
     width=250,
     height=150,

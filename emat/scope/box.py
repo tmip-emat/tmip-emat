@@ -14,6 +14,7 @@ from .parameter import IntegerParameter, CategoricalParameter, BooleanParameter
 from .. import styles
 import ipywidgets as widget
 import plotly.graph_objects as go
+from ..viz import colors
 
 Bounds = namedtuple('Bounds', ['lowerbound', 'upperbound'])
 
@@ -150,14 +151,14 @@ class GenericBox:
 						y=h_data['Inside Freq'],
 						width=h_data['Bins_Width'],
 						name='Inside',
-						marker_color='orange',
+						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
 					),
 					go.Bar(
 						x=h_data['Bins_Left'],
 						y=h_data['Total Freq'] - h_data['Inside Freq'],
 						width=h_data['Bins_Width'],
 						name='Outside',
-						marker_color='blue',
+						marker_color=colors.DEFAULT_BASE_COLOR,
 					),
 				],
 				layout=dict(
@@ -185,13 +186,13 @@ class GenericBox:
 						x=h_data['Label'],
 						y=h_data['Inside Freq'],
 						name='Inside',
-						marker_color='orange',
+						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
 					),
 					go.Bar(
 						x=h_data['Label'],
 						y=h_data['Total Freq'] - h_data['Inside Freq'],
 						name='Outside',
-						marker_color='blue',
+						marker_color=colors.DEFAULT_BASE_COLOR,
 					),
 				],
 				layout=dict(
@@ -273,6 +274,8 @@ class GenericBox:
 		)
 
 		def on_value_change(change):
+			from ..util.loggers import get_logger
+			get_logger().critical("VALUE CHANGE")
 			new_setting = change['new']
 			if new_setting[0] <= min_value or isclose(new_setting[0], min_value):
 				new_setting = (None, new_setting[1])
@@ -326,7 +329,7 @@ class GenericBox:
 			i,
 			min_value=None,
 			max_value=None,
-			readout_format='.0f',
+			readout_format=None,
 			steps=20,
 			*,
 			df=None,
@@ -375,6 +378,7 @@ class GenericBox:
 					cats=cats,
 				)
 			elif isinstance(self.scope[i], IntegerParameter):
+				readout_format = readout_format or 'd'
 				self._widgets[i] = self._make_range_widget(
 					i,
 					min_value=min_value,
@@ -384,6 +388,7 @@ class GenericBox:
 					steps=steps,
 				)
 			else:
+				readout_format = readout_format or '.3g'
 				self._widgets[i] = self._make_range_widget(
 					i,
 					min_value=min_value,

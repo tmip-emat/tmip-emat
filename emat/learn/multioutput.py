@@ -76,12 +76,13 @@ class MultiOutputRegressor(_MultiOutputRegressor, FrameableMixin, CrossValMixin)
 		estimators = []
 		for e in self.estimators_:
 			if hasattr(e, 'best_estimator_'):
-				estimators.append(clone(e.best_estimator_))
+				estimators.append(e.best_estimator_)
 				n_changes += 1
 			else:
-				estimators.append(clone(e))
-		return MultiOutputRegressorDiverse(estimators, n_jobs=self.n_jobs)
-
+				estimators.append(e)
+		result = MultiOutputRegressorDiverse([clone(e) for e in estimators], n_jobs=self.n_jobs)
+		result.estimators_ = estimators
+		return result
 
 class MultiOutputEstimatorDiverse(BaseEstimator, CompositeCVMixin, metaclass=ABCMeta):
 
