@@ -41,7 +41,7 @@ dependencies:
 - altair
 - salib
 - sqlalchemy
-
+- webcolors
 
 # After setting up and activating this environment, register with jupyter-notebook::
 #   python -m ipykernel install --user --name EMAT --display-name "EMAT"

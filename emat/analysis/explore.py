@@ -11,14 +11,16 @@ from ..scope.parameter import IntegerParameter, CategoricalParameter, BooleanPar
 from typing import Mapping
 import warnings
 import scipy.stats
-
+from ..scope.box import Box
 
 class Explore:
 
-	def __init__(self, scope, box, data):
+	def __init__(self, scope, data, box=None):
 		self.scope = scope
-		self.box = box
 		self.data = data
+		if box is None:
+			box = Box('explore', scope=scope)
+		self.box = box
 		self._categorical_data = {}
 		self._base_histogram = {}
 		self._figures_hist = {}
@@ -26,6 +28,50 @@ class Explore:
 		self._figures_kde = {}
 		self._slider_widgets = {}
 		self._base_kde = {}
+		self._status_txt = widget.HTML(
+			value="<i>Explore Status Not Set</i>",
+		)
+		self._status_pie = go.FigureWidget(
+			go.Pie(
+				values=[75, 250],
+				labels=['Inside', 'Outside'],
+				hoverinfo='label+value',
+				textinfo='percent',
+				textfont_size=10,
+				marker=dict(
+					colors=[
+						colors.DEFAULT_HIGHLIGHT_COLOR,
+						colors.DEFAULT_BASE_COLOR,
+					],
+					line=dict(color='#FFF', width=0.25),
+				)
+			),
+			layout=dict(
+				width=100,
+				height=100,
+				showlegend=False,
+				margin=dict(l=10, r=10, t=10, b=10),
+			)
+		)
+		self._status = widget.HBox(
+			[self._status_txt, self._status_pie],
+			layout=dict(
+				justify_content = 'space-between',
+				align_items = 'center',
+			)
+		)
+		self._update_status()
+
+	def status(self):
+		return self._status
+
+	def _update_status(self, selection=None):
+		if selection is None:
+			selection = self.box.inside(self.data)
+		text = '<span style="font-weight:bold;font-size:150%">{:,d} Cases Selected out of {:,d} Total Cases</span>'
+		values = (int(numpy.sum(selection)), int(selection.size))
+		self._status_txt.value = text.format(*values)
+		self._status_pie.data[0].values = [values[0], values[1]-values[0]]
 
 	def _compute_histogram(self, col, selection, bins=None):
 		if col not in self._base_histogram:
@@ -100,11 +146,11 @@ class Explore:
 			x_points, y_base, y_select = self._compute_kde(col, selection)
 			with fig.batch_update():
 				fig.data[1].y = y_select
-				print(col, y_select)
 
 	def _update_all_figures(self, *, selection=None):
 		if selection is None:
 			selection = self.box.inside(self.data)
+		self._update_status(selection=selection)
 		for col in self._figures_hist:
 			self._update_histogram_figure(col, selection=selection)
 		for col in self._figures_freq:
@@ -446,9 +492,64 @@ class Explore:
 		return widget.Box(viz_widgets, layout=widget.Layout(flex_flow='row wrap'))
 
 	def selectors(self, *include, style='hist'):
+		if len(include) == 1 and isinstance(include, (tuple,list)):
+			include = include[0]
 		return self._get_widgets(*include, with_selector=True, style=style)
 
-	def viewers(self, *include, style='hist'):
+	def viewers(self, *include, style='kde'):
+		if len(include) == 1 and isinstance(include, (tuple,list)):
+			include = include[0]
 		if len(include) == 0:
 			include = self.scope.get_measure_names()
 		return self._get_widgets(*include, with_selector=False, style=style)
+
+	def uncertainty_selectors(self, style='hist'):
+		return self.selectors(*self.scope.get_uncertainty_names(), style=style)
+
+	def uncertainty_viewers(self, style='kde'):
+		return self.viewers(*self.scope.get_uncertainty_names(), style=style)
+
+	def lever_selectors(self, style='hist'):
+		return self.selectors(*self.scope.get_lever_names(), style=style)
+
+	def lever_viewers(self, style='kde'):
+		return self.viewers(*self.scope.get_lever_names(), style=style)
+
+	def measure_selectors(self, style='hist'):
+		return self.selectors(*self.scope.get_measure_names(), style=style)
+
+	def measure_viewers(self, style='kde'):
+		return self.viewers(*self.scope.get_measure_names(), style=style)
+
+	def complete(self, measure_style='kde'):
+		return widget.VBox([
+			self.status(),
+			widget.HTML("<h3>Policy Levers</h3>"),
+			self.selectors(*self.scope.get_lever_names()),
+			widget.HTML("<h3>Exogenous Uncertainties</h3>"),
+			self.selectors(*self.scope.get_uncertainty_names()),
+			widget.HTML("<h3>Performance Measures</h3>"),
+			self._measure_notes(),
+			self.measure_viewers(style=measure_style),
+		])
+
+	def _measure_notes(self, style='kde'):
+		basecolor = colors.DEFAULT_BASE_COLOR
+		highlightcolor = colors.DEFAULT_HIGHLIGHT_COLOR
+		basecolor_name = colors.get_colour_name(basecolor, case=str.lower)
+		highlight_name = colors.get_colour_name(highlightcolor, case=str.lower)
+		if style == 'kde':
+			txt = f"""<div style="line-height:125%;margin:9px 0px">
+			The <span style="font-weight:bold;color:{basecolor}">{basecolor_name}</span> curve
+			depicts the unconditional distribution of performance measures in the data across
+			all cases, while the <span style="font-weight:bold;color:{highlightcolor}">{highlight_name}</span> 
+			curve depicts the distribution of performance measures conditional on the constraints.
+			</div>"""
+		else:
+			txt = f"""<div style="line-height:125%;margin:9px 0px">
+			The <span style="font-weight:bold;color:{basecolor}">{basecolor_name}</span> bars
+			depict the unconditional frequency of performance measures in the data across
+			all cases, while the <span style="font-weight:bold;color:{highlightcolor}">{highlight_name}</span> 
+			curve depicts the frequency of performance measures conditional on the constraints.
+			</div>"""
+		return widget.HTML(txt)

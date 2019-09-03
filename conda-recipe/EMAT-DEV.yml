@@ -41,6 +41,7 @@ dependencies:
 - altair
 - salib
 - sqlalchemy
+- webcolors
 
 - sphinx>=1.8.2,<2
 - sphinxcontrib>=1.0
