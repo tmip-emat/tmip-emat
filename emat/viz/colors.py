@@ -4,6 +4,7 @@ import re
 
 DEFAULT_BASE_COLOR = 'rgb(31, 119, 180)'
 DEFAULT_HIGHLIGHT_COLOR = 'rgb(255, 127, 14)'
+DEFAULT_BOX_BG_COLOR = '#2ca02c'
 
 color_names = {
 	'#000000':'Black'	,

@@ -49,8 +49,8 @@ class DataFrameViewer(HBox):
 		self._y_data_range = [0,1]
 
 		self.scattergraph = go.Scattergl(
-			x=df.iloc[:,0],
-			y=df.iloc[:,-1],
+			x=None,
+			y=None,
 			mode = 'markers',
 			marker=dict(
 				opacity=marker_opacity[0],
@@ -59,7 +59,7 @@ class DataFrameViewer(HBox):
 		)
 
 		self.x_hist = go.Histogram(
-			x=df.iloc[:,0],
+			x=None,
 			name='x density',
 			marker=dict(
 				color=colors.DEFAULT_BASE_COLOR,
@@ -70,7 +70,7 @@ class DataFrameViewer(HBox):
 		)
 
 		self.y_hist = go.Histogram(
-			y=df.iloc[:,-1],
+			y=None,
 			name='y density',
 			marker=dict(
 				color=colors.DEFAULT_BASE_COLOR,
@@ -124,12 +124,12 @@ class DataFrameViewer(HBox):
 			xaxis=dict(
 				domain=[0, 0.85],
 				showgrid=True,
-				title=self.df.columns[0],
+				#title=self.df.columns[0],
 			),
 			yaxis=dict(
 				domain=[0, 0.85],
 				showgrid=True,
-				title=self.df.columns[-1],
+				#title=self.df.columns[-1],
 			),
 
 			xaxis2=dict(
@@ -154,6 +154,10 @@ class DataFrameViewer(HBox):
 
 		self.x_axis_choose.observe(self._observe_change_column_x, names='value')
 		self.y_axis_choose.observe(self._observe_change_column_y, names='value')
+
+		self.change_column_x(self.df.columns[0])
+		self.change_column_y(self.df.columns[-1])
+
 
 		super().__init__(
 			[
@@ -243,6 +247,11 @@ class DataFrameViewer(HBox):
 				self.graph.data[3].y = y[self.selection]
 				self.graph.data[2].y = y
 				self.graph.data[5].y = y[self.selection]
+			self._y_data_range = [y.min(), y.max()]
+			self.graph.layout.yaxis.range = (
+				self._y_data_range[0] - self._y_data_width * 0.07,
+				self._y_data_range[1] + self._y_data_width * 0.07,
+			)
 			self.draw_box()
 
 	def change_selection(self, new_selection):
@@ -301,8 +310,8 @@ class DataFrameViewer(HBox):
 						line=dict(
 							width=0,
 						),
-						fillcolor="LightSalmon",
-						opacity=0.5,
+						fillcolor=colors.DEFAULT_BOX_BG_COLOR,
+						opacity=0.2,
 						layer="below",
 					),
 				]
