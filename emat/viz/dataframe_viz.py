@@ -1,6 +1,7 @@
 
 
 import numpy
+import pandas
 import plotly.graph_objs as go
 from ipywidgets import HBox, VBox, Dropdown, Label, Text
 from . import colors
@@ -248,6 +249,31 @@ class DataFrameViewer(HBox):
 	def _observe_change_column_x(self, payload):
 		self.set_x(payload['new'])
 
+	def _observe_change_column_y(self, payload):
+		self.set_y(payload['new'])
+
+	def __manage_categorical(self, x):
+		x_categories = None
+		x_ticktext = None
+		x_tickvals = None
+		if not isinstance(x, pandas.Series):
+			x = pandas.Series(x)
+		if numpy.issubdtype(x.dtype, numpy.bool_):
+			x = x.astype('category')
+		if isinstance(x.dtype, pandas.CategoricalDtype):
+			x_categories = x.cat.categories
+			codes = x.cat.codes
+			x = codes.astype(float)
+			s_ = x.size * 0.01
+			s_ = s_ / (1 + s_)
+			epsilon = 0.05 + 0.20 * s_
+			x = x + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
+			x_tickmode = 'array'
+			x_ticktext = list(x_categories)
+			x_tickvals = list(range(len(x_ticktext)))
+
+		return x, x_ticktext, x_tickvals
+
 	def set_x(self, col):
 		"""
 		Set the new X axis data.
@@ -259,14 +285,20 @@ class DataFrameViewer(HBox):
 		"""
 		with self.graph.batch_update():
 			if isinstance(col, str):
-				self._x = x = self.df[col]
+				x = self.df[col]
 				self.graph.layout.xaxis.title = self._get_shortname(col)
 			else:
-				self._x = x = col
+				x = col
 				try:
 					self.graph.layout.xaxis.title = self._get_shortname(col.name)
 				except:
 					pass
+
+			x, x_ticktext, x_tickvals = self.__manage_categorical(x)
+			self._x = x
+			self._x_ticktext = x_ticktext or []
+			self._x_tickvals = x_tickvals or []
+
 			if self.selection is None:
 				self.graph.data[0].x = x
 				self.graph.data[3].x = None
@@ -277,15 +309,31 @@ class DataFrameViewer(HBox):
 				self.graph.data[3].x = x[self.selection]
 				self.graph.data[1].x = x
 				self.graph.data[4].x = x[self.selection]
-			self._x_data_range = [x.min(), x.max()]
-			self.graph.layout.xaxis.range = (
-				self._x_data_range[0] - self._x_data_width * 0.07,
-				self._x_data_range[1] + self._x_data_width * 0.07,
-			)
+			if x_ticktext is not None:
+				self._x_data_range = [x.min(), x.max()]
+				self.graph.layout.xaxis.range = (
+					self._x_data_range[0] - 0.3,
+					self._x_data_range[1] + 0.3,
+				)
+				self.graph.layout.xaxis.tickmode = 'array'
+				self.graph.layout.xaxis.ticktext = x_ticktext
+				self.graph.layout.xaxis.tickvals = x_tickvals
+				self.graph.data[1].xbins = dict(
+					start=-0.25, end=self._x_data_range[1] + 0.25, size=0.5,
+				)
+				self.graph.data[1].autobinx = False
+			else:
+				self._x_data_range = [x.min(), x.max()]
+				self.graph.layout.xaxis.range = (
+					self._x_data_range[0] - self._x_data_width * 0.07,
+					self._x_data_range[1] + self._x_data_width * 0.07,
+				)
+				self.graph.layout.xaxis.tickmode = None
+				self.graph.layout.xaxis.ticktext = None
+				self.graph.layout.xaxis.tickvals = None
+				self.graph.data[1].xbins = None
+				self.graph.data[1].autobinx = True
 			self.draw_box()
-
-	def _observe_change_column_y(self, payload):
-		self.set_y(payload['new'])
 
 	def set_y(self, col):
 		"""
@@ -298,14 +346,20 @@ class DataFrameViewer(HBox):
 		"""
 		with self.graph.batch_update():
 			if isinstance(col, str):
-				self._y = y = self.df[col]
+				y = self.df[col]
 				self.graph.layout.yaxis.title = self._get_shortname(col)
 			else:
-				self._y = y = col
+				y = col
 				try:
 					self.graph.layout.yaxis.title = self._get_shortname(col.name)
 				except:
 					pass
+
+			y, y_ticktext, y_tickvals = self.__manage_categorical(y)
+			self._y = y
+			self._y_ticktext = y_ticktext or []
+			self._y_tickvals = y_tickvals or []
+
 			if self.selection is None:
 				self.graph.data[0].y = y
 				self.graph.data[3].y = None
@@ -316,11 +370,31 @@ class DataFrameViewer(HBox):
 				self.graph.data[3].y = y[self.selection]
 				self.graph.data[2].y = y
 				self.graph.data[5].y = y[self.selection]
-			self._y_data_range = [y.min(), y.max()]
-			self.graph.layout.yaxis.range = (
-				self._y_data_range[0] - self._y_data_width * 0.07,
-				self._y_data_range[1] + self._y_data_width * 0.07,
-			)
+			if y_ticktext is not None:
+				self._y_data_range = [y.min(), y.max()]
+				self.graph.layout.yaxis.range = (
+					self._y_data_range[0] - 0.3,
+					self._y_data_range[1] + 0.3,
+				)
+				self.graph.layout.yaxis.tickmode = 'array'
+				self.graph.layout.yaxis.ticktext = y_ticktext
+				self.graph.layout.yaxis.tickvals = y_tickvals
+				self.graph.data[2].ybins = dict(
+					start=-0.25, end=self._y_data_range[1] + 0.25, size=0.5,
+				)
+				self.graph.data[2].autobiny = False
+			else:
+				self._y_data_range = [y.min(), y.max()]
+				self.graph.layout.yaxis.range = (
+					self._y_data_range[0] - self._y_data_width * 0.07,
+					self._y_data_range[1] + self._y_data_width * 0.07,
+				)
+				self.graph.layout.yaxis.tickmode = None
+				self.graph.layout.yaxis.ticktext = None
+				self.graph.layout.yaxis.tickvals = None
+				self.graph.data[2].ybins = None
+				self.graph.data[2].autobiny = True
+
 			self.draw_box()
 
 	def change_selection(self, new_selection):
@@ -329,17 +403,18 @@ class DataFrameViewer(HBox):
 			# Update Selected Portion of Scatters
 			x = self._x
 			y = self._y
-			self.graph.data[0].x = x
-			self.graph.data[0].y = y
-			self.graph.data[3].x = None
-			self.graph.data[3].y = None
-			marker_opacity = self._compute_marker_opacity()
-			self.graph.data[0].marker.opacity = marker_opacity[0]
-			self.graph.data[3].marker.opacity = marker_opacity[1]
-			# Update Selected Portion of Histograms
-			self.graph.data[4].x = None
-			self.graph.data[5].y = None
-			self.draw_box()
+			with self.graph.batch_update():
+				self.graph.data[0].x = x
+				self.graph.data[0].y = y
+				self.graph.data[3].x = None
+				self.graph.data[3].y = None
+				marker_opacity = self._compute_marker_opacity()
+				self.graph.data[0].marker.opacity = marker_opacity[0]
+				self.graph.data[3].marker.opacity = marker_opacity[1]
+				# Update Selected Portion of Histograms
+				self.graph.data[4].x = None
+				self.graph.data[5].y = None
+				self.draw_box()
 			return
 
 		if new_selection.size != len(self.df):
@@ -376,19 +451,45 @@ class DataFrameViewer(HBox):
 		else:
 			if x_label in box.thresholds or y_label in box.thresholds:
 				x_lo, x_hi = None, None
-				y_lo, y_hi = None, None
-				if isinstance(box.thresholds.get(x_label), Bounds):
-					x_lo, x_hi = box.thresholds[x_label]
-				if isinstance(box.thresholds.get(y_label), Bounds):
-					y_lo, y_hi = box.thresholds[y_label]
+				thresh = box.thresholds.get(x_label)
+				if isinstance(thresh, Bounds):
+					x_lo, x_hi = thresh
+				if isinstance(thresh, set):
+					x_lo, x_hi = [], []
+					for tickval, ticktext in zip(self._x_tickvals, self._x_ticktext):
+						if ticktext in thresh:
+							x_lo.append(tickval-0.3)
+							x_hi.append(tickval+0.3)
 				if x_lo is None:
-					x_lo = self.df[x_label].min()-self._x_data_width
+					x_lo = self.df[x_label].min()-self._x_data_width * 0.02
 				if x_hi is None:
-					x_hi = self.df[x_label].max()+self._x_data_width
+					x_hi = self.df[x_label].max()+self._x_data_width * 0.02
+				if not isinstance(x_lo, list):
+					x_lo = [x_lo]
+				if not isinstance(x_hi, list):
+					x_hi = [x_hi]
+
+				y_lo, y_hi = None, None
+				thresh = box.thresholds.get(y_label)
+				if isinstance(thresh, Bounds):
+					y_lo, y_hi = thresh
+				if isinstance(thresh, set):
+					y_lo, y_hi = [], []
+					for tickval, ticktext in zip(self._y_tickvals, self._y_ticktext):
+						if ticktext in thresh:
+							y_lo.append(tickval-0.3)
+							y_hi.append(tickval+0.3)
 				if y_lo is None:
-					y_lo = self.df[y_label].min()-self._y_data_width
+					y_lo = self.df[y_label].min()-self._y_data_width * 0.02
 				if y_hi is None:
-					y_hi = self.df[y_label].max()+self._y_data_width
+					y_hi = self.df[y_label].max()+self._y_data_width * 0.02
+				if not isinstance(y_lo, list):
+					y_lo = [y_lo]
+				if not isinstance(y_hi, list):
+					y_hi = [y_hi]
+
+				x_pairs = list(zip(x_lo, x_hi))
+				y_pairs = list(zip(y_lo, y_hi))
 
 				self.graph.layout.shapes=[
 					# Rectangle reference to the axes
@@ -396,17 +497,19 @@ class DataFrameViewer(HBox):
 						type="rect",
 						xref="x1",
 						yref="y1",
-						x0=x_lo,
-						y0=y_lo,
-						x1=x_hi,
-						y1=y_hi,
+						x0=x_pair[0],
+						y0=y_pair[0],
+						x1=x_pair[1],
+						y1=y_pair[1],
 						line=dict(
 							width=0,
 						),
 						fillcolor=colors.DEFAULT_BOX_BG_COLOR,
 						opacity=0.2,
 						layer="below",
-					),
+					)
+					for x_pair in x_pairs
+					for y_pair in y_pairs
 				]
 			else:
 				self.graph.layout.shapes=[]

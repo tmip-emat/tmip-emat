@@ -563,4 +563,5 @@ class Explore:
 
 		from ..viz.dataframe_viz import DataFrameViewer
 		self._two_way[key] = DataFrameViewer(self.data, box=self.box, scope=self.scope)
+		self._two_way[key].selection_choose.value = 'Box'
 		return self._two_way[key]
