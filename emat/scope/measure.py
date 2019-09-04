@@ -2,9 +2,9 @@
 
 import numpy
 from ema_workbench import ScalarOutcome
+from .names import ShortnameMixin
 
-
-class Measure(ScalarOutcome):
+class Measure(ScalarOutcome, ShortnameMixin):
     '''
     Measure represents an outcome measure of the model.
 
@@ -136,22 +136,4 @@ class Measure(ScalarOutcome):
     def __repr__(self):
         return super().__repr__()
 
-    @property
-    def shortname(self):
-        if not hasattr(self, '_shortname') or self._shortname is None:
-            return self.name
-        return self._shortname
-
-    @shortname.setter
-    def shortname(self, value):
-        if value is None:
-            self._shortname = None
-        else:
-            self._shortname = str(value)
-            if self._shortname == self.name:
-                self._shortname = None
-
-    @shortname.deleter
-    def shortname(self):
-        self._shortname = None
 

@@ -28,6 +28,7 @@ class Explore:
 		self._figures_kde = {}
 		self._slider_widgets = {}
 		self._base_kde = {}
+		self._two_way = {}
 		self._status_txt = widget.HTML(
 			value="<i>Explore Status Not Set</i>",
 		)
@@ -157,6 +158,8 @@ class Explore:
 			self._update_frequencies_figure(col, selection=selection)
 		for col in self._figures_kde:
 			self._update_kde_figure(col, selection=selection)
+		for key in self._two_way:
+			self._two_way[key]._on_box_change(selection=selection)
 
 	def _create_histogram_figure(self, col, bins=20, *, selection=None):
 		if col in self._figures_hist:
@@ -553,3 +556,11 @@ class Explore:
 			curve depicts the frequency of performance measures conditional on the constraints.
 			</div>"""
 		return widget.HTML(txt)
+
+	def two_way(self, key=None, reset=False):
+		if key in self._two_way and not reset:
+			return self._two_way[key]
+
+		from ..viz.dataframe_viz import DataFrameViewer
+		self._two_way[key] = DataFrameViewer(self.data, box=self.box, scope=self.scope)
+		return self._two_way[key]

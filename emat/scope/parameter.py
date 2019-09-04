@@ -9,6 +9,7 @@ from scipy.stats._distn_infrastructure import rv_frozen
 
 from ..util import distributions, DistributionTypeError, DistributionFreezeError
 from ..util import make_rv_frozen, rv_frozen_as_dict
+from .names import ShortnameMixin
 
 def standardize_parameter_type(original_type):
     """Standardize parameter type descriptions
@@ -396,7 +397,7 @@ class Constant(workbench_param.Constant):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-class Parameter(workbench_param.Parameter):
+class Parameter(workbench_param.Parameter, ShortnameMixin):
 
     dtype = None
 
@@ -416,6 +417,7 @@ class Parameter(workbench_param.Parameter):
             ptype=None,
             corr=None,
             dist_def=None,
+            shortname=None,
     ):
 
         # The default constructor for ema_workbench parameters uses no distribution
@@ -490,6 +492,8 @@ class Parameter(workbench_param.Parameter):
 
         self.dist_def = dict(dist_def) if dist_def is not None else {}
         """Dict: The arguments that define the underlying distribution."""
+
+        self._shortname = shortname
 
     @property
     def min(self):

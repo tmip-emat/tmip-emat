@@ -612,3 +612,22 @@ class Scope:
             value = kwargs.get(p.name, p.default)
             density *= p.dist.pdf(value)
         return density
+
+    def shortname(self, name):
+        """
+        Get a shortname, if available, for any named parameter or measure.
+
+        Args:
+            name: str
+        Returns:
+            str
+        """
+        try:
+            x = self[name]
+        except KeyError:
+            return name
+        else:
+            try:
+                return x.shortname
+            except:
+                return name

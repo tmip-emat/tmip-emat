@@ -2,8 +2,9 @@
 
 import numpy
 import plotly.graph_objs as go
-from ipywidgets import HBox, VBox, Dropdown, Label
+from ipywidgets import HBox, VBox, Dropdown, Label, Text
 from . import colors
+from ..util.naming import clean_name
 
 class DataFrameViewer(HBox):
 
@@ -12,6 +13,7 @@ class DataFrameViewer(HBox):
 			df,
 			selection=None,
 			box=None,
+			scope=None,
 			target_marker_opacity=500,
 			minimum_marker_opacity=0.25,
 	):
@@ -19,22 +21,52 @@ class DataFrameViewer(HBox):
 
 		self.selection = selection
 		self.box = box
+		self.scope = scope
 
 		self.x_axis_choose = Dropdown(
 			options=self.df.columns,
-			description='X Axis',
+			#description='X Axis',
 			value=self.df.columns[0],
 		)
+
+		self.x_axis_scale = Dropdown(
+			options=['linear',],
+			value='linear',
+		)
+
 		self.y_axis_choose = Dropdown(
 			options=self.df.columns,
-			description='Y Axis',
+			#description='Y Axis',
 			value=self.df.columns[-1],
+		)
+
+		self.y_axis_scale = Dropdown(
+			options=['linear',],
+			value='linear',
+		)
+
+
+		self.selection_choose = Dropdown(
+			options=['None', 'Box', 'Expr'],
+			value='None',
+		)
+
+		self.selection_expr = Text(
+			value='True',
+			disabled=True,
 		)
 
 		self.axis_choose = VBox(
 			[
+				Label("X Axis"),
 				self.x_axis_choose,
+				self.x_axis_scale,
+				Label("Y Axis"),
 				self.y_axis_choose,
+				self.y_axis_scale,
+				Label("Selection"),
+				self.selection_choose,
+				self.selection_expr,
 			],
 			layout=dict(
 				overflow='hidden',
@@ -154,10 +186,12 @@ class DataFrameViewer(HBox):
 
 		self.x_axis_choose.observe(self._observe_change_column_x, names='value')
 		self.y_axis_choose.observe(self._observe_change_column_y, names='value')
+		self.selection_choose.observe(self._on_change_selection_choose, names='value')
+		self.selection_expr.observe(self._on_change_selection_expr, names='value')
 
-		self.change_column_x(self.df.columns[0])
-		self.change_column_y(self.df.columns[-1])
-
+		self.set_x(self.df.columns[0])
+		self.set_y(self.df.columns[-1])
+		self.draw_box()
 
 		super().__init__(
 			[
@@ -168,6 +202,11 @@ class DataFrameViewer(HBox):
 				align_items='center',
 			)
 		)
+
+	def _get_shortname(self, name):
+		if self.scope is None:
+			return name
+		return self.scope.shortname(name)
 
 	def _compute_marker_opacity(self):
 		if self.selection is None:
@@ -207,12 +246,27 @@ class DataFrameViewer(HBox):
 		return 1
 
 	def _observe_change_column_x(self, payload):
-		self.change_column_x(payload['new'])
+		self.set_x(payload['new'])
 
-	def change_column_x(self, col):
+	def set_x(self, col):
+		"""
+		Set the new X axis data.
+
+		Args:
+			col (str or array-like):
+				The name of the new `x` column in `df`, or a
+				computed array or pandas.Series of values.
+		"""
 		with self.graph.batch_update():
-			x = self.df[col]
-			self.graph.layout.xaxis.title = col
+			if isinstance(col, str):
+				self._x = x = self.df[col]
+				self.graph.layout.xaxis.title = self._get_shortname(col)
+			else:
+				self._x = x = col
+				try:
+					self.graph.layout.xaxis.title = self._get_shortname(col.name)
+				except:
+					pass
 			if self.selection is None:
 				self.graph.data[0].x = x
 				self.graph.data[3].x = None
@@ -231,12 +285,27 @@ class DataFrameViewer(HBox):
 			self.draw_box()
 
 	def _observe_change_column_y(self, payload):
-		self.change_column_y(payload['new'])
+		self.set_y(payload['new'])
 
-	def change_column_y(self, col):
+	def set_y(self, col):
+		"""
+		Set the new Y axis data.
+
+		Args:
+			col (str or array-like):
+				The name of the new `y` column in `df`, or a
+				computed array or pandas.Series of values.
+		"""
 		with self.graph.batch_update():
-			y = self.df[col]
-			self.graph.layout.yaxis.title = col
+			if isinstance(col, str):
+				self._y = y = self.df[col]
+				self.graph.layout.yaxis.title = self._get_shortname(col)
+			else:
+				self._y = y = col
+				try:
+					self.graph.layout.yaxis.title = self._get_shortname(col.name)
+				except:
+					pass
 			if self.selection is None:
 				self.graph.data[0].y = y
 				self.graph.data[3].y = None
@@ -255,11 +324,34 @@ class DataFrameViewer(HBox):
 			self.draw_box()
 
 	def change_selection(self, new_selection):
+		if new_selection is None:
+			self.selection = None
+			# Update Selected Portion of Scatters
+			x = self._x
+			y = self._y
+			self.graph.data[0].x = x
+			self.graph.data[0].y = y
+			self.graph.data[3].x = None
+			self.graph.data[3].y = None
+			marker_opacity = self._compute_marker_opacity()
+			self.graph.data[0].marker.opacity = marker_opacity[0]
+			self.graph.data[3].marker.opacity = marker_opacity[1]
+			# Update Selected Portion of Histograms
+			self.graph.data[4].x = None
+			self.graph.data[5].y = None
+			self.draw_box()
+			return
+
+		if new_selection.size != len(self.df):
+			raise ValueError(f"new selection size ({new_selection.size}) "
+							 f"does not match length of data ({len(self.df)})")
 		self.selection = new_selection
 		with self.graph.batch_update():
 			# Update Selected Portion of Scatters
-			x = self.df[self.x_axis_choose.value]
-			y = self.df[self.y_axis_choose.value]
+			x = self._x
+			y = self._y
+			# x = self.df[self.x_axis_choose.value]
+			# y = self.df[self.y_axis_choose.value]
 			self.graph.data[0].x = x[~self.selection]
 			self.graph.data[0].y = y[~self.selection]
 			self.graph.data[3].x = x[self.selection]
@@ -270,6 +362,7 @@ class DataFrameViewer(HBox):
 			# Update Selected Portion of Histograms
 			self.graph.data[4].x = x[self.selection]
 			self.graph.data[5].y = y[self.selection]
+			self.draw_box()
 
 	def draw_box(self, box=None):
 		from ..scope.box import Bounds
@@ -317,3 +410,43 @@ class DataFrameViewer(HBox):
 				]
 			else:
 				self.graph.layout.shapes=[]
+
+	def _selection_eval(self, txt):
+		df = self.df.rename(columns={i: clean_name(i) for i in self.df.columns})
+		return df.eval(txt).astype(bool)
+
+	def _on_change_selection_choose(self, payload):
+		if payload['new'] == 'Expr':
+			self.selection_expr.disabled = False
+		else:
+			self.selection_expr.disabled = True
+		if payload['new'] == 'Box':
+			self.change_selection(self.box.inside(self.df))
+		if payload['new'] == 'None':
+			self.change_selection(None)
+
+	def _on_change_selection_expr(self, payload):
+		expression = payload['new']
+		try:
+			sel = self._selection_eval(expression)
+		except Exception as err:
+			#print("FAILED ON EVAL\n",expression, err)
+			pass
+		else:
+			try:
+				self.change_selection(sel)
+			except Exception as err:
+				#print("FAILED ON SETTING\n", expression, err)
+				pass
+			else:
+				#print("PASSED", expression)
+				pass
+
+	def _on_box_change(self, selection=None):
+		if self.selection_choose.value == 'Box':
+			if selection is None:
+				selection = self.box.inside(self.df)
+			self.change_selection(selection)
+		else:
+			with self.graph.batch_update():
+				self.draw_box()
