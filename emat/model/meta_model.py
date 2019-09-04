@@ -51,6 +51,9 @@ class MetaModel:
               fitting the regression model.  This allows shifting the position of the
               regression intercept to a point other than 0.
 
+            + *clip(LO,HI)*: A linear model is used, but results are truncated to the range
+              (LO,HI). Set either value as None to have a one-sided truncation range.
+
             + *linear*: No transforms are made.  This is the default when a performance
               measure is not included in `metamodel_types`.
 
@@ -76,9 +79,10 @@ class MetaModel:
         'ln': (numpy.log, numpy.exp),
         'log1p': (numpy.log1p, numpy.expm1),
         'log1p-linear': (numpy.log1p, numpy.expm1),
-
+        # x is applied immediate from arguments in metamodeltype string, y is the eventual data
         'logxp': (lambda x: (lambda y: numpy.log(y + x)), lambda x: (lambda y: numpy.exp(y) - x)),
         'logxp-linear': (lambda x: (lambda y: numpy.log(y + x)), lambda x: (lambda y: numpy.exp(y) - x)),
+        'clip': (lambda x: (lambda y: y), lambda x: (lambda y: numpy.clip(y, *x))),
     }
 
     def __init__(
