@@ -67,7 +67,13 @@ class Explore:
 		self._update_status()
 
 	def set_box(self, box):
-		self.box = box
+		if box.scope is not None:
+			self.box.scope = box.scope
+		self.box.thresholds = box.thresholds
+		self.box.relevant_features = box.relevant_features
+		self.box.parent_box_name = box.parent_box_name
+		self.box.name = box.name
+
 		self._update_all_figures()
 		self._sync_controller_widget_values()
 
@@ -641,4 +647,8 @@ class Explore:
 			**kwargs,
 		)
 		result._explorer = self
+
+		for key in self._two_way:
+			self._two_way[key].add_alt_selection("PRIM Target", of_interest)
+
 		return result
