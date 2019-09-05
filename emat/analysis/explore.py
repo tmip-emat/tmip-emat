@@ -12,6 +12,8 @@ from typing import Mapping
 import warnings
 import scipy.stats
 from ..scope.box import Box
+from ..analysis.widgets import MultiToggleButtons_AllOrSome
+
 
 class Explore:
 
@@ -21,6 +23,7 @@ class Explore:
 		if box is None:
 			box = Box('explore', scope=scope)
 		self.box = box
+		self._controller_widgets = {}
 		self._categorical_data = {}
 		self._base_histogram = {}
 		self._figures_hist = {}
@@ -62,6 +65,11 @@ class Explore:
 			)
 		)
 		self._update_status()
+
+	def set_box(self, box):
+		self.box = box
+		self._update_all_figures()
+		self._sync_controller_widget_values()
 
 	def status(self):
 		return self._status
@@ -290,6 +298,25 @@ class Explore:
 		return self._figures_kde[col]
 
 
+	def _sync_controller_widget_values(
+		self,
+	):
+		for i in self._controller_widgets:
+			slider = self._controller_widgets[i]
+			if isinstance(slider, (widget.IntRangeSlider, widget.FloatRangeSlider)):
+				current_setting = self.box.get(i, (None, None))
+				min_value = slider.min
+				max_value = slider.max
+				current_min = min_value if current_setting[0] is None else current_setting[0]
+				current_max = max_value if current_setting[1] is None else current_setting[1]
+				slider.value = [current_min, current_max]
+			else: # isinstance(slider, MultiToggleButtons):
+				current_setting = self.box.get(i, None)
+				if current_setting is None:
+					slider.set_all_on()
+				else:
+					slider.set_value(current_setting)
+
 	def _make_range_widget(
 			self,
 			i,
@@ -300,6 +327,9 @@ class Explore:
 			steps=100,
 	):
 		"""Construct a RangeSlider to manipulate a Box threshold."""
+
+		if i in self._controller_widgets:
+			return self._controller_widgets[i]
 
 		current_setting = self.box.get(i, (None, None))
 
@@ -347,7 +377,7 @@ class Explore:
 			self._update_all_figures()
 
 		controller.observe(on_value_change, names='value')
-
+		self._controller_widgets[i] = controller
 		return controller
 
 	def _make_togglebutton_widget(
@@ -359,14 +389,16 @@ class Explore:
 	):
 		"""Construct a MultiToggleButtons to manipulate a Box categorical set."""
 
+		if i in self._controller_widgets:
+			return self._controller_widgets[i]
+
 		if cats is None and df is not None:
 			if isinstance(df[i].dtype, pandas.CategoricalDtype):
 				cats = df[i].cat.categories
 
-		current_setting = self.box.get(i, set())
+		current_setting = self.box.get(i, None)
 
-		from ..interactive.multitoggle import MultiToggleButtons
-		controller = MultiToggleButtons(
+		controller = MultiToggleButtons_AllOrSome(
 			description='',
 			style=styles.slider_style,
 			options=list(cats),
@@ -374,7 +406,10 @@ class Explore:
 			button_style='',  # 'success', 'info', 'warning', 'danger' or ''
 			layout=styles.togglebuttons_layout,
 		)
-		controller.values = current_setting
+		if current_setting is None:
+			controller.set_all_on()
+		else:
+			controller.set_value(current_setting)
 
 		def on_value_change(change):
 			new_setting = change['new']
@@ -382,7 +417,7 @@ class Explore:
 			self._update_all_figures()
 
 		controller.observe(on_value_change, names='value')
-
+		self._controller_widgets[i] = controller
 		return controller
 
 
@@ -565,3 +600,45 @@ class Explore:
 		self._two_way[key] = DataFrameViewer(self.data, box=self.box, scope=self.scope)
 		self._two_way[key].selection_choose.value = 'Box'
 		return self._two_way[key]
+
+
+	def prim(self, data='parameters', target=None, threshold=0.2, **kwargs):
+
+		from .prim import Prim
+
+		if target is None:
+			raise ValueError('target cannot be None')
+
+		if data == 'parameters':
+			data_ = self.data[self.scope.get_parameter_names()]
+		elif data == 'levers':
+			data_ = self.data[self.scope.get_lever_names()]
+		elif data == 'uncertainties':
+			data_ = self.data[self.scope.get_uncertainty_names()]
+		elif data == 'measures':
+			data_ = self.data[self.scope.get_measure_names()]
+		elif data == 'all':
+			data_ = self.data
+		else:
+			data_ = self.data[data]
+
+		if isinstance(target, str):
+			if target == '*':
+				of_interest = self.box.inside(self.data)
+			elif target in self.data.columns:
+				of_interest = self.data[target]
+			else:
+				from ..util.naming import clean_name
+				df = self.data.rename(columns={i: clean_name(i) for i in self.data.columns})
+				of_interest = df.eval(target)
+		else:
+			of_interest = target
+
+		result = Prim(
+			data_,
+			of_interest,
+			threshold=threshold,
+			**kwargs,
+		)
+		result._explorer = self
+		return result
