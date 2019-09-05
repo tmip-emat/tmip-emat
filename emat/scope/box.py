@@ -6,6 +6,8 @@ from typing import Collection
 import pandas
 import numpy
 import copy
+from abc import ABC, abstractmethod
+
 from ..util.distributions import truncated, get_distribution_bounds
 from math import isclose
 
@@ -30,7 +32,7 @@ Args:
 		if there is no upper bound.
 """
 
-class GenericBox:
+class GenericBox(MutableMapping, ABC):
 	# Generic methods applicable to both Box and ChainedBox
 
 	def inside(self, df):
@@ -61,9 +63,33 @@ class GenericBox:
 		self._viz_data = None
 
 	@property
+	@abstractmethod
+	def thresholds(self):
+		"""
+		Dict[str,Union[Bounds,Set]]:
+			The restricted dimensions in this Box, with feature names as
+			keys and :class:`Bounds` or a :class:`Set` of available discrete
+			values as the dictionary values.
+		"""
+		raise NotImplementedError
+
+	@property
+	@abstractmethod
 	def demanded_features(self):
 		"""
 		Set[str]: A set of features upon which thresholds are set.
+		"""
+		raise NotImplementedError
+
+	@property
+	@abstractmethod
+	def relevant_features(self):
+		"""
+		 Set[str]:
+			A :class:`Set` of features that are relevant for this Box.
+			These are features, which are not themselves constrained,
+			but should be considered in any analytical report developed
+			based on this Box.
 		"""
 		raise NotImplementedError
 
@@ -78,6 +104,76 @@ class GenericBox:
 	def scope(self):
 		"""Scope: A scope associated with this Box."""
 		raise NotImplementedError
+
+	@abstractmethod
+	def set_bounds(self, key, lowerbound, upperbound=None):
+		"""
+		Set both lower and upper bounds.
+
+		Args:
+			key (str):
+				The feature name to which these bounds
+				will be attached.
+			lowerbound (numeric, None, or Bounds):
+				The lower bound, or a Bounds object that gives
+				upper and lower bounds (in which case the `upperbound`
+				argument is ignored).  Set explicitly to 'None' to
+				leave unbounded from below.
+			upperbound (numeric or None, default None):
+				The upper bound. Set to 'None' to
+				leave unbounded from above.
+
+		Raises:
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+
+		"""
+		raise NotImplementedError
+
+	def set_lower_bound(self, key, value):
+		"""
+		Set a lower bound, retaining existing upper bound.
+
+		Args:
+			key (str):
+				The feature name to which this lower bound
+				will be attached.
+			value (numeric or None):
+				The lower bound. Set explicitly to 'None' to
+				leave unbounded from below.
+
+		Raises:
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+		"""
+		current = self.thresholds.get(key, Bounds(None,None))
+		if isinstance(current, set):
+			raise ValueError("cannot set lowerbound on a set")
+		self.set_bounds(key, value, current.upperbound)
+
+	def set_upper_bound(self, key, value):
+		"""
+		Set an upper bound, retaining existing lower bound.
+
+		Args:
+			key (str):
+				The feature name to which this upper bound
+				will be attached.
+			value (numeric or None):
+				The upper bound. Set explicitly to 'None' to
+				leave unbounded from above.
+
+		Raises:
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+		"""
+		current = self.thresholds.get(key, Bounds(None,None))
+		if isinstance(current, set):
+			raise ValueError("cannot set upperbound on a set")
+		self.set_bounds(key, current.lowerbound, value)
 
 	def _compute_histogram(self, col, selection, bins=20):
 		if self._viz_data is None:
@@ -303,8 +399,8 @@ class GenericBox:
 
 		current_setting = self.get(i, set())
 
-		from ..interactive.multitoggle import MultiToggleButtons
-		controller = MultiToggleButtons(
+		from ..analysis.widgets import MultiToggleButtons_AllOrSome
+		controller = MultiToggleButtons_AllOrSome(
 			description='',
 			style=styles.slider_style,
 			options=list(cats),
@@ -442,7 +538,7 @@ class GenericBox:
 		return widget.Box(viz_widgets, layout=widget.Layout(flex_flow='row wrap'))
 
 
-class Box(Mapping, GenericBox):
+class Box(GenericBox):
 	"""
 	A Box defines a set of restricted dimensions for a Scope.
 
@@ -496,7 +592,7 @@ class Box(Mapping, GenericBox):
 			relevant=None,
 	):
 		super().__init__()
-		self.thresholds = {}
+		self._thresholds = {}
 
 		if relevant is None:
 			self.relevant_features = set()
@@ -536,6 +632,46 @@ class Box(Mapping, GenericBox):
 			raise TypeError('scope must be Scope or None')
 
 	@property
+	def thresholds(self):
+		"""
+		Dict[str,Union[Bounds,Set]]:
+			The restricted dimensions in this Box, with feature names as
+			keys and :class:`Bounds` or a :class:`Set` of available discrete
+			values as the dictionary values.
+		"""
+		return self._thresholds
+
+	@thresholds.setter
+	def thresholds(self, value):
+		if not isinstance(value, MutableMapping):
+			raise TypeError(f'thresholds must be MutableMapping not {type(value)}')
+		self._thresholds = value
+
+	@thresholds.deleter
+	def thresholds(self):
+		self._thresholds = {}
+
+	@property
+	def relevant_features(self):
+		"""
+		Dict[str,Union[Bounds,Set]]:
+			The restricted dimensions in this Box, with feature names as
+			keys and :class:`Bounds` or a :class:`Set` of available discrete
+			values as the dictionary values.
+		"""
+		return self._relevant_features
+
+	@relevant_features.setter
+	def relevant_features(self, value):
+		if not isinstance(value, set):
+			raise TypeError(f'thresholds must be MutableMapping not {type(value)}')
+		self._relevant_features = value
+
+	@relevant_features.deleter
+	def relevant_features(self):
+		self._relevant_features = set()
+
+	@property
 	def measure_thresholds(self):
 		"""
 		Dict[str,Union[Bounds,Set]]:
@@ -546,7 +682,7 @@ class Box(Mapping, GenericBox):
 		if self.scope is None:
 			raise ValueError("need scope")
 		names = self.scope.get_measure_names()
-		return {k:v for k,v in self.thresholds.items() if k in names}
+		return {k:v for k,v in self._thresholds.items() if k in names}
 
 	@property
 	def uncertainty_thresholds(self):
@@ -559,7 +695,7 @@ class Box(Mapping, GenericBox):
 		if self.scope is None:
 			raise ValueError("need scope")
 		names = self.scope.get_uncertainty_names()
-		return {k:v for k,v in self.thresholds.items() if k in names}
+		return {k:v for k,v in self._thresholds.items() if k in names}
 
 	@property
 	def lever_thresholds(self):
@@ -572,74 +708,39 @@ class Box(Mapping, GenericBox):
 		if self.scope is None:
 			raise ValueError("need scope")
 		names = self.scope.get_lever_names()
-		return {k:v for k,v in self.thresholds.items() if k in names}
+		return {k:v for k,v in self._thresholds.items() if k in names}
 
 	def __getitem__(self, key):
-		return self.thresholds[key]
+		return self._thresholds[key]
+
+	def __setitem__(self, key, value):
+		if not isinstance(value, (Bounds, set)):
+			raise TypeError('thresholds must be Bounds or a set')
+		if self.scope:
+			if key in self.scope.get_all_names():
+				self._thresholds[key] = value
+			else:
+				raise ScopeError("cannot set threshold on '{key}'")
+		else:
+			self._thresholds[key] = value
+
+	def __delitem__(self, key):
+		del self._thresholds[key]
+
+	def clear(self):
+		"""
+		Clear thresholds and relevant_features.
+		"""
+		self._thresholds = {}
+		self._relevant_features = set()
 
 	@property
 	def demanded_features(self):
 		"""
 		Set[str]: A set of features upon which thresholds are set at any step of the chain.
 		"""
-		t = set(self.thresholds.keys())
+		t = set(self._thresholds.keys())
 		return t
-
-	def set_lower_bound(self, key, value):
-		"""
-		Set a lower bound, retaining existing upper bound.
-
-		Args:
-			key (str):
-				The feature name to which this lower bound
-				will be attached.
-			value (numeric or None):
-				The lower bound. Set explicitly to 'None' to
-				leave unbounded from below.
-
-		Raises:
-			ScopeError:
-				If a scope is attached to this box but the `key` cannot
-				be found in the scope.
-		"""
-		current = self.thresholds.get(key, Bounds(None,None))
-		if isinstance(current, set):
-			raise ValueError("cannot set lowerbound on a set")
-		if self.scope is not None:
-			if key in self.scope.get_all_names():
-				self.thresholds[key] = Bounds(value, current.upperbound)
-			else:
-				raise ScopeError(f"cannot set threshold on '{key}'")
-		else:
-			self.thresholds[key] = Bounds(value, current.upperbound)
-
-	def set_upper_bound(self, key, value):
-		"""
-		Set an upper bound, retaining existing lower bound.
-
-		Args:
-			key (str):
-				The feature name to which this upper bound
-				will be attached.
-			value (numeric or None):
-				The upper bound. Set explicitly to 'None' to
-				leave unbounded from above.
-
-		Raises:
-			ScopeError:
-				If a scope is attached to this box but the `key` cannot
-				be found in the scope.
-		"""
-		current = self.thresholds.get(key, Bounds(None,None))
-		if isinstance(current, set):
-			raise ValueError("cannot set upperbound on a set")
-		if self.scope is not None:
-			if key in self.scope.get_all_names():
-				self.thresholds[key] = Bounds(current.lowerbound, value)
-			else:
-				raise ScopeError(f"cannot set threshold on '{key}'")
-		else:
-			self.thresholds[key] = Bounds(current.lowerbound, value)
 
 	def set_bounds(self, key, lowerbound, upperbound=None):
 		"""
@@ -671,11 +772,11 @@ class Box(Mapping, GenericBox):
 
 		if self.scope is not None:
 			if key in self.scope.get_all_names():
-				self.thresholds[key] = Bounds(lowerbound, upperbound)
+				self._thresholds[key] = Bounds(lowerbound, upperbound)
 			else:
 				raise ScopeError(f"cannot set threshold on '{key}'")
 		else:
-			self.thresholds[key] = Bounds(lowerbound, upperbound)
+			self._thresholds[key] = Bounds(lowerbound, upperbound)
 
 	def add_to_allowed_set(self, key, value):
 		"""
@@ -695,18 +796,18 @@ class Box(Mapping, GenericBox):
 				If a scope is attached to this box but the `key` cannot
 				be found in the scope.
 		"""
-		current = self.thresholds.get(key, set())
+		current = self._thresholds.get(key, set())
 		if isinstance(current, Bounds):
 			raise ValueError("cannot add to Bounds")
 		if self.scope is not None:
 			if key in self.scope.get_all_names():
 				current.add(value)
-				self.thresholds[key] = current
+				self._thresholds[key] = current
 			else:
 				raise ScopeError(f"cannot set threshold on '{key}'")
 		else:
 			current.add(value)
-			self.thresholds[key] = current
+			self._thresholds[key] = current
 
 	def remove_from_allowed_set(self, key, value):
 		"""
@@ -727,18 +828,18 @@ class Box(Mapping, GenericBox):
 				If a scope is attached to this box but the `key` cannot
 				be found in the scope.
 		"""
-		current = self.thresholds.get(key, set())
+		current = self._thresholds.get(key, set())
 		if isinstance(current, Bounds):
 			raise ValueError("cannot remove from Bounds")
 		if self.scope is not None:
 			if key in self.scope.get_all_names():
 				current.pop(value, None)
-				self.thresholds[key] = current
+				self._thresholds[key] = current
 			else:
 				raise ScopeError(f"cannot set threshold on '{key}'")
 		else:
 			current.pop(value, None)
-			self.thresholds[key] = current
+			self._thresholds[key] = current
 
 	def replace_allowed_set(self, key, values):
 		"""
@@ -753,33 +854,22 @@ class Box(Mapping, GenericBox):
 		"""
 		if self.scope is not None:
 			if key in self.scope.get_all_names():
-				self.thresholds[key] = set(values)
+				self._thresholds[key] = set(values)
 			else:
 				raise ScopeError(f"cannot set threshold on '{key}'")
 		else:
-			self.thresholds[key] = set(values)
+			self._thresholds[key] = set(values)
 
 
-
-	def __setitem__(self, key, value):
-		if not isinstance(value, (Bounds, set)):
-			raise TypeError('thresholds must be Bounds or a set')
-		if self.scope:
-			if key in self.scope.get_all_names():
-				self.thresholds[key] = value
-			else:
-				raise ScopeError("cannot set threshold on '{key}'")
-		else:
-			self.thresholds[key] = value
 
 	def __iter__(self):
 		return itertools.chain(
-			iter(self.thresholds),
+			iter(self._thresholds),
 		)
 
 	def __len__(self):
 		return (
-			len(self.thresholds)
+			len(self._thresholds)
 		)
 
 	def __repr__(self):
@@ -833,8 +923,8 @@ class Box(Mapping, GenericBox):
 		result = []
 		for i in source:
 			i = copy.deepcopy(i)
-			if i.name in self.thresholds:
-				bounds = self.thresholds[i.name]
+			if i.name in self._thresholds:
+				bounds = self._thresholds[i.name]
 				if isinstance(bounds, Bounds):
 					lowerbound, upperbound = bounds
 					if lowerbound is None:
@@ -884,7 +974,7 @@ class Box(Mapping, GenericBox):
 
 
 
-class ChainedBox(Mapping, GenericBox):
+class ChainedBox(GenericBox):
 	"""
 	A Box defines a set of restricted dimensions for a Scope.
 
@@ -921,6 +1011,19 @@ class ChainedBox(Mapping, GenericBox):
 	def __getitem__(self, key):
 		return self.thresholds[key]
 
+	def __setitem__(self, key, value):
+		self.chain[-1][key] = value
+
+	def __delitem__(self, key):
+		del self.chain[-1][key]
+
+	def clear(self):
+		"""
+		Clear thresholds and relevant_features on the last Box in the chain.
+		"""
+		self.chain[-1]._thresholds.clear()
+		self.chain[-1]._relevant_features.clear()
+
 	def __iter__(self):
 		return itertools.chain(
 			iter(self.thresholds),
@@ -945,6 +1048,14 @@ class ChainedBox(Mapping, GenericBox):
 		for single in self.chain:
 			t.update(single.thresholds)
 		return t
+
+	@thresholds.setter
+	def thresholds(self, value):
+		self.chain[-1].thresholds = value
+
+	@thresholds.deleter
+	def thresholds(self):
+		self.chain[-1].thresholds = {}
 
 	def measure_thresholds(self):
 		"""
@@ -1009,7 +1120,7 @@ class ChainedBox(Mapping, GenericBox):
 		return t
 
 	def __repr__(self):
-		if self.keys() or self.relevant_features:
+		if self.keys() or self.relevant_features or True:
 			demands = list(self.keys()) or [" "]
 			relevent = list(self.relevant_features) or [" "]
 			m = max(
