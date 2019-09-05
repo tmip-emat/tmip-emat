@@ -15,7 +15,7 @@ class DataFrameViewer(HBox):
 			selection=None,
 			box=None,
 			scope=None,
-			target_marker_opacity=500,
+			target_marker_opacity=1000,
 			minimum_marker_opacity=0.25,
 	):
 		self.df = df
@@ -23,6 +23,8 @@ class DataFrameViewer(HBox):
 		self.selection = selection
 		self.box = box
 		self.scope = scope
+
+		self._alt_selections = {}
 
 		self.x_axis_choose = Dropdown(
 			options=self.df.columns,
@@ -46,9 +48,8 @@ class DataFrameViewer(HBox):
 			value='linear',
 		)
 
-
 		self.selection_choose = Dropdown(
-			options=['None', 'Box', 'Expr'],
+			options=['None', 'Box', 'Expr'] + list(self._alt_selections.keys()),
 			value='None',
 		)
 
@@ -491,8 +492,8 @@ class DataFrameViewer(HBox):
 				x_pairs = list(zip(x_lo, x_hi))
 				y_pairs = list(zip(y_lo, y_hi))
 
-				self.graph.layout.shapes=[
-					# Rectangle reference to the axes
+				background_shapes = [
+					# Rectangle background color
 					go.layout.Shape(
 						type="rect",
 						xref="x1",
@@ -511,6 +512,29 @@ class DataFrameViewer(HBox):
 					for x_pair in x_pairs
 					for y_pair in y_pairs
 				]
+
+				foreground_shapes = [
+					# Rectangle reference to the axes
+					go.layout.Shape(
+						type="rect",
+						xref="x1",
+						yref="y1",
+						x0=x_pair[0],
+						y0=y_pair[0],
+						x1=x_pair[1],
+						y1=y_pair[1],
+						line=dict(
+							width=1,
+							color=colors.DEFAULT_BOX_LINE_COLOR,
+						),
+						fillcolor='rgba(0,0,0,0)',
+						opacity=1.0,
+					)
+					for x_pair in x_pairs
+					for y_pair in y_pairs
+				]
+
+				self.graph.layout.shapes=background_shapes+foreground_shapes
 			else:
 				self.graph.layout.shapes=[]
 
@@ -519,14 +543,17 @@ class DataFrameViewer(HBox):
 		return df.eval(txt).astype(bool)
 
 	def _on_change_selection_choose(self, payload):
+		if payload['new'] != 'Expr':
+			self.selection_expr.disabled = True
 		if payload['new'] == 'Expr':
 			self.selection_expr.disabled = False
-		else:
-			self.selection_expr.disabled = True
-		if payload['new'] == 'Box':
+			self._on_change_selection_expr({'new':self.selection_expr.value})
+		elif payload['new'] == 'Box':
 			self.change_selection(self.box.inside(self.df))
-		if payload['new'] == 'None':
+		elif payload['new'] == 'None':
 			self.change_selection(None)
+		else:
+			self.change_selection(self._alt_selections[payload['new']])
 
 	def _on_change_selection_expr(self, payload):
 		expression = payload['new']
@@ -553,3 +580,20 @@ class DataFrameViewer(HBox):
 		else:
 			with self.graph.batch_update():
 				self.draw_box()
+
+	def add_alt_selection(self, key, value):
+		"""
+		Add a new possible alternative selection vector.
+
+		Parameters
+		----------
+		key : str
+			An identifier for the new selection vector.
+		value : array-like of bool
+			A vector of boolean values giving the selection.
+		"""
+		if value.size != len(self.df):
+			raise ValueError(f"value size ({value.size}) "
+							 f"does not match length of data ({len(self.df)})")
+		self._alt_selections[key] = value
+		self.selection_choose.options = ['None', 'Box', 'Expr'] + list(self._alt_selections.keys())
