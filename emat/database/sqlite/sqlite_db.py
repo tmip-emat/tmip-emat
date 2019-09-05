@@ -805,7 +805,7 @@ class SQLiteDB(Database):
             self.cur.execute(sq.INSERT_SUBBOX, [scope_name, box.name,
                                                 box.parent_box_name])
 
-        for t_name, t_vals in box.thresholds.items():
+        for t_name, t_vals in box._thresholds.items():
 
             if t_name in p_:
                 sql_cl = sq.CLEAR_BOX_THRESHOLD_P
