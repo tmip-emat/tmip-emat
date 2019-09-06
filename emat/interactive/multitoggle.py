@@ -42,11 +42,17 @@ class MultiToggleButtons(Box):
 		self.options = []
 		self.options = opts
 
-	def set_value(self, *x):
-		if len(x) == 1 and isinstance(x[0], tuple):
-			x = x[0]
+	def set_value(self, x):
 		for b, opt in zip(self.buttons, self.options):
 			b.value = (opt in x)
+
+	def set_all_on(self):
+		for b, opt in zip(self.buttons, self.options):
+			b.value = True
+
+	def set_all_off(self):
+		for b, opt in zip(self.buttons, self.options):
+			b.value = False
 
 
 def observer(widgets, trait_name):
