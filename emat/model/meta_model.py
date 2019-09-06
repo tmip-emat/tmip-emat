@@ -15,6 +15,134 @@ from ..util.loggers import get_module_logger
 _logger = get_module_logger(__name__)
 
 
+def create_metamodel(
+        scope,
+        experiments: pandas.DataFrame,
+        metamodel_id: int = None,
+        db=None,
+        include_measures=None,
+        exclude_measures=None,
+        random_state=None,
+        experiment_stratification=None,
+        suppress_converge_warnings=False,
+        regressor=None,
+        name=None,
+):
+    """
+    Create a MetaModel from a set of input and output observations.
+
+    Args:
+        experiments (pandas.DataFrame): This dataframe
+            should contain all of the experimental inputs and outputs,
+            including values for each uncertainty, level, constant, and
+            performance measure.
+        metamodel_id (int, optional): An identifier for this meta-model.
+            If not given, a unique id number will be created randomly
+            (if not `db` is given) or sequentially based on any existing
+            metamodels already stored in the database.
+        db (Database, optional): The database to use for loading and
+            saving metamodels. If none is given here, the metamodel will
+            not be stored in a database otherwise, the metamodel is
+            automatically saved to the database after it is created.
+        include_measures (Collection[str], optional): If provided, only
+            output performance measures with names in this set will be included.
+        exclude_measures (Collection[str], optional): If provided, only
+            output performance measures with names not in this set will be included.
+        random_state (int, optional): A random state to use in the metamodel
+            regression fitting.
+        experiment_stratification (pandas.Series, optional):
+            A stratification of experiments, used in cross-validation.
+        suppress_converge_warnings (bool, default False):
+            Suppress convergence warnings during metamodel fitting.
+        regressor (Estimator, optional): A scikit-learn estimator implementing a
+            multi-target regression.  If not given, a detrended simple Gaussian
+            process regression is used.
+        name (str, optional): A descriptive name for this metamodel.
+
+    Returns:
+        PythonCoreModel:
+            a callable object that, when called as if a
+            function, accepts keyword arguments as inputs and
+            returns a dictionary of (measure name: value) pairs.
+    """
+    _logger.info("creating metamodel from data")
+
+    from .core_python import PythonCoreModel
+
+    experiments = scope.ensure_dtypes(experiments)
+
+    meas = []
+    for j in scope.get_measure_names():
+        if include_measures is not None and j not in include_measures:
+            continue
+        if exclude_measures is not None and j in exclude_measures:
+            continue
+        if j not in experiments:
+            continue
+        meas.append(j)
+    experiment_outputs = experiments[meas]
+
+    params = []
+    for j in scope.get_parameter_names():
+        if j not in experiments:
+            continue
+        params.append(j)
+    experiment_inputs = experiments[params]
+
+    if metamodel_id is None:
+        if db is not None:
+            metamodel_id = db.get_new_metamodel_id(scope.name)
+        else:
+            metamodel_id = numpy.random.randint(1, 2 ** 63, dtype='int64')
+
+    output_transforms = {
+        i.name: i.metamodeltype
+        for i in scope.get_measures()
+    }
+
+    output_transforms = {i: output_transforms[i]
+                         for i in output_transforms
+                         if i in meas}
+
+    disabled_outputs = [i for i in scope.get_measure_names()
+                        if i not in experiment_outputs.columns]
+
+    func = MetaModel(
+        experiment_inputs,
+        experiment_outputs,
+        output_transforms,
+        disabled_outputs,
+        random_state,
+        experiment_stratification,
+        suppress_converge_warnings=suppress_converge_warnings,
+        regressor=regressor,
+    )
+
+    scope_ = scope.duplicate(
+        strip_measure_transforms=True,
+        include_measures=include_measures,
+        exclude_measures=exclude_measures,
+    )
+
+    result = PythonCoreModel(
+        func,
+        configuration=None,
+        scope=scope_,
+        safe=True,
+        db=db,
+        name=name or f"MetaModel{metamodel_id}",
+        metamodel_id=metamodel_id,
+    )
+
+    if db is not None:
+        try:
+            db.write_metamodel(result)
+        except Exception as err:
+            _logger.exception("exception in storing metamodel in database")
+
+    return result
+
+
 class MetaModel:
     """
     A gaussian process regression-based meta-model.
