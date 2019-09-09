@@ -10,6 +10,7 @@ from typing import Collection
 
 from ..database.database import Database
 from ..scope.scope import Scope
+from ..optimization.optimization_result import OptimizationResult
 from .._pkg_constants import *
 
 from ..util.loggers import get_module_logger
@@ -791,40 +792,63 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             search_over='levers',
             evaluator=None,
             nfe=10000,
-            convergence=None,
+            convergence='default',
             constraints=None,
             reference=None,
+            display_convergence=True,
+            convergence_freq=100,
+            reverse_targets=False,
             **kwargs,
     ):
-        pass
 
-        if evaluator is None:
-            from ema_workbench.em_framework import SequentialEvaluator
-            evaluator = SequentialEvaluator(self)
-
-        with evaluator:
-            results = evaluator.optimize(
-                search_over=search_over,
-                reference=reference,
-                nfe=nfe,
-                constraints=constraints,
-                convergence=convergence,
-                **kwargs,
+        if convergence == 'default':
+            from ..optimization import EpsilonProgress, ConvergenceMetrics, SolutionCount
+            convergence = ConvergenceMetrics(
+                EpsilonProgress(),
+                SolutionCount(),
             )
+        if reverse_targets:
+            for k in self.scope.get_measures():
+                k.kind_original = k.kind
+                k.kind = k.kind * -1
 
-        if isinstance(results, tuple) and len(results) == 2:
-            results, result_convergence = results
-        else:
-            result_convergence = None
+        try:
+            from ..optimization.optimization import ConvergenceMetrics
+            if display_convergence and isinstance(convergence, ConvergenceMetrics):
+                from IPython.display import display
+                display(convergence)
 
-        results = self.ensure_dtypes(results)
+            if evaluator is None:
+                from ema_workbench.em_framework import SequentialEvaluator
+                evaluator = SequentialEvaluator(self)
 
+            with evaluator:
+                results = evaluator.optimize(
+                    search_over=search_over,
+                    reference=reference,
+                    nfe=nfe,
+                    constraints=constraints,
+                    convergence=convergence,
+                    convergence_freq=convergence_freq,
+                    **kwargs,
+                )
+
+            if isinstance(results, tuple) and len(results) == 2:
+                results, result_convergence = results
+            else:
+                result_convergence = None
+
+            results = self.ensure_dtypes(results)
+
+        finally:
+            if reverse_targets:
+                for k in self.scope.get_measures():
+                    k.kind = k.kind_original
+                    del k.kind_original
         if result_convergence is None:
-            return results
+            return OptimizationResult(results, None, scope=self.scope)
         else:
-            return results, result_convergence
-
-
+            return OptimizationResult(results, result_convergence, scope=self.scope)
 
     def robust_optimize(
             self,
@@ -916,9 +940,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         robust_results = self.ensure_dtypes(robust_results)
 
         if result_convergence is None:
-            return robust_results
+            return OptimizationResult(robust_results, None, scope=self.scope)
         else:
-            return robust_results, result_convergence
+            return OptimizationResult(robust_results, result_convergence, scope=self.scope)
 
     def robust_evaluate(
             self,

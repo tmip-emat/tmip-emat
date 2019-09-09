@@ -1,5 +1,5 @@
 
-from ipywidgets import Box, widget_selection, ToggleButton, Layout, Label, Widget
+from ipywidgets import Box, widget_selection, ToggleButton, Layout, Label, Widget, Checkbox
 import traitlets
 
 
@@ -71,4 +71,15 @@ def observer(widgets, trait_name):
 		func()
 
 	return wrapper
+
+
+from traitlets import Unicode
+from ipywidgets import DOMWidget, register
+
+
+
+@register
+class NamedCheckbox(Checkbox):
+	name = Unicode('').tag(sync=True)
+
 
