@@ -492,7 +492,8 @@ class Scope:
                 elif correct_dtype == 'int':
                     df[col] = df[col].astype(int)
                 elif correct_dtype == 'bool':
-                    df[col] = df[col].astype(bool)
+                    t = df[col].apply(lambda z: z.value if isinstance(z,Category) else z)
+                    df[col] = t.astype(bool)
                 elif correct_dtype == 'cat':
                     t = df[col].apply(lambda z: z.value if isinstance(z,Category) else z)
                     df[col] = pandas.Categorical(t, categories=cat_values, ordered=True)

@@ -663,6 +663,11 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
 
 
     @property
+    def values(self):
+        """List: The possible discrete values."""
+        return [False, True]
+
+    @property
     def min(self):
         return False
 

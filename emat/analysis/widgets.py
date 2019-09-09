@@ -31,14 +31,15 @@ class MultiToggleButtons_AllOrSome(Box):
 
 			@observer(self.buttons, 'value')
 			def _(*_):
-				self.value = tuple(value
+				proposed_value = tuple(value
 								   for btn, value in zip(self.buttons, self._selection_obj._options_values)
 								   if btn.value)
 				# When nothing is selected, treat as if everything is selected.
-				if len(self.value) == 0:
-					self.value = tuple(value
+				if len(proposed_value) == 0:
+					proposed_value = tuple(value
 									   for btn, value in zip(self.buttons, self._selection_obj._options_values)
 									   )
+				self.value = proposed_value
 
 		self.add_class('btn-group')
 

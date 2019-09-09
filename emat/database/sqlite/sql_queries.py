@@ -394,8 +394,12 @@ GET_METAMODEL_IDS = (
 )
 
 GET_NEW_METAMODEL_ID = (
+    # '''
+	# SELECT MAX(IFNULL(MAX(meta_model_pickles.metamodel_id), 0), IFNULL(MAX(meta_model_pickles.rowid), 0))+1
+	# 	FROM meta_model_pickles;
+	# '''
     '''
-	SELECT MAX(IFNULL(MAX(meta_model_pickles.metamodel_id), 0), IFNULL(MAX(meta_model_pickles.rowid), 0))+1
+	SELECT IFNULL(MAX(meta_model_pickles.metamodel_id), 0)+1
 		FROM meta_model_pickles;
 	'''
 )

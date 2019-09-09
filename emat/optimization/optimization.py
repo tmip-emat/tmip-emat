@@ -140,6 +140,23 @@ class SolutionViewer(AbstractConvergenceMetric):
 			dataframe_processor=dataframe_processor,
 		)
 
+	@classmethod
+	def from_model(cls, model):
+
+		levers = model.scope.get_lever_names()
+		measures = model.scope.get_measures()
+
+		try:
+			dataframe_processor = model.ensure_dtypes
+		except AttributeError:
+			dataframe_processor = None
+
+		return cls(
+			levers,
+			[i.name for i in measures if i.kind != 0],
+			dataframe_processor=dataframe_processor,
+		)
+
 
 class ConvergenceMetrics(widgets.HBox):
 	"""

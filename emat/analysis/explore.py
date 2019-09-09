@@ -6,18 +6,27 @@ from ..viz import colors
 from .. import styles
 from plotly import graph_objs as go
 import ipywidgets as widget
+from traitlets import TraitError
 from math import isclose
 from ..scope.parameter import IntegerParameter, CategoricalParameter, BooleanParameter
 from typing import Mapping
 import warnings
 import scipy.stats
-from ..scope.box import Box
+from ..scope.box import Box, GenericBox
 from ..analysis.widgets import MultiToggleButtons_AllOrSome
 
+def _try_set_value(where, value, describe):
+	if value is not None:
+		try:
+			where.value = value
+		except TraitError:
+			warnings.warn(f'"{value}" is not a valid value for {describe}')
 
-class Explore:
+
+class Explore(GenericBox):
 
 	def __init__(self, scope, data, box=None):
+		super().__init__()
 		self.scope = scope
 		self.data = data
 		if box is None:
@@ -65,6 +74,106 @@ class Explore:
 			)
 		)
 		self._update_status()
+
+	@property
+	def thresholds(self):
+		"""
+		Dict[str,Union[Bounds,Set]]:
+			A :class:`Set` of features that are relevant for the Box.
+			These are features, which are not themselves constrained,
+			but should be considered in any analytical report developed
+			based on this Box.
+		"""
+		return self.box.thresholds
+
+	@property
+	def demanded_features(self):
+		"""
+		Set[str]: A set of features upon which thresholds are set at any step of the chain.
+		"""
+		t = set(self.thresholds.keys())
+		return t
+
+	@property
+	def relevant_features(self):
+		"""
+		Dict[str,Union[Bounds,Set]]:
+			The restricted dimensions in this Box, with feature names as
+			keys and :class:`Bounds` or a :class:`Set` of available discrete
+			values as the dictionary values.
+		"""
+		return self.box.relevant_features
+
+	def __getitem__(self, key):
+		return self.box[key]
+
+	def __setitem__(self, key, value):
+		self.box[key] = value
+		self._update_all_figures()
+		self._sync_controller_widget_values()
+
+	def __delitem__(self, key):
+		del self.box[key]
+		self._update_all_figures()
+		self._sync_controller_widget_values()
+
+	def __iter__(self):
+		return iter(self.box)
+
+	def __len__(self):
+		return len(self.box)
+
+	def clear(self):
+		self.box.clear()
+		self._update_all_figures()
+		self._sync_controller_widget_values()
+
+	def set_bounds(self, key, lowerbound, upperbound=None):
+		"""
+		Set both lower and upper bounds on a box dimension.
+
+		Args:
+			key (str):
+				The feature name to which these bounds
+				will be attached.
+			lowerbound (numeric, None, or Bounds):
+				The lower bound, or a Bounds object that gives
+				upper and lower bounds (in which case the `upperbound`
+				argument is ignored).  Set explicitly to 'None' to
+				leave unbounded from below.
+			upperbound (numeric or None, default None):
+				The upper bound. Set to 'None' to
+				leave unbounded from above.
+
+		Raises:
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+
+		"""
+		self.box.set_bounds(key, lowerbound, upperbound)
+		self._update_all_figures()
+		self._sync_controller_widget_values()
+
+	def replace_allowed_set(self, key, values):
+		"""
+		Replace the allowed set for a box dimension.
+
+		Args:
+			key (str):
+				The feature name to which these bounds
+				will be attached.
+			values (set):
+				A set of values to use as the allowed set.
+		"""
+		cats = self.scope.get_cat_values(key)
+		if cats is None:
+			raise ValueError("use Bounds not Set for numeric values")
+		if not set(cats).issuperset(set(values)):
+			raise ValueError(f"values must be subset of {cats}")
+		self.box.replace_allowed_set(key, values)
+		self._update_all_figures()
+		self._sync_controller_widget_values()
 
 	def set_box(self, box):
 		if box.scope is not None:
@@ -127,8 +236,12 @@ class Explore:
 		else:
 			kernel_base, common_bw, x_points, y_base = self._base_kde[col]
 
-		kernel_select = scipy.stats.gaussian_kde(self.data[col][selection], bw_method=common_bw)
-		y_select = kernel_select(x_points)
+		_kde_data = self.data[col][selection]
+		if _kde_data.size > 1:
+			kernel_select = scipy.stats.gaussian_kde(self.data[col][selection], bw_method=common_bw)
+			y_select = kernel_select(x_points)
+		else:
+			y_select = numpy.zeros_like(y_base)
 		return x_points, y_base, y_select
 
 	def _update_histogram_figure(self, col, *, selection=None):
@@ -565,7 +678,7 @@ class Explore:
 	def measure_viewers(self, style='kde'):
 		return self.viewers(*self.scope.get_measure_names(), style=style)
 
-	def complete(self, measure_style='kde'):
+	def complete(self, measure_style='hist'):
 		return widget.VBox([
 			self.status(),
 			widget.HTML("<h3>Policy Levers</h3>"),
@@ -573,7 +686,7 @@ class Explore:
 			widget.HTML("<h3>Exogenous Uncertainties</h3>"),
 			self.selectors(*self.scope.get_uncertainty_names()),
 			widget.HTML("<h3>Performance Measures</h3>"),
-			self._measure_notes(),
+			self._measure_notes(style=measure_style),
 			self.measure_viewers(style=measure_style),
 		])
 
@@ -598,13 +711,31 @@ class Explore:
 			</div>"""
 		return widget.HTML(txt)
 
-	def two_way(self, key=None, reset=False):
+	def two_way(
+			self,
+			key=None,
+			reset=False,
+			*,
+			x=None,
+			y=None,
+	):
+		if key is None and (x is not None or y is not None):
+			key = (x,y)
+
 		if key in self._two_way and not reset:
 			return self._two_way[key]
 
 		from ..viz.dataframe_viz import DataFrameViewer
 		self._two_way[key] = DataFrameViewer(self.data, box=self.box, scope=self.scope)
 		self._two_way[key].selection_choose.value = 'Box'
+		_try_set_value(self._two_way[key].x_axis_choose, x, 'the x axis dimension')
+		_try_set_value(self._two_way[key].y_axis_choose, y, 'the y axis dimension')
+		try:
+			of_interest = self._prim_target
+		except AttributeError:
+			pass
+		else:
+			self._two_way[key].add_alt_selection("PRIM Target", of_interest)
 		return self._two_way[key]
 
 
@@ -639,6 +770,8 @@ class Explore:
 				of_interest = df.eval(target)
 		else:
 			of_interest = target
+
+		self._prim_target = of_interest
 
 		result = Prim(
 			data_,

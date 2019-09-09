@@ -26,8 +26,10 @@ class DataFrameViewer(HBox):
 
 		self._alt_selections = {}
 
+		axis_choices = self._get_sectional_names(self.df.columns)
+
 		self.x_axis_choose = Dropdown(
-			options=self.df.columns,
+			options=axis_choices,
 			#description='X Axis',
 			value=self.df.columns[0],
 		)
@@ -38,7 +40,7 @@ class DataFrameViewer(HBox):
 		)
 
 		self.y_axis_choose = Dropdown(
-			options=self.df.columns,
+			options=axis_choices,
 			#description='Y Axis',
 			value=self.df.columns[-1],
 		)
@@ -94,7 +96,7 @@ class DataFrameViewer(HBox):
 
 		self.x_hist = go.Histogram(
 			x=None,
-			name='x density',
+			#name='x density',
 			marker=dict(
 				color=colors.DEFAULT_BASE_COLOR,
 				#opacity=0.7,
@@ -105,7 +107,7 @@ class DataFrameViewer(HBox):
 
 		self.y_hist = go.Histogram(
 			y=None,
-			name='y density',
+			#name='y density',
 			marker=dict(
 				color=colors.DEFAULT_BASE_COLOR,
 				#opacity=0.7,
@@ -188,6 +190,10 @@ class DataFrameViewer(HBox):
 
 		self.x_axis_choose.observe(self._observe_change_column_x, names='value')
 		self.y_axis_choose.observe(self._observe_change_column_y, names='value')
+
+		self.x_axis_scale.observe(self._observe_change_scale_x, names='value')
+		self.y_axis_scale.observe(self._observe_change_scale_y, names='value')
+
 		self.selection_choose.observe(self._on_change_selection_choose, names='value')
 		self.selection_expr.observe(self._on_change_selection_expr, names='value')
 
@@ -204,6 +210,54 @@ class DataFrameViewer(HBox):
 				align_items='center',
 			)
 		)
+
+	def _get_sectional_names(self, columns):
+		scope = self.scope
+		uncs = scope.get_uncertainty_names()
+		levs = scope.get_lever_names()
+		cons = scope.get_constant_names()
+		meas = scope.get_measure_names()
+
+		c_uncs = []
+		c_levs = []
+		c_cons = []
+		c_meas = []
+		c_other = []
+
+		for c in columns:
+			if c in uncs:
+				c_uncs.append(c)
+			elif c in levs:
+				c_levs.append(c)
+			elif c in cons:
+				c_cons.append(c)
+			elif c in meas:
+				c_meas.append(c)
+			else:
+				c_other.append(c)
+
+		result = []
+		if len(c_uncs):
+			result.append("-- Uncertainties --")
+			result.extend(c_uncs)
+		if len(c_levs):
+			result.append("-- Levers --")
+			result.extend(c_levs)
+		if len(c_cons):
+			result.append("-- Constants --")
+			result.extend(c_cons)
+		if len(c_meas):
+			result.append("-- Measures --")
+			result.extend(c_meas)
+		if len(c_other):
+			result.append("-- Other --")
+			result.extend(c_other)
+
+		return result
+
+
+
+
 
 	def _get_shortname(self, name):
 		if self.scope is None:
@@ -248,12 +302,27 @@ class DataFrameViewer(HBox):
 		return 1
 
 	def _observe_change_column_x(self, payload):
+		if payload['new'][:3] == '-- ' and payload['new'][-3:] == ' --':
+			# Just a heading, not a real option
+			payload['owner'].value = payload['old']
+			return
 		self.set_x(payload['new'])
 
 	def _observe_change_column_y(self, payload):
+		if payload['new'][:3] == '-- ' and payload['new'][-3:] == ' --':
+			# Just a heading, not a real option
+			payload['owner'].value = payload['old']
+			return
 		self.set_y(payload['new'])
 
+	def _observe_change_scale_x(self, payload):
+		self.set_x(self.x_axis_choose.value)
+
+	def _observe_change_scale_y(self, payload):
+		self.set_y(self.y_axis_choose.value)
+
 	def __manage_categorical(self, x):
+		valid_scales = ['linear']
 		x_categories = None
 		x_ticktext = None
 		x_tickvals = None
@@ -272,8 +341,12 @@ class DataFrameViewer(HBox):
 			x_tickmode = 'array'
 			x_ticktext = list(x_categories)
 			x_tickvals = list(range(len(x_ticktext)))
+		else:
+			if x.min() >= 0:
+				valid_scales.append('log')
 
-		return x, x_ticktext, x_tickvals
+		return x, x_ticktext, x_tickvals, valid_scales
+
 
 	def set_x(self, col):
 		"""
@@ -295,21 +368,24 @@ class DataFrameViewer(HBox):
 				except:
 					pass
 
-			x, x_ticktext, x_tickvals = self.__manage_categorical(x)
+			x, x_ticktext, x_tickvals, x_scales = self.__manage_categorical(x)
+			self.x_axis_scale.options = x_scales
 			self._x = x
 			self._x_ticktext = x_ticktext or []
 			self._x_tickvals = x_tickvals or []
 
+			is_linear = (self.x_axis_scale.value == 'linear')
+
 			if self.selection is None:
 				self.graph.data[0].x = x
 				self.graph.data[3].x = None
-				self.graph.data[1].x = x
+				self.graph.data[1].x = x if is_linear else None
 				self.graph.data[4].x = None
 			else:
 				self.graph.data[0].x = x[~self.selection]
 				self.graph.data[3].x = x[self.selection]
-				self.graph.data[1].x = x
-				self.graph.data[4].x = x[self.selection]
+				self.graph.data[1].x = x if is_linear else None
+				self.graph.data[4].x = x[self.selection] if is_linear else None
 			if x_ticktext is not None:
 				self._x_data_range = [x.min(), x.max()]
 				self.graph.layout.xaxis.range = (
@@ -329,6 +405,7 @@ class DataFrameViewer(HBox):
 					self._x_data_range[0] - self._x_data_width * 0.07,
 					self._x_data_range[1] + self._x_data_width * 0.07,
 				)
+				self.graph.layout.xaxis.type = self.x_axis_scale.value
 				self.graph.layout.xaxis.tickmode = None
 				self.graph.layout.xaxis.ticktext = None
 				self.graph.layout.xaxis.tickvals = None
@@ -356,21 +433,24 @@ class DataFrameViewer(HBox):
 				except:
 					pass
 
-			y, y_ticktext, y_tickvals = self.__manage_categorical(y)
+			y, y_ticktext, y_tickvals, y_scales = self.__manage_categorical(y)
+			self.y_axis_scale.options = y_scales
 			self._y = y
 			self._y_ticktext = y_ticktext or []
 			self._y_tickvals = y_tickvals or []
 
+			is_linear = (self.y_axis_scale.value == 'linear')
+
 			if self.selection is None:
 				self.graph.data[0].y = y
 				self.graph.data[3].y = None
-				self.graph.data[2].y = y
+				self.graph.data[2].y = y if is_linear else None
 				self.graph.data[5].y = None
 			else:
 				self.graph.data[0].y = y[~self.selection]
 				self.graph.data[3].y = y[self.selection]
-				self.graph.data[2].y = y
-				self.graph.data[5].y = y[self.selection]
+				self.graph.data[2].y = y if is_linear else None
+				self.graph.data[5].y = y[self.selection] if is_linear else None
 			if y_ticktext is not None:
 				self._y_data_range = [y.min(), y.max()]
 				self.graph.layout.yaxis.range = (
@@ -390,6 +470,7 @@ class DataFrameViewer(HBox):
 					self._y_data_range[0] - self._y_data_width * 0.07,
 					self._y_data_range[1] + self._y_data_width * 0.07,
 				)
+				self.graph.layout.yaxis.type = self.y_axis_scale.value
 				self.graph.layout.yaxis.tickmode = None
 				self.graph.layout.yaxis.ticktext = None
 				self.graph.layout.yaxis.tickvals = None
@@ -462,9 +543,9 @@ class DataFrameViewer(HBox):
 							x_lo.append(tickval-0.3)
 							x_hi.append(tickval+0.3)
 				if x_lo is None:
-					x_lo = self.df[x_label].min()-self._x_data_width * 0.02
+					x_lo = self._x.min()-self._x_data_width * 0.02
 				if x_hi is None:
-					x_hi = self.df[x_label].max()+self._x_data_width * 0.02
+					x_hi = self._x.max()+self._x_data_width * 0.02
 				if not isinstance(x_lo, list):
 					x_lo = [x_lo]
 				if not isinstance(x_hi, list):
@@ -481,9 +562,9 @@ class DataFrameViewer(HBox):
 							y_lo.append(tickval-0.3)
 							y_hi.append(tickval+0.3)
 				if y_lo is None:
-					y_lo = self.df[y_label].min()-self._y_data_width * 0.02
+					y_lo = self._y.min()-self._y_data_width * 0.02
 				if y_hi is None:
-					y_hi = self.df[y_label].max()+self._y_data_width * 0.02
+					y_hi = self._y.max()+self._y_data_width * 0.02
 				if not isinstance(y_lo, list):
 					y_lo = [y_lo]
 				if not isinstance(y_hi, list):

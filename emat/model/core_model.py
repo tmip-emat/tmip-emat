@@ -786,6 +786,46 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             title='Feature Scoring' + (f' [{design}]' if design else ''),
         )
 
+    def optimize(
+            self,
+            search_over='levers',
+            evaluator=None,
+            nfe=10000,
+            convergence=None,
+            constraints=None,
+            reference=None,
+            **kwargs,
+    ):
+        pass
+
+        if evaluator is None:
+            from ema_workbench.em_framework import SequentialEvaluator
+            evaluator = SequentialEvaluator(self)
+
+        with evaluator:
+            results = evaluator.optimize(
+                search_over=search_over,
+                reference=reference,
+                nfe=nfe,
+                constraints=constraints,
+                convergence=convergence,
+                **kwargs,
+            )
+
+        if isinstance(results, tuple) and len(results) == 2:
+            results, result_convergence = results
+        else:
+            result_convergence = None
+
+        results = self.ensure_dtypes(results)
+
+        if result_convergence is None:
+            return results
+        else:
+            return results, result_convergence
+
+
+
     def robust_optimize(
             self,
             robustness_functions,
