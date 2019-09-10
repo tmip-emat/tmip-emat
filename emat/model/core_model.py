@@ -11,6 +11,8 @@ from typing import Collection
 from ..database.database import Database
 from ..scope.scope import Scope
 from ..optimization.optimization_result import OptimizationResult
+from ..optimization import EpsilonProgress, ConvergenceMetrics, SolutionCount
+
 from .._pkg_constants import *
 
 from ..util.loggers import get_module_logger
@@ -798,11 +800,14 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             display_convergence=True,
             convergence_freq=100,
             reverse_targets=False,
+            epsilons=0.1,
             **kwargs,
     ):
+        import numbers
+        if isinstance(epsilons, numbers.Number):
+            epsilons = [epsilons]*len(self.outcomes)
 
         if convergence == 'default':
-            from ..optimization import EpsilonProgress, ConvergenceMetrics, SolutionCount
             convergence = ConvergenceMetrics(
                 EpsilonProgress(),
                 SolutionCount(),
@@ -813,7 +818,6 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 k.kind = k.kind * -1
 
         try:
-            from ..optimization.optimization import ConvergenceMetrics
             if display_convergence and isinstance(convergence, ConvergenceMetrics):
                 from IPython.display import display
                 display(convergence)
@@ -830,6 +834,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     constraints=constraints,
                     convergence=convergence,
                     convergence_freq=convergence_freq,
+                    epsilons=epsilons,
                     **kwargs,
                 )
 
@@ -856,8 +861,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             scenarios,
             evaluator=None,
             nfe=10000,
-            convergence=None,
+            convergence='default',
+            display_convergence=True,
             constraints=None,
+            epsilons=0.1,
             **kwargs,
     ):
         """
@@ -895,7 +902,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             nfe (int, default 10_000): Number of function evaluations.
                 This generally needs to be fairly large to achieve stable
                 results in all but the most trivial applications.
-            convergence (emat.optimization.ConvergenceMetrics, optional)
+            convergence ('default', None, or emat.optimization.ConvergenceMetrics):
+                A convergence display during optimization.
             constraints (Collection[Constraint], optional)
             kwargs: any additional arguments will be passed on to the
                 platypus algorithm.
@@ -907,6 +915,15 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             also returned, as a second pandas.DataFrame.
         """
 
+        if convergence == 'default':
+            convergence = ConvergenceMetrics(
+                EpsilonProgress(),
+                SolutionCount(),
+            )
+
+        import numbers
+        if isinstance(epsilons, numbers.Number):
+            epsilons = [epsilons]*len(robustness_functions)
 
         if evaluator is None:
             from ema_workbench.em_framework import SequentialEvaluator
@@ -918,16 +935,17 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             n_scenarios = scenarios
             scenarios = sample_uncertainties(self, n_scenarios)
 
-        # if epsilons is None:
-        #     epsilons = [0.05, ] * len(robustness_functions)
-        #
+        if display_convergence and isinstance(convergence, ConvergenceMetrics):
+            from IPython.display import display
+            display(convergence)
+
         with evaluator:
             robust_results = evaluator.robust_optimize(
                 robustness_functions,
                 scenarios,
                 nfe=nfe,
                 constraints=constraints,
-                # epsilons=epsilons,
+                epsilons=epsilons,
                 convergence=convergence,
                 **kwargs,
             )
