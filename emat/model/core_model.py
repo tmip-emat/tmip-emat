@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 from typing import Union, Mapping
 from ema_workbench.em_framework.model import AbstractModel as AbstractWorkbenchModel
+from ema_workbench.em_framework.evaluators import BaseEvaluator
+
 from typing import Collection
 
 from ..database.database import Database
@@ -789,6 +791,39 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             title='Feature Scoring' + (f' [{design}]' if design else ''),
         )
 
+    def _common_optimization_setup(
+            self,
+            epsilons=0.1,
+            convergence='default',
+            display_convergence=True,
+            evaluator=None,
+    ):
+        import numbers
+        if isinstance(epsilons, numbers.Number):
+            epsilons = [epsilons]*len(self.outcomes)
+
+        if convergence == 'default':
+            convergence = ConvergenceMetrics(
+                EpsilonProgress(),
+                SolutionCount(),
+            )
+
+        if display_convergence and isinstance(convergence, ConvergenceMetrics):
+            from IPython.display import display
+            display(convergence)
+
+        if evaluator is None:
+            from ema_workbench.em_framework import SequentialEvaluator
+            evaluator = SequentialEvaluator(self)
+
+        if not isinstance(evaluator, BaseEvaluator):
+            from dask.distributed import Client
+            if isinstance(evaluator, Client):
+                from ema_workbench.em_framework.ema_distributed import DistributedEvaluator
+                evaluator = DistributedEvaluator(self, client=evaluator)
+
+        return epsilons, convergence, display_convergence, evaluator
+
     def optimize(
             self,
             search_over='levers',
@@ -803,29 +838,16 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             epsilons=0.1,
             **kwargs,
     ):
-        import numbers
-        if isinstance(epsilons, numbers.Number):
-            epsilons = [epsilons]*len(self.outcomes)
+        epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
+            epsilons, convergence, display_convergence, evaluator
+        )
 
-        if convergence == 'default':
-            convergence = ConvergenceMetrics(
-                EpsilonProgress(),
-                SolutionCount(),
-            )
         if reverse_targets:
             for k in self.scope.get_measures():
                 k.kind_original = k.kind
                 k.kind = k.kind * -1
 
         try:
-            if display_convergence and isinstance(convergence, ConvergenceMetrics):
-                from IPython.display import display
-                display(convergence)
-
-            if evaluator is None:
-                from ema_workbench.em_framework import SequentialEvaluator
-                evaluator = SequentialEvaluator(self)
-
             with evaluator:
                 results = evaluator.optimize(
                     search_over=search_over,
@@ -915,29 +937,15 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             also returned, as a second pandas.DataFrame.
         """
 
-        if convergence == 'default':
-            convergence = ConvergenceMetrics(
-                EpsilonProgress(),
-                SolutionCount(),
-            )
-
-        import numbers
-        if isinstance(epsilons, numbers.Number):
-            epsilons = [epsilons]*len(robustness_functions)
-
-        if evaluator is None:
-            from ema_workbench.em_framework import SequentialEvaluator
-            evaluator = SequentialEvaluator(self)
+        epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
+            epsilons, convergence, display_convergence, evaluator
+        )
 
         from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
 
         if isinstance(scenarios, int):
             n_scenarios = scenarios
             scenarios = sample_uncertainties(self, n_scenarios)
-
-        if display_convergence and isinstance(convergence, ConvergenceMetrics):
-            from IPython.display import display
-            display(convergence)
 
         with evaluator:
             robust_results = evaluator.robust_optimize(
