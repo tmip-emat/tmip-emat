@@ -243,7 +243,9 @@ def design_sensitivity_tests(
     design.reset_index(inplace=True, drop=True)
     
     if db is not None:
-        db.write_experiment_parameters(s.name, design_name, design)
+        experiment_ids = db.write_experiment_parameters(s.name, design_name, design)
+        design.index = experiment_ids
+        design.index.name = 'experiment'
 
     return design
 

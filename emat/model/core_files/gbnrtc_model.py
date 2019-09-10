@@ -222,18 +222,28 @@ class GBNRTCModel(FilesCoreModel):
             experiment_id (int, optional): The id number for this experiment.
 
         """
+        
+        _logger.info("Archiving model runs at {0}".format(time.strftime("%Y_%m_%d %H%M%S")))
+        if self.tc is None:
+            self.start_transcad()        
 
         # create output folder
         if not os.path.exists(model_results_path):
             os.makedirs(model_results_path)
             time.sleep(2)
-            os.makedirs(os.path.join(model_results_path, "ModelConfig"))
+            os.makedirs(os.path.join(model_results_path, "TAZ"))
+            time.sleep(2)
+            os.makedirs(os.path.join(model_results_path, "Network"))
+            time.sleep(2)
+            os.makedirs(os.path.join(model_results_path, "Inputs"))
+            time.sleep(2)
+            os.makedirs(os.path.join(model_results_path, "Inputs\\Model"))
             time.sleep(2)
             os.makedirs(os.path.join(model_results_path, "Outputs"))
             time.sleep(2)
 
         # record experiment definitions
-        xl_df = pd.DataFrame(params, index=[experiment_id])
+        xl_df = pd.DataFrame(list(params.items()),columns=['variable','value'])
         xl_df.to_csv(model_results_path + '.csv')
 
         self.tc.RunMacro(
@@ -275,7 +285,8 @@ class GBNRTCModel(FilesCoreModel):
                     "EMAExperimentFiles", "PerfMeasSupport", "*"
                 )
         ):
-            copy(file, os.path.join(model_results_path, "Outputs"))
+            copy(file, os.path.join(model_results_path, 
+                                    "EMAExperimentFiles", "PerfMeasSupport"))
             
         # copy output summaries (all csv's)
         for file in glob.glob(
@@ -298,6 +309,48 @@ class GBNRTCModel(FilesCoreModel):
             raise SystemError("Error {2} in setting {0} to {1}" 
                               .format(evar, exp_var[evar], ret)) 
         return [evar]
+
+    
+    def __set_bailey_transit_strategy(self, macro, evar, exp_var): 
+        ''' call TransCAD macro and return both strategies to completed list'''
+        # bailey transit and micro mobility strategies are interdependent
+        tserv = exp_var['Bailey Transit Service']
+        mobhub = int(exp_var['Bailey Mobility Hubs'])
+        mmob =  int(exp_var['Bailey Micro-Mobility'])
+        
+        ttime = 0
+        thead = 0
+        
+        if tserv == 'improved headway':
+            thead = 1
+        elif tserv == 'traffic priority':
+            ttime = 1
+        elif tserv == 'brt':
+            ttime = 1
+            thead = 1
+            
+
+        self.tc.RunMacro("G30 File Close All", self.exp_param_ui)  
+        ret = self.tc.RunMacro(macro, 
+                               self.exp_param_ui, 
+                               self.mod_path_tc,
+                               ttime, mobhub, mmob)
+        
+        if ret != 0:
+            raise SystemError("Error in setting Bailey travel time / Mobility Hubs to {0}/{1}" 
+                              .format(ttime, mobhub)) 
+            
+        self.tc.RunMacro("G30 File Close All", self.exp_param_ui)  
+        ret = self.tc.RunMacro("Headway", 
+                               self.exp_param_ui, 
+                               self.mod_path_tc,
+                               thead)
+        
+        if ret != 0:
+            raise SystemError("Error in setting Bailey service headway component to {0}"
+                              .format(thead))             
+            
+        return ['Bailey Transit Service', 'Bailey Mobility Hubs', 'Bailey Micro-Mobility']
         
     
     def __set_kenslrt_strategy(self, macro, evar, exp_var): 
@@ -360,15 +413,26 @@ class GBNRTCModel(FilesCoreModel):
         'Freeway Capacity':             (__set_simple_evar, "Roadway Capacity"),
         'Auto IVTT Sensitivity':        (__set_simple_evar, "IVTT Discount"),
         'Shared Mobility':              (__set_simple_evar, "VA"),
-        'Kensington Decommissioning':   (__set_kenslrt_strategy, "Set Strategies"),
-        'LRT Extension':                (__set_kenslrt_strategy, "Set Strategies")
+        'Kensington Decommissioning':   (__set_kenslrt_strategy, "Set POC Strategies"),
+        'LRT Extension':                (__set_kenslrt_strategy, "Set POC Strategies"),
+        'Bailey Land Use':              (__set_simple_evar, "Corridor_SED"),
+        'Self Parking':                 (__set_simple_evar, "Terminal_Time"),
+        'Weather Impacts':              (__set_simple_evar, "Weather_Capacity_Impact"),
+        'Bailey Transit Service':       (__set_bailey_transit_strategy, "Transit_Strategies"),
+        'Bailey Micro-Mobility':        (__set_bailey_transit_strategy, "Transit_Strategies"),
+        'Bailey Mobility Hubs':         (__set_bailey_transit_strategy, "Transit_Strategies"),
+        #'Bailey Transit Headway':       (__set_simple_evar, "Headway"),
+        'Bailey Reduced Parking':       (__set_simple_evar, "Bailey_Parking"),        
+        'Bailey Non-Motorized Facilities':       (__set_simple_evar, "Walk_Time")                
+        
     }
     
     __PM_BY_TRANSCAD_MACRO = {
         'VMTVHT' : (__pp_path, 
                     ['Region-wide VMT','Interstate + Expressway + Ramp/Connector VMT',
                     'Major and Minor Arterials VMT','Total Auto VMT',
-                    'Total Truck VMT']),
+                    'Total Truck VMT', 'Bailey VMT', 'Bailey VHT', 
+                    'Bailey Delay AM','Bailey Delay MD','Bailey Delay PM','Bailey Delay NT']),
         'TripLength' : (__pp_path, 
                         ['AM Trip Time (minutes)','AM Trip Length (miles)',
                         'PM Trip Time (minutes)','PM Trip Length (miles)']),
@@ -378,14 +442,24 @@ class GBNRTCModel(FilesCoreModel):
                        'Total Transit Boardings','Peak Walk-to-transit LRT Boarding',
                        'Off-Peak Walk-to-transit LRT Boarding','Peak Drive-to-transit LRT Boarding',
                        'Off-Peak Drive-to-transit LRT Boarding','Total LRT Boardings']),
+        'BaileyBoardings' : (__pp_path, 
+                       ['Peak Walk-to-transit Bailey Route Boarding','Peak Drive-to-transit Bailey Route Boarding',
+                       'Off-Peak Walk-to-transit Bailey Route Boarding', 'Off-Peak Drive-to-transit Bailey Route Boarding',
+                       'Bailey corridor route ridership']),    
         'ModeShare' : (__pp_path, 
                        ['Peak Transit Share','Peak NonMotorized Share',
                        'Off-Peak Transit Share','Off-Peak NonMotorized Share',
-                       'Daily Transit Share','Daily NonMotorized Share']),
+                       'Daily Transit Share','Daily NonMotorized Share',
+                       'Bailey Peak Transit Share','Bailey Peak NonMotorized Share',
+                       'Bailey Off-Peak Transit Share','Bailey Off-Peak NonMotorized Share',
+                       'Bailey Transit share','Bailey NonMotorized share',
+                       'Regional trips to/from Bailey']),
         'HBW Transit Time' : (__pp_path, 
                               ['Number of Home-based work tours taking <= 45 minutes via transit']),
         'Accessibility to CBD' : (__pp_path, 
                                   ['Households within 30 min of CBD']),
+        'Accessibility_Bailey' : (__pp_path, 
+                                  ['Employment < 20 transit mins from Bailey']),                                  
         'Downtown to Airport Travel Time' : (__pp_path, 
                                              ['Downtown to Airport Travel Time']),
         'CorridorMeasures' : (__pp_path_kens, 
@@ -428,6 +502,17 @@ class GBNRTCModel(FilesCoreModel):
                 'Total LRT Boardings': loc[0, 'total'],
             }
         ),
+        
+        TableParser(
+            "transit_board_bailey.csv",
+            {
+                'Peak Walk-to-transit Bailey Route Boarding': loc[0, 'pk_walk_board'],
+                'Off-Peak Walk-to-transit Bailey Route Boarding': loc[0, 'op_walk_board'],
+                'Peak Drive-to-transit Bailey Route Boarding': loc[0, 'pk_drive_board'],
+                'Off-Peak Drive-to-transit Bailey Route Boarding': loc[0, 'op_drive_board'],
+                'Bailey corridor route ridership': loc[0, 'total'],
+            }
+        ),        
 
         TableParser(
             "SUMMARY_VMTVHT.csv",
@@ -450,7 +535,8 @@ class GBNRTCModel(FilesCoreModel):
             names=[
                 'Daily Auto VMT', 'Daily Truck VMT',
                 'Daily Total VMT', 'Daily Auto VHT',
-                'Daily Truck VHT', 'Daily Total VHT',
+                'Daily Truck VHT', 'Daily Total VHT','Daily Auto FFVHT',
+                'Daily Truck FFVHT', 'Daily Total FFVHT',
                 'AM Auto VMT', 'AM Truck VMT', 'AM Total VMT',
                 'MD Auto VMT', 'MD Truck VMT', 'MD Total VMT',
                 'PM Auto VMT', 'PM Truck VMT', 'PM Total VMT',
@@ -459,9 +545,44 @@ class GBNRTCModel(FilesCoreModel):
                 'MD Auto VHT', 'MD Truck VHT', 'MD Total VHT',
                 'PM Auto VHT', 'PM Truck VHT', 'PM Total VHT',
                 'NT Auto VHT', 'NT Truck VHT', 'NT Total VHT',
-                'Daily Total Volume', 'Daily Total Count',
-                'Daily Auto Volume', 'Daily Auto Count',
-                'Daily Truck Volume', 'Daily Truck Count'
+                'AM Auto FFVHT', 'AM Truck FFVHT', 'AM Total FFVHT',
+                'MD Auto FFVHT', 'MD Truck FFVHT', 'MD Total FFVHT',
+                'PM Auto FFVHT', 'PM Truck FFVHT', 'PM Total FFVHT',
+                'NT Auto FFVHT', 'NT Truck FFVHT', 'NT Total FFVHT'
+            ]
+        ),
+
+        TableParser(
+            "SELECTION_VMTVHT.csv",
+            {
+                'Bailey VMT': loc_sum[:, 'Daily Total VMT'],
+                'Bailey VHT': loc_sum[:, 'Daily Total VHT'],
+                'Bailey Delay AM': loc_sum[:, 'AM Total VHT'],
+                'Bailey Delay MD': loc_sum[:, 'MD Total VHT'],
+                'Bailey Delay PM': loc_sum[:, 'PM Total VHT'],
+                'Bailey Delay NT': loc_sum[:, 'NT Total VHT']                                    
+            },
+            # The TransCAD macro that creates the file SUMMARY_VMTVHT.csv
+            # does not attach a header row with column names, so we
+            # need to give column names here to enable the label-based
+            # loc getters above.
+            names=[
+                'Daily Auto VMT', 'Daily Truck VMT',
+                'Daily Total VMT', 'Daily Auto VHT',
+                'Daily Truck VHT', 'Daily Total VHT','Daily Auto FFVHT',
+                'Daily Truck FFVHT', 'Daily Total FFVHT',
+                'AM Auto VMT', 'AM Truck VMT', 'AM Total VMT',
+                'MD Auto VMT', 'MD Truck VMT', 'MD Total VMT',
+                'PM Auto VMT', 'PM Truck VMT', 'PM Total VMT',
+                'NT Auto VMT', 'NT Truck VMT', 'NT Total VMT',
+                'AM Auto VHT', 'AM Truck VHT', 'AM Total VHT',
+                'MD Auto VHT', 'MD Truck VHT', 'MD Total VHT',
+                'PM Auto VHT', 'PM Truck VHT', 'PM Total VHT',
+                'NT Auto VHT', 'NT Truck VHT', 'NT Total VHT',
+                'AM Auto FFVHT', 'AM Truck FFVHT', 'AM Total FFVHT',
+                'MD Auto FFVHT', 'MD Truck FFVHT', 'MD Total FFVHT',
+                'PM Auto FFVHT', 'PM Truck FFVHT', 'PM Total FFVHT',
+                'NT Auto FFVHT', 'NT Truck FFVHT', 'NT Total FFVHT'
             ]
         ),
 
@@ -488,9 +609,36 @@ class GBNRTCModel(FilesCoreModel):
         ),
 
         TableParser(
+            "bailey_mode_share.csv",
+            {
+                "Bailey Peak Transit Share"          : loc[0, 'pk_transit_share'],
+                "Bailey Peak NonMotorized Share"     : loc[0, 'pk_nonmot_share'],
+                "Bailey Off-Peak Transit Share"      : loc[0, 'op_transit_share'],
+                "Bailey Off-Peak NonMotorized Share" : loc[0, 'op_nonmot_share'],
+                "Bailey Transit share"               : loc[0, 'dly_transit_share'],
+                "Bailey NonMotorized share"          : loc[0, 'dly_nonmot_share'],
+            }
+        ),
+
+        TableParser(
+            "bailey_trip_summary.csv",
+            {
+                "Regional trips to/from Bailey"       : (loc[0, 'pk_total'] + 
+                                                        loc[0, 'op_total'])
+            }
+        ),
+
+        TableParser(
             "HH_within_30min.csv",
             {
                 "Households within 30 min of CBD": loc[0, 'HHs within 30 min of CBD'],
+            }
+        ),
+
+        TableParser(
+            "EMP_within_20min_of_BLY.csv",
+            {
+                "Employment < 20 transit mins from Bailey": loc[0, 'EMPs within 20 min of BLY'],
             }
         ),
 
