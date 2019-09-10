@@ -7,6 +7,10 @@ Installation and Configuration
 
 Installation of TMIP-EMAT is currently a manual process.
 
+.. toctree::
+
+    emat.git
+
 Instructions for installing via `Anaconda <https://www.anaconda.com/download>`_
 will be published here when that installation path is available.
 
