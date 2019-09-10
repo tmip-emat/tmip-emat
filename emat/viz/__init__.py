@@ -92,7 +92,8 @@ def scatter_graphs(
 		y_title=y_title,
 		layout=dict(
 			margin=dict(l=50, r=2, t=5, b=40)
-		)
+		),
+		short_name_func=scope.shortname if scope is not None else None,
 	)
 
 	if render:
@@ -201,6 +202,7 @@ def scatter_graphs_2(
 			),
 			output=fig,
 			C=colorcycle.__next__(),
+			short_name_func=scope.shortname if scope is not None else None,
 		)
 
 	if render:

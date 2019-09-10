@@ -379,6 +379,7 @@ def scatter_graph_row(
 		metadata=None,
 		marker_opacity=1.0,
 		layout=None,
+		short_name_func=None,
 		**kwargs
 ):
 	"""Generate a scatter plot.
@@ -430,18 +431,23 @@ def scatter_graph_row(
 	metadata : dict, optional
 		A dictionary of meta-data to attach to the FigureWidget.  Only attached
 		if the return type is FigureWidget.
-
+	short_name_func : callable, optional
+		A function that converts names to short names, which might display better
+		on the figure.
 
 	Returns
 	-------
 	fig
 	"""
 
+	if short_name_func is None:
+		short_name_func = lambda x: x
+
 	x_names = [get_name(x, True) for x in X]
 	y_name = get_name(Y, True)
 
 	if y_name != '':
-		kwargs['y_title'] = kwargs.get('y_title', y_name)
+		kwargs['y_title'] = kwargs.get('y_title', short_name_func(y_name))
 
 	if not isinstance(X, list):
 		X = [X]
@@ -510,22 +516,14 @@ def scatter_graph_row(
 	X_data_1 = []
 	X_data_ticks = {}
 
+	from .perturbation import perturb_categorical
 	for tracenum, x in enumerate(X_data):
-		if hasattr(x, 'dtype'):
-			try:
-				perturb_ = numpy.issubdtype(x.dtype, numpy.bool_)
-			except:
-				perturb_ = False
-			if perturb_:
-				s_ = x.size*0.01
-				s_ = s_ / (1+s_)
-				epsilon = 0.05 + 0.25 * s_
-				x = numpy.asarray(x, dtype=float) + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
-				X_data_ticks[tracenum] = (
-					[-epsilon-padding, 1+epsilon+padding],
-					[-epsilon-padding, 0, 1, 1+epsilon+padding],
-					["", "False", "True", ""],
-				)
+		x, x_ticktext, x_tickvals, x_range, valid_scales = perturb_categorical(x, range_padding=padding)
+		X_data_ticks[tracenum] = (
+			x_range,
+			x_tickvals,
+			x_ticktext,
+		)
 		X_data_1.append(x)
 
 
@@ -570,7 +568,7 @@ def scatter_graph_row(
 	for i, dom0, dom1, t in zip(range(n_traces), domain_starts, domain_stops, x_names):
 		xaxis_dicts[f'xaxis{i+1}'] = dict(
 			domain=[dom0,dom1],
-			title=t,
+			title=short_name_func(t),
 			zeroline=False,
 		)
 		if i in X_data_ticks:
