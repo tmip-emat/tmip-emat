@@ -497,6 +497,8 @@ class Scope:
                 elif correct_dtype == 'cat':
                     t = df[col].apply(lambda z: z.value if isinstance(z,Category) else z)
                     df[col] = pandas.Categorical(t, categories=cat_values, ordered=True)
+                elif correct_dtype is None and df[col].dtype is numpy.dtype('O'):
+                    df[col] = df[col].astype(float)
 
         return df
 

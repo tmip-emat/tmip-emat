@@ -26,10 +26,8 @@ class Measure(ScalarOutcome, ShortnameMixin):
             and can potentially be any Python object. For example, if the
             model is an Excel model, this can be a cell reference given
             as a `str`.
-        dtype (dtype, optional): The desired dtype to be enforced for this
-            measure, e.g. 'int', 'float32', etc.  This is optional, and if
-            not given, some default dtype will be used, typically whatever
-            is returned by the core model, or a `float` for metamodels.
+        dtype ({'real','int','bool','cat'}, default 'real'): The desired
+            dtype to be enforced for this measure.
         function (callable, optional): A callable function that will be
             used to transform the raw measure as returned by a core model.
             This transformation will be applied to core model results by
@@ -129,7 +127,7 @@ class Measure(ScalarOutcome, ShortnameMixin):
                          variable_name=variable_name)
         self.transform = transform if transform is not None else 'none'
         self.address = address
-        self.dtype = dtype
+        self.dtype = dtype if dtype is not None else 'real'
         self.metamodeltype = metamodeltype if metamodeltype is not None else 'linear'
         self._shortname = shortname
 

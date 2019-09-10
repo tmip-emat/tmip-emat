@@ -245,7 +245,7 @@ class MetaModel:
         input_sample = self.var_thresh.transform(input_sample)
 
         self.input_sample = input_sample
-        self.output_sample = output_sample.copy(deep=(metamodel_types is not None))
+        self.output_sample = output_sample.copy(deep=(metamodel_types is not None)).astype(float)
         self.sample_stratification = sample_stratification
 
         self.output_transforms = {}
