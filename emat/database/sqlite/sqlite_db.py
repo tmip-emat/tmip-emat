@@ -563,6 +563,7 @@ class SQLiteDB(Database):
             design_name,
             source=None,
             only_pending=False,
+            only_complete=False,
             ensure_dtypes=False,
     ) ->pd.DataFrame:
         scope_name = self._validate_scope(scope_name, 'design')
@@ -617,6 +618,10 @@ class SQLiteDB(Database):
                 + self.read_measures(scope_name)
         )
         result = ex_xlm[[i for i in column_order if i in ex_xlm.columns]]
+
+        if only_complete:
+            result = result[~result.isna().any(axis=1)]
+
         if ensure_dtypes:
             scope = self.read_scope(scope_name)
             result = scope.ensure_dtypes(result)
