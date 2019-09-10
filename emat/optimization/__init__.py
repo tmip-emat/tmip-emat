@@ -1,3 +1,3 @@
 
 
-from .optimization import HyperVolume, EpsilonProgress, SolutionViewer, ConvergenceMetrics
+from .optimization import HyperVolume, EpsilonProgress, SolutionViewer, ConvergenceMetrics, SolutionCount

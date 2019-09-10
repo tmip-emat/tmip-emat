@@ -1,12 +1,79 @@
 
 from plotly.offline import iplot
 import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 import itertools
 import numpy
 import pandas
+from typing import Mapping
 
 from .widget import FigureWidget
 from .common import get_name, any_names
+
+
+class ScatterMass:
+
+	def __init__(self, target=1000, minimum=0.1):
+		if isinstance(target, ScatterMass):
+			self.target = target.target
+			self.minimum = target.minimum
+		elif isinstance(target, Mapping):
+			self.target = target.get('target', 1000)
+			self.minimum = target.get('minimum', 0.1)
+		else:
+			self.target = target
+			self.minimum = minimum
+
+	def get_opacity(self, arr):
+		"""
+		Get opacity for markers.
+
+		Parameters
+		----------
+		arr: array-like
+
+		Returns
+		-------
+		alpha
+		"""
+		alpha = 1.0
+		n = arr.shape[0]
+		if n > self.target:
+			alpha = self.target / n
+		if alpha < self.minimum:
+			alpha = self.minimum
+		return alpha
+
+	def get_opacity_with_selection(self, arr, selection):
+		"""
+		Get opacity for selected and unselected markers.
+
+		Parameters
+		----------
+		arr: array-like, shape[N,...]
+		selection: array-like[bool], shape[N]
+
+		Returns
+		-------
+		alpha_selected, alpha_unselected
+		"""
+		alpha_selected, alpha_unselected = [1.0, 1.0]
+		n = arr.shape[0]
+		n_selected = int(selection.sum())
+		n_unselect = n - n_selected
+
+		if n_unselect > self.target:
+			alpha_unselected = self.target / n_unselect
+		if alpha_unselected < self.minimum:
+			alpha_unselected = self.minimum
+
+		if n_selected > self.target:
+			alpha_selected = self.target / n_selected
+		if alpha_selected < self.minimum:
+			alpha_selected = self.minimum
+		return alpha_selected, alpha_unselected
+
+
 
 def simple_scatter_explicit(x,y, title=None, xtitle=None, ytitle=None):
 	# Create a trace
@@ -85,6 +152,7 @@ def scatter_graph(
 		sizemin=None,
 		sizemode='area',
 		sizeref=None,
+		opacity=1.0,
 		cats=None,
 		n_cats=None,
 		cat_fmt=".2g",
@@ -161,6 +229,8 @@ def scatter_graph(
 		Y = [Y]
 	if not isinstance(S, list):
 		S = [S]
+	if not isinstance(opacity, list):
+		opacity = [opacity]
 
 	longer_XY = X if (len(X) >= len(Y)) else Y
 
@@ -238,15 +308,17 @@ def scatter_graph(
 					sizemode=sizemode,
 					sizeref=sizeref,
 					sizemin=sizemin,
+					opacity=opaque,
 				),
 				name=n if legend_label=='' else legend_label,
 			)
-			for x,y,s,tracenum,legend_label in zip(
+			for x,y,s,tracenum,legend_label,opaque in zip(
 				itertools.cycle(X_data[n]),
 				itertools.cycle(Y_data[n]),
 				itertools.cycle(S_data[n]),
 				range(max(len(X_data[n]), len(Y_data[n]), len(S_data[n]))),
 				itertools.cycle(legend_labels) if legend_labels is not None else itertools.cycle(['']),
+				itertools.cycle(opacity),
 			)
 		]
 
@@ -287,6 +359,7 @@ def scatter_graph_row(
 		X,
 		Y,
 		S=None,
+		C=None,
 		*,
 		df=None,
 		title=None,
@@ -305,6 +378,7 @@ def scatter_graph_row(
 		output='widget',
 		metadata=None,
 		marker_opacity=1.0,
+		layout=None,
 		**kwargs
 ):
 	"""Generate a scatter plot.
@@ -375,6 +449,8 @@ def scatter_graph_row(
 		Y = [Y]
 	if not isinstance(S, list):
 		S = [S]
+	if not isinstance(C, list):
+		C = [C]
 
 	longer_XY = X if (len(X) >= len(Y)) else Y
 
@@ -453,29 +529,37 @@ def scatter_graph_row(
 		X_data_1.append(x)
 
 
-	for x, y, s, tracenum, legend_label in zip(
+	for x, y, s, tracenum, legend_label, tracecolor in zip(
 			itertools.cycle(X_data_1),
 			itertools.cycle(Y_data),
 			itertools.cycle(S_data),
 			range(max(len(X_data), len(Y_data), len(S_data))),
 			itertools.cycle(legend_labels) if legend_labels is not None else itertools.cycle(['']),
+			itertools.cycle(C),
 	):
-		i = go.Scattergl(
-			x = x,
-			y = y,
-			mode = 'markers',
-			marker=dict(
-				size=s,
-				sizemode=sizemode,
-				sizeref=sizeref,
-				sizemin=sizemin,
-				opacity=marker_opacity,
-			),
-			name=legend_label,
-			xaxis=f'x{tracenum+1}',
-		)
-		traces.append(i)
+		if x is not None:
+			i = go.Scattergl(
+				x = x,
+				y = y,
+				mode = 'markers',
+				marker=dict(
+					size=s,
+					sizemode=sizemode,
+					sizeref=sizeref,
+					sizemin=sizemin,
+					opacity=marker_opacity,
+					color=tracecolor,
+				),
+				name=legend_label,
+				xaxis=f'x{tracenum+1}',
+			)
+			traces.append(i)
 
+	if isinstance(output, go.FigureWidget):
+		with output.batch_update():
+			for t_num, t in enumerate(traces):
+				output.add_trace(t)
+		return output
 
 	n_traces = max(len(X_data), len(Y_data), len(S_data))
 	domain_starts = (numpy.arange(n_traces)) / (n_traces - 0.1)
@@ -494,6 +578,7 @@ def scatter_graph_row(
 			xaxis_dicts[f'xaxis{i + 1}']['tickvals'] = X_data_ticks[i][1]
 			xaxis_dicts[f'xaxis{i + 1}']['ticktext'] = X_data_ticks[i][2]
 
+	layout_kwds = {} if layout is None else layout
 	layout= go.Layout(
 		title= title,
 		hovermode= 'closest',
@@ -503,6 +588,7 @@ def scatter_graph_row(
 		paper_bgcolor=paper_bgcolor,
 		plot_bgcolor=plot_bgcolor,
 		**xaxis_dicts,
+		**layout_kwds,
 	)
 
 	# if not axis_labels:

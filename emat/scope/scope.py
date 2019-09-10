@@ -244,7 +244,13 @@ class Scope:
         y = self.dump(strip_measure_transforms=strip_measure_transforms,
                       include_measures=include_measures,
                       exclude_measures=exclude_measures,)
-        return type(self)(self.scope_file, scope_def=y)
+        try:
+            return type(self)(self.scope_file, scope_def=y)
+        except:
+            print("~"*20)
+            print(y)
+            print("~"*20)
+            raise
 
     def dump(
             self,
@@ -455,6 +461,12 @@ class Scope:
                 return i
         raise KeyError(item)
 
+    def __contains__(self, item):
+        for i in itertools.chain(self._x_list, self._l_list, self._c_list, self._m_list):
+            if i.name == item:
+                return True
+        return False
+
     def ensure_dtypes(self, df):
         """
         Convert columns of dataframe to correct dtype as needed.
@@ -480,7 +492,8 @@ class Scope:
                 elif correct_dtype == 'int':
                     df[col] = df[col].astype(int)
                 elif correct_dtype == 'bool':
-                    df[col] = df[col].astype(bool)
+                    t = df[col].apply(lambda z: z.value if isinstance(z,Category) else z)
+                    df[col] = t.astype(bool)
                 elif correct_dtype == 'cat':
                     t = df[col].apply(lambda z: z.value if isinstance(z,Category) else z)
                     df[col] = pandas.Categorical(t, categories=cat_values, ordered=True)
@@ -577,3 +590,45 @@ class Scope:
 
         from ..experiment import experimental_design
         return experimental_design.design_experiments(self, *args, **kwargs)
+
+    def _any_correlated_parameters(self):
+        for p in self.get_parameters():
+            if len(p.corr):
+                return True
+        return False
+
+    def get_density(self, *args, **kwargs):
+        """
+        Compute the parametric density at any point.
+        """
+        if self._any_correlated_parameters():
+            raise NotImplementedError("density with correlated parameters is coming soon")
+
+        if args:
+            for arg in args:
+                kwargs.update(arg)
+
+        density = 1.0
+        for p in self.get_parameters():
+            value = kwargs.get(p.name, p.default)
+            density *= p.dist.pdf(value)
+        return density
+
+    def shortname(self, name):
+        """
+        Get a shortname, if available, for any named parameter or measure.
+
+        Args:
+            name: str
+        Returns:
+            str
+        """
+        try:
+            x = self[name]
+        except KeyError:
+            return name
+        else:
+            try:
+                return x.shortname
+            except:
+                return name

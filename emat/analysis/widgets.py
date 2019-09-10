@@ -1,9 +1,9 @@
 
-from ipywidgets import Box, widget_selection, ToggleButton, Layout, Label, Widget
+from ipywidgets import Box, widget_selection, ToggleButton, Layout, Label, Widget, Checkbox
 import traitlets
 
 
-class MultiToggleButtons(Box):
+class MultiToggleButtons_AllOrSome(Box):
 	description = traitlets.Unicode()
 	value = traitlets.Tuple()
 	options = traitlets.Union([traitlets.List(), traitlets.Dict()])
@@ -31,9 +31,15 @@ class MultiToggleButtons(Box):
 
 			@observer(self.buttons, 'value')
 			def _(*_):
-				self.value = tuple(value
+				proposed_value = tuple(value
 								   for btn, value in zip(self.buttons, self._selection_obj._options_values)
 								   if btn.value)
+				# When nothing is selected, treat as if everything is selected.
+				if len(proposed_value) == 0:
+					proposed_value = tuple(value
+									   for btn, value in zip(self.buttons, self._selection_obj._options_values)
+									   )
+				self.value = proposed_value
 
 		self.add_class('btn-group')
 
@@ -65,4 +71,15 @@ def observer(widgets, trait_name):
 		func()
 
 	return wrapper
+
+
+from traitlets import Unicode
+from ipywidgets import DOMWidget, register
+
+
+
+@register
+class NamedCheckbox(Checkbox):
+	name = Unicode('').tag(sync=True)
+
 

@@ -6,6 +6,8 @@ This module contains code for logging emat processes.
 
 from functools import wraps
 import inspect
+import time
+from contextlib import contextmanager
 
 import logging
 from logging import DEBUG, INFO
@@ -136,3 +138,60 @@ def log_to_stderr(level=None, top=False):
 
     return get_logger()
 
+def timesize_stack(t):
+    if t<60:
+        return f"{t:.2f}s"
+    elif t<3600:
+        return f"{t//60:.0f}m {timesize_stack(t%60)}"
+    elif t<86400:
+        return f"{t//3600:.0f}h {timesize_stack(t%3600)}"
+    else:
+        return f"{t//86400:.0f}d {timesize_stack(t%86400)}"
+
+@contextmanager
+def timing_log(label=''):
+    log = get_logger()
+    start_time = time.time()
+    log.critical(f"<TIME BEGINS> {label}")
+    try:
+        yield
+    except:
+        log.critical(f"<TIME ERROR!> {label} <{timesize_stack(time.time()-start_time)}>")
+        raise
+    else:
+        log.critical(f"< TIME ENDS > {label} <{timesize_stack(time.time()-start_time)}>")
+
+
+class TimingLog:
+
+    def __init__(self, label='', log=None, level=50):
+        if log is None:
+            log = get_logger()
+        self.label = label
+        self.log = log
+        self.level = level
+        self.split_time = None
+        self.current_task = ''
+
+    def __enter__(self):
+        self.start_time = time.time()
+        self.log.log(self.level, f"<BEGIN> {self.label}")
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        now = time.time()
+        if self.split_time is not None:
+            self.log.log(self.level, f"<SPLIT> {self.label} <{timesize_stack(now - self.split_time)}>")
+        if exc_type is None:
+            self.log.log(self.level, f"<-END-> {self.label} <{timesize_stack(now - self.start_time)}>")
+        else:
+            self.log.log(self.level, f"<ERROR> {self.label} <{timesize_stack(now - self.start_time)}>")
+
+    def split(self, note=''):
+        if self.split_time is None:
+            self.split_time = self.start_time
+        now = time.time()
+        if note:
+            note = " / " + note
+        self.log.log(self.level, f"<SPLIT> {self.label}{note} <{timesize_stack(now - self.split_time)}>")
+        self.split_time = now

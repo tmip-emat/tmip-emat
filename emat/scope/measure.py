@@ -2,9 +2,9 @@
 
 import numpy
 from ema_workbench import ScalarOutcome
+from .names import ShortnameMixin
 
-
-class Measure(ScalarOutcome):
+class Measure(ScalarOutcome, ShortnameMixin):
     '''
     Measure represents an outcome measure of the model.
 
@@ -95,6 +95,7 @@ class Measure(ScalarOutcome):
             transform=None,
             variable_name=None,
             metamodeltype=None,
+            shortname=None,
     ):
 
         if isinstance(kind, str):
@@ -130,7 +131,9 @@ class Measure(ScalarOutcome):
         self.address = address
         self.dtype = dtype
         self.metamodeltype = metamodeltype if metamodeltype is not None else 'linear'
+        self._shortname = shortname
 
     def __repr__(self):
         return super().__repr__()
+
 

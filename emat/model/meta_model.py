@@ -3,14 +3,144 @@
 import pandas
 import numpy
 from typing import Mapping
-from .. import multitarget
+from ..learn.base import clone_or_construct
+from ..learn.boosting import LinearAndGaussian
 from ..util.one_hot import OneHotCatEncoder
+from ..util.variance_threshold import VarianceThreshold
 from ..experiment.experimental_design import batch_pick_new_experiments, minimum_weighted_distance
 from ..database.database import Database
 from ..scope.scope import Scope
 
 from ..util.loggers import get_module_logger
 _logger = get_module_logger(__name__)
+
+
+def create_metamodel(
+        scope,
+        experiments: pandas.DataFrame,
+        metamodel_id: int = None,
+        db=None,
+        include_measures=None,
+        exclude_measures=None,
+        random_state=None,
+        experiment_stratification=None,
+        suppress_converge_warnings=False,
+        regressor=None,
+        name=None,
+):
+    """
+    Create a MetaModel from a set of input and output observations.
+
+    Args:
+        experiments (pandas.DataFrame): This dataframe
+            should contain all of the experimental inputs and outputs,
+            including values for each uncertainty, level, constant, and
+            performance measure.
+        metamodel_id (int, optional): An identifier for this meta-model.
+            If not given, a unique id number will be created randomly
+            (if not `db` is given) or sequentially based on any existing
+            metamodels already stored in the database.
+        db (Database, optional): The database to use for loading and
+            saving metamodels. If none is given here, the metamodel will
+            not be stored in a database otherwise, the metamodel is
+            automatically saved to the database after it is created.
+        include_measures (Collection[str], optional): If provided, only
+            output performance measures with names in this set will be included.
+        exclude_measures (Collection[str], optional): If provided, only
+            output performance measures with names not in this set will be included.
+        random_state (int, optional): A random state to use in the metamodel
+            regression fitting.
+        experiment_stratification (pandas.Series, optional):
+            A stratification of experiments, used in cross-validation.
+        suppress_converge_warnings (bool, default False):
+            Suppress convergence warnings during metamodel fitting.
+        regressor (Estimator, optional): A scikit-learn estimator implementing a
+            multi-target regression.  If not given, a detrended simple Gaussian
+            process regression is used.
+        name (str, optional): A descriptive name for this metamodel.
+
+    Returns:
+        PythonCoreModel:
+            a callable object that, when called as if a
+            function, accepts keyword arguments as inputs and
+            returns a dictionary of (measure name: value) pairs.
+    """
+    _logger.info("creating metamodel from data")
+
+    from .core_python import PythonCoreModel
+
+    experiments = scope.ensure_dtypes(experiments)
+
+    meas = []
+    for j in scope.get_measure_names():
+        if include_measures is not None and j not in include_measures:
+            continue
+        if exclude_measures is not None and j in exclude_measures:
+            continue
+        if j not in experiments:
+            continue
+        meas.append(j)
+    experiment_outputs = experiments[meas]
+
+    params = []
+    for j in scope.get_parameter_names():
+        if j not in experiments:
+            continue
+        params.append(j)
+    experiment_inputs = experiments[params]
+
+    if metamodel_id is None:
+        if db is not None:
+            metamodel_id = db.get_new_metamodel_id(scope.name)
+        else:
+            metamodel_id = numpy.random.randint(1, 2 ** 63, dtype='int64')
+
+    output_transforms = {
+        i.name: i.metamodeltype
+        for i in scope.get_measures()
+    }
+
+    output_transforms = {i: output_transforms[i]
+                         for i in output_transforms
+                         if i in meas}
+
+    disabled_outputs = [i for i in scope.get_measure_names()
+                        if i not in experiment_outputs.columns]
+
+    func = MetaModel(
+        experiment_inputs,
+        experiment_outputs,
+        output_transforms,
+        disabled_outputs,
+        random_state,
+        experiment_stratification,
+        suppress_converge_warnings=suppress_converge_warnings,
+        regressor=regressor,
+    )
+
+    scope_ = scope.duplicate(
+        strip_measure_transforms=True,
+        include_measures=include_measures,
+        exclude_measures=exclude_measures,
+    )
+
+    result = PythonCoreModel(
+        func,
+        configuration=None,
+        scope=scope_,
+        safe=True,
+        db=db,
+        name=name or f"MetaModel{metamodel_id}",
+        metamodel_id=metamodel_id,
+    )
+
+    if db is not None:
+        try:
+            db.write_metamodel(result)
+        except Exception as err:
+            _logger.exception("exception in storing metamodel in database")
+
+    return result
 
 
 class MetaModel:
@@ -49,6 +179,9 @@ class MetaModel:
               fitting the regression model.  This allows shifting the position of the
               regression intercept to a point other than 0.
 
+            + *clip(LO,HI)*: A linear model is used, but results are truncated to the range
+              (LO,HI). Set either value as None to have a one-sided truncation range.
+
             + *linear*: No transforms are made.  This is the default when a performance
               measure is not included in `metamodel_types`.
 
@@ -60,7 +193,12 @@ class MetaModel:
             names that are *not* included, as disabling outputs that are included will not
             prevent these values from being included in the computational process.
 
-        random_state (int, optional): A random state, passed to the created regression.
+        random_state (int, optional): A random state, passed to the created regression
+            (but only if that regressor includes a 'random_state' parameter).
+
+        regressor (Estimator, optional): A scikit-learn estimator implementing a
+            multi-target regression.  If not given, a detrended simple Gaussian
+            process regression is used.
     """
 
     _metamodel_types = {
@@ -69,9 +207,10 @@ class MetaModel:
         'ln': (numpy.log, numpy.exp),
         'log1p': (numpy.log1p, numpy.expm1),
         'log1p-linear': (numpy.log1p, numpy.expm1),
-
+        # x is applied immediate from arguments in metamodeltype string, y is the eventual data
         'logxp': (lambda x: (lambda y: numpy.log(y + x)), lambda x: (lambda y: numpy.exp(y) - x)),
         'logxp-linear': (lambda x: (lambda y: numpy.log(y + x)), lambda x: (lambda y: numpy.exp(y) - x)),
+        'clip': (lambda x: (lambda y: y), lambda x: (lambda y: numpy.clip(y, *x))),
     }
 
     def __init__(
@@ -80,7 +219,11 @@ class MetaModel:
             output_sample,
             metamodel_types=None,
             disabled_outputs=None,
-            random_state=None
+            random_state=None,
+            sample_stratification=None,
+            suppress_converge_warnings=False,
+            regressor=None,
+            use_best_cv=True,
     ):
 
         if not isinstance(input_sample, pandas.DataFrame):
@@ -98,8 +241,12 @@ class MetaModel:
         input_sample = self.cat_encoder.transform(input_sample)
         input_sample = input_sample.astype(numpy.float64)
 
+        self.var_thresh = VarianceThreshold().fit(input_sample)
+        input_sample = self.var_thresh.transform(input_sample)
+
         self.input_sample = input_sample
         self.output_sample = output_sample.copy(deep=(metamodel_types is not None))
+        self.sample_stratification = sample_stratification
 
         self.output_transforms = {}
         if metamodel_types is not None:
@@ -132,8 +279,26 @@ class MetaModel:
         for k, (v_func,_) in self.output_transforms.items():
             self.output_sample[k] = v_func(self.output_sample[k])
 
-        self.regression = multitarget.DetrendedMultipleTargetRegression(random_state=random_state)
-        self.regression.fit(self.input_sample, self.output_sample)
+        if regressor is None:
+            regressor = LinearAndGaussian()
+
+        self.regression = clone_or_construct(regressor)
+
+        if random_state is not None and 'random_state' in self.regression.get_params():
+            self.regression.set_params(random_state=random_state)
+
+        if suppress_converge_warnings:
+            from sklearn.gaussian_process.gpr import ConvergenceWarning
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=ConvergenceWarning)
+                self.regression.fit(self.input_sample, self.output_sample)
+        else:
+            self.regression.fit(self.input_sample, self.output_sample)
+
+        if use_best_cv:
+            from ..learn.model_selection import take_best
+            self.regression = take_best(self.regression)
 
     def preprocess_raw_input(self, df, to_type=None):
         """
@@ -156,9 +321,10 @@ class MetaModel:
         result = self.cat_encoder.transform(df[self.raw_input_columns])
         if to_type is not None:
             result = result.astype(to_type)
+        result = self.var_thresh.transform(result)
         return result
 
-    def __call__(self, **kwargs):
+    def __call__(self, *args, **kwargs):
         """
         Evaluate the meta-model.
 
@@ -171,8 +337,21 @@ class MetaModel:
             dict:
                 A single dictionary containing all performance measure outcomes.
         """
+        if len(args) == 1:
+            if isinstance(args[0], pandas.DataFrame):
+                return args[0].apply(
+                    lambda x: pandas.Series(self.__call__(**x)),
+                    axis=1,
+                )
+            else:
+                raise TypeError(f'mm(...) optionally takes a DataFrame as a '
+                                f'positional argument, not {type(args[0])}')
+        elif len(args) > 1:
+            raise TypeError(f'mm(...) takes at most one '
+                            f'positional argument, not {len(args)}')
+
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.cat_encoder.transform(input_row)
+        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float)
 
         output_row = self.regression.predict(input_row)
         result = dict(output_row.iloc[0])
@@ -186,11 +365,12 @@ class MetaModel:
 
         return result
 
-    def compute_std(self, **kwargs):
+    def compute_std(self, *args, **kwargs):
         """
         Evaluate standard deviations of estimates generated by the meta-model.
 
         Args:
+            df (pandas.DataFrame, optional)
             **kwargs:
                 All defined (meta)model parameters are passed as keyword
                 arguments, including both uncertainties and levers.
@@ -200,8 +380,21 @@ class MetaModel:
                 A single dictionary containing the standard deviaition of the
                 estimate of all performance measure outcomes.
         """
+        if len(args) == 1:
+            if isinstance(args[0], pandas.DataFrame):
+                return args[0].apply(
+                    lambda x: pandas.Series(self.compute_std(**x)),
+                    axis=1,
+                )
+            else:
+                raise TypeError(f'compute_std() optionally takes a DataFrame as a '
+                                f'positional argument, not {type(args[0])}')
+        elif len(args) > 1:
+            raise TypeError(f'compute_std() takes at most one '
+                            f'positional argument, not {len(args)}')
+
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.cat_encoder.transform(input_row)
+        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float)
 
         output_row, output_std = self.regression.predict(input_row, return_std=True)
 
@@ -216,8 +409,58 @@ class MetaModel:
 
         return result
 
+    def predict(self, *args, trend_only=False, residual_only=False, **kwargs):
+        """
+        Generate predictions using the meta-model.
 
-    def cross_val_scores(self, cv=5, gpr_only=False):
+        Args:
+            df (pandas.DataFrame, optional)
+            trend_only, residual_only (bool)
+            **kwargs:
+                All defined (meta)model parameters are passed as keyword
+                arguments, including both uncertainties and levers.
+
+        Returns:
+            dict:
+                A single dictionary containing the standard deviaition of the
+                estimate of all performance measure outcomes.
+        """
+        if len(args) == 1:
+            if isinstance(args[0], pandas.DataFrame):
+                return args[0].apply(
+                    lambda x: pandas.Series(self.predict(**x, trend_only=trend_only, residual_only=residual_only)),
+                    axis=1,
+                )
+            else:
+                raise TypeError(f'predict() optionally takes a DataFrame as a '
+                                f'positional argument, not {type(args[0])}')
+        elif len(args) > 1:
+            raise TypeError(f'predict() takes at most one '
+                            f'positional argument, not {len(args)}')
+
+        input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
+        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float)
+
+        if trend_only:
+            output_row = self.regression.detrend_predict(input_row)
+        elif residual_only:
+            output_row = self.regression.residual_predict(input_row)
+        else:
+            output_row = self.regression.predict(input_row)
+
+        result = dict(output_row.iloc[0])
+
+        # undo the output transforms
+        for k, (_,v_func) in self.output_transforms.items():
+            result[k] = v_func(result[k])
+
+        for i in self.disabled_outputs:
+            result[i] = None
+
+        return result
+
+
+    def cross_val_scores(self, cv=5, gpr_only=False, **kwargs):
         """
         Calculate the cross validation scores for this meta-model.
 
@@ -234,11 +477,35 @@ class MetaModel:
             pandas.Series: The cross-validation scores, by output.
 
         """
+        if self.sample_stratification is not None:
+            from ..learn.splits import ExogenouslyStratifiedKFold
+            cv = ExogenouslyStratifiedKFold(exo_data=self.sample_stratification, n_splits=cv)
+
         if gpr_only:
-            residuals = self.regression.residual_predict(self.input_sample)
-            regression = multitarget.MultipleTargetRegression()
-            return regression.cross_val_scores(self.input_sample, residuals, cv=cv)
-        return self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv)
+            raise NotImplementedError
+            # residuals = self.regression.residual_predict(self.input_sample)
+            # regression = multitarget.MultipleTargetRegression()
+            # return regression.cross_val_scores(self.input_sample, residuals, cv=cv)
+        return self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv, **kwargs)
+
+    def cross_val_predicts(self, cv=5):
+        """
+        Generate cross validated predictions using this meta-model.
+
+        Args:
+            cv (int, default 5): The number of folds to use in
+                cross-validation. Set to zero for leave-one-out
+                (i.e., the maximum number of folds), which may be
+                quite slow.
+
+        Returns:
+            pandas.DataFrame: The cross-validated predictions.
+
+        """
+        if cv==0:
+            cv = len(self.input_sample)
+        return self.regression.cross_val_predict(self.input_sample, self.output_sample, cv=cv)
+
 
     def __repr__(self):
         in_dim = len(self.raw_input_columns)
@@ -323,6 +590,8 @@ class MetaModel:
             db: Database=None,
             design_name: str=None,
             debug=None,
+            future_experiments=None,
+            future_experiments_std=None,
     ):
         """
         Select a set of new experiments to perform from a pool of candidates.
@@ -375,9 +644,6 @@ class MetaModel:
 
         """
 
-        if debug:
-            debug_x, debug_y = debug
-
         dimension_weights = self.mix_length_scales(output_focus, inv=True)
         if debug:
             _logger.info(f"output_focus = {output_focus}")
@@ -386,22 +652,14 @@ class MetaModel:
 
         possible_experiments_processed = self.preprocess_raw_input(possible_experiments, float)
 
-        if debug:
-            mwd = minimum_weighted_distance(
-                self.input_sample,
-                possible_experiments,
-                dimension_weights
-            )
-
-            from matplotlib import pyplot as plt
-            plt.scatter(possible_experiments[debug_x], possible_experiments[debug_y], c=mwd)
-            plt.scatter(self.input_sample[debug_x], self.input_sample[debug_y], color='red')
-
         picks = batch_pick_new_experiments(
                 self.input_sample,
                 possible_experiments_processed,
                 batch_size,
                 dimension_weights,
+                future_experiments,
+                future_experiments_std,
+                debug=debug,
         )
 
         design = possible_experiments.loc[picks.index]
@@ -425,7 +683,105 @@ class MetaModel:
             design.index.name = 'experiment'
 
         if debug:
+            debug_x, debug_y = debug
+            mwd = minimum_weighted_distance(
+                self.input_sample,
+                possible_experiments,
+                dimension_weights
+            )
+
+            from matplotlib import pyplot as plt
+            plt.clf()
+            plt.scatter(possible_experiments[debug_x], possible_experiments[debug_y], c=mwd)
+            plt.scatter(self.input_sample[debug_x], self.input_sample[debug_y], color='red')
             plt.scatter(design[debug_x], design[debug_y], color="red", marker='x')
             plt.show()
 
         return design
+
+    def heuristic_pick_experiment(
+            self,
+            candidate_experiments,
+            poorness_of_fit,
+            candidate_density,
+            plot=True,
+    ):
+        candidate_std = self.compute_std(candidate_experiments)
+        candidate_raw_value = (poorness_of_fit * candidate_std).sum(axis=1)
+        candidate_wgt_value = candidate_raw_value * candidate_density
+        proposed_experiment = candidate_wgt_value.idxmax()
+        if plot:
+            from matplotlib import pyplot as plt
+            fig, axs = plt.subplots(1, 1, figsize=(4, 4))
+            axs.scatter(
+                candidate_experiments.iloc[:, 0],
+                candidate_experiments.iloc[:, 1],
+                c=candidate_wgt_value,
+            )
+            axs.scatter(
+                candidate_experiments.iloc[:, 0].loc[proposed_experiment],
+                candidate_experiments.iloc[:, 1].loc[proposed_experiment],
+                color="red", marker='x',
+            )
+            plt.show()
+            plt.close(fig)
+        return proposed_experiment
+
+    def heuristic_batch_pick_experiment(
+            self,
+            batch_size,
+            candidate_experiments,
+            scope,
+            poorness_of_fit=None,
+            plot=True,
+    ):
+        _logger.info(f"computing density")
+        candidate_density = candidate_experiments.apply(lambda x: scope.get_density(x), axis=1)
+
+        if poorness_of_fit is None:
+            _logger.info(f"computing poorness of fit")
+            crossval = self.cross_val_scores()
+            poorness_of_fit = dict(1 - crossval)
+
+        proposed_candidate_ids = set()
+        proposed_candidates = None
+
+        _logger.info(f"populating initial batch")
+        for i in range(batch_size):
+            self.regression.set_hypothetical_training_points(proposed_candidates)
+            proposed_id = self.heuristic_pick_experiment(
+                candidate_experiments,
+                poorness_of_fit,
+                candidate_density,
+                plot=plot,
+            )
+            proposed_candidate_ids.add(proposed_id)
+            proposed_candidates = candidate_experiments.loc[proposed_candidate_ids]
+
+        proposed_candidate_ids = list(proposed_candidate_ids)
+
+        _logger.info(f"initial batch complete, checking for exchanges")
+        # Exchanges
+        n_exchanges = 1
+        while n_exchanges > 0:
+            n_exchanges = 0
+            for i in range(batch_size):
+                provisionally_dropping = proposed_candidate_ids[i]
+                self.regression.set_hypothetical_training_points(
+                    candidate_experiments.loc[set(proposed_candidate_ids) - {provisionally_dropping}]
+                )
+                provisional_replacement = self.heuristic_pick_experiment(
+                    candidate_experiments,
+                    poorness_of_fit,
+                    candidate_density,
+                    plot=plot,
+                )
+                if provisional_replacement not in proposed_candidate_ids:
+                    n_exchanges += 1
+                    proposed_candidate_ids[i] = provisional_replacement
+                    _logger.info(f"replacing {provisionally_dropping} with {provisional_replacement}")
+            _logger.info(f"{n_exchanges} exchanges completed.")
+
+        self.regression.clear_hypothetical_training_points()
+        return proposed_candidates
+

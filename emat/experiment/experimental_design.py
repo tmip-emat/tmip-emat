@@ -85,6 +85,22 @@ def design_experiments(
     Returns:
         pandas.DataFrame: The resulting design.
     """
+    if db is False:
+        db = None
+
+    if sampler == 'uni':
+        return design_sensitivity_tests(scope, db, design_name or 'uni')
+
+    if not isinstance(sampler, AbstractSampler):
+        if sampler not in samplers:
+            raise ValueError(f"unknown sampler {sampler}")
+        else:
+            sample_generator = samplers[sampler]()
+    else:
+        sample_generator = sampler
+
+    np.random.seed(random_seed)
+
     if db is not None and design_name is not None:
         if design_name in db.read_design_names(scope.name):
             raise ValueError(f'the design "{design_name}" already exists for scope "{scope.name}"')
@@ -236,7 +252,7 @@ def design_sensitivity_tests(
 
 def minimum_weighted_distance(fixed_points, other_points, weights):
     """
-    Compute minimum weighted distance from one DataFrame to another.
+    Compute minimum weighted distance from one array of points to another.
 
     Args:
         fixed_points (array-like):
@@ -254,6 +270,85 @@ def minimum_weighted_distance(fixed_points, other_points, weights):
             in `fixed_points` and `other_points`.
 
     Returns:
+        numpy.ndarray:
+            The values correspond to the rows in `other_points`.
+    """
+    array1 = np.asarray(fixed_points, dtype=float)
+    array2 = np.asarray(other_points, dtype=float)
+    w = np.asarray(weights, dtype=float).reshape(1, -1)
+    result = np.zeros(array2.shape[0], dtype=float)
+
+    for i in range(array2.shape[0]):
+        row = array2[i, :].reshape(1, -1)
+        sq_dist_by_axis = (array1 - row) ** 2
+        result[i] = (sq_dist_by_axis * w).sum(1).min()
+    return result
+
+def count_within_buffer(fixed_points, other_points, weights, buffer_dist=1):
+    """
+    Count the number of fixed points in a buffer various selected points.
+
+    Args:
+        fixed_points (array-like):
+            The fixed reference points.  Each column is a dimension, and
+            each row is a point.  These are the points that will be counted.
+        other_points (array-like):
+            The candidate measurement points.  Each column is a dimension,
+            and each row is a point.  The columns must exactly
+            match the columns in `fixed_points`, while the number of rows
+            and the content thereof can be (and probably should be)
+            entirely different.  These are the center points of the
+            various buffers.
+        weights (vector):
+            A set of weights by dimension.
+            The values in this vector should correspond to the columns
+            in `fixed_points` and `other_points`.
+        buffer_dist (float, default 1):
+            A buffer distance.
+
+    Returns:
+        pandas.DataFrame:
+            The columns of the returned data correspond to the columns
+            in the `weights` input, and the row correspond to the rows
+            int the `df2` argument.
+    """
+    array1 = np.asarray(fixed_points, dtype=float)
+    array2 = np.asarray(other_points, dtype=float)
+    w = np.asarray(weights, dtype=float).reshape(1, -1)
+    result = np.zeros(array2.shape[0], dtype=int)
+
+    for i in range(array2.shape[0]):
+        row = array2[i, :].reshape(1, -1)
+        distances = np.sqrt(((array1 - row) ** 2) * w)
+        result[i] = (distances <= buffer_dist).sum()
+    return result
+
+def value_within_buffer(fixed_points, fixed_values, other_points, weights, buffer_dist=1):
+    """
+    Count the number of fixed points in a buffer various selected points.
+
+    Args:
+        fixed_points (array-like):
+            The fixed reference points.  Each column is a dimension, and
+            each row is a point.  These are the points that will be counted.
+        fixed_values (vector):
+            The values for each of the fixed points. Length is equal to
+            the number of rows in fixed_points.
+        other_points (array-like):
+            The candidate measurement points.  Each column is a dimension,
+            and each row is a point.  The columns must exactly
+            match the columns in `fixed_points`, while the number of rows
+            and the content thereof can be (and probably should be)
+            entirely different.  These are the center points of the
+            various buffers.
+        weights (vector):
+            A set of weights by dimension.
+            The values in this vector should correspond to the columns
+            in `fixed_points` and `other_points`.
+        buffer_dist (float, default 1):
+            A buffer distance.
+
+    Returns:
         pandas.DataFrame:
             The columns of the returned data correspond to the columns
             in the `weights` input, and the row correspond to the rows
@@ -266,9 +361,10 @@ def minimum_weighted_distance(fixed_points, other_points, weights):
 
     for i in range(array2.shape[0]):
         row = array2[i, :].reshape(1, -1)
-        sq_dist_by_axis = (array1 - row) ** 2
-        result[i] = (sq_dist_by_axis * w).sum(1).min()
+        distances = np.sqrt(((array1 - row) ** 2) * w)
+        result[i] = fixed_values[distances <= buffer_dist].sum()
     return result
+
 
 def minimum_weighted_distances(df1, df2, weights):
     """
@@ -308,11 +404,97 @@ def minimum_weighted_distances(df1, df2, weights):
     return result
 
 
+def _pick_one_new_experiment(
+        existing_experiments,
+        proposed_experiments,
+        possible_experiments,
+        dimension_weights,
+        future_experiments,
+        future_experiments_std,
+        buffer_weighting=1,
+        debug=None,
+):
+    """
+    Pick a single new experiment from a candidate population.
+
+    Args:
+        existing_experiments (pandas.DataFrame):
+            A set of existing experiments.  These experiments have
+            already been run through the core model and results are
+            available.  The data of this DataFrame should all be
+            of a format that is or can be cast to floating point
+            (i.e., no strings or categorical data).
+        proposed_experiments (pandas.DataFrame):
+            The set of existing experiments, plus any other experiments
+            that are already proposed to be completed.
+        possible_experiments (pandas.DataFrame):
+            A set of possible experiments.  These experiments have
+            not been run through the core model and computed full results
+            are not available.  The format of this DataFrame should be
+            identical to `existing_experiments` in data types and columns.
+        output_weights (Mapping):
+            The keys of this mapping correspond to output measures from
+            the core model and the values are relative importance weights.
+        distance_scales (pandas.DataFrame):
+            The distance scales to use.  The rows of this DataFrame should
+            correspond to the columns in the `experiments` arguments, and
+            the columns to keys in the `output_weights`.  Typically, this
+            argument is the inverse of the result from the
+            `get_length_scales` method of a `emat.MetaModel` that has been
+            fit on the existing experiment results.
+
+    Returns:
+        int
+            The row number from possible_experiments that is selected.
+    """
+    mwd = minimum_weighted_distance(
+        proposed_experiments,
+        possible_experiments,
+        dimension_weights
+    )
+
+    if future_experiments is not None:
+        cwb = value_within_buffer(
+            future_experiments,
+            future_experiments_std,
+            possible_experiments,
+            dimension_weights,
+            buffer_dist=1,
+        ).astype(float)
+        cwb /= cwb.max()
+
+        if debug:
+            from matplotlib import pyplot as plt
+            plt.clf()
+            scat = plt.scatter(possible_experiments[debug[0]], possible_experiments[debug[1]], c=mwd)
+            plt.colorbar(scat)
+            plt.scatter(proposed_experiments[debug[0]], proposed_experiments[debug[1]], color='red')
+            plt.scatter(existing_experiments[debug[0]], existing_experiments[debug[1]], color='pink', marker='x')
+            plt.title("minimum weighted distance")
+            plt.show()
+            plt.clf()
+            scat = plt.scatter(possible_experiments[debug[0]], possible_experiments[debug[1]], c=cwb)
+            plt.colorbar(scat)
+            plt.scatter(proposed_experiments[debug[0]], proposed_experiments[debug[1]], color='red')
+            plt.scatter(existing_experiments[debug[0]], existing_experiments[debug[1]], color='pink', marker='x')
+            plt.title("count within buffer")
+            plt.show()
+
+        mwd = mwd + (buffer_weighting * cwb)
+
+    new_candidate_experiment = mwd.argmax()
+    return new_candidate_experiment
+
+
 def batch_pick_new_experiments(
         existing_experiments,
         possible_experiments,
         batch_size,
         dimension_weights,
+        future_experiments,
+        future_experiments_std,
+        buffer_weighting = 1,
+        debug = None,
 ):
     """
     Pick a batch of new experiments from a candidate population.
@@ -351,13 +533,18 @@ def batch_pick_new_experiments(
 
     # Initial selection, greedy
     for i in range(batch_size):
-        new_candidate_experiment = minimum_weighted_distance(
+        new_candidate_experiment = _pick_one_new_experiment(
+            existing_experiments,
             proposed_experiments,
             possible_experiments,
-            dimension_weights
-        ).argmax()
+            dimension_weights,
+            future_experiments,
+            future_experiments_std,
+            buffer_weighting=buffer_weighting,
+            debug=debug,
+        )
         proposed_experiments = proposed_experiments.append(possible_experiments.iloc[new_candidate_experiment])
-        _logger.info(f"Selecting {proposed_experiments.index[-1]}")
+        _logger.info(f"selecting {proposed_experiments.index[-1]}")
 
     new_experiments = proposed_experiments.iloc[-batch_size:]
 
@@ -371,11 +558,21 @@ def batch_pick_new_experiments(
                 existing_experiments,
                 new_experiments.drop(new_experiments.index[i])
             ])
-            new_candidate_experiment = minimum_weighted_distance(
+            # new_candidate_experiment = minimum_weighted_distance(
+            #     proposed_experiments,
+            #     possible_experiments,
+            #     dimension_weights
+            # ).argmax()
+            new_candidate_experiment = _pick_one_new_experiment(
+                existing_experiments,
                 proposed_experiments,
                 possible_experiments,
-                dimension_weights
-            ).argmax()
+                dimension_weights,
+                future_experiments,
+                future_experiments_std,
+                buffer_weighting=buffer_weighting,
+                debug=debug,
+            )
             provisional_replacement = possible_experiments.index[new_candidate_experiment]
             if provisional_replacement != provisionally_dropping:
                 n_exchanges += 1
@@ -383,6 +580,99 @@ def batch_pick_new_experiments(
                 new_index[i] = provisional_replacement
                 new_experiments.index = new_index
                 new_experiments.iloc[i] = possible_experiments.iloc[new_candidate_experiment]
-                _logger.info(f"Replacing {provisionally_dropping} with {provisional_replacement}")
-        _logger.info(f"{n_exchanges} Fedorov Exchanges completed.")
+                _logger.info(f"replacing {provisionally_dropping} with {provisional_replacement}")
+        _logger.info(f"{n_exchanges} exchanges completed.")
     return new_experiments
+
+
+
+def heuristic_pick_experiment(
+    metamodel,
+    candidate_experiments,
+    poorness_of_fit,
+    candidate_density,
+    plot=True,
+):
+    candidate_std = metamodel.compute_std(candidate_experiments)
+    candidate_raw_value = (poorness_of_fit * candidate_std).sum(axis=1)
+    candidate_wgt_value = candidate_raw_value * candidate_density
+    proposed_experiment = candidate_wgt_value.idxmax()
+    if plot:
+        from matplotlib import pyplot as plt
+        fig, axs = plt.subplots(1,1, figsize=(4,4))
+        axs.scatter(
+            candidate_experiments.iloc[:,0],
+            candidate_experiments.iloc[:,1],
+            c=candidate_wgt_value,
+        )
+        axs.scatter(
+            candidate_experiments.iloc[:,0].loc[proposed_experiment],
+            candidate_experiments.iloc[:,1].loc[proposed_experiment],
+            color="red", marker='x',
+        )
+        plt.show()
+        plt.close(fig)
+    return proposed_experiment
+
+
+def heuristic_batch_pick_experiment(
+        batch_size,
+        metamodel,
+        candidate_experiments,
+        scope,
+        poorness_of_fit=None,
+        plot=True,
+):
+    _logger.info(f"Computing Density")
+    candidate_density = candidate_experiments.apply(lambda x: scope.get_density(x), axis=1)
+
+    if poorness_of_fit is None:
+        _logger.info(f"Computing Poorness of Fit")
+        crossval = metamodel.function.cross_val_scores()
+        poorness_of_fit = dict(1 - crossval)
+
+    proposed_candidate_ids = set()
+    proposed_candidates = None
+
+    for i in range(batch_size):
+        metamodel.function.regression.set_hypothetical_training_points(proposed_candidates)
+        proposed_id = heuristic_pick_experiment(
+            metamodel,
+            candidate_experiments,
+            poorness_of_fit,
+            candidate_density,
+            plot=plot,
+        )
+        proposed_candidate_ids.add(proposed_id)
+        proposed_candidates = candidate_experiments.loc[proposed_candidate_ids]
+
+    proposed_candidate_ids = list(proposed_candidate_ids)
+
+    # Exchanges
+    n_exchanges = 1
+    while n_exchanges > 0:
+        n_exchanges = 0
+        for i in range(batch_size):
+            provisionally_dropping = proposed_candidate_ids[i]
+            metamodel.function.regression.set_hypothetical_training_points(
+                candidate_experiments.loc[set(proposed_candidate_ids) - {provisionally_dropping}]
+            )
+            provisional_replacement = heuristic_pick_experiment(
+                metamodel,
+                candidate_experiments,
+                poorness_of_fit,
+                candidate_density,
+                plot=plot,
+            )
+            if provisional_replacement not in proposed_candidate_ids:
+                n_exchanges += 1
+                proposed_candidate_ids[i] = provisional_replacement
+                _logger.info(f"Replacing {provisionally_dropping} with {provisional_replacement}")
+        _logger.info(f"{n_exchanges} Exchanges completed.")
+
+
+
+    metamodel.function.regression.clear_hypothetical_training_points()
+    return proposed_candidates
+
+

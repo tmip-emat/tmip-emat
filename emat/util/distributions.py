@@ -272,3 +272,28 @@ class truncated:
 
 
 
+def is_discrete_dist(rv):
+	"""Check if the (frozen) distribution is discrete."""
+
+	if isinstance(rv, truncated):
+		rv = rv.frozen_dist
+
+	if not isinstance(rv, rv_frozen):
+		if hasattr(rv, 'dist') and isinstance(rv.dist, rv_frozen):
+			rv = rv.dist
+
+	if isinstance(rv.dist, rv_discrete):
+		return True
+
+	return False
+
+
+def get_distribution_bounds(rv):
+	"""Get the bounds of a (frozen) distribution."""
+	ppf_zero = 0
+	if is_discrete_dist(rv):
+		# ppf at actual zero for rv_discrete gives lower bound - 1
+		# due to a quirk in the scipy.stats implementation
+		# so we use the smallest positive float instead
+		ppf_zero = 5e-324
+	return rv.ppf(ppf_zero), rv.ppf(1.0)

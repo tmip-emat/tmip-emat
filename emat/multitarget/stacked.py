@@ -12,17 +12,21 @@ from sklearn.model_selection import cross_val_score, cross_val_predict
 from sklearn.metrics import r2_score
 from .detrend import DetrendMixin
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, RationalQuadratic as RQ
+from .frameable import FrameableMixin
 
 class StackedSingleTargetRegression(
 		BaseEstimator,
 		RegressorMixin,
 		CrossValMixin,
+		FrameableMixin,
 ):
 
 	def __init__(
 			self,
 			keep_other_features=3,
 			step2_cv_folds=5,
+			random_state=None,
+			n_restarts_optimizer=250,
 	):
 		"""
 
@@ -39,6 +43,8 @@ class StackedSingleTargetRegression(
 
 		self.keep_other_features = keep_other_features
 		self.step2_cv_folds = step2_cv_folds
+		self.random_state = random_state
+		self.n_restarts_optimizer = n_restarts_optimizer
 		self._kernel_generator = lambda dims: C() * RBF([1.0] * dims)
 
 
@@ -60,8 +66,12 @@ class StackedSingleTargetRegression(
 
 		with ignore_warnings(DataConversionWarning):
 
+			self._pre_fit(X,Y)
+
 			self.step1 = MultiOutputRegressor(GaussianProcessRegressor(
-				kernel=self._kernel_generator(X.shape[1])
+				kernel=self._kernel_generator(X.shape[1]),
+				random_state=self.random_state,
+				n_restarts_optimizer=self.n_restarts_optimizer,
 			))
 			Y_cv = cross_val_predict(self.step1, X, Y, cv=self.step2_cv_folds)
 			self.step1.fit(X, Y)
@@ -72,19 +82,21 @@ class StackedSingleTargetRegression(
 				make_pipeline(
 					SelectNAndKBest(n=X.shape[1], k=self.keep_other_features),
 					GaussianProcessRegressor(
-						kernel=self._kernel_generator(step2_dims)
+						kernel=self._kernel_generator(step2_dims),
+						random_state = self.random_state+1 if self.random_state else None,
+						n_restarts_optimizer=self.n_restarts_optimizer,
 					),
 				)
 			)
 
 			self.step2.fit(feature_concat(X, Y_cv), Y)
 
-			if isinstance(Y, pandas.DataFrame):
-				self.Y_columns = Y.columns
-			elif isinstance(Y, pandas.Series):
-				self.Y_columns = Y.name
-			else:
-				self.Y_columns = None
+			# if isinstance(Y, pandas.DataFrame):
+			# 	self.Y_columns = Y.columns
+			# elif isinstance(Y, pandas.Series):
+			# 	self.Y_columns = Y.name
+			# else:
+			# 	self.Y_columns = None
 
 		return self
 
@@ -104,8 +116,28 @@ class StackedSingleTargetRegression(
 			Returns predicted values.
 		"""
 
+		# if isinstance(X, pandas.DataFrame):
+		# 	idx = X.index
+		# else:
+		# 	idx = None
+
 		Yhat1 = self.step1.predict(X)
 		Yhat2 = self.step2.predict(feature_concat(X, Yhat1))
+
+		# cols = None
+		# if self.Y_columns is not None:
+		# 	if len(self.Y_columns) == Yhat2.shape[1]:
+		# 		cols = self.Y_columns
+		#
+		# if idx is not None or cols is not None:
+		# 	Yhat2 = pandas.DataFrame(
+		# 		Yhat2,
+		# 		index=idx,
+		# 		columns=cols,
+		# 	)
+
+		Yhat2 = self._post_predict(X, Yhat2)
+
 		return Yhat2
 
 	def scores(self, X, Y, sample_weight=None):

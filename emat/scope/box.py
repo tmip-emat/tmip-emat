@@ -4,8 +4,19 @@ from collections.abc import MutableMapping, Mapping
 import itertools
 from typing import Collection
 import pandas
+import numpy
+import copy
+from abc import ABC, abstractmethod
+
+from ..util.distributions import truncated, get_distribution_bounds
+from math import isclose
 
 from .scope import Scope, ScopeError
+from .parameter import IntegerParameter, CategoricalParameter, BooleanParameter
+from .. import styles
+import ipywidgets as widget
+import plotly.graph_objects as go
+from ..viz import colors
 
 Bounds = namedtuple('Bounds', ['lowerbound', 'upperbound'])
 
@@ -21,7 +32,7 @@ Args:
 		if there is no upper bound.
 """
 
-class GenericBoxMixin:
+class GenericBox(MutableMapping, ABC):
 	# Generic methods applicable to both Box and ChainedBox
 
 	def inside(self, df):
@@ -38,13 +49,579 @@ class GenericBoxMixin:
 		"""
 		within = pandas.Series(True, index=df.index)
 		for label, bounds in self.thresholds.items():
-			if bounds.lowerbound is not None:
-				within &= (df[label] >= bounds.lowerbound)
-			if bounds.upperbound is not None:
-				within &= (df[label] <= bounds.upperbound)
+			if isinstance(bounds, set):
+				within &= numpy.in1d(df[label], list(bounds))
+			else:
+				if bounds.lowerbound is not None:
+					within &= (df[label] >= bounds.lowerbound)
+				if bounds.upperbound is not None:
+					within &= (df[label] <= bounds.upperbound)
 		return within
 
-class Box(Mapping, GenericBoxMixin):
+	def __init__(self):
+		self._scope = None
+
+	@property
+	@abstractmethod
+	def thresholds(self):
+		"""
+		Dict[str,Union[Bounds,Set]]:
+			The restricted dimensions in this Box, with feature names as
+			keys and :class:`Bounds` or a :class:`Set` of available discrete
+			values as the dictionary values.
+		"""
+		raise NotImplementedError
+
+	@property
+	@abstractmethod
+	def demanded_features(self):
+		"""
+		Set[str]: A set of features upon which thresholds are set.
+		"""
+		raise NotImplementedError
+
+	@property
+	@abstractmethod
+	def relevant_features(self):
+		"""
+		 Set[str]:
+			A :class:`Set` of features that are relevant for this Box.
+			These are features, which are not themselves constrained,
+			but should be considered in any analytical report developed
+			based on this Box.
+		"""
+		raise NotImplementedError
+
+	@property
+	def relevant_and_demanded_features(self):
+		"""
+		Set[str]: The union of relevant and demanded features.
+		"""
+		return self.relevant_features | self.demanded_features
+
+	@property
+	def scope(self):
+		"""Scope: A scope associated with this Box."""
+		return self._scope
+
+	@scope.setter
+	def scope(self, x):
+		if x is None or isinstance(x, Scope):
+			self._scope = x
+		else:
+			raise TypeError('scope must be Scope or None')
+
+	@scope.deleter
+	def scope(self):
+		self._scope = None
+
+	@abstractmethod
+	def set_bounds(self, key, lowerbound, upperbound=None):
+		"""
+		Set both lower and upper bounds.
+
+		Args:
+			key (str):
+				The feature name to which these bounds
+				will be attached.
+			lowerbound (numeric, None, or Bounds):
+				The lower bound, or a Bounds object that gives
+				upper and lower bounds (in which case the `upperbound`
+				argument is ignored).  Set explicitly to 'None' to
+				leave unbounded from below.
+			upperbound (numeric or None, default None):
+				The upper bound. Set to 'None' to
+				leave unbounded from above.
+
+		Raises:
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+
+		"""
+		raise NotImplementedError
+
+	def set_lower_bound(self, key, value):
+		"""
+		Set a lower bound, retaining existing upper bound.
+
+		Args:
+			key (str):
+				The feature name to which this lower bound
+				will be attached.
+			value (numeric or None):
+				The lower bound. Set explicitly to 'None' to
+				leave unbounded from below.
+
+		Raises:
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+		"""
+		current = self.thresholds.get(key, Bounds(None,None))
+		if isinstance(current, set):
+			raise ValueError("cannot set lowerbound on a set")
+		self.set_bounds(key, value, current.upperbound)
+
+	def set_upper_bound(self, key, value):
+		"""
+		Set an upper bound, retaining existing lower bound.
+
+		Args:
+			key (str):
+				The feature name to which this upper bound
+				will be attached.
+			value (numeric or None):
+				The upper bound. Set explicitly to 'None' to
+				leave unbounded from above.
+
+		Raises:
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+		"""
+		current = self.thresholds.get(key, Bounds(None,None))
+		if isinstance(current, set):
+			raise ValueError("cannot set upperbound on a set")
+		self.set_bounds(key, current.lowerbound, value)
+
+	def add_to_allowed_set(self, key, value):
+		"""
+		Add a value to the allowed set
+
+		Args:
+			key (str):
+				The feature name to which these allowed values
+				will be attached.
+			value (Any):
+				A value to add to the allowed set.
+
+		Raises:
+			ValueError:
+				If there is already a directional Bounds set for `key`.
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+		"""
+		current = self.thresholds.get(key, set())
+		if isinstance(current, Bounds):
+			raise ValueError("cannot add to Bounds")
+		current.add(value)
+		self.replace_allowed_set(key, current)
+
+	def remove_from_allowed_set(self, key, value):
+		"""
+		Remove a value from the allowed set
+
+		Args:
+			key (str):
+				The feature name to which these allowed values
+				will be attached.
+			value (Any):
+				A value to remove from the allowed set.
+
+		Raises:
+			ValueError:
+				If the threshold set for `key` is a directional Bounds
+				instead of a set.
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+			KeyError:
+				If the value to be removed was not already in the
+				allowed set.
+		"""
+		current = None
+		if key not in self.thresholds and self.scope is not None:
+			v = self.scope.get_cat_values(key)
+			if v is None:
+				raise ValueError("cannot use allowed_set for float or int values, use Bounds instead")
+			current = set(v)
+		else:
+			current = self.thresholds.get(key, set())
+		if isinstance(current, Bounds):
+			raise ValueError("cannot remove from Bounds")
+		current.remove(value)
+		self.replace_allowed_set(key, current)
+
+	@abstractmethod
+	def replace_allowed_set(self, key, values):
+		"""
+		Replace the allowed set.
+
+		Args:
+			key (str):
+				The feature name to which these bounds
+				will be attached.
+			values (set):
+				A set of values to use as the allowed set.
+		"""
+		raise NotImplementedError
+
+	# def _compute_histogram(self, col, selection, bins=20):
+	# 	if self._viz_data is None:
+	# 		return
+	# 	bar_heights, bar_x = numpy.histogram(self._viz_data[col], bins=bins)
+	# 	bar_heights_select, bar_x = numpy.histogram(self._viz_data[col][selection], bins=bar_x)
+	# 	return pandas.DataFrame({
+	# 		'Total Freq': bar_heights,
+	# 		'Inside Freq': bar_heights_select,
+	# 		'Bins_Left': bar_x[:-1],
+	# 		'Bins_Width': bar_x[1:] - bar_x[:-1],
+	# 	})
+	#
+	# def _compute_frequencies(self, col, selection, labels):
+	# 	if self._viz_data is None:
+	# 		return
+	# 	v = self._viz_data[col].astype(
+	# 		pandas.CategoricalDtype(categories=labels, ordered=False)
+	# 	).cat.codes
+	# 	bar_heights, _ = numpy.histogram(v, bins=numpy.arange(0, len(labels) + 1))
+	# 	bar_heights_select, _ = numpy.histogram(v[selection], bins=numpy.arange(0, len(labels) + 1))
+	#
+	# 	return pandas.DataFrame({
+	# 		'Total Freq': bar_heights,
+	# 		'Inside Freq': bar_heights_select,
+	# 		'Label': labels,
+	# 	})
+	#
+	# def _update_histogram_figure(self, col, *, selection=None):
+	# 	if col in self._figures and self._viz_data is not None:
+	# 		fig = self._figures[col]
+	# 		bins = fig._bins
+	# 		if selection is None:
+	# 			selection = self.inside(self._viz_data)
+	# 		h_data = self._compute_histogram(col, selection, bins=bins)
+	# 		with fig.batch_update():
+	# 			fig.data[0].y = h_data['Inside Freq']
+	# 			fig.data[1].y = h_data['Total Freq'] - h_data['Inside Freq']
+	#
+	# def _update_frequencies_figure(self, col, *, selection=None):
+	# 	if col in self._figures and self._viz_data is not None:
+	# 		fig = self._figures[col]
+	# 		labels = fig._labels
+	# 		if selection is None:
+	# 			selection = self.inside(self._viz_data)
+	# 		h_data = self._compute_frequencies(col, selection, labels=labels)
+	# 		with fig.batch_update():
+	# 			fig.data[0].y = h_data['Inside Freq']
+	# 			fig.data[1].y = h_data['Total Freq'] - h_data['Inside Freq']
+	#
+	# def _update_all_histogram_figures(self):
+	# 	selection = self.inside(self._viz_data)
+	# 	for col in self._figures:
+	# 		if self._figures[col]._figure_kind == 'histogram':
+	# 			self._update_histogram_figure(col, selection=selection)
+	# 		elif self._figures[col]._figure_kind == 'frequency':
+	# 			self._update_frequencies_figure(col, selection=selection)
+	#
+	# def _create_histogram_figure(self, col, bins=20):
+	# 	if self._viz_data is None:
+	# 		return
+	# 	if col in self._figures:
+	# 		self._update_histogram_figure(col)
+	# 	else:
+	# 		selection = self.inside(self._viz_data)
+	# 		h_data = self._compute_histogram(col, selection, bins=bins)
+	# 		fig = go.FigureWidget(
+	# 			data=[
+	# 				go.Bar(
+	# 					x=h_data['Bins_Left'],
+	# 					y=h_data['Inside Freq'],
+	# 					width=h_data['Bins_Width'],
+	# 					name='Inside',
+	# 					marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+	# 				),
+	# 				go.Bar(
+	# 					x=h_data['Bins_Left'],
+	# 					y=h_data['Total Freq'] - h_data['Inside Freq'],
+	# 					width=h_data['Bins_Width'],
+	# 					name='Outside',
+	# 					marker_color=colors.DEFAULT_BASE_COLOR,
+	# 				),
+	# 			],
+	# 			layout=dict(
+	# 				barmode='stack',
+	# 				showlegend=False,
+	# 				margin=dict(l=10, r=10, t=10, b=10),
+	# 				**styles.figure_dims,
+	# 			),
+	# 		)
+	# 		fig._bins = bins
+	# 		fig._figure_kind = 'histogram'
+	# 		self._figures[col] = fig
+	#
+	# def _create_frequencies_figure(self, col, labels=None):
+	# 	if self._viz_data is None:
+	# 		return
+	# 	if col in self._figures:
+	# 		self._update_frequencies_figure(col)
+	# 	else:
+	# 		selection = self.inside(self._viz_data)
+	# 		h_data = self._compute_frequencies(col, selection, labels=labels)
+	# 		fig = go.FigureWidget(
+	# 			data=[
+	# 				go.Bar(
+	# 					x=h_data['Label'],
+	# 					y=h_data['Inside Freq'],
+	# 					name='Inside',
+	# 					marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+	# 				),
+	# 				go.Bar(
+	# 					x=h_data['Label'],
+	# 					y=h_data['Total Freq'] - h_data['Inside Freq'],
+	# 					name='Outside',
+	# 					marker_color=colors.DEFAULT_BASE_COLOR,
+	# 				),
+	# 			],
+	# 			layout=dict(
+	# 				barmode='stack',
+	# 				showlegend=False,
+	# 				margin=dict(l=10, r=10, t=10, b=10),
+	# 				width=250,
+	# 				height=150,
+	# 			),
+	# 		)
+	# 		fig._labels = labels
+	# 		fig._figure_kind = 'frequency'
+	# 		self._figures[col] = fig
+	#
+	#
+	# def set_viz_data(self, df):
+	# 	self._viz_data = df
+	#
+	# def get_histogram_figure(self, col, bins=20):
+	# 	try:
+	# 		this_type = self.scope.get_dtype(col)
+	# 	except:
+	# 		this_type = 'float'
+	# 	if this_type in ('cat','bool'):
+	# 		return self.get_frequency_figure(col)
+	# 	self._create_histogram_figure(col, bins=bins)
+	# 	return self._figures[col]
+	#
+	# def get_frequency_figure(self, col):
+	# 	if self.scope.get_dtype(col) == 'cat':
+	# 		labels = self.scope.get_cat_values(col)
+	# 	else:
+	# 		labels = [False, True]
+	# 	self._create_frequencies_figure(col, labels=labels)
+	# 	return self._figures[col]
+	#
+	# def _make_range_widget(
+	# 		self,
+	# 		i,
+	# 		min_value=None,
+	# 		max_value=None,
+	# 		readout_format=None,
+	# 		integer=False,
+	# 		steps=20,
+	# ):
+	# 	"""Construct a RangeSlider to manipulate a Box threshold."""
+	#
+	# 	current_setting = self.get(i, (None, None))
+	#
+	# 	# Use current setting as min and max if still unknown
+	# 	if current_setting[0] is not None and min_value is None:
+	# 		min_value = current_setting[0]
+	# 	if current_setting[1] is not None and max_value is None:
+	# 		max_value = current_setting[1]
+	#
+	# 	if min_value is None:
+	# 		raise ValueError("min_value cannot be None if there is no current setting")
+	# 	if max_value is None:
+	# 		raise ValueError("max_value cannot be None if there is no current setting")
+	#
+	# 	current_min = min_value if current_setting[0] is None else current_setting[0]
+	# 	current_max = max_value if current_setting[1] is None else current_setting[1]
+	#
+	# 	slider_type = widget.IntRangeSlider if integer else widget.FloatRangeSlider
+	#
+	# 	controller = slider_type(
+	# 		value=[current_min, current_max],
+	# 		min=min_value,
+	# 		max=max_value,
+	# 		step=((max_value - min_value) / steps) if not integer else 1,
+	# 		disabled=False,
+	# 		continuous_update=False,
+	# 		orientation='horizontal',
+	# 		readout=True,
+	# 		readout_format=readout_format,
+	# 		description='',
+	# 		style=styles.slider_style,
+	# 		layout=styles.slider_layout,
+	# 	)
+	#
+	# 	def on_value_change(change):
+	# 		from ..util.loggers import get_logger
+	# 		get_logger().critical("VALUE CHANGE")
+	# 		new_setting = change['new']
+	# 		if new_setting[0] <= min_value or isclose(new_setting[0], min_value):
+	# 			new_setting = (None, new_setting[1])
+	# 		if new_setting[1] >= max_value or isclose(new_setting[1], max_value):
+	# 			new_setting = (new_setting[0], None)
+	# 		self.set_bounds(i, *new_setting)
+	# 		self._update_all_histogram_figures()
+	#
+	# 	controller.observe(on_value_change, names='value')
+	#
+	# 	return controller
+	#
+	# def _make_togglebutton_widget(
+	# 		self,
+	# 		i,
+	# 		cats=None,
+	# 		*,
+	# 		df=None,
+	# ):
+	# 	"""Construct a MultiToggleButtons to manipulate a Box categorical set."""
+	#
+	# 	if cats is None and df is not None:
+	# 		if isinstance(df[i].dtype, pandas.CategoricalDtype):
+	# 			cats = df[i].cat.categories
+	#
+	# 	current_setting = self.get(i, set())
+	#
+	# 	from ..analysis.widgets import MultiToggleButtons_AllOrSome
+	# 	controller = MultiToggleButtons_AllOrSome(
+	# 		description='',
+	# 		style=styles.slider_style,
+	# 		options=list(cats),
+	# 		disabled=False,
+	# 		button_style='',  # 'success', 'info', 'warning', 'danger' or ''
+	# 		layout=styles.slider_layout,
+	# 	)
+	# 	controller.values = current_setting
+	#
+	# 	def on_value_change(change):
+	# 		new_setting = change['new']
+	# 		self.replace_allowed_set(i, new_setting)
+	# 		self._update_all_histogram_figures()
+	#
+	# 	controller.observe(on_value_change, names='value')
+	#
+	# 	return controller
+	#
+	#
+	# def get_widget(
+	# 		self,
+	# 		i,
+	# 		min_value=None,
+	# 		max_value=None,
+	# 		readout_format=None,
+	# 		steps=20,
+	# 		*,
+	# 		df=None,
+	# 		histogram=None,
+	# 		tall=True,
+	# ):
+	# 	"""Get a control widget for a Box threshold."""
+	#
+	# 	if self.scope is None:
+	# 		raise ValueError('cannot get_widget with no scope')
+	#
+	# 	if not hasattr(self, '_widgets'):
+	# 		self._widgets = {}
+	#
+	# 	if i not in self._widgets:
+	# 		# Extract min and max from scope if not given explicitly
+	# 		if i not in self.scope.get_measure_names():
+	# 			if min_value is None:
+	# 				min_value = self.scope[i].min
+	# 			if max_value is None:
+	# 				max_value = self.scope[i].max
+	#
+	# 		# Extract min and max from `df` if still missing (i.e. for Measures)
+	# 		if df is not None:
+	# 			if min_value is None:
+	# 				min_value = df[i].min()
+	# 			if max_value is None:
+	# 				max_value = df[i].max()
+	#
+	# 		# Extract min and max from `_viz_data` if still missing
+	# 		if self._viz_data is not None:
+	# 			if min_value is None:
+	# 				min_value = self._viz_data[i].min()
+	# 			if max_value is None:
+	# 				max_value = self._viz_data[i].max()
+	#
+	# 		if isinstance(self.scope[i], BooleanParameter):
+	# 			self._widgets[i] = self._make_togglebutton_widget(
+	# 				i,
+	# 				cats=[False, True],
+	# 			)
+	# 		elif isinstance(self.scope[i], CategoricalParameter):
+	# 			cats = self.scope.get_cat_values(i)
+	# 			self._widgets[i] = self._make_togglebutton_widget(
+	# 				i,
+	# 				cats=cats,
+	# 			)
+	# 		elif isinstance(self.scope[i], IntegerParameter):
+	# 			readout_format = readout_format or 'd'
+	# 			self._widgets[i] = self._make_range_widget(
+	# 				i,
+	# 				min_value=min_value,
+	# 				max_value=max_value,
+	# 				readout_format=readout_format,
+	# 				integer=True,
+	# 				steps=steps,
+	# 			)
+	# 		else:
+	# 			readout_format = readout_format or '.3g'
+	# 			self._widgets[i] = self._make_range_widget(
+	# 				i,
+	# 				min_value=min_value,
+	# 				max_value=max_value,
+	# 				readout_format=readout_format,
+	# 				integer=False,
+	# 				steps=steps,
+	# 			)
+	#
+	# 	if tall:
+	# 		if not isinstance(histogram, Mapping):
+	# 			histogram = {}
+	# 		return widget.VBox(
+	# 			[
+	# 				widget.Label(i),
+	# 				self.get_histogram_figure(i, **histogram),
+	# 				self._widgets[i],
+	# 			],
+	# 			layout=styles.widget_frame,
+	# 		)
+	#
+	# 	if histogram is not None:
+	# 		if not isinstance(histogram, Mapping):
+	# 			histogram = {}
+	# 		return widget.HBox(
+	# 			[self._widgets[i], self.get_histogram_figure(i, **histogram)],
+	# 			layout=dict(align_items = 'center'),
+	# 		)
+	# 	else:
+	# 		return self._widgets[i]
+	#
+	# def visualization(self, include=None, data=None):
+	#
+	# 	if self.scope is None:
+	# 		raise ValueError('cannot create visualization with no scope')
+	#
+	# 	if data is not None:
+	# 		self.set_viz_data(data)
+	# 		self._figures.clear()
+	#
+	# 	if include is None:
+	# 		include = []
+	#
+	# 	viz_widgets = []
+	# 	include = set(include)
+	# 	include = include | self.relevant_and_demanded_features
+	# 	for i in self.scope.get_parameter_names() + self.scope.get_measure_names():
+	# 		if i in include:
+	# 			viz_widgets.append(self.get_widget(i))
+	#
+	# 	return widget.Box(viz_widgets, layout=widget.Layout(flex_flow='row wrap'))
+
+
+class Box(GenericBox):
 	"""
 	A Box defines a set of restricted dimensions for a Scope.
 
@@ -97,7 +674,8 @@ class Box(Mapping, GenericBoxMixin):
 			allowed=None,
 			relevant=None,
 	):
-		self.thresholds = {}
+		super().__init__()
+		self._thresholds = {}
 
 		if relevant is None:
 			self.relevant_features = set()
@@ -137,6 +715,47 @@ class Box(Mapping, GenericBoxMixin):
 			raise TypeError('scope must be Scope or None')
 
 	@property
+	def thresholds(self):
+		"""
+		Dict[str,Union[Bounds,Set]]:
+			The restricted dimensions in this Box, with feature names as
+			keys and :class:`Bounds` or a :class:`Set` of available discrete
+			values as the dictionary values.
+		"""
+		return self._thresholds
+
+	@thresholds.setter
+	def thresholds(self, value):
+		if not isinstance(value, MutableMapping):
+			raise TypeError(f'thresholds must be MutableMapping not {type(value)}')
+		self._thresholds = value
+
+	@thresholds.deleter
+	def thresholds(self):
+		self._thresholds = {}
+
+	@property
+	def relevant_features(self):
+		"""
+		Dict[str,Union[Bounds,Set]]:
+			A :class:`Set` of features that are relevant for this Box.
+			These are features, which are not themselves constrained,
+			but should be considered in any analytical report developed
+			based on this Box.
+		"""
+		return self._relevant_features
+
+	@relevant_features.setter
+	def relevant_features(self, value):
+		if not isinstance(value, set):
+			raise TypeError(f'thresholds must be MutableMapping not {type(value)}')
+		self._relevant_features = value
+
+	@relevant_features.deleter
+	def relevant_features(self):
+		self._relevant_features = set()
+
+	@property
 	def measure_thresholds(self):
 		"""
 		Dict[str,Union[Bounds,Set]]:
@@ -147,7 +766,7 @@ class Box(Mapping, GenericBoxMixin):
 		if self.scope is None:
 			raise ValueError("need scope")
 		names = self.scope.get_measure_names()
-		return {k:v for k,v in self.thresholds.items() if k in names}
+		return {k:v for k,v in self._thresholds.items() if k in names}
 
 	@property
 	def uncertainty_thresholds(self):
@@ -160,7 +779,7 @@ class Box(Mapping, GenericBoxMixin):
 		if self.scope is None:
 			raise ValueError("need scope")
 		names = self.scope.get_uncertainty_names()
-		return {k:v for k,v in self.thresholds.items() if k in names}
+		return {k:v for k,v in self._thresholds.items() if k in names}
 
 	@property
 	def lever_thresholds(self):
@@ -173,66 +792,39 @@ class Box(Mapping, GenericBoxMixin):
 		if self.scope is None:
 			raise ValueError("need scope")
 		names = self.scope.get_lever_names()
-		return {k:v for k,v in self.thresholds.items() if k in names}
+		return {k:v for k,v in self._thresholds.items() if k in names}
 
 	def __getitem__(self, key):
-		return self.thresholds[key]
+		return self._thresholds[key]
 
-	def set_lower_bound(self, key, value):
-		"""
-		Set a lower bound, retaining existing upper bound.
-
-		Args:
-			key (str):
-				The feature name to which this lower bound
-				will be attached.
-			value (numeric or None):
-				The lower bound. Set explicitly to 'None' to
-				leave unbounded from below.
-
-		Raises:
-			ScopeError:
-				If a scope is attached to this box but the `key` cannot
-				be found in the scope.
-		"""
-		current = self.thresholds.get(key, Bounds(None,None))
-		if isinstance(current, set):
-			raise ValueError("cannot set lowerbound on a set")
-		if self.scope is not None:
+	def __setitem__(self, key, value):
+		if not isinstance(value, (Bounds, set)):
+			raise TypeError('thresholds must be Bounds or a set')
+		if self.scope:
 			if key in self.scope.get_all_names():
-				self.thresholds[key] = Bounds(value, current.upperbound)
+				self._thresholds[key] = value
 			else:
-				raise ScopeError(f"cannot set threshold on '{key}'")
+				raise ScopeError("cannot set threshold on '{key}'")
 		else:
-			self.thresholds[key] = Bounds(value, current.upperbound)
+			self._thresholds[key] = value
 
-	def set_upper_bound(self, key, value):
+	def __delitem__(self, key):
+		del self._thresholds[key]
+
+	def clear(self):
 		"""
-		Set an upper bound, retaining existing lower bound.
-
-		Args:
-			key (str):
-				The feature name to which this upper bound
-				will be attached.
-			value (numeric or None):
-				The upper bound. Set explicitly to 'None' to
-				leave unbounded from above.
-
-		Raises:
-			ScopeError:
-				If a scope is attached to this box but the `key` cannot
-				be found in the scope.
+		Clear thresholds and relevant_features.
 		"""
-		current = self.thresholds.get(key, Bounds(None,None))
-		if isinstance(current, set):
-			raise ValueError("cannot set upperbound on a set")
-		if self.scope is not None:
-			if key in self.scope.get_all_names():
-				self.thresholds[key] = Bounds(current.lowerbound, value)
-			else:
-				raise ScopeError(f"cannot set threshold on '{key}'")
-		else:
-			self.thresholds[key] = Bounds(current.lowerbound, value)
+		self._thresholds = {}
+		self._relevant_features = set()
+
+	@property
+	def demanded_features(self):
+		"""
+		Set[str]: A set of features upon which thresholds are set.
+		"""
+		t = set(self._thresholds.keys())
+		return t
 
 	def set_bounds(self, key, lowerbound, upperbound=None):
 		"""
@@ -264,74 +856,11 @@ class Box(Mapping, GenericBoxMixin):
 
 		if self.scope is not None:
 			if key in self.scope.get_all_names():
-				self.thresholds[key] = Bounds(lowerbound, upperbound)
+				self._thresholds[key] = Bounds(lowerbound, upperbound)
 			else:
 				raise ScopeError(f"cannot set threshold on '{key}'")
 		else:
-			self.thresholds[key] = Bounds(lowerbound, upperbound)
-
-	def add_to_allowed_set(self, key, value):
-		"""
-		Add a value to the allowed set
-
-		Args:
-			key (str):
-				The feature name to which these bounds
-				will be attached.
-			value (Any):
-				A value to add to the allowed set.
-
-		Raises:
-			ValueError:
-				If there is already a directional Bounds set for `key`.
-			ScopeError:
-				If a scope is attached to this box but the `key` cannot
-				be found in the scope.
-		"""
-		current = self.thresholds.get(key, set())
-		if isinstance(current, Bounds):
-			raise ValueError("cannot add to Bounds")
-		if self.scope is not None:
-			if key in self.scope.get_all_names():
-				current.add(value)
-				self.thresholds[key] = current
-			else:
-				raise ScopeError(f"cannot set threshold on '{key}'")
-		else:
-			current.add(value)
-			self.thresholds[key] = current
-
-	def remove_from_allowed_set(self, key, value):
-		"""
-		Remove a value from the allowed set
-
-		Args:
-			key (str):
-				The feature name to which these bounds
-				will be attached.
-			value (Any):
-				A value to remove from the allowed set.
-
-		Raises:
-			ValueError:
-				If the threshold set for `key` is a directional Bounds
-				instead of a set.
-			ScopeError:
-				If a scope is attached to this box but the `key` cannot
-				be found in the scope.
-		"""
-		current = self.thresholds.get(key, set())
-		if isinstance(current, Bounds):
-			raise ValueError("cannot remove from Bounds")
-		if self.scope is not None:
-			if key in self.scope.get_all_names():
-				current.pop(value, None)
-				self.thresholds[key] = current
-			else:
-				raise ScopeError(f"cannot set threshold on '{key}'")
-		else:
-			current.pop(value, None)
-			self.thresholds[key] = current
+			self._thresholds[key] = Bounds(lowerbound, upperbound)
 
 	def replace_allowed_set(self, key, values):
 		"""
@@ -346,33 +875,22 @@ class Box(Mapping, GenericBoxMixin):
 		"""
 		if self.scope is not None:
 			if key in self.scope.get_all_names():
-				self.thresholds[key] = set(values)
+				self._thresholds[key] = set(values)
 			else:
 				raise ScopeError(f"cannot set threshold on '{key}'")
 		else:
-			self.thresholds[key] = set(values)
+			self._thresholds[key] = set(values)
 
 
-
-	def __setitem__(self, key, value):
-		if not isinstance(value, (Bounds, set)):
-			raise TypeError('thresholds must be Bounds or a set')
-		if self.scope:
-			if key in self.scope.get_all_names():
-				self.thresholds[key] = value
-			else:
-				raise ScopeError("cannot set threshold on '{key}'")
-		else:
-			self.thresholds[key] = value
 
 	def __iter__(self):
 		return itertools.chain(
-			iter(self.thresholds),
+			iter(self._thresholds),
 		)
 
 	def __len__(self):
 		return (
-			len(self.thresholds)
+			len(self._thresholds)
 		)
 
 	def __repr__(self):
@@ -388,7 +906,7 @@ class Box(Mapping, GenericBoxMixin):
 				if isinstance(v, Bounds):
 					if v.lowerbound is None:
 						if v.upperbound is None:
-							v_ = ' Unbounded'
+							v_ = ': unbounded'
 						else:
 							v_ = f' <= {v.upperbound}'
 					else:
@@ -413,8 +931,71 @@ class Box(Mapping, GenericBoxMixin):
 		else:
 			return "<empty "+ self.__class__.__name__ + ">"
 
+	def __get_truncated_parameters(self, source):
+		"""Get a list of truncate parameters.
 
-class ChainedBox(Mapping, GenericBoxMixin):
+		This method requires a scope to be set, and will adjust
+		the uncertainty distributions in the scope to be
+		appropriately truncated.
+
+		Args:
+			source (Collection): The list of parameters to possibly truncate.
+		"""
+		result = []
+		for i in source:
+			i = copy.deepcopy(i)
+			if i.name in self._thresholds:
+				bounds = self._thresholds[i.name]
+				if isinstance(bounds, Bounds):
+					lowerbound, upperbound = bounds
+					if lowerbound is None:
+						lowerbound = -numpy.inf
+					if upperbound is None:
+						upperbound = numpy.inf
+					i.dist = truncated(i.dist, lowerbound, upperbound)
+					i.lower_bound, i.upper_bound = get_distribution_bounds(i.dist)
+				else:
+					from .parameter import CategoricalParameter
+					i = CategoricalParameter(i.name, bounds, singleton_ok=True)
+			result.append(i)
+		return result
+
+	def get_uncertainties(self):
+		"""Get a list of exogenous uncertainties.
+
+		This method requires a scope to be set, and will adjust
+		the uncertainty distributions in the scope to be
+		appropriately truncated.
+		"""
+		return self.__get_truncated_parameters(self.scope.get_uncertainties())
+
+	def get_levers(self):
+		"""Get a list of policy levers.
+
+		This method requires a scope to be set, and will adjust
+		the policy lever distributions in the scope to be
+		appropriately truncated.
+		"""
+		return self.__get_truncated_parameters(self.scope.get_levers())
+
+	def get_constants(self):
+		"""Get a list of model constants.
+
+		This method requires a scope to be set, and will pass through
+		constants in the scope unaltered."""
+		return self.scope.get_constants()
+
+	def get_parameters(self):
+		"""Get a list of model parameters (uncertainties+levers+constants)."""
+		return self.get_constants() + self.get_uncertainties() + self.get_levers()
+
+	def get_measures(self):
+		"""Get a list of performance measures."""
+		return self.scope.get_measures()
+
+
+
+class ChainedBox(GenericBox):
 	"""
 	A Box defines a set of restricted dimensions for a Scope.
 
@@ -439,6 +1020,7 @@ class ChainedBox(Mapping, GenericBoxMixin):
 		name : str
 			Name of this chained box
 		"""
+		GenericBox.__init__(self)
 		c = boxes[name]
 		self.chain = [c]
 		self.names = [name]
@@ -449,6 +1031,19 @@ class ChainedBox(Mapping, GenericBoxMixin):
 
 	def __getitem__(self, key):
 		return self.thresholds[key]
+
+	def __setitem__(self, key, value):
+		self.chain[-1][key] = value
+
+	def __delitem__(self, key):
+		del self.chain[-1][key]
+
+	def clear(self):
+		"""
+		Clear thresholds and relevant_features on the last Box in the chain.
+		"""
+		self.chain[-1]._thresholds.clear()
+		self.chain[-1]._relevant_features.clear()
 
 	def __iter__(self):
 		return itertools.chain(
@@ -474,6 +1069,14 @@ class ChainedBox(Mapping, GenericBoxMixin):
 		for single in self.chain:
 			t.update(single.thresholds)
 		return t
+
+	@thresholds.setter
+	def thresholds(self, value):
+		self.chain[-1].thresholds = value
+
+	@thresholds.deleter
+	def thresholds(self):
+		self.chain[-1].thresholds = {}
 
 	def measure_thresholds(self):
 		"""
@@ -537,16 +1140,8 @@ class ChainedBox(Mapping, GenericBoxMixin):
 			t |= set(single.thresholds.keys())
 		return t
 
-	@property
-	def relevant_and_demanded_features(self):
-		"""
-		Set[str]: The union of relevant and demanded features.
-		"""
-		return self.relevant_features | self.demanded_features
-
-
 	def __repr__(self):
-		if self.keys() or self.relevant_features:
+		if self.keys() or self.relevant_features or True:
 			demands = list(self.keys()) or [" "]
 			relevent = list(self.relevant_features) or [" "]
 			m = max(
@@ -558,7 +1153,7 @@ class ChainedBox(Mapping, GenericBoxMixin):
 				if isinstance(v, Bounds):
 					if v.lowerbound is None:
 						if v.upperbound is None:
-							v_ = ' Unbounded'
+							v_ = ': unbounded'
 						else:
 							v_ = f' <= {v.upperbound}'
 					else:
@@ -587,6 +1182,55 @@ class ChainedBox(Mapping, GenericBoxMixin):
 	def chain_repr(self):
 		return "\n".join(f"{repr(c)}" for n,c in zip(self.names,self.chain))
 
+	@property
+	def scope(self):
+		"""Scope: A scope associated with this Box."""
+		return self.chain[-1]._scope
+
+	@scope.setter
+	def scope(self, x):
+		if x is None or isinstance(x, Scope):
+			self.chain[-1]._scope = x
+		else:
+			raise TypeError('scope must be Scope or None')
+
+	def replace_allowed_set(self, key, values):
+		"""
+		Replace the allowed set in the last Box on the chain.
+
+		Args:
+			key (str):
+				The feature name to which these bounds
+				will be attached.
+			values (set):
+				A set of values to use as the allowed set.
+		"""
+		self.chain[-1].replace_allowed_set(key, values)
+
+	def set_bounds(self, key, lowerbound, upperbound=None):
+		"""
+		Set both lower and upper bounds in the last Box on the chain.
+
+		Args:
+			key (str):
+				The feature name to which these bounds
+				will be attached.
+			lowerbound (numeric, None, or Bounds):
+				The lower bound, or a Bounds object that gives
+				upper and lower bounds (in which case the `upperbound`
+				argument is ignored).  Set explicitly to 'None' to
+				leave unbounded from below.
+			upperbound (numeric or None, default None):
+				The upper bound. Set to 'None' to
+				leave unbounded from above.
+
+		Raises:
+			ScopeError:
+				If a scope is attached to this box but the `key` cannot
+				be found in the scope.
+
+		"""
+		self.chain[-1].set_bounds(key, lowerbound, upperbound)
 
 
 def find_all_boxes_with_parent(universe:dict, parent=None):

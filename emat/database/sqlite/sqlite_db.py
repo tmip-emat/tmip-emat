@@ -557,15 +557,43 @@ class SQLiteDB(Database):
 
 
     @copydoc(Database.read_experiment_all)
-    def read_experiment_all(self, scope_name: str, design: str, only_pending=False) ->pd.DataFrame:
+    def read_experiment_all(
+            self,
+            scope_name,
+            design_name,
+            source=None,
+            only_pending=False,
+            ensure_dtypes=False,
+    ) ->pd.DataFrame:
         scope_name = self._validate_scope(scope_name, 'design')
-        if design is None:
-            ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_ALL,
-                                                   [scope_name,]).fetchall())
+        if design_name is None:
+            if source is None:
+                ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_ALL,
+                                                       [scope_name,]).fetchall())
+            else:
+                ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_ALL_BYSOURCE,
+                                                       [scope_name,source]).fetchall())
+        elif isinstance(design_name, str):
+            if source is None:
+                ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM,
+                                                       [scope_name,
+                                                        design_name]).fetchall())
+            else:
+                ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_BYSOURCE,
+                                                       [scope_name,
+                                                        design_name,
+                                                        source]).fetchall())
         else:
-            ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM,
-                                                   [scope_name,
-                                                    design]).fetchall())
+            if source is None:
+                ex_xlm = pd.concat([
+                    pd.DataFrame(self.cur.execute(sq.GET_EX_XLM, [scope_name, dn]).fetchall())
+                    for dn in design_name
+                ])
+            else:
+                ex_xlm = pd.concat([
+                    pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_BYSOURCE, [scope_name, dn, source]).fetchall())
+                    for dn in design_name
+                ])
         if ex_xlm.empty is False:
             ex_xlm = ex_xlm.pivot(index=0, columns=1, values=2)
         ex_xlm.index.name = 'experiment'
@@ -588,37 +616,48 @@ class SQLiteDB(Database):
                 + self.read_levers(scope_name)
                 + self.read_measures(scope_name)
         )
-        return ex_xlm[[i for i in column_order if i in ex_xlm.columns]]
+        result = ex_xlm[[i for i in column_order if i in ex_xlm.columns]]
+        if ensure_dtypes:
+            scope = self.read_scope(scope_name)
+            result = scope.ensure_dtypes(result)
+        return result
 
     @copydoc(Database.read_experiment_measures)
-    def read_experiment_measures(self, scope_name: str, design: str, experiment_id=None) ->pd.DataFrame:
+    def read_experiment_measures(
+            self,
+            scope_name: str,
+            design: str,
+            experiment_id=None,
+            source=None
+    ) ->pd.DataFrame:
         scope_name = self._validate_scope(scope_name, 'design')
         if design is None:
             if experiment_id is None:
-                ex_m = pd.DataFrame(
-                    self.cur.execute(
-                        sq.GET_EX_M_ALL,
-                        [scope_name]
-                    ).fetchall())
+                sql = sq.GET_EX_M_ALL
+                arg = [scope_name]
+                if source is not None:
+                    sql += ' AND ema_experiment_measure.measure_source =?2'
+                    arg.append(source)
             else:
-                ex_m = pd.DataFrame(
-                    self.cur.execute(
-                        sq.GET_EX_M_BY_ID_ALL,
-                        [scope_name, experiment_id]
-                    ).fetchall())
+                sql = sq.GET_EX_M_BY_ID_ALL
+                arg = [scope_name, experiment_id]
+                if source is not None:
+                    sql += ' AND ema_experiment_measure.measure_source =?3'
+                    arg.append(source)
         else:
             if experiment_id is None:
-                ex_m = pd.DataFrame(
-                    self.cur.execute(
-                        sq.GET_EX_M,
-                        [scope_name, design]
-                    ).fetchall())
+                sql = sq.GET_EX_M
+                arg = [scope_name, design]
+                if source is not None:
+                    sql += ' AND ema_experiment_measure.measure_source =?3'
+                    arg.append(source)
             else:
-                ex_m = pd.DataFrame(
-                    self.cur.execute(
-                        sq.GET_EX_M_BY_ID,
-                        [scope_name, design, experiment_id]
-                    ).fetchall())
+                sql = sq.GET_EX_M_BY_ID
+                arg = [scope_name, design, experiment_id]
+                if source is not None:
+                    sql += ' AND ema_experiment_measure.measure_source =?4'
+                    arg.append(source)
+        ex_m = pd.DataFrame(self.cur.execute(sql, arg).fetchall())
         if ex_m.empty is False:
             ex_m = ex_m.pivot(index=0, columns=1, values=2)
         ex_m.index.name = 'experiment'
@@ -800,7 +839,7 @@ class SQLiteDB(Database):
             self.cur.execute(sq.INSERT_SUBBOX, [scope_name, box.name,
                                                 box.parent_box_name])
 
-        for t_name, t_vals in box.thresholds.items():
+        for t_name, t_vals in box._thresholds.items():
 
             if t_name in p_:
                 sql_cl = sq.CLEAR_BOX_THRESHOLD_P
