@@ -51,21 +51,19 @@ necessary packages and dependencies in that environment.  This will help
 prevent software conflicts, and ensure that tools installed for one project
 will not break another project.
 
-.. note::
-
-    The instructions below provide only the most basic steps to
-    set up and use an environment.  Much more extensive documentation
-    on :doc:`managing environments <conda:user-guide/tasks/manage-environments>`
-    is available in the conda documentation
-    itself.
+The instructions below provide only the most basic steps to
+set up and use an environment.  Much more extensive documentation
+on :doc:`managing environments <conda:user-guide/tasks/manage-environments>`
+is available in the conda documentation itself.
 
 
-Quick Start
-~~~~~~~~~~~
+Creating a New Environment for TMIP-EMAT
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
-    If you installed the "Miniconda" version of the anaconda package, you
+    If you installed the "Miniconda" version of the anaconda package, or
+    if your main conda installation is a bit out of date, you
     may need to install or update the *conda* and *anaconda-client* packages
     before the remote environment installation below will work:
 
@@ -91,6 +89,20 @@ version, you can use:
 The *prune* option here will remove packages that are not ordinarily included in the
 *EMAT* environment; omit that function if you've installed extra packages that you
 want to keep.
+
+
+Installing TMIP-EMAT in an Existing Environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you already have an existing environment you want to use, or if you'd like to
+skip the advice above and install TMIP-EMAT into the base environment, you can
+do so using the regular `conda install` tool.  Activate the environment you want
+to install into, and then run:
+
+.. code-block:: console
+
+    conda install -c tmip emat
+
 
 Using an Environment
 ~~~~~~~~~~~~~~~~~~~~
