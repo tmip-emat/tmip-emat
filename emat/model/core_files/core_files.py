@@ -254,10 +254,22 @@ class FilesCoreModel(AbstractCoreModel):
 
 		for parser in self._parsers:
 			if any(is_requested(name) for name in parser.measure_names):
-				measures = parser.read(output_path)
-				for k, v in measures.items():
-					if is_requested(k):
-						results[k] = v
+				try:
+					measures = parser.read(output_path)
+				except FileNotFoundError as err:
+					import warnings
+					for name in parser.measure_names:
+						if is_requested(name):
+							warnings.warn(f'{name} unavailable, {err} not found')
+				except Exception as err:
+					import warnings
+					for name in parser.measure_names:
+						if is_requested(name):
+							warnings.warn(f'{name} unavailable, {err!r}')
+				else:
+					for k, v in measures.items():
+						if is_requested(k):
+							results[k] = v
 
 		return results
 
