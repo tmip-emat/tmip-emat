@@ -1,5 +1,5 @@
 
-import webcolors
+from ..util import webcolors
 import re
 
 DEFAULT_BASE_COLOR = 'rgb(31, 119, 180)'
