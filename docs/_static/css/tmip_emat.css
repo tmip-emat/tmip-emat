@@ -11,7 +11,9 @@
 .wy-nav-content .section dd,
 .wy-nav-content .section dl,
 .wy-nav-content div.admonition,
-.wy-nav-content div.line-block
+.wy-nav-content div.line-block,
+.wy-nav-content div.highlight-default,
+.wy-nav-content div.highlight-console
 {
     max-width: 600px;
 }
