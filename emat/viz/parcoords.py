@@ -1,18 +1,54 @@
 
 import numpy
+import textwrap
 import plotly.graph_objs as go
 
 from ema_workbench.em_framework.parameters import Category, CategoricalParameter, BooleanParameter
 from ema_workbench.em_framework.outcomes import ScalarOutcome
 
+from ipywidgets import VBox, HBox, Checkbox
+from ..analysis.widgets import NamedCheckbox
+import ipywidgets as widget
 
 def perturb(x, epsilon=0.05):
 	return x + numpy.random.uniform(-epsilon, epsilon)
 
+def _wrap_with_br(text, width=70, **kwargs):
+	return "<br>   ".join(textwrap.wrap(text, width=width, **kwargs))
+
+SYMBOL_MIMIMIZE = '⊖'
+SYMBOL_MAXIMIZE = '⊕'
+SYMBOL_INFOMEASURE = '⊙'
+SYMBOL_LEVER = '⎆' # ୰
+SYMBOL_UNCERTAINTY = '‽'
+
+def _prefix_symbols(scope, robustness_functions):
+	prefix_chars = {}
+	if robustness_functions is not None:
+		for rf in robustness_functions:
+			if rf.kind < 0:
+				prefix_chars[rf.name] = SYMBOL_MIMIMIZE+' '
+			elif rf.kind > 0:
+				prefix_chars[rf.name] = SYMBOL_MAXIMIZE+' '
+			elif rf.kind == 0:
+				prefix_chars[rf.name] = SYMBOL_INFOMEASURE+' '
+	if scope is not None:
+		for meas in scope.get_measures():
+			if meas.kind < 0:
+				prefix_chars[meas.name] = SYMBOL_MIMIMIZE+' '
+			elif meas.kind > 0:
+				prefix_chars[meas.name] = SYMBOL_MAXIMIZE+' '
+			elif meas.kind == 0:
+				prefix_chars[meas.name] = SYMBOL_INFOMEASURE+' '
+		for col in scope.get_lever_names():
+			prefix_chars[col] = SYMBOL_LEVER+' ' # ୰
+		for col in scope.get_uncertainty_names():
+			prefix_chars[col] = SYMBOL_UNCERTAINTY+' '
+	return prefix_chars
 
 def parallel_coords(
 		df,
-		model=None,
+		scope=None,
 		flip_dims=(),
 		robustness_functions=(),
 		color_dim=0,
@@ -25,8 +61,8 @@ def parallel_coords(
 	----------
 	df : pandas.DataFrame
 		The data to plot.
-	model : ema_workbench.Model, optional
-		Categorical levers and uncertainties are extracted from the model.
+	scope : emat.Scope, optional
+		Categorical levers and uncertainties are extracted from the scope.
 	"""
 
 	df = df.copy(deep=True)
@@ -48,17 +84,7 @@ def parallel_coords(
 	tickvals = {}
 	ticktext = {}
 
-	prefix_chars = {}
-	for rf in robustness_functions:
-		if rf.kind < 0:
-			prefix_chars[rf.name] = '⊖ '
-		elif rf.kind > 0:
-			prefix_chars[rf.name] = '⊕ '
-		elif rf.kind == 0:
-			prefix_chars[rf.name] = '⊙ '
-	for col in model.levers.keys():
-		prefix_chars[col] = '⎆ ' # ୰
-
+	prefix_chars = _prefix_symbols(scope, robustness_functions)
 
 	for c in categorical_parameters:
 		df[c] = df[c].apply(lambda z: z.value if isinstance(z,Category) else z)
@@ -79,12 +105,20 @@ def parallel_coords(
 	flips = set(flip_dims)
 
 	# flip all MINIMIZE outcomes (or unflip them if previously marked as flip)
-	for k in robustness_functions:
-		if k.kind == ScalarOutcome.MINIMIZE:
-			if k.name in flips:
-				flips.remove(k.name)
-			else:
-				flips.add(k.name)
+	if robustness_functions is not None:
+		for k in robustness_functions:
+			if k.kind == ScalarOutcome.MINIMIZE:
+				if k.name in flips:
+					flips.remove(k.name)
+				else:
+					flips.add(k.name)
+	if scope is not None:
+		for k in scope.get_measures():
+			if k.kind == ScalarOutcome.MINIMIZE:
+				if k.name in flips:
+					flips.remove(k.name)
+				else:
+					flips.add(k.name)
 
 	parallel_dims = [
 		dict(
@@ -97,10 +131,11 @@ def parallel_coords(
 					df[col].min(),
 				]
 			),
-			label=prefix_chars.get(col, '')+col,
+			label=_wrap_with_br(prefix_chars.get(col, '')+(col if scope is None else scope.shortname(col)), width=24),
 			values=df[col],
 			tickvals=tickvals.get(col, None),
 			ticktext=ticktext.get(col, None),
+			name=col,
 		)
 		for col in df.columns
 	]
@@ -116,6 +151,8 @@ def parallel_coords(
 		reversescale=True,
 		cmin=df[color_dim].min(),
 		cmax=df[color_dim].max(),
+		colorbar_title_text=color_dim,
+		colorbar_title_side='right',
 	)
 
 	pc = go.Parcoords(
@@ -124,6 +161,10 @@ def parallel_coords(
 		labelfont=dict(
 			color="#AA0000",
 		),
+		labelangle=-90,
+		domain=dict(
+			y=[0,0.7],
+		)
 	)
 
 	return go.FigureWidget(
@@ -133,3 +174,94 @@ def parallel_coords(
 		)
 	)
 
+class ParCoordsViewer(VBox):
+
+	def __init__(
+			self,
+			data,
+			scope,
+			robustness_functions=None,
+	):
+		self.data = data
+		self.scope = scope
+
+		self.parcoords = parallel_coords(
+				self.data,
+				scope=self.scope,
+				flip_dims=(),
+				robustness_functions=(),
+				color_dim=0,
+				colorscale='Viridis',
+				title=None,
+		)
+
+		self.dim_activators = []
+		self.out_logger = widget.Output()
+
+		prefix_chars = _prefix_symbols(scope, robustness_functions)
+
+		for i in self.data.columns:
+			short_i = i
+			if self.scope is not None:
+				short_i = self.scope.shortname(i)
+			cb = NamedCheckbox(description=prefix_chars.get(i,'')+short_i, value=True, name=i, description_tooltip=i)
+			cb.observe(self._on_dim_choose_toggle, names='value')
+			self.dim_activators.append(cb)
+
+		self.dim_choose = widget.Box(
+			self.dim_activators,
+			layout=widget.Layout(flex_flow='row wrap')
+		)
+
+		self.color_dim_choose = widget.Dropdown(
+			options=self.data.columns,
+			description='Colorize:',
+			value=self.data.columns[0],
+		)
+		self.color_dim_choose.observe(self._on_color_choose, names='value')
+
+		self.symbol_legend = widget.HTML(f"""
+			{SYMBOL_MIMIMIZE} Performance Measure to Minimize<br>
+			{SYMBOL_MAXIMIZE} Performance Measure to Maximize<br>
+			{SYMBOL_INFOMEASURE} Performance Measure without preferred direction<br>
+			{SYMBOL_LEVER} Policy Lever<br>
+			{SYMBOL_UNCERTAINTY} Exogenous Uncertainty
+		""")
+
+		super().__init__(
+			[
+				self.parcoords,
+				self.color_dim_choose,
+				self.dim_choose,
+				self.symbol_legend,
+			],
+			layout=dict(
+				align_items='center',
+			)
+		)
+
+	def _on_dim_choose_toggle(self, payload):
+		for dim in self.parcoords.data[0].dimensions:
+			if dim.name == payload['owner'].name:
+				dim.visible = payload['new']
+
+	def _on_color_choose(self, payload):
+		with self.out_logger:
+			try:
+				with self.parcoords.batch_update():
+					color_data = self.data[payload['new']]
+					self.parcoords.data[0].line.color = color_data
+					if self.scope is not None:
+						self.parcoords.data[0].line.colorbar.title.text = self.scope.shortname(payload['new'])
+					else:
+						self.parcoords.data[0].line.colorbar.title.text = payload['new']
+					if color_data.dtype == numpy.bool_:
+						self.parcoords.data[0].line.cmin = 0
+						self.parcoords.data[0].line.cmax = 1
+					else:
+						self.parcoords.data[0].line.cmin = color_data.min()
+						self.parcoords.data[0].line.cmax = color_data.max()
+			except:
+				import traceback
+				traceback.print_exc()
+				raise

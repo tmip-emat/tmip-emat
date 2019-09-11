@@ -8,12 +8,27 @@ from sklearn.exceptions import DataConversionWarning
 from sklearn.model_selection import cross_val_score, cross_val_predict
 from sklearn.metrics import r2_score
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, RationalQuadratic as RQ
+from sklearn.multioutput import RegressorChain as _RegressorChain
 
 from . import ignore_warnings
 from .detrend import DetrendMixin
 from .cross_val import CrossValMixin
 from .base import MultiOutputRegressor
 from .select import SelectNAndKBest, feature_concat
+from .frameable import FrameableMixin
+
+class RegressorChain(
+	_RegressorChain,
+	FrameableMixin,
+):
+	def fit(self, X, Y):
+		self._pre_fit(X, Y)
+		return super().fit(X,Y)
+
+	def predict(self, X):
+		Y = super().predict(X)
+		Y = self._post_predict(X, Y)
+		return Y
 
 class ChainedTargetRegression(
 		BaseEstimator,

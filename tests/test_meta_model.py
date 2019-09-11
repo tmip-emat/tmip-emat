@@ -214,6 +214,20 @@ class TestMetaModelMethods(unittest.TestCase):
             mm4 = db.read_metamodel(None, None)
 
 
+    def test_exogenously_stratified_k_fold(self):
+        from emat.learn.splits import ExogenouslyStratifiedKFold
+        X = np.arange(20)
+        Y = np.asarray([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1])
+        S = np.asarray([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+        correct = [np.array([0, 1, 2, 14, 15]),
+                   np.array([3, 4, 5, 16]),
+                   np.array([6, 7, 8, 17]),
+                   np.array([9, 10, 11, 18]),
+                   np.array([12, 13, 19])]
+        for j, (_, k) in zip(correct, ExogenouslyStratifiedKFold(n_splits=5, exo_data=S).split(X, Y)):
+            assert np.array_equal(j, k)
+
+
 if __name__ == '__main__':
     unittest.main()
     

@@ -1,11 +1,15 @@
 
 from ema_workbench.em_framework.optimization import AbstractConvergenceMetric, Hypervolume, to_dataframe
 import pandas
+import platypus
 from ..viz.line import line_graph
 from ..viz.table import table_figure
 from ipywidgets import widgets
 from IPython.display import display_html
 
+FIG_HEIGHT = 240
+FIG_WIDTH = 340
+FIG_MARGINS = dict(l=15, r=15, t=40, b=15)
 
 class EpsilonProgress(AbstractConvergenceMetric):
 	'''
@@ -20,10 +24,17 @@ class EpsilonProgress(AbstractConvergenceMetric):
 		self.figure = line_graph(
 			X=None, Y=None, widget=True, title="ε-Progress", xtitle='Generation', interpolate='linear',
 		)
+		self.figure.layout.height = FIG_HEIGHT
+		self.figure.layout.width = FIG_WIDTH
+		self.figure.layout.margin = FIG_MARGINS
+		self.nfes = []
 
 	def __call__(self, optimizer):
 		self.results.append(optimizer.algorithm.archive.improvements)
-		self.figure.data[0].y = self.results
+		self.nfes.append(optimizer.algorithm.nfe)
+		with self.figure.batch_update():
+			self.figure.data[0].y = self.results
+			self.figure.data[0].x = self.nfes
 
 class HyperVolume(AbstractConvergenceMetric):
 	"""
@@ -52,6 +63,9 @@ class HyperVolume(AbstractConvergenceMetric):
 		self.figure = line_graph(
 			X=None, Y=None, widget=True, title = "Hypervolume", xtitle='Generation', interpolate='linear',
 		)
+		self.figure.layout.height = FIG_HEIGHT
+		self.figure.layout.width = FIG_WIDTH
+		self.figure.layout.margin = FIG_MARGINS
 
 	def __call__(self, optimizer):
 		self.results.append(self.hypervolume_func.calculate(optimizer.algorithm.archive))
@@ -78,6 +92,37 @@ class HyperVolume(AbstractConvergenceMetric):
 		highs = [_[1] for _ in ranges]
 		return cls(lows, highs)
 
+class SolutionCount(AbstractConvergenceMetric):
+	'''
+	Solution count convergence metric class.
+
+	This convergence metric counts the number of solutions
+	currently in the solution set.  It does not actually
+	measure convergence per se, as a well converged solution
+	set may have many or few solutions, but it can give a view
+	of the stability of the solution set over time.
+	'''
+
+	def __init__(self):
+		super(SolutionCount, self).__init__("solution_count")
+		self.figure = line_graph(
+			X=None, Y=None, widget=True, title="Number of Solutions",
+			xtitle='Number of Function Evaluations', interpolate='linear',
+		)
+		self.figure.layout.height = FIG_HEIGHT
+		self.figure.layout.width = FIG_WIDTH
+		self.figure.layout.margin = FIG_MARGINS
+		self.nfes = []
+
+	def __call__(self, optimizer):
+		n_solutions = 0
+		for _ in platypus.unique(platypus.nondominated(optimizer.result)):
+			n_solutions += 1
+		self.results.append(n_solutions)
+		self.nfes.append(optimizer.algorithm.nfe)
+		with self.figure.batch_update():
+			self.figure.data[0].y = self.results
+			self.figure.data[0].x = self.nfes
 
 class SolutionViewer(AbstractConvergenceMetric):
 	"""
@@ -140,6 +185,23 @@ class SolutionViewer(AbstractConvergenceMetric):
 			dataframe_processor=dataframe_processor,
 		)
 
+	@classmethod
+	def from_model(cls, model):
+
+		levers = model.scope.get_lever_names()
+		measures = model.scope.get_measures()
+
+		try:
+			dataframe_processor = model.ensure_dtypes
+		except AttributeError:
+			dataframe_processor = None
+
+		return cls(
+			levers,
+			[i.name for i in measures if i.kind != 0],
+			dataframe_processor=dataframe_processor,
+		)
+
 
 class ConvergenceMetrics(widgets.HBox):
 	"""
@@ -150,7 +212,10 @@ class ConvergenceMetrics(widgets.HBox):
 
 	def __init__(self, *members):
 		self._members = list(members)
-		widgets.HBox.__init__(self, [member.figure for member in members])
+		widgets.HBox.__init__(
+			self, [member.figure for member in members],
+			layout=dict(flex_flow='row wrap'),
+		)
 
 	def __getitem__(self, item):
 		return self._members[item]

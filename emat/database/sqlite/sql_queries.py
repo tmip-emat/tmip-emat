@@ -212,13 +212,16 @@ GET_EX_XLM = (
     '''
     )
 
+GET_EX_XLM_BYSOURCE = GET_EX_XLM + ' AND ema_experiment_measure.measure_source =?3'
+
+
 GET_EX_M = (
     '''
     SELECT experiment_id, ema_measure.name, measure_value
             FROM ema_experiment_measure JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
             JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.rowid
             JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-            WHERE s.name =? and ema_experiment.design = ?
+            WHERE s.name =?1 and ema_experiment.design = ?2
     '''
     )
 
@@ -249,13 +252,15 @@ GET_EX_XLM_ALL = (
     '''
     )
 
+GET_EX_XLM_ALL_BYSOURCE = GET_EX_XLM_ALL + ' AND ema_experiment_measure.measure_source =?2'
+
 GET_EX_M_ALL = (
     '''
     SELECT experiment_id, ema_measure.name, measure_value
             FROM ema_experiment_measure JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
             JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.rowid
             JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-            WHERE s.name =?
+            WHERE s.name =?1
     '''
     )
 
@@ -389,8 +394,12 @@ GET_METAMODEL_IDS = (
 )
 
 GET_NEW_METAMODEL_ID = (
+    # '''
+	# SELECT MAX(IFNULL(MAX(meta_model_pickles.metamodel_id), 0), IFNULL(MAX(meta_model_pickles.rowid), 0))+1
+	# 	FROM meta_model_pickles;
+	# '''
     '''
-	SELECT MAX(IFNULL(MAX(meta_model_pickles.metamodel_id), 0), IFNULL(MAX(meta_model_pickles.rowid), 0))+1
+	SELECT IFNULL(MAX(meta_model_pickles.metamodel_id), 0)+1
 		FROM meta_model_pickles;
 	'''
 )

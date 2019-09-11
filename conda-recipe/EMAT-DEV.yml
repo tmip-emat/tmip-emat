@@ -1,0 +1,55 @@
+
+# To use this file::
+#  conda env create -f EMAT-DEV.yml
+name: EMAT-DEV
+
+channels:
+- tmip
+- conda-forge
+- plotly
+
+dependencies:
+- python=3.7
+
+# Math
+- numpy>=1.16
+- pandas>=0.23.4
+- scipy>=1.2
+- scikit-learn>=0.20.1
+- appdirs>=1.4.3
+- matplotlib>=3.0.1
+- seaborn>=0.9
+- pydot
+- graphviz>=2.40.1
+- plotly>=3.2.1
+- plotly-orca  # Plotly Static Image Export
+- ipywidgets>=7.2
+- joblib>=0.13.2
+- dask>=1.0
+- distributed>=1.25
+- cloudpickle>=0.6.1
+- ipykernel>=5.1
+- nb_conda>=2.2.1
+- jupyter_contrib_nbextensions>=0.4.0   # on conda-forge only
+- jupyter
+- notebook
+- pytest>=4.0.1
+- pyscaffold
+- ipyparallel
+- pyzmq
+- platypus-opt
+- altair
+- salib
+- sqlalchemy
+- webcolors
+
+- sphinx>=1.8.2,<2
+- sphinxcontrib>=1.0
+- pygments>=2.2.0
+- docutils>=0.14
+- sphinx_rtd_theme
+- sphinxcontrib-restbuilder
+- nbsphinx
+- jupyter_sphinx
+
+## For development, install ema_workbench and emat locally

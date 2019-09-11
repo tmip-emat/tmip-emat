@@ -6,10 +6,15 @@ import pandas as pd
 import numpy as np
 from typing import Union, Mapping
 from ema_workbench.em_framework.model import AbstractModel as AbstractWorkbenchModel
+from ema_workbench.em_framework.evaluators import BaseEvaluator
+
 from typing import Collection
 
 from ..database.database import Database
 from ..scope.scope import Scope
+from ..optimization.optimization_result import OptimizationResult
+from ..optimization import EpsilonProgress, ConvergenceMetrics, SolutionCount
+
 from .._pkg_constants import *
 
 from ..util.loggers import get_module_logger
@@ -493,6 +498,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures = None,
             db = None,
             random_state = None,
+            experiment_stratification = None,
+            suppress_converge_warnings = False,
+            regressor = None,
     ):
         """
         Create a MetaModel from a set of input and output observations.
@@ -520,6 +528,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 the metamodel is not stored in a database.
             random_state (int, optional): A random state to use in the metamodel
                 regression fitting.
+            experiment_stratification (pandas.Series, optional):
+                A stratification of experiments, used in cross-validation.
+            suppress_converge_warnings (bool, default False):
+                Suppress convergence warnings during metamodel fitting.
+            regressor (Estimator, optional): A scikit-learn estimator implementing a
+                multi-target regression.  If not given, a detrended simple Gaussian
+                process regression is used.
 
         Returns:
             MetaModel:
@@ -541,10 +556,15 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             else:
                 metamodel_id = np.random.randint(1,2**63,dtype='int64')
 
+        if output_transforms is None:
+            output_transforms = {}
+
         if include_measures is not None:
             experiment_outputs = experiment_outputs[[i for i in include_measures
                                                      if i in experiment_outputs.columns]]
-            output_transforms = {i: output_transforms[i] for i in include_measures}
+            output_transforms = {i: output_transforms[i]
+                                 for i in include_measures
+                                 if i in output_transforms }
             
         if exclude_measures is not None:
             experiment_outputs = experiment_outputs.drop(exclude_measures, axis=1)
@@ -554,8 +574,16 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         disabled_outputs = [i for i in self.scope.get_measure_names()
                             if i not in experiment_outputs.columns]
 
-        func = MetaModel(experiment_inputs, experiment_outputs,
-                         output_transforms, disabled_outputs, random_state)
+        func = MetaModel(
+            experiment_inputs,
+            experiment_outputs,
+            output_transforms,
+            disabled_outputs,
+            random_state,
+            experiment_stratification,
+            suppress_converge_warnings=suppress_converge_warnings,
+            regressor=regressor,
+        )
 
         scope_ = self.scope.duplicate(strip_measure_transforms=True, 
                                       include_measures=include_measures,
@@ -579,6 +607,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures=None,
             db=None,
             random_state=None,
+            suppress_converge_warnings=False,
+            regressor=None,
     ):
         """
         Create a MetaModel from a set of input and output observations.
@@ -593,6 +623,11 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 output performance measures with names not in this set will be included.
             random_state (int, optional): A random state to use in the metamodel
                 regression fitting.
+            suppress_converge_warnings (bool, default False):
+                Suppress convergence warnings during metamodel fitting.
+            regressor (Estimator, optional): A scikit-learn estimator implementing a
+                multi-target regression.  If not given, a detrended simple Gaussian
+                process regression is used.
 
         Returns:
             MetaModel:
@@ -628,6 +663,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures=exclude_measures,
             db=db,
             random_state=random_state,
+            suppress_converge_warnings=suppress_converge_warnings,
+            regressor=regressor,
         )
 
     def create_metamodel_from_designs(
@@ -638,6 +675,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures=None,
             db=None,
             random_state=None,
+            suppress_converge_warnings=False,
     ):
         """
         Create a MetaModel from multiple sets of input and output observations.
@@ -652,6 +690,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 output performance measures with names not in this set will be included.
             random_state (int, optional): A random state to use in the metamodel
                 regression fitting.
+            suppress_converge_warnings (bool, default False):
+                Suppress convergence warnings during metamodel fitting.
 
         Returns:
             MetaModel:
@@ -671,12 +711,19 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     from ..exceptions import PendingExperimentsError
                     raise PendingExperimentsError(f'design "{design_name}" has pending experiments')
 
-        experiment_inputs = pd.concat([
-            db.read_experiment_parameters(self.scope.name, design_name) for design_name in design_names
-        ])
-        experiment_outputs = pd.concat([
-            db.read_experiment_measures(self.scope.name, design_name) for design_name in design_names
-        ])
+        experiment_inputs = []
+        for design_name in design_names:
+            f = db.read_experiment_parameters(self.scope.name, design_name)
+            f['_design_'] = design_name
+            experiment_inputs.append(f)
+        experiment_inputs = pd.concat(experiment_inputs)
+
+        experiment_outputs = []
+        for design_name in design_names:
+            f =  db.read_experiment_measures(self.scope.name, design_name)
+            # f['_design_'] = design_name
+            experiment_outputs.append(f)
+        experiment_outputs = pd.concat(experiment_outputs)
 
         transforms = {
             i.name: i.metamodeltype
@@ -684,7 +731,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         }
 
         return self.create_metamodel_from_data(
-            experiment_inputs,
+            experiment_inputs.drop('_design_', axis=1),
             experiment_outputs,
             transforms,
             metamodel_id=metamodel_id,
@@ -692,6 +739,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             exclude_measures=exclude_measures,
             db=db,
             random_state=random_state,
+            experiment_stratification=experiment_inputs['_design_'],
+            suppress_converge_warnings=suppress_converge_warnings,
         )
 
 
@@ -742,14 +791,102 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             title='Feature Scoring' + (f' [{design}]' if design else ''),
         )
 
+    def _common_optimization_setup(
+            self,
+            epsilons=0.1,
+            convergence='default',
+            display_convergence=True,
+            evaluator=None,
+    ):
+        import numbers
+        if isinstance(epsilons, numbers.Number):
+            epsilons = [epsilons]*len(self.outcomes)
+
+        if convergence == 'default':
+            convergence = ConvergenceMetrics(
+                EpsilonProgress(),
+                SolutionCount(),
+            )
+
+        if display_convergence and isinstance(convergence, ConvergenceMetrics):
+            from IPython.display import display
+            display(convergence)
+
+        if evaluator is None:
+            from ema_workbench.em_framework import SequentialEvaluator
+            evaluator = SequentialEvaluator(self)
+
+        if not isinstance(evaluator, BaseEvaluator):
+            from dask.distributed import Client
+            if isinstance(evaluator, Client):
+                from ema_workbench.em_framework.ema_distributed import DistributedEvaluator
+                evaluator = DistributedEvaluator(self, client=evaluator)
+
+        return epsilons, convergence, display_convergence, evaluator
+
+    def optimize(
+            self,
+            search_over='levers',
+            evaluator=None,
+            nfe=10000,
+            convergence='default',
+            constraints=None,
+            reference=None,
+            display_convergence=True,
+            convergence_freq=100,
+            reverse_targets=False,
+            epsilons=0.1,
+            **kwargs,
+    ):
+        epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
+            epsilons, convergence, display_convergence, evaluator
+        )
+
+        if reverse_targets:
+            for k in self.scope.get_measures():
+                k.kind_original = k.kind
+                k.kind = k.kind * -1
+
+        try:
+            with evaluator:
+                results = evaluator.optimize(
+                    search_over=search_over,
+                    reference=reference,
+                    nfe=nfe,
+                    constraints=constraints,
+                    convergence=convergence,
+                    convergence_freq=convergence_freq,
+                    epsilons=epsilons,
+                    **kwargs,
+                )
+
+            if isinstance(results, tuple) and len(results) == 2:
+                results, result_convergence = results
+            else:
+                result_convergence = None
+
+            results = self.ensure_dtypes(results)
+
+        finally:
+            if reverse_targets:
+                for k in self.scope.get_measures():
+                    k.kind = k.kind_original
+                    del k.kind_original
+        if result_convergence is None:
+            return OptimizationResult(results, None, scope=self.scope)
+        else:
+            return OptimizationResult(results, result_convergence, scope=self.scope)
+
     def robust_optimize(
             self,
             robustness_functions,
             scenarios,
             evaluator=None,
             nfe=10000,
-            convergence=None,
+            convergence='default',
+            display_convergence=True,
             constraints=None,
+            epsilons=0.1,
             **kwargs,
     ):
         """
@@ -787,7 +924,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             nfe (int, default 10_000): Number of function evaluations.
                 This generally needs to be fairly large to achieve stable
                 results in all but the most trivial applications.
-            convergence (emat.optimization.ConvergenceMetrics, optional)
+            convergence ('default', None, or emat.optimization.ConvergenceMetrics):
+                A convergence display during optimization.
             constraints (Collection[Constraint], optional)
             kwargs: any additional arguments will be passed on to the
                 platypus algorithm.
@@ -799,10 +937,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             also returned, as a second pandas.DataFrame.
         """
 
-
-        if evaluator is None:
-            from ema_workbench.em_framework import SequentialEvaluator
-            evaluator = SequentialEvaluator(self)
+        epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
+            epsilons, convergence, display_convergence, evaluator
+        )
 
         from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
 
@@ -810,16 +947,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             n_scenarios = scenarios
             scenarios = sample_uncertainties(self, n_scenarios)
 
-        # if epsilons is None:
-        #     epsilons = [0.05, ] * len(robustness_functions)
-        #
         with evaluator:
             robust_results = evaluator.robust_optimize(
                 robustness_functions,
                 scenarios,
                 nfe=nfe,
                 constraints=constraints,
-                # epsilons=epsilons,
+                epsilons=epsilons,
                 convergence=convergence,
                 **kwargs,
             )
@@ -832,9 +966,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         robust_results = self.ensure_dtypes(robust_results)
 
         if result_convergence is None:
-            return robust_results
+            return OptimizationResult(robust_results, None, scope=self.scope)
         else:
-            return robust_results, result_convergence
+            return OptimizationResult(robust_results, result_convergence, scope=self.scope)
 
     def robust_evaluate(
             self,

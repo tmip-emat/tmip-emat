@@ -1,16 +1,85 @@
 
 from plotly.offline import iplot
 import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 import itertools
 import numpy
 import pandas
+from typing import Mapping
 
 from .widget import FigureWidget
 from .common import get_name, any_names
 
-def simple_scatter_explicit(x,y, title=None, xtitle=None, ytitle=None):
+
+class ScatterMass:
+
+	def __init__(self, target=1000, minimum=0.1):
+		if isinstance(target, ScatterMass):
+			self.target = target.target
+			self.minimum = target.minimum
+		elif isinstance(target, Mapping):
+			self.target = target.get('target', 1000)
+			self.minimum = target.get('minimum', 0.1)
+		else:
+			self.target = target
+			self.minimum = minimum
+
+	def get_opacity(self, arr):
+		"""
+		Get opacity for markers.
+
+		Parameters
+		----------
+		arr: array-like
+
+		Returns
+		-------
+		alpha
+		"""
+		alpha = 1.0
+		n = arr.shape[0]
+		if n > self.target:
+			alpha = self.target / n
+		if alpha < self.minimum:
+			alpha = self.minimum
+		return alpha
+
+	def get_opacity_with_selection(self, arr, selection):
+		"""
+		Get opacity for selected and unselected markers.
+
+		Parameters
+		----------
+		arr: array-like, shape[N,...]
+		selection: array-like[bool], shape[N]
+
+		Returns
+		-------
+		alpha_selected, alpha_unselected
+		"""
+		alpha_selected, alpha_unselected = [1.0, 1.0]
+		n = arr.shape[0]
+		n_selected = int(selection.sum())
+		n_unselect = n - n_selected
+
+		if n_unselect > self.target:
+			alpha_unselected = self.target / n_unselect
+		if alpha_unselected < self.minimum:
+			alpha_unselected = self.minimum
+
+		if n_selected > self.target:
+			alpha_selected = self.target / n_selected
+		if alpha_selected < self.minimum:
+			alpha_selected = self.minimum
+		return alpha_selected, alpha_unselected
+
+
+
+def simple_scatter_explicit(x,y, title=None, xtitle=None, ytitle=None, use_gl=True):
+
+	Scatter = go.Scattergl if use_gl else go.Scatter
 	# Create a trace
-	trace = go.Scattergl(
+	trace = Scatter(
 		x = x,
 		y = y,
 		mode = 'markers',
@@ -38,7 +107,7 @@ def simple_scatter_explicit(x,y, title=None, xtitle=None, ytitle=None):
 	return fig
 
 
-def simple_scatter_df(df,x,y, *, size=None, hovertext=None, title=None, xtitle=None, ytitle=None):
+def simple_scatter_df(df,x,y, *, size=None, hovertext=None, title=None, xtitle=None, ytitle=None, use_gl=True):
 	# Create a trace
 
 	marker = None
@@ -47,8 +116,8 @@ def simple_scatter_df(df,x,y, *, size=None, hovertext=None, title=None, xtitle=N
 			size=df[size],
 			# showscale=True,
 		)
-
-	trace = go.Scattergl(
+	Scatter = go.Scattergl if use_gl else go.Scatter
+	trace = Scatter(
 		x = df[x],
 		y = df[y],
 		mode = 'markers',
@@ -85,6 +154,7 @@ def scatter_graph(
 		sizemin=None,
 		sizemode='area',
 		sizeref=None,
+		opacity=1.0,
 		cats=None,
 		n_cats=None,
 		cat_fmt=".2g",
@@ -93,6 +163,7 @@ def scatter_graph(
 		axis_labels=True,
 		output='widget',
 		metadata=None,
+		use_gl=True,
 		**kwargs
 ):
 	"""Generate a scatter plot.
@@ -161,6 +232,8 @@ def scatter_graph(
 		Y = [Y]
 	if not isinstance(S, list):
 		S = [S]
+	if not isinstance(opacity, list):
+		opacity = [opacity]
 
 	longer_XY = X if (len(X) >= len(Y)) else Y
 
@@ -217,8 +290,10 @@ def scatter_graph(
 	if legend_title is None and cats is not None and n_cats is not None:
 		legend_title = cats
 
+	Scatter = go.Scattergl if use_gl else go.Scatter
+
 	if legend_title is not None:
-		dummy_trace = go.Scattergl(
+		dummy_trace = Scatter(
 			x=[None], y=[None],
 			name=f'<b>{legend_title}</b>',
 			# set opacity = 0
@@ -229,7 +304,7 @@ def scatter_graph(
 	for n,df in DF.items():
 
 		traces += [
-			go.Scattergl(
+			Scatter(
 				x = x,
 				y = y,
 				mode = 'markers',
@@ -238,15 +313,17 @@ def scatter_graph(
 					sizemode=sizemode,
 					sizeref=sizeref,
 					sizemin=sizemin,
+					opacity=opaque,
 				),
 				name=n if legend_label=='' else legend_label,
 			)
-			for x,y,s,tracenum,legend_label in zip(
+			for x,y,s,tracenum,legend_label,opaque in zip(
 				itertools.cycle(X_data[n]),
 				itertools.cycle(Y_data[n]),
 				itertools.cycle(S_data[n]),
 				range(max(len(X_data[n]), len(Y_data[n]), len(S_data[n]))),
 				itertools.cycle(legend_labels) if legend_labels is not None else itertools.cycle(['']),
+				itertools.cycle(opacity),
 			)
 		]
 
@@ -287,6 +364,7 @@ def scatter_graph_row(
 		X,
 		Y,
 		S=None,
+		C=None,
 		*,
 		df=None,
 		title=None,
@@ -305,6 +383,9 @@ def scatter_graph_row(
 		output='widget',
 		metadata=None,
 		marker_opacity=1.0,
+		layout=None,
+		short_name_func=None,
+		use_gl=True,
 		**kwargs
 ):
 	"""Generate a scatter plot.
@@ -356,18 +437,23 @@ def scatter_graph_row(
 	metadata : dict, optional
 		A dictionary of meta-data to attach to the FigureWidget.  Only attached
 		if the return type is FigureWidget.
-
+	short_name_func : callable, optional
+		A function that converts names to short names, which might display better
+		on the figure.
 
 	Returns
 	-------
 	fig
 	"""
 
+	if short_name_func is None:
+		short_name_func = lambda x: x
+
 	x_names = [get_name(x, True) for x in X]
 	y_name = get_name(Y, True)
 
 	if y_name != '':
-		kwargs['y_title'] = kwargs.get('y_title', y_name)
+		kwargs['y_title'] = kwargs.get('y_title', short_name_func(y_name))
 
 	if not isinstance(X, list):
 		X = [X]
@@ -375,6 +461,8 @@ def scatter_graph_row(
 		Y = [Y]
 	if not isinstance(S, list):
 		S = [S]
+	if not isinstance(C, list):
+		C = [C]
 
 	longer_XY = X if (len(X) >= len(Y)) else Y
 
@@ -421,8 +509,9 @@ def scatter_graph_row(
 	if legend_title is None and cats is not None and n_cats is not None:
 		legend_title = cats
 
+	Scatter = go.Scattergl if use_gl else go.Scatter
 	if legend_title is not None:
-		dummy_trace = go.Scattergl(
+		dummy_trace = Scatter(
 			x=[None], y=[None],
 			name=f'<b>{legend_title}</b>',
 			# set opacity = 0
@@ -434,48 +523,48 @@ def scatter_graph_row(
 	X_data_1 = []
 	X_data_ticks = {}
 
+	from .perturbation import perturb_categorical
 	for tracenum, x in enumerate(X_data):
-		if hasattr(x, 'dtype'):
-			try:
-				perturb_ = numpy.issubdtype(x.dtype, numpy.bool_)
-			except:
-				perturb_ = False
-			if perturb_:
-				s_ = x.size*0.01
-				s_ = s_ / (1+s_)
-				epsilon = 0.05 + 0.25 * s_
-				x = numpy.asarray(x, dtype=float) + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
-				X_data_ticks[tracenum] = (
-					[-epsilon-padding, 1+epsilon+padding],
-					[-epsilon-padding, 0, 1, 1+epsilon+padding],
-					["", "False", "True", ""],
-				)
+		x, x_ticktext, x_tickvals, x_range, valid_scales = perturb_categorical(x, range_padding=padding)
+		X_data_ticks[tracenum] = (
+			x_range,
+			x_tickvals,
+			x_ticktext,
+		)
 		X_data_1.append(x)
 
 
-	for x, y, s, tracenum, legend_label in zip(
+	for x, y, s, tracenum, legend_label, tracecolor in zip(
 			itertools.cycle(X_data_1),
 			itertools.cycle(Y_data),
 			itertools.cycle(S_data),
 			range(max(len(X_data), len(Y_data), len(S_data))),
 			itertools.cycle(legend_labels) if legend_labels is not None else itertools.cycle(['']),
+			itertools.cycle(C),
 	):
-		i = go.Scattergl(
-			x = x,
-			y = y,
-			mode = 'markers',
-			marker=dict(
-				size=s,
-				sizemode=sizemode,
-				sizeref=sizeref,
-				sizemin=sizemin,
-				opacity=marker_opacity,
-			),
-			name=legend_label,
-			xaxis=f'x{tracenum+1}',
-		)
-		traces.append(i)
+		if x is not None:
+			i = Scatter(
+				x = x,
+				y = y,
+				mode = 'markers',
+				marker=dict(
+					size=s,
+					sizemode=sizemode,
+					sizeref=sizeref,
+					sizemin=sizemin,
+					opacity=marker_opacity,
+					color=tracecolor,
+				),
+				name=legend_label,
+				xaxis=f'x{tracenum+1}',
+			)
+			traces.append(i)
 
+	if isinstance(output, go.FigureWidget):
+		with output.batch_update():
+			for t_num, t in enumerate(traces):
+				output.add_trace(t)
+		return output
 
 	n_traces = max(len(X_data), len(Y_data), len(S_data))
 	domain_starts = (numpy.arange(n_traces)) / (n_traces - 0.1)
@@ -486,7 +575,7 @@ def scatter_graph_row(
 	for i, dom0, dom1, t in zip(range(n_traces), domain_starts, domain_stops, x_names):
 		xaxis_dicts[f'xaxis{i+1}'] = dict(
 			domain=[dom0,dom1],
-			title=t,
+			title=short_name_func(t),
 			zeroline=False,
 		)
 		if i in X_data_ticks:
@@ -494,6 +583,7 @@ def scatter_graph_row(
 			xaxis_dicts[f'xaxis{i + 1}']['tickvals'] = X_data_ticks[i][1]
 			xaxis_dicts[f'xaxis{i + 1}']['ticktext'] = X_data_ticks[i][2]
 
+	layout_kwds = {} if layout is None else layout
 	layout= go.Layout(
 		title= title,
 		hovermode= 'closest',
@@ -503,6 +593,7 @@ def scatter_graph_row(
 		paper_bgcolor=paper_bgcolor,
 		plot_bgcolor=plot_bgcolor,
 		**xaxis_dicts,
+		**layout_kwds,
 	)
 
 	# if not axis_labels:

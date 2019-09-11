@@ -130,52 +130,52 @@ outputs:
         metamodeltype: log
         kind: minimize
 
-    Corridor Kensington Daily VMT:
+    Kensington Daily VMT:
         metamodeltype: log
         kind: minimize
-    Corridor Kensington Daily VHT:
+    Kensington Daily VHT:
         metamodeltype: log
         kind: minimize
-    Corridor Kensington_OB PM VMT:
+    Kensington_OB PM VMT:
         metamodeltype: log
         kind: minimize
-    Corridor Kensington_OB PM VHT:
+    Kensington_OB PM VHT:
         metamodeltype: log
         kind: minimize
-    Corridor Kensington_IB AM VMT:
+    Kensington_IB AM VMT:
         metamodeltype: log
         kind: minimize
-    Corridor Kensington_IB AM VHT:
+    Kensington_IB AM VHT:
         metamodeltype: log
         kind: minimize
-    Corridor 190 Daily VMT:
+    190 Daily VMT:
         metamodeltype: log
         kind: minimize
-    Corridor 190 Daily VHT:
+    190 Daily VHT:
         metamodeltype: log
         kind: minimize
-    Corridor 190_OB Daily VMT:
+    190_OB Daily VMT:
         metamodeltype: log
         kind: minimize
-    Corridor 190_OB Daily VHT:
+    190_OB Daily VHT:
         metamodeltype: log
         kind: minimize
-    Corridor 190_IB Daily VMT:
+    190_IB Daily VMT:
         metamodeltype: log
         kind: minimize
-    Corridor 190_IB Daily VHT:
+    190_IB Daily VHT:
         metamodeltype: log
         kind: minimize
-    Corridor 33_west Daily VMT:
+    33_west Daily VMT:
         metamodeltype: log
         kind: minimize
-    Corridor 33_west Daily VHT:
+    33_west Daily VHT:
         metamodeltype: log
         kind: minimize
-    Corridor I90_south Daily VMT:
+    I90_south Daily VMT:
         metamodeltype: log
         kind: minimize
-    Corridor I90_south Daily VHT:
+    I90_south Daily VHT:
         metamodeltype: log
         kind: minimize
 
@@ -212,7 +212,7 @@ outputs:
         metamodeltype: log
         kind: info
 
-    # transit measures with no transform
+    # transit measures with no metamodeltype
 
     Peak Transit Share:
         kind: maximize
@@ -226,5 +226,4 @@ outputs:
         kind: maximize
     Daily NonMotorized Share:
         kind: maximize
-
 ...

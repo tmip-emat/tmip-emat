@@ -254,7 +254,7 @@ class TestRoadTest(unittest.TestCase):
 		)
 
 		with SequentialEvaluator(m) as eval_seq:
-			robust_results, convergence = m.robust_optimize(
+			robust = m.robust_optimize(
 				robustness_functions,
 				scenarios=20,
 				nfe=5,
@@ -267,6 +267,7 @@ class TestRoadTest(unittest.TestCase):
 				convergence=convergence_metrics,
 				evaluator=eval_seq,
 			)
+		robust_results, convergence = robust.result, robust.convergence
 
 		assert isinstance(robust_results, pandas.DataFrame)
 
@@ -407,7 +408,7 @@ class TestRoadTest(unittest.TestCase):
 
 		# Test robust optimize
 		with SequentialEvaluator(m) as evaluator:
-			robust_results, convergence = m.robust_optimize(
+			robust = m.robust_optimize(
 					robustness_functions,
 					scenarios=scenes,
 					nfe=25,
@@ -420,6 +421,7 @@ class TestRoadTest(unittest.TestCase):
 					convergence=convergence_metrics,
 					evaluator=evaluator,
 			)
+		robust_results, convergence = robust.result, robust.convergence
 
 		cachefile = os.path.join(test_dir,'test_robust_results.csv')
 		if not os.path.exists(cachefile):

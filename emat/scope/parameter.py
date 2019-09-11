@@ -9,6 +9,7 @@ from scipy.stats._distn_infrastructure import rv_frozen
 
 from ..util import distributions, DistributionTypeError, DistributionFreezeError
 from ..util import make_rv_frozen, rv_frozen_as_dict
+from .names import ShortnameMixin
 
 def standardize_parameter_type(original_type):
     """Standardize parameter type descriptions
@@ -207,7 +208,7 @@ def make_parameter(
         dist_for_maker['max'] = 1
     elif dtype=='cat':
         dist_for_maker['min'] = 0
-        dist_for_maker['max'] = len(values)-1
+        dist_for_maker['max'] = (len(values)-1) if values is not None else 0
 
 
     ptype = standardize_parameter_type(ptype)
@@ -259,7 +260,10 @@ def make_parameter(
 
     # Create the Parameter
     if ptype == 'constant':
-        p = Constant(name, default, desc=desc, address=address)
+        if dtype == 'cat':
+            p = Constant(name, default, desc=desc, address=address, dtype='cat')
+        else:
+            p = Constant(name, default, desc=desc, address=address)
     elif dtype == 'cat':
         p = CategoricalParameter(
             name,
@@ -362,7 +366,12 @@ class Constant(workbench_param.Constant):
         given as a string.
         """
 
-        self.dtype = standardize_data_type(numpy.asarray(value).dtype)
+        if dtype is None:
+            dtype = numpy.asarray(value).dtype
+
+        dtype = standardize_data_type(dtype)
+
+        self.dtype = dtype
         """str: The dtype for the value, as a string."""
 
     @property
@@ -388,7 +397,7 @@ class Constant(workbench_param.Constant):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-class Parameter(workbench_param.Parameter):
+class Parameter(workbench_param.Parameter, ShortnameMixin):
 
     dtype = None
 
@@ -408,6 +417,7 @@ class Parameter(workbench_param.Parameter):
             ptype=None,
             corr=None,
             dist_def=None,
+            shortname=None,
     ):
 
         # The default constructor for ema_workbench parameters uses no distribution
@@ -482,6 +492,8 @@ class Parameter(workbench_param.Parameter):
 
         self.dist_def = dict(dist_def) if dist_def is not None else {}
         """Dict: The arguments that define the underlying distribution."""
+
+        self._shortname = shortname
 
     @property
     def min(self):
@@ -651,6 +663,11 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
 
 
     @property
+    def values(self):
+        """List: The possible discrete values."""
+        return [False, True]
+
+    @property
     def min(self):
         return False
 
@@ -666,14 +683,14 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
     def __init__(self, name, categories, *, default=None, variable_name=None,
                  pff=False, multivalue=False,
                  desc="", address=None, ptype=None, corr=None,
-                 dist=None):
+                 dist=None, singleton_ok=False):
         lower_bound = 0
         upper_bound = len(categories) - 1
 
         from scipy.stats import randint
         dist = randint(lower_bound, upper_bound+1)
 
-        if upper_bound == 0:
+        if upper_bound == 0 and not singleton_ok:
             raise ValueError('there should be more than 1 category')
 
         Parameter.__init__(

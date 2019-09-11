@@ -5,10 +5,18 @@ Installation and Configuration
 
 **Installation**
 
-Installation of TMIP-EMAT is currently a manual process.
+Installation of TMIP-EMAT can be done through the Anaconda package manager,
+or from source.  Installing from the package manager is recommended for
+users who are interested in the exploratory modeling tools, but are not
+responsible for conducting core model runs.  For modelers who wish to
+integrate a new core model into EMAT, installing from and editing the
+source code is recommended.
 
-Instructions for installing via `Anaconda <https://www.anaconda.com/download>`_
-will be published here when that installation path is available.
+.. toctree::
+
+    emat.conda
+    emat.git
+
 
 .. note::
 

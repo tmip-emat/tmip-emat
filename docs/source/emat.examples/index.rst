@@ -28,7 +28,8 @@ Examples
     - :doc:`GBNRTC/gbnrtc_example_yaml`
     - :doc:`Exploratory Analysis <GBNRTC/gbnrtc_example>`
     - :doc:`Prototype Explorer <GBNRTC/gbnrtc_explore>`
-
+    - :doc:`Restarting After a Core Mode Crash <GBNRTC/gbnrtc_restart>`
+    - :doc:`Setting up runs on Multiple Systems <GBNRTC/gbnrtc_multisystem>`
 
 ..
     * :doc:`CarbonFreeBoston/cfb_example`

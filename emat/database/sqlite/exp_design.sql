@@ -46,5 +46,5 @@ CREATE TABLE ema_experiment_measure (
     
     FOREIGN KEY (experiment_id) REFERENCES ema_experiment(rowid) ON DELETE CASCADE,
     FOREIGN KEY (measure_id) REFERENCES ema_measure(rowid),
-    PRIMARY KEY (experiment_id, measure_id)
+    PRIMARY KEY (experiment_id, measure_id, measure_source)
 );
