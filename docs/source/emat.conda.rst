@@ -101,7 +101,13 @@ to install into, and then run:
 
 .. code-block:: console
 
-    conda install -c tmip emat
+    conda install emat -c tmip -c defaults -c conda-forge
+
+The extra channels (`-c channel_name`) here are required as TMIP-EMAT depends on
+other packages from a variety of places.  Because of these dependencies, there
+is a fair chance that installing TMIP-EMAT into an existing environment may
+cause incompatibilities with other tools, so installing in this manner is not
+recommended.
 
 
 Using an Environment
