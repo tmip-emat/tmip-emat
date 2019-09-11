@@ -183,6 +183,21 @@ class TestDatabaseGZ():
         s = emat.Scope(road_test_scope_file)
         with pytest.raises(FileNotFoundError):
             emat.SQLiteDB(emat.package_file('nope.db.gz'))
+
+        if not os.path.exists(emat.package_file("examples", "roadtest.db.gz")):
+            db_w = emat.SQLiteDB(emat.package_file("examples", "roadtest.db.tmp"), initialize=True)
+            s.store_scope(db_w)
+            s.design_experiments(n_samples=110, random_seed=1234, db=db_w, design_name='lhs')
+            from emat.model.core_python import Road_Capacity_Investment
+            m_w = emat.PythonCoreModel(Road_Capacity_Investment, scope=s, db=db_w)
+            m_w.run_experiments(design_name='lhs', db=db_w)
+            db_w.conn.close()
+            import gzip
+            import shutil
+            with open(emat.package_file("examples", "roadtest.db.tmp"), 'rb') as f_in:
+                with gzip.open(emat.package_file("examples", "roadtest.db.gz"), 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+
         db = emat.SQLiteDB(emat.package_file("examples", "roadtest.db.gz"))
 
         assert repr(db) == '<emat.SQLiteDB with scope "EMAT Road Test">'
