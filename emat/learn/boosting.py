@@ -143,7 +143,7 @@ class BoostedRegressor(_BaseComposition, RegressorMixin, FrameableMixin, CrossVa
 		Yhat = self._post_predict(X, Yhat)
 		return Yhat
 
-	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, n_repeats=None, tier=None):
+	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, n_repeats=None, tier=None, n_jobs=-1):
 		"""
 		Calculate the cross validation scores for this model.
 
@@ -180,6 +180,7 @@ class BoostedRegressor(_BaseComposition, RegressorMixin, FrameableMixin, CrossVa
 		p = self._cross_validate(
 			X, Y, cv=cv, S=S, random_state=random_state,
 			cache_metadata=self.prediction_tier, n_repeats=n_repeats,
+			n_jobs=n_jobs,
 		)
 		try:
 			return pandas.Series({j: p[f"test_{j}"].mean() for j in self.Y_columns})
