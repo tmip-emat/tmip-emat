@@ -106,6 +106,7 @@ intersphinx_mapping = {
 	'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
 	'sklearn': ('https://scikit-learn.org/stable/', None),
     'ema_workbench': ('https://emaworkbench.readthedocs.io/en/latest/', None),
+    'conda': ('https://docs.conda.io/projects/conda/en/latest/', None),
 }
 
 
