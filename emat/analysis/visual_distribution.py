@@ -10,6 +10,7 @@ def display_experiments(
 		render='png',
 		measures=None,
 		mass=1000,
+		use_gl=True,
 ):
 	"""
 	Render a visualization of experimental results.
@@ -63,7 +64,7 @@ def display_experiments(
 
 	for meas in measures:
 		display_html(f"<h4>{meas}</h4>", raw=True)
-		display(scatter_graphs(meas, experiment_results, scope=scope, render=render))
+		display(scatter_graphs(meas, experiment_results, scope=scope, render=render, use_gl=use_gl))
 
 
 
@@ -75,6 +76,7 @@ def contrast_experiments(
 		render='png',
 		measures=None,
 		mass=1000,
+		use_gl=True,
 ):
 	"""
 	Render a visualization of two sets of experimental results.
@@ -136,4 +138,4 @@ def contrast_experiments(
 
 	for meas in measures:
 		display_html(f"<h4>{meas}</h4>", raw=True)
-		display(scatter_graphs_2(meas, [experiments_1, experiments_2], scope=scope, render=render))
+		display(scatter_graphs_2(meas, [experiments_1, experiments_2], scope=scope, render=render, use_gl=use_gl))

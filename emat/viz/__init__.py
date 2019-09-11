@@ -13,6 +13,7 @@ def scatter_graphs(
 		contrast='infer',
 		marker_opacity=None,
 		render=None,
+		use_gl=True,
 ):
 	"""Generate a row of scatter plots comparing one column against others.
 
@@ -94,6 +95,7 @@ def scatter_graphs(
 			margin=dict(l=50, r=2, t=5, b=40)
 		),
 		short_name_func=scope.shortname if scope is not None else None,
+		use_gl=use_gl,
 	)
 
 	if render:
@@ -115,6 +117,7 @@ def scatter_graphs_2(
 		contrast='infer',
 		render=None,
 		colors=None,
+		use_gl=True,
 ):
 	"""Generate a row of scatter plots comparing one column against others.
 
@@ -203,6 +206,7 @@ def scatter_graphs_2(
 			output=fig,
 			C=colorcycle.__next__(),
 			short_name_func=scope.shortname if scope is not None else None,
+			use_gl=use_gl,
 		)
 
 	if render:

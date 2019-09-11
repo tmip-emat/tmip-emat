@@ -75,9 +75,11 @@ class ScatterMass:
 
 
 
-def simple_scatter_explicit(x,y, title=None, xtitle=None, ytitle=None):
+def simple_scatter_explicit(x,y, title=None, xtitle=None, ytitle=None, use_gl=True):
+
+	Scatter = go.Scattergl if use_gl else go.Scatter
 	# Create a trace
-	trace = go.Scattergl(
+	trace = Scatter(
 		x = x,
 		y = y,
 		mode = 'markers',
@@ -105,7 +107,7 @@ def simple_scatter_explicit(x,y, title=None, xtitle=None, ytitle=None):
 	return fig
 
 
-def simple_scatter_df(df,x,y, *, size=None, hovertext=None, title=None, xtitle=None, ytitle=None):
+def simple_scatter_df(df,x,y, *, size=None, hovertext=None, title=None, xtitle=None, ytitle=None, use_gl=True):
 	# Create a trace
 
 	marker = None
@@ -114,8 +116,8 @@ def simple_scatter_df(df,x,y, *, size=None, hovertext=None, title=None, xtitle=N
 			size=df[size],
 			# showscale=True,
 		)
-
-	trace = go.Scattergl(
+	Scatter = go.Scattergl if use_gl else go.Scatter
+	trace = Scatter(
 		x = df[x],
 		y = df[y],
 		mode = 'markers',
@@ -161,6 +163,7 @@ def scatter_graph(
 		axis_labels=True,
 		output='widget',
 		metadata=None,
+		use_gl=True,
 		**kwargs
 ):
 	"""Generate a scatter plot.
@@ -287,8 +290,10 @@ def scatter_graph(
 	if legend_title is None and cats is not None and n_cats is not None:
 		legend_title = cats
 
+	Scatter = go.Scattergl if use_gl else go.Scatter
+
 	if legend_title is not None:
-		dummy_trace = go.Scattergl(
+		dummy_trace = Scatter(
 			x=[None], y=[None],
 			name=f'<b>{legend_title}</b>',
 			# set opacity = 0
@@ -299,7 +304,7 @@ def scatter_graph(
 	for n,df in DF.items():
 
 		traces += [
-			go.Scattergl(
+			Scatter(
 				x = x,
 				y = y,
 				mode = 'markers',
@@ -380,6 +385,7 @@ def scatter_graph_row(
 		marker_opacity=1.0,
 		layout=None,
 		short_name_func=None,
+		use_gl=True,
 		**kwargs
 ):
 	"""Generate a scatter plot.
@@ -503,8 +509,9 @@ def scatter_graph_row(
 	if legend_title is None and cats is not None and n_cats is not None:
 		legend_title = cats
 
+	Scatter = go.Scattergl if use_gl else go.Scatter
 	if legend_title is not None:
-		dummy_trace = go.Scattergl(
+		dummy_trace = Scatter(
 			x=[None], y=[None],
 			name=f'<b>{legend_title}</b>',
 			# set opacity = 0
@@ -536,7 +543,7 @@ def scatter_graph_row(
 			itertools.cycle(C),
 	):
 		if x is not None:
-			i = go.Scattergl(
+			i = Scatter(
 				x = x,
 				y = y,
 				mode = 'markers',
