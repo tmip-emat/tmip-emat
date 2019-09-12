@@ -885,6 +885,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             nfe=10000,
             convergence='default',
             display_convergence=True,
+            convergence_freq=100,
             constraints=None,
             epsilons=0.1,
             **kwargs,
@@ -955,6 +956,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 constraints=constraints,
                 epsilons=epsilons,
                 convergence=convergence,
+                convergence_freq=convergence_freq,
                 **kwargs,
             )
 
