@@ -634,3 +634,37 @@ class Scope:
                 return x.shortname
             except:
                 return name
+
+    def default_policy(self, **kwargs):
+        """
+        The default settings for policy levers.
+
+        Args:
+            **kwargs:
+                Override the defaults given in the scope
+                with these values.
+
+        Returns:
+            ema_workbench.Policy
+        """
+        from ema_workbench import Policy
+        values = {l.name: l.default for l in self.get_levers()}
+        values.update(kwargs)
+        return Policy('default', **values)
+
+    def default_scenario(self, **kwargs):
+        """
+        The default settings for exogenous uncertainties.
+
+        Args:
+            **kwargs:
+                Override the defaults given in the scope
+                with these values.
+
+        Returns:
+            ema_workbench.Scenario
+        """
+        from ema_workbench import Scenario
+        values = {u.name: u.default for u in self.get_uncertainties()}
+        values.update(kwargs)
+        return Scenario('default', **values)
