@@ -776,9 +776,11 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if isinstance(design, str):
             inputs = self.read_experiment_parameters(design)
             outcomes = self.read_experiment_measures(design)
+            design_name = design
         elif isinstance(design, pandas.DataFrame):
             inputs = design[[c for c in design.columns if c in self.scope.get_parameter_names()]]
             outcomes = design[[c for c in design.columns if c in self.scope.get_measure_names()]]
+            design_name = None
         else:
             raise TypeError('must name design or give DataFrame')
 
@@ -788,7 +790,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         return heatmap_table(
             fs.T,
             xlabel='Model Parameters', ylabel='Performance Measures',
-            title='Feature Scoring' + (f' [{design}]' if design else ''),
+            title='Feature Scoring' + (f' [{design_name}]' if design_name else ''),
         )
 
     def _common_optimization_setup(
