@@ -142,6 +142,12 @@ def log_to_stderr(level=None, top=False, workbench=True):
 
     if workbench:
         ema_workbench.util.ema_logging._rootlogger = logger
+        import importlib
+        existing_module_loggers = list(ema_workbench.util.ema_logging._module_loggers.keys())
+        ema_workbench.util.ema_logging._module_loggers.clear()
+        for module_name in existing_module_loggers:
+            module = importlib.import_module(module_name)
+            module._logger = ema_workbench.util.ema_logging.get_module_logger(module_name)
 
     return get_logger()
 
