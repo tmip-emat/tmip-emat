@@ -205,7 +205,7 @@ class ParCoordsViewer(VBox):
 		)
 
 		self.color_dim_choose = widget.Dropdown(
-			options=self.data.columns,
+			options=['< None >']+list(self.data.columns),
 			description='Colorize:',
 			value=self.data.columns[0],
 		)
@@ -240,18 +240,24 @@ class ParCoordsViewer(VBox):
 		with self.out_logger:
 			try:
 				with self.parcoords.batch_update():
-					color_data = self.data[payload['new']]
-					self.parcoords.data[0].line.color = color_data
-					if self.scope is not None:
-						self.parcoords.data[0].line.colorbar.title.text = self.scope.shortname(payload['new'])
+					color_dim_name = payload['new']
+					if color_dim_name == '< None >':
+						self.parcoords.data[0].line.color = 'rgb(200,0,0)'
+						self.parcoords.data[0].line.showscale = False
 					else:
-						self.parcoords.data[0].line.colorbar.title.text = payload['new']
-					if color_data.dtype == numpy.bool_:
-						self.parcoords.data[0].line.cmin = 0
-						self.parcoords.data[0].line.cmax = 1
-					else:
-						self.parcoords.data[0].line.cmin = color_data.min()
-						self.parcoords.data[0].line.cmax = color_data.max()
+						color_data = self.data[payload['new']]
+						self.parcoords.data[0].line.color = color_data
+						self.parcoords.data[0].line.showscale = True
+						if self.scope is not None:
+							self.parcoords.data[0].line.colorbar.title.text = self.scope.shortname(payload['new'])
+						else:
+							self.parcoords.data[0].line.colorbar.title.text = payload['new']
+						if color_data.dtype == numpy.bool_:
+							self.parcoords.data[0].line.cmin = 0
+							self.parcoords.data[0].line.cmax = 1
+						else:
+							self.parcoords.data[0].line.cmin = color_data.min()
+							self.parcoords.data[0].line.cmax = color_data.max()
 			except:
 				import traceback
 				traceback.print_exc()
