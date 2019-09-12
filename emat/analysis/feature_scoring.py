@@ -7,7 +7,7 @@ from ..viz import heatmap_table
 def feature_scores(
 		scope,
 		design,
-		return_type='figure',
+		return_type='styled',
 		db=None,
 		random_state=None,
 		cmap='viridis',
@@ -20,7 +20,7 @@ def feature_scores(
 		design (str or pandas.DataFrame): The name of the design of experiments
 			to use for feature scoring, or a single pandas.DataFrame containing the
 			experimental design and results.
-		return_type ({'figure', 'dataframe', 'styled'}):
+		return_type ({'styled', 'figure', 'dataframe'}):
 			The format to return, either a heatmap figure as an SVG render in and
 			xmle.Elem, or a plain pandas.DataFrame, or a styled dataframe.
 		db (emat.Database): If `design` is given as a string, extract the experiments
