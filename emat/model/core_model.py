@@ -1000,6 +1000,14 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 When `convergence` is given, the convergence measures are
                 included, as a pandas.DataFrame in the `convergence` attribute.
         """
+        from ..scope.measure import Measure
+        for rf in robustness_functions:
+            if not isinstance(rf, Measure):
+                raise ValueError(f'robustness functions must be defined as emat.Measure objects')
+            if rf.function is None:
+                raise ValueError(f'robustness function must have a function attribute set ({rf.name})')
+            if rf.name in self.scope:
+                raise ValueError(f'cannot name robustness function the same as any scope name ({rf.name})')
 
         epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
             epsilons, convergence, display_convergence, evaluator
