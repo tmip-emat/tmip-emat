@@ -967,10 +967,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         robust_results = self.ensure_dtypes(robust_results)
 
-        if result_convergence is None:
-            return OptimizationResult(robust_results, None, scope=self.scope)
-        else:
-            return OptimizationResult(robust_results, result_convergence, scope=self.scope)
+        return OptimizationResult(
+            robust_results,
+            result_convergence,
+            scope=self.scope,
+            robustness_functions=robustness_functions,
+        )
 
     def robust_evaluate(
             self,

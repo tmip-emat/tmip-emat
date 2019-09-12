@@ -50,7 +50,7 @@ def parallel_coords(
 		df,
 		scope=None,
 		flip_dims=(),
-		robustness_functions=(),
+		robustness_functions=None,
 		color_dim=0,
 		colorscale='Viridis',
 		title=None,
@@ -66,15 +66,6 @@ def parallel_coords(
 	"""
 
 	df = df.copy(deep=True)
-
-	# if model is not None:
-	# 	categorical_parameters = [
-	# 		i for i in model.levers if isinstance(i, CategoricalParameter)
-	# 	] + [
-	# 		i for i in model.uncertainties if isinstance(i, CategoricalParameter)
-	# 	]
-	# else:
-	# 	categorical_parameters = []
 
 	categorical_parameters = df.columns[df.dtypes == 'category']
 	bool_columns = df.columns[df.dtypes == bool]
@@ -189,7 +180,7 @@ class ParCoordsViewer(VBox):
 				self.data,
 				scope=self.scope,
 				flip_dims=(),
-				robustness_functions=(),
+				robustness_functions=robustness_functions,
 				color_dim=0,
 				colorscale='Viridis',
 				title=None,
