@@ -106,7 +106,7 @@ def get_logger():
     return _logger
 
 
-def log_to_stderr(level=None, top=False):
+def log_to_stderr(level=None, top=False, workbench=True):
     '''
     Turn on logging and add a handler which prints to stderr
 
@@ -119,6 +119,10 @@ def log_to_stderr(level=None, top=False):
 
     if not level:
         level = DEFAULT_LEVEL
+
+    if workbench:
+        import ema_workbench.util.ema_logging
+        ema_workbench.util.ema_logging.LOGGER_NAME = LOGGER_NAME
 
     logger = get_logger() if not top else logging.getLogger()
 
@@ -135,6 +139,9 @@ def log_to_stderr(level=None, top=False):
     logger.addHandler(handler)
     logger.propagate = False
     logger.setLevel(level)
+
+    if workbench:
+        ema_workbench.util.ema_logging._rootlogger = logger
 
     return get_logger()
 
