@@ -11,6 +11,7 @@ def display_experiments(
 		measures=None,
 		mass=1000,
 		use_gl=True,
+		return_figures=False,
 ):
 	"""
 	Render a visualization of experimental results.
@@ -49,6 +50,9 @@ def display_experiments(
 		each scatter point partially transparent, which will help
 		visually convey relative density when there are a very large
 		number of points.
+	return_figures : bool, default False
+		Set this to True to return the FigureWidgets instead of
+		simply displaying them.
 	"""
 
 	if isinstance(experiment_results, str):
@@ -62,9 +66,18 @@ def display_experiments(
 	if measures is None:
 		measures = scope.get_measure_names()
 
-	for meas in measures:
+	figures = {
+		meas:scatter_graphs(meas, experiment_results, scope=scope, render=render, use_gl=use_gl, mass=mass)
+		for meas in measures
+	}
+
+	if return_figures:
+		return figures
+
+	for meas, fig in figures.items():
 		display_html(f"<h4>{meas}</h4>", raw=True)
-		display(scatter_graphs(meas, experiment_results, scope=scope, render=render, use_gl=use_gl, mass=mass))
+		display(fig)
+
 
 
 
@@ -77,6 +90,7 @@ def contrast_experiments(
 		measures=None,
 		mass=1000,
 		use_gl=True,
+		return_figures=False,
 ):
 	"""
 	Render a visualization of two sets of experimental results.
@@ -115,6 +129,9 @@ def contrast_experiments(
 		each scatter point partially transparent, which will help
 		visually convey relative density when there are a very large
 		number of points.
+	return_figures : bool, default False
+		Set this to True to return the FigureWidgets instead of
+		simply displaying them.
 	"""
 
 	if isinstance(experiments_1, str):
@@ -136,6 +153,16 @@ def contrast_experiments(
 	if measures is None:
 		measures = scope.get_measure_names()
 
-	for meas in measures:
+	figures = {
+		meas:scatter_graphs_2(meas, [experiments_1, experiments_2], scope=scope, render=render, use_gl=use_gl)
+		for meas in measures
+	}
+
+	if return_figures:
+		return figures
+
+	for meas, fig in figures.items():
 		display_html(f"<h4>{meas}</h4>", raw=True)
-		display(scatter_graphs_2(meas, [experiments_1, experiments_2], scope=scope, render=render, use_gl=use_gl))
+		display(fig)
+
+		from plotly.subplots import make_subplots
