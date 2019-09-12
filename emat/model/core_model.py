@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """ core_model.py - define coure model API"""
+import os
 import abc
 import yaml
 import pandas as pd
@@ -9,6 +10,7 @@ from ema_workbench.em_framework.model import AbstractModel as AbstractWorkbenchM
 from ema_workbench.em_framework.evaluators import BaseEvaluator
 
 from typing import Collection
+from typing import Iterable
 
 from ..database.database import Database
 from ..scope.scope import Scope
@@ -946,9 +948,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             nfe=10000,
             convergence='default',
             display_convergence=True,
-            convergence_freq=100,
+            convergence_freq=10,
             constraints=None,
             epsilons=0.1,
+            cache_dir=None,
             **kwargs,
     ):
         """
@@ -1002,50 +1005,69 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 When `convergence` is given, the convergence measures are
                 included, as a pandas.DataFrame in the `convergence` attribute.
         """
-        from ..scope.measure import Measure
-        for rf in robustness_functions:
-            if not isinstance(rf, Measure):
-                raise ValueError(f'robustness functions must be defined as emat.Measure objects')
-            if rf.function is None:
-                raise ValueError(f'robustness function must have a function attribute set ({rf.name})')
-            if rf.name in self.scope:
-                raise ValueError(f'cannot name robustness function the same as any scope name ({rf.name})')
+        from ..optimization.optimize import robust_optimize
 
-        epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
-            epsilons, convergence, display_convergence, evaluator
-        )
+        result = None
+        cache_file = None
+        if cache_dir is not None:
+            try:
+                from ..util.hasher import hash_it
+                hh = hash_it(
+                    scenarios,
+                    convergence,
+                    convergence_freq,
+                    constraints,
+                    epsilons,
+                    nfe,
+                    robustness_functions,
+                )
+                os.makedirs(os.path.join(cache_dir,hh[2:4],hh[4:6]), exist_ok=True)
+                cache_file = os.path.join(cache_dir,hh[2:4],hh[4:6],hh[6:]+".gz")
+                if os.path.exists(cache_file):
+                    from ..util.filez import load
+                    result = load(cache_file)
+                    cache_file = None
+            except:
+                import warnings, traceback
+                warnings.warn('unable to manage cache')
+                traceback.print_exc()
 
-        from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
-
-        if isinstance(scenarios, int):
-            n_scenarios = scenarios
-            scenarios = sample_uncertainties(self, n_scenarios)
-
-        with evaluator:
-            robust_results = evaluator.robust_optimize(
+        if result is None:
+            result = robust_optimize(
+                self,
                 robustness_functions,
                 scenarios,
+                evaluator=evaluator,
                 nfe=nfe,
+                convergence=convergence,
+                display_convergence=display_convergence,
+                convergence_freq=convergence_freq,
                 constraints=constraints,
                 epsilons=epsilons,
-                convergence=convergence,
-                convergence_freq=convergence_freq,
                 **kwargs,
             )
+        elif display_convergence:
+            _, convergence, display_convergence, _ = self._common_optimization_setup(
+                None, convergence, display_convergence, False
+            )
+            for c in convergence:
+                try:
+                    c.rebuild(result.convergence)
+                except:
+                    pass
 
-        if isinstance(robust_results, tuple) and len(robust_results) == 2:
-            robust_results, result_convergence = robust_results
-        else:
-            result_convergence = None
-
-        robust_results = self.ensure_dtypes(robust_results)
-
-        return OptimizationResult(
-            robust_results,
-            result_convergence,
-            scope=self.scope,
-            robustness_functions=robustness_functions,
-        )
+        if cache_file is not None:
+            from ..util.filez import save
+            save(result, cache_file, overwrite=True)
+            with open(cache_file.replace('.gz','.info.txt'), 'wt') as notes:
+                print("scenarios=", scenarios, file=notes)
+                print("convergence=", convergence, file=notes)
+                print("convergence_freq=", convergence_freq, file=notes)
+                print("constraints=", constraints, file=notes)
+                print("epsilons=", epsilons, file=notes)
+                print("nfe=", nfe, file=notes)
+                print("robustness_functions=", robustness_functions, file=notes)
+        return result
 
     def robust_evaluate(
             self,

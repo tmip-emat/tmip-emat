@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy
+import re
 from ema_workbench import ScalarOutcome
 from .names import ShortnameMixin
 
@@ -109,7 +110,7 @@ class Measure(ScalarOutcome, ShortnameMixin):
         if transform is None:
             func = function
             if function is not None:
-                transform = f'f:{function}'
+                transform = re.sub(' at 0x[0-9a-fA-F]*', '', f'f:{function}')
         elif isinstance(transform, str) and hasattr(numpy, transform):
             func = getattr(numpy, transform)
         elif isinstance(transform, str) and transform.lower() in ('none',):
@@ -134,4 +135,19 @@ class Measure(ScalarOutcome, ShortnameMixin):
     def __repr__(self):
         return super().__repr__()
 
-
+    def _hash_it(self, ha=None):
+        from ..util.hasher import hash_it
+        return hash_it(
+            self.name,
+            self.kind,
+            self._expected_range,
+            self.address,
+            self.dtype,
+            self.function is None,
+            self.transform,
+            tuple(self.variable_name),
+            self.shape,
+            self.shortname,
+            self.metamodeltype,
+            ha=ha,
+        )

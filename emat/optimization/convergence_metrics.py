@@ -11,7 +11,36 @@ FIG_HEIGHT = 240
 FIG_WIDTH = 340
 FIG_MARGINS = dict(l=15, r=15, t=40, b=15)
 
-class EpsilonProgress(AbstractConvergenceMetric):
+class AbstractConvergenceMetricGraph(AbstractConvergenceMetric):
+
+	def __init__(self, name, title):
+		super().__init__(name)
+		self.figure = line_graph(
+			X=None, Y=None, widget=True, title=title, interpolate='linear',
+		)
+		self.figure.layout.height = FIG_HEIGHT
+		self.figure.layout.width = FIG_WIDTH
+		self.figure.layout.margin = FIG_MARGINS
+		self.nfes = []
+
+	def __call__(self, optimizer):
+		self.nfes.append(optimizer.algorithm.nfe)
+		self.update_figure()
+
+	def update_figure(self):
+		with self.figure.batch_update():
+			self.figure.data[0].y = self.results
+			self.figure.data[0].x = self.nfes
+
+	def rebuild(self, data):
+		if isinstance(data, pandas.DataFrame):
+			if 'nfe' in data.columns and self.name in data.columns:
+				self.nfes = list(data['nfe'])
+				self.results = list(data[self.name])
+				self.update_figure()
+
+
+class EpsilonProgress(AbstractConvergenceMetricGraph):
 	'''
 	Epsilon progress convergence metric class.
 
@@ -20,23 +49,24 @@ class EpsilonProgress(AbstractConvergenceMetric):
 	'''
 
 	def __init__(self):
-		super(EpsilonProgress, self).__init__("epsilon_progress")
-		self.figure = line_graph(
-			X=None, Y=None, widget=True, title="ε-Progress", xtitle='Generation', interpolate='linear',
-		)
-		self.figure.layout.height = FIG_HEIGHT
-		self.figure.layout.width = FIG_WIDTH
-		self.figure.layout.margin = FIG_MARGINS
-		self.nfes = []
+		super().__init__("epsilon_progress", title="ε-Progress")
+		# self.figure = line_graph(
+		# 	X=None, Y=None, widget=True, title="ε-Progress", xtitle='Generation', interpolate='linear',
+		# )
+		# self.figure.layout.height = FIG_HEIGHT
+		# self.figure.layout.width = FIG_WIDTH
+		# self.figure.layout.margin = FIG_MARGINS
+		# self.nfes = []
 
 	def __call__(self, optimizer):
 		self.results.append(optimizer.algorithm.archive.improvements)
-		self.nfes.append(optimizer.algorithm.nfe)
-		with self.figure.batch_update():
-			self.figure.data[0].y = self.results
-			self.figure.data[0].x = self.nfes
+		super().__call__(optimizer)
+		# self.nfes.append(optimizer.algorithm.nfe)
+		# with self.figure.batch_update():
+		# 	self.figure.data[0].y = self.results
+		# 	self.figure.data[0].x = self.nfes
 
-class HyperVolume(AbstractConvergenceMetric):
+class HyperVolume(AbstractConvergenceMetricGraph):
 	"""
 	HyperVolume convergence metric class
 
@@ -58,32 +88,34 @@ class HyperVolume(AbstractConvergenceMetric):
 	"""
 
 	def __init__(self, minimum, maximum):
-		super(HyperVolume, self).__init__("hypervolume")
+		super().__init__("hypervolume", title = "Hypervolume")
 		self.hypervolume_func = Hypervolume(minimum=minimum, maximum=maximum)
-		self.figure = line_graph(
-			X=None, Y=None, widget=True, title = "Hypervolume", xtitle='Generation', interpolate='linear',
-		)
-		self.figure.layout.height = FIG_HEIGHT
-		self.figure.layout.width = FIG_WIDTH
-		self.figure.layout.margin = FIG_MARGINS
+		# self.figure = line_graph(
+		# 	X=None, Y=None, widget=True, title = "Hypervolume", xtitle='Generation', interpolate='linear',
+		# )
+		# self.figure.layout.height = FIG_HEIGHT
+		# self.figure.layout.width = FIG_WIDTH
+		# self.figure.layout.margin = FIG_MARGINS
 
 	def __call__(self, optimizer):
 		self.results.append(self.hypervolume_func.calculate(optimizer.algorithm.archive))
-		start = 0
-		while start < len(self.results) and self.results[start] == 0:
-			start += 1
-		figure_data = self.results[start:]
-		self.figure.data[0].y = figure_data
-		try:
-			y_range = min(figure_data), max(figure_data)
-		except:
-			pass
-		else:
-			buffer = (y_range[1]-y_range[0])/10
-			if buffer:
-				y_range = y_range[0]-buffer, y_range[1]+buffer
-			if len(figure_data) > 1:
-				self.figure.layout.yaxis.range = y_range
+		with self.figure.batch_update():
+			super().__call__(optimizer)
+			start = 0
+			while start < len(self.results) and self.results[start] == 0:
+				start += 1
+			figure_data = self.results[start:]
+			# self.figure.data[0].y = figure_data
+			try:
+				y_range = min(figure_data), max(figure_data)
+			except:
+				pass
+			else:
+				buffer = (y_range[1]-y_range[0])/10
+				if buffer:
+					y_range = y_range[0]-buffer, y_range[1]+buffer
+				if len(figure_data) > 1:
+					self.figure.layout.yaxis.range = y_range
 
 	@classmethod
 	def from_outcomes(cls, outcomes):
@@ -92,7 +124,7 @@ class HyperVolume(AbstractConvergenceMetric):
 		highs = [_[1] for _ in ranges]
 		return cls(lows, highs)
 
-class SolutionCount(AbstractConvergenceMetric):
+class SolutionCount(AbstractConvergenceMetricGraph):
 	'''
 	Solution count convergence metric class.
 
@@ -104,25 +136,26 @@ class SolutionCount(AbstractConvergenceMetric):
 	'''
 
 	def __init__(self):
-		super(SolutionCount, self).__init__("solution_count")
-		self.figure = line_graph(
-			X=None, Y=None, widget=True, title="Number of Solutions",
-			xtitle='Number of Function Evaluations', interpolate='linear',
-		)
-		self.figure.layout.height = FIG_HEIGHT
-		self.figure.layout.width = FIG_WIDTH
-		self.figure.layout.margin = FIG_MARGINS
-		self.nfes = []
+		super().__init__("solution_count", title="Number of Solutions")
+		# self.figure = line_graph(
+		# 	X=None, Y=None, widget=True, title="Number of Solutions",
+		# 	xtitle='Number of Function Evaluations', interpolate='linear',
+		# )
+		# self.figure.layout.height = FIG_HEIGHT
+		# self.figure.layout.width = FIG_WIDTH
+		# self.figure.layout.margin = FIG_MARGINS
+		# self.nfes = []
 
 	def __call__(self, optimizer):
 		n_solutions = 0
 		for _ in platypus.unique(platypus.nondominated(optimizer.result)):
 			n_solutions += 1
 		self.results.append(n_solutions)
-		self.nfes.append(optimizer.algorithm.nfe)
-		with self.figure.batch_update():
-			self.figure.data[0].y = self.results
-			self.figure.data[0].x = self.nfes
+		super().__call__(optimizer)
+		# self.nfes.append(optimizer.algorithm.nfe)
+		# with self.figure.batch_update():
+		# 	self.figure.data[0].y = self.results
+		# 	self.figure.data[0].x = self.nfes
 
 class SolutionViewer(AbstractConvergenceMetric):
 	"""
