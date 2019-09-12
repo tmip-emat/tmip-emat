@@ -830,14 +830,76 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             evaluator=None,
             nfe=10000,
             convergence='default',
-            constraints=None,
-            reference=None,
             display_convergence=True,
             convergence_freq=100,
+            constraints=None,
+            reference=None,
             reverse_targets=False,
             epsilons=0.1,
             **kwargs,
     ):
+        """
+        Perform multi-objective optimization over levers or uncertainties.
+
+        The targets for the multi-objective optimization (i.e. whether each
+        individual performance measures is to be maximized or minimized) are
+        read from the model's scope.
+
+        Args:
+            searchover ({'levers', 'uncertainties'}):
+                Which group of inputs to search over.  The other group
+                will be set at their default values, unless other values
+                are provided in the `reference` argument.
+            evaluator (Evaluator, optional): The evaluator to use to
+                run the model. If not given, a SequentialEvaluator will
+                be created.
+            nfe (int, default 10_000): Number of function evaluations.
+                This generally needs to be fairly large to achieve stable
+                results in all but the most trivial applications.
+            convergence ('default', None, or emat.optimization.ConvergenceMetrics):
+                A convergence display during optimization.  The default
+                value is to report the epsilon-progress (the number of
+                solutions that ever enter the candidate pool of non-dominated
+                solutions) and the number of solutions remaining in that candidate
+                pool.  Pass `None` explicitly to disable convergence tracking.
+            display_convergence (bool, default True): Whether to automatically
+                display figures that dynamically track convergence.  Set to
+                `False` if you are not using this method within a Jupyter
+                interactive environment.
+            convergence_freq (int, default 100): How frequently to update the
+                convergence measures.  There is some computational overhead to
+                these convergence updates, so setting a value too small may
+                noticeably slow down the process.
+            constraints (Collection[Constraint], optional):
+                Solutions will be constrained to only include values that
+                satisfy these constraints. The constraints can be based on
+                the search parameters (levers or uncertainties, depending on the
+                value given for `searchover`), or performance measures, or
+                some combination thereof.
+            reference (Mapping): A set of values for the non-active inputs,
+                i.e. the uncertainties if `searchover` is 'levers', or the
+                levers if `searchover` is 'uncertainties'.  Any values not
+                set here revert to the default values identified in the scope.
+            reverse_targets (bool, default False): Whether to reverse the
+                optimization targets given in the scope (i.e., changing
+                minimize to maximize, or vice versa).  This will result in
+                the optimization searching for the worst outcomes, instead of
+                the best outcomes.
+            algorithm (platypus.Algorithm, optional): Select an
+                algorithm for multi-objective optimization.  The default
+                algorithm is EpsNSGAII. See `platypus` documentation for details.
+            epsilons (float or array-like): Used to limit the number of
+                distinct solutions generated.  Set to a larger value to get
+                fewer distinct solutions.
+            kwargs: Any additional arguments will be passed on to the
+                platypus algorithm.
+
+        Returns:
+            emat.OptimizationResult:
+                The set of non-dominated solutions found.
+                When `convergence` is given, the convergence measures are
+                included, as a pandas.DataFrame in the `convergence` attribute.
+        """
         epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
             epsilons, convergence, display_convergence, evaluator
         )
@@ -872,10 +934,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 for k in self.scope.get_measures():
                     k.kind = k.kind_original
                     del k.kind_original
-        if result_convergence is None:
-            return OptimizationResult(results, None, scope=self.scope)
-        else:
-            return OptimizationResult(results, result_convergence, scope=self.scope)
+        return OptimizationResult(results, result_convergence, scope=self.scope)
 
     def robust_optimize(
             self,
@@ -928,14 +987,18 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             convergence ('default', None, or emat.optimization.ConvergenceMetrics):
                 A convergence display during optimization.
             constraints (Collection[Constraint], optional)
+                Solutions will be constrained to only include values that
+                satisfy these constraints. The constraints can be based on
+                the policy levers, or on the computed values of the robustness
+                functions, or some combination thereof.
             kwargs: any additional arguments will be passed on to the
                 platypus algorithm.
 
         Returns:
-            pandas.DataFrame: The set of non-dominated solutions found.
-
-            When `convergence` is given, the convergence measures are
-            also returned, as a second pandas.DataFrame.
+            emat.OptimizationResult:
+                The set of non-dominated solutions found.
+                When `convergence` is given, the convergence measures are
+                included, as a pandas.DataFrame in the `convergence` attribute.
         """
 
         epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(

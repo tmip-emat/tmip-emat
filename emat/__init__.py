@@ -29,6 +29,7 @@ try:
 	from .database.sqlite.sqlite_db import SQLiteDB
 	from .model.core_python import PythonCoreModel
 	from .model.meta_model import MetaModel
+	from .optimization.optimization_result import OptimizationResult
 	from .exceptions import *
 
 	try:
