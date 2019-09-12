@@ -18,6 +18,7 @@ We illustrate a few here.
 
 .. toctree::
 
+    feature-scoring
     prim
 
 Robust Optimization
