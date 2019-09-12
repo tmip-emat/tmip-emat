@@ -64,7 +64,7 @@ def display_experiments(
 
 	for meas in measures:
 		display_html(f"<h4>{meas}</h4>", raw=True)
-		display(scatter_graphs(meas, experiment_results, scope=scope, render=render, use_gl=use_gl))
+		display(scatter_graphs(meas, experiment_results, scope=scope, render=render, use_gl=use_gl, mass=mass))
 
 
 

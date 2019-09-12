@@ -12,6 +12,7 @@ def scatter_graphs(
 		db=None,
 		contrast='infer',
 		marker_opacity=None,
+		mass=1000,
 		render=None,
 		use_gl=True,
 ):
@@ -33,8 +34,13 @@ def scatter_graphs(
 		marker_opacity (float, optional): The opacity to use for markers.  If the number
 			of markers is large, the figure may appear as a solid blob; by setting opacity
 			to less than 1.0, the figure can more readily show relative density in various
-			regions.  If not specified, marker_opacity is set to 100/len(data), bounded by
-			0.01 and 1.0.
+			regions.  If not specified, marker_opacity is set based on `mass` instead.
+		mass : int or emat.viz.ScatterMass, default 1000
+			The target number of rendered points in each figure. Setting
+			to a number less than the number of experiments will make
+			each scatter point partially transparent, which will help
+			visually convey relative density when there are a very large
+			number of points.
 		render (str or dict, optional): If given, the graph[s] will be rendered to a
 			static image using `plotly.io.to_image`.  For default settings, pass
 			'png', or give a dictionary that specifies keyword arguments to that function.
@@ -71,13 +77,11 @@ def scatter_graphs(
 			raise ValueError('db cannot be None if data is a design name')
 		data = db.read_experiment_all(data)
 
+	if isinstance(mass, int):
+		mass = ScatterMass(mass)
+
 	if marker_opacity is None:
-		if len(data) > 10000:
-			marker_opacity = 0.01
-		elif len(data) > 100:
-			marker_opacity = 100/len(data)
-		else:
-			marker_opacity = 1.0
+		marker_opacity = mass.get_opacity(data)
 
 	y_title = column
 	try:
@@ -118,6 +122,7 @@ def scatter_graphs_2(
 		render=None,
 		colors=None,
 		use_gl=True,
+		mass=1000,
 ):
 	"""Generate a row of scatter plots comparing one column against others.
 
@@ -137,6 +142,12 @@ def scatter_graphs_2(
 		render (str or dict, optional): If given, the graph[s] will be rendered to a
 			static image using `plotly.io.to_image`.  For default settings, pass
 			'png', or give a dictionary that specifies keyword arguments to that function.
+		mass : int or emat.viz.ScatterMass, default 1000
+			The target number of rendered points in each figure. Setting
+			to a number less than the number of experiments will make
+			each scatter point partially transparent, which will help
+			visually convey relative density when there are a very large
+			number of points.
 
 	Returns:
 		FigureWidget or xmle.Elem
@@ -165,6 +176,9 @@ def scatter_graphs_2(
 	elif contrast == 'measures':
 		contrast = scope.get_measure_names()
 
+	if isinstance(mass, int):
+		mass = ScatterMass(mass)
+
 	data_ = []
 	marker_opacity_ = []
 	fig = 'widget'
@@ -181,12 +195,7 @@ def scatter_graphs_2(
 		data_.append(data)
 
 	for data in data_:
-		marker_opacity = 1.0
-		if len(data) > 1000:
-			marker_opacity = 1000 / len(data)
-		if marker_opacity < 0.1:
-			marker_opacity = 0.1
-		marker_opacity_.append(marker_opacity)
+		marker_opacity_.append(mass.get_opacity(data))
 
 		y_title = column
 		try:
@@ -198,7 +207,7 @@ def scatter_graphs_2(
 			[(c if c in data.columns else None) for c in contrast],
 			column,
 			df = data,
-			marker_opacity=marker_opacity,
+			marker_opacity=marker_opacity_,
 			y_title=y_title,
 			layout=dict(
 				margin=dict(l=50, r=2, t=5, b=40)
