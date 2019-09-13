@@ -831,9 +831,9 @@ class Box(GenericBox):
 		Set both lower and upper bounds.
 
 		If values are both set to None and this key becomes
-		unbounded, it is moved from thresholds to
-		relevant_features.  Conversely, if no bounds were previously
-		set but the key appears in relevant_features, it is
+		unbounded but it was not previously unbounded, it is moved from
+		thresholds to relevant_features.  Conversely, if no bounds were
+		previously set but the key appears in relevant_features, it is
 		removed from that set.
 
 		Args:
@@ -865,8 +865,9 @@ class Box(GenericBox):
 				raise ScopeError(f"cannot set bounds on '{key}'")
 
 		if lowerbound is None and upperbound is None:
-			del self._thresholds[key]
-			self._relevant_features.add(key)
+			if key in self._thresholds:
+				del self._thresholds[key]
+				self._relevant_features.add(key)
 		else:
 			self._thresholds[key] = Bounds(lowerbound, upperbound)
 			if key in self._relevant_features:
@@ -904,8 +905,9 @@ class Box(GenericBox):
 			if key in self._relevant_features:
 				self._relevant_features.remove(key)
 		else:
-			del self._thresholds[key]
-			self._relevant_features.add(key)
+			if key in self._thresholds:
+				del self._thresholds[key]
+				self._relevant_features.add(key)
 
 	def __iter__(self):
 		return itertools.chain(
