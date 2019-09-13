@@ -3,9 +3,12 @@
 import numpy
 import pandas
 import plotly.graph_objs as go
-from ipywidgets import HBox, VBox, Dropdown, Label, Text
+from ipywidgets import HBox, VBox, Dropdown, Label, Text, Output
 from . import colors
 from ..util.naming import clean_name
+
+import logging
+_logger = logging.getLogger('EMAT.widget')
 
 class DataFrameViewer(HBox):
 
@@ -322,31 +325,37 @@ class DataFrameViewer(HBox):
 		self.set_y(self.y_axis_choose.value)
 
 	def __manage_categorical(self, x):
-		valid_scales = ['linear']
-		x_categories = None
-		x_ticktext = None
-		x_tickvals = None
-		if not isinstance(x, pandas.Series):
-			x = pandas.Series(x)
-		if numpy.issubdtype(x.dtype, numpy.bool_):
-			x = x.astype('category')
-		if isinstance(x.dtype, pandas.CategoricalDtype):
-			x_categories = x.cat.categories
-			codes = x.cat.codes
-			x = codes.astype(float)
-			s_ = x.size * 0.01
-			s_ = s_ / (1 + s_)
-			epsilon = 0.05 + 0.20 * s_
-			x = x + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
-			x_tickmode = 'array'
-			x_ticktext = list(x_categories)
-			x_tickvals = list(range(len(x_ticktext)))
-		else:
-			if x.min() >= 0:
-				valid_scales.append('log')
+		try:
+			valid_scales = ['linear']
+			x_categories = None
+			x_ticktext = None
+			x_tickvals = None
+			if not isinstance(x, pandas.Series):
+				x = pandas.Series(x)
+			try:
+				if numpy.issubdtype(x.dtype, numpy.bool_):
+					x = x.astype('category')
+			except TypeError:
+				pass
+			if isinstance(x.dtype, pandas.CategoricalDtype):
+				x_categories = x.cat.categories
+				codes = x.cat.codes
+				x = codes.astype(float)
+				s_ = x.size * 0.01
+				s_ = s_ / (1 + s_)
+				epsilon = 0.05 + 0.20 * s_
+				x = x + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
+				x_tickmode = 'array'
+				x_ticktext = list(x_categories)
+				x_tickvals = list(range(len(x_ticktext)))
+			else:
+				if x.min() >= 0:
+					valid_scales.append('log')
 
-		return x, x_ticktext, x_tickvals, valid_scales
-
+			return x, x_ticktext, x_tickvals, valid_scales
+		except:
+			_logger.exception('ERROR IN __manage_categorical')
+			raise
 
 	def set_x(self, col):
 		"""
@@ -357,61 +366,65 @@ class DataFrameViewer(HBox):
 				The name of the new `x` column in `df`, or a
 				computed array or pandas.Series of values.
 		"""
-		with self.graph.batch_update():
-			if isinstance(col, str):
-				x = self.df[col]
-				self.graph.layout.xaxis.title = self._get_shortname(col)
-			else:
-				x = col
-				try:
-					self.graph.layout.xaxis.title = self._get_shortname(col.name)
-				except:
-					pass
+		try:
+			with self.graph.batch_update():
+				if isinstance(col, str):
+					x = self.df[col]
+					self.graph.layout.xaxis.title = self._get_shortname(col)
+				else:
+					x = col
+					try:
+						self.graph.layout.xaxis.title = self._get_shortname(col.name)
+					except:
+						pass
 
-			x, x_ticktext, x_tickvals, x_scales = self.__manage_categorical(x)
-			self.x_axis_scale.options = x_scales
-			self._x = x
-			self._x_ticktext = x_ticktext or []
-			self._x_tickvals = x_tickvals or []
+				x, x_ticktext, x_tickvals, x_scales = self.__manage_categorical(x)
+				self.x_axis_scale.options = x_scales
+				self._x = x
+				self._x_ticktext = x_ticktext or []
+				self._x_tickvals = x_tickvals or []
 
-			is_linear = (self.x_axis_scale.value == 'linear')
+				is_linear = (self.x_axis_scale.value == 'linear')
 
-			if self.selection is None:
-				self.graph.data[0].x = x
-				self.graph.data[3].x = None
-				self.graph.data[1].x = x if is_linear else None
-				self.graph.data[4].x = None
-			else:
-				self.graph.data[0].x = x[~self.selection]
-				self.graph.data[3].x = x[self.selection]
-				self.graph.data[1].x = x if is_linear else None
-				self.graph.data[4].x = x[self.selection] if is_linear else None
-			if x_ticktext is not None:
-				self._x_data_range = [x.min(), x.max()]
-				self.graph.layout.xaxis.range = (
-					self._x_data_range[0] - 0.3,
-					self._x_data_range[1] + 0.3,
-				)
-				self.graph.layout.xaxis.tickmode = 'array'
-				self.graph.layout.xaxis.ticktext = x_ticktext
-				self.graph.layout.xaxis.tickvals = x_tickvals
-				self.graph.data[1].xbins = dict(
-					start=-0.25, end=self._x_data_range[1] + 0.25, size=0.5,
-				)
-				self.graph.data[1].autobinx = False
-			else:
-				self._x_data_range = [x.min(), x.max()]
-				self.graph.layout.xaxis.range = (
-					self._x_data_range[0] - self._x_data_width * 0.07,
-					self._x_data_range[1] + self._x_data_width * 0.07,
-				)
-				self.graph.layout.xaxis.type = self.x_axis_scale.value
-				self.graph.layout.xaxis.tickmode = None
-				self.graph.layout.xaxis.ticktext = None
-				self.graph.layout.xaxis.tickvals = None
-				self.graph.data[1].xbins = None
-				self.graph.data[1].autobinx = True
-			self.draw_box()
+				if self.selection is None:
+					self.graph.data[0].x = x
+					self.graph.data[3].x = None
+					self.graph.data[1].x = x if is_linear else None
+					self.graph.data[4].x = None
+				else:
+					self.graph.data[0].x = x[~self.selection]
+					self.graph.data[3].x = x[self.selection]
+					self.graph.data[1].x = x if is_linear else None
+					self.graph.data[4].x = x[self.selection] if is_linear else None
+				if x_ticktext is not None:
+					self._x_data_range = [x.min(), x.max()]
+					self.graph.layout.xaxis.range = (
+						self._x_data_range[0] - 0.3,
+						self._x_data_range[1] + 0.3,
+					)
+					self.graph.layout.xaxis.tickmode = 'array'
+					self.graph.layout.xaxis.ticktext = x_ticktext
+					self.graph.layout.xaxis.tickvals = x_tickvals
+					self.graph.data[1].xbins = dict(
+						start=-0.25, end=self._x_data_range[1] + 0.25, size=0.5,
+					)
+					self.graph.data[1].autobinx = False
+				else:
+					self._x_data_range = [x.min(), x.max()]
+					self.graph.layout.xaxis.range = (
+						self._x_data_range[0] - self._x_data_width * 0.07,
+						self._x_data_range[1] + self._x_data_width * 0.07,
+					)
+					self.graph.layout.xaxis.type = self.x_axis_scale.value
+					self.graph.layout.xaxis.tickmode = None
+					self.graph.layout.xaxis.ticktext = None
+					self.graph.layout.xaxis.tickvals = None
+					self.graph.data[1].xbins = None
+					self.graph.data[1].autobinx = True
+				self.draw_box()
+		except:
+			_logger.exception('ERROR IN DataFrameViewer.set_x')
+			raise
 
 	def set_y(self, col):
 		"""

@@ -212,3 +212,52 @@ class TimingLog:
             note = " / " + note
         self.log.log(self.level, f"<SPLIT> {self.label}{note} <{timesize_stack(now - self.split_time)}>")
         self.split_time = now
+
+
+
+import ipywidgets as widgets
+
+class OutputWidgetHandler(logging.Handler):
+    """ Custom logging handler sending logs to an output widget """
+
+    def __init__(self, *args, **kwargs):
+        super(OutputWidgetHandler, self).__init__(*args, **kwargs)
+        layout = {
+            'width': '100%',
+            'height': '160px',
+            'border': '1px solid black',
+            'overflow': 'scroll',
+        }
+        self.out = widgets.Output(layout=layout)
+
+    def emit(self, record):
+        """ Overload of logging.Handler method """
+        formatted_record = self.format(record)
+        new_output = {
+            'name': 'stdout',
+            'output_type': 'stream',
+            'text': formatted_record+'\n'
+        }
+        self.out.outputs = (new_output, ) + self.out.outputs
+
+    def clear_logs(self):
+        """ Clear the current logs """
+        self.out.clear_output()
+
+_widget_logger = None
+_widget_log_handler = None
+
+def get_widget_logger():
+    global _widget_logger, _widget_log_handler
+    if _widget_logger is None:
+        _widget_logger = logging.getLogger('EMAT.widget')
+        _widget_log_handler = OutputWidgetHandler()
+        _widget_log_handler.setFormatter(logging.Formatter('%(asctime)s  - [%(levelname)s] %(message)s'))
+        _widget_logger.addHandler(_widget_log_handler)
+        _widget_logger.setLevel(logging.INFO)
+    return _widget_logger
+
+def get_widget_log():
+    global _widget_logger, _widget_log_handler
+    get_widget_logger()
+    return _widget_log_handler.out
