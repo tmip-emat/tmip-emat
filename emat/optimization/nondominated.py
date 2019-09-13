@@ -1,7 +1,7 @@
 
 from ..scope.measure import Measure
 
-def nondominated_solutions(df, scope, robustness_functions):
+def nondominated_solutions(df, scope, robustness_functions, nearly=1e-5):
 	"""
 	Identify the set of non-dominated solutions among a set of candidate solutions.
 
@@ -13,6 +13,8 @@ def nondominated_solutions(df, scope, robustness_functions):
 		The model scope
 	robustness_functions : Collection[emat.Measure], optional
 		Robustness functions
+	nearly : float
+		Threshold for removing nearly duplicate (or actually duplicate) solutions.
 
 	Returns
 	-------
@@ -53,7 +55,9 @@ def nondominated_solutions(df, scope, robustness_functions):
 			diff = (solutions.iloc[i] - solutions.iloc[j])
 			if diff.max() < 0:
 				dominated_solutions.add(i)
-			if diff.min() > 0:
+			elif diff.min() > 0:
+				dominated_solutions.add(j)
+			elif nearly and diff.max() < nearly and diff.min() > -nearly:
 				dominated_solutions.add(j)
 
 	return df.loc[[k for k in range(len(solutions)) if k not in dominated_solutions]]
