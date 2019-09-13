@@ -92,6 +92,8 @@ def make_parameter(
         dtype='infer',
         values=None,
         resolution=None,
+        shortname=None,
+        abbrev=None,
 ):
     """
     Factory method to build a Parameter or Constant for a model.
@@ -140,6 +142,12 @@ def make_parameter(
         resolution (Collection, optional): A collection of possible particular values,
             used to set the possible values considered when sampling with factorial-based
             designs.
+        shortname (str, optional):
+            A shorter name, especially useful when the name of this parameter
+            is a long strings that may not display neatly in figures.
+        abbrev (Mapping, optional):
+            A set of abbreviations used for values, especially useful when the names of
+            values are long strings that may not display neatly in figures.
 
     Returns:
         Parameter or Constant
@@ -273,6 +281,7 @@ def make_parameter(
             address=address,
             ptype=ptype,
             corr=corr,
+            abbrev=abbrev,
         )
     elif dtype == 'int':
         rv_gen = rv_gen or make_rv_frozen(**dist_for_maker, discrete=True)
@@ -293,6 +302,7 @@ def make_parameter(
                 address=address,
                 ptype=ptype,
                 corr=corr,
+                abbrev=abbrev,
             )
     elif dtype == 'real':
         rv_gen = rv_gen or make_rv_frozen(**dist_for_maker)
@@ -313,6 +323,7 @@ def make_parameter(
                 address=address,
                 ptype=ptype,
                 corr=corr,
+                abbrev=abbrev,
             )
 
     elif dtype == 'bool':
@@ -330,6 +341,7 @@ def make_parameter(
                 address=address,
                 ptype=ptype,
                 corr=corr,
+                abbrev=abbrev,
             )
     else:
         raise ValueError(f"invalid dtype {dtype}")
@@ -597,7 +609,7 @@ class RealParameter(Parameter, workbench_param.RealParameter):
 
     def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
-                 desc="", address=None, ptype=None, corr=None, abbrev=None):
+                 desc="", address=None, ptype=None, corr=None, shortname=None, abbrev=None):
 
         if dist is None and (lower_bound is None or upper_bound is None):
             raise ValueError("must give lower_bound and upper_bound, or dist")
@@ -619,6 +631,7 @@ class RealParameter(Parameter, workbench_param.RealParameter):
             ptype=ptype,
             corr=corr,
             dist_def=dist_def,
+            shortname=shortname,
             abbrev=abbrev,
         )
         
@@ -638,7 +651,7 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
 
     def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
-                 desc="", address=None, ptype=None, corr=None, abbrev=None):
+                 desc="", address=None, ptype=None, corr=None, shortname=None, abbrev=None):
 
         if dist is None and (lower_bound is None or upper_bound is None):
             raise ValueError("must give lower_bound and upper_bound, or dist")        
@@ -655,6 +668,7 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
             default=default, variable_name=variable_name, pff=pff,
             desc=desc, address=address, ptype=ptype, corr=corr,
             dist_def=dist_def,
+            shortname=shortname,
             abbrev=abbrev,
         )
 
@@ -680,7 +694,7 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
 
     def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
-                 desc="", address=None, ptype=None, corr=None, abbrev=None):
+                 desc="", address=None, ptype=None, corr=None, shortname=None, abbrev=None):
 
         Parameter.__init__(
             self,
@@ -690,6 +704,7 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
             default=default, variable_name=variable_name, pff=pff,
             desc=desc, address=address, ptype=ptype, corr=corr,
             dist_def=dist_def,
+            shortname=shortname,
             abbrev=abbrev,
         )
 
@@ -723,7 +738,7 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
     def __init__(self, name, categories, *, default=None, variable_name=None,
                  pff=False, multivalue=False,
                  desc="", address=None, ptype=None, corr=None,
-                 dist=None, singleton_ok=False, abbrev=None):
+                 dist=None, singleton_ok=False, shortname=None, abbrev=None):
         lower_bound = 0
         upper_bound = len(categories) - 1
 
@@ -740,6 +755,7 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
             resolution=None,
             default=default, variable_name=variable_name, pff=pff,
             desc=desc, address=address, ptype=ptype, corr=corr,
+            shortname=shortname,
             abbrev=abbrev,
         )
 
