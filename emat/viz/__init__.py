@@ -15,6 +15,7 @@ def scatter_graphs(
 		mass=1000,
 		render=None,
 		use_gl=True,
+		render_fallback=True,
 ):
 	"""Generate a row of scatter plots comparing one column against others.
 
@@ -44,6 +45,8 @@ def scatter_graphs(
 		render (str or dict, optional): If given, the graph[s] will be rendered to a
 			static image using `plotly.io.to_image`.  For default settings, pass
 			'png', or give a dictionary that specifies keyword arguments to that function.
+		render_fallback (bool, default True): If rendering fails, return the
+			original FigureWidget instead of an error message.
 
 	Returns:
 		FigureWidget or xmle.Elem
@@ -107,7 +110,14 @@ def scatter_graphs(
 			render = dict(format='png', width=1400, height=270, scale=2)
 
 		import plotly.io as pio
-		img_bytes = pio.to_image(fig, **render)
+		try:
+			img_bytes = pio.to_image(fig, **render)
+		except:
+			if render_fallback:
+				return fig
+			else:
+				import traceback
+				return traceback.format_exc()
 		return xmle.Elem.from_any(img_bytes)
 
 	return fig
@@ -123,6 +133,7 @@ def scatter_graphs_2(
 		colors=None,
 		use_gl=True,
 		mass=1000,
+		render_fallback=True,
 ):
 	"""Generate a row of scatter plots comparing one column against others.
 
@@ -148,6 +159,8 @@ def scatter_graphs_2(
 			each scatter point partially transparent, which will help
 			visually convey relative density when there are a very large
 			number of points.
+		render_fallback (bool, default True): If rendering fails, return the
+			original FigureWidget instead of an error message.
 
 	Returns:
 		FigureWidget or xmle.Elem
@@ -223,7 +236,14 @@ def scatter_graphs_2(
 			render = dict(format='png', width=1400, height=270, scale=2)
 
 		import plotly.io as pio
-		img_bytes = pio.to_image(fig, **render)
+		try:
+			img_bytes = pio.to_image(fig, **render)
+		except:
+			if render_fallback:
+				return fig
+			else:
+				import traceback
+				return traceback.format_exc()
 		return xmle.Elem.from_any(img_bytes)
 
 	return fig
