@@ -1,6 +1,8 @@
 
 import hashlib
 from typing import Collection
+from ema_workbench.em_framework.samplers import DefaultDesigns
+from ema_workbench.em_framework.util import NamedDict
 
 def hash_it(*args, ha=None):
 	if ha is None:
@@ -19,6 +21,19 @@ def hash_it(*args, ha=None):
 				ha.update(str(a).encode())
 			elif a is None:
 				ha.update(b"None")
+			elif isinstance(a, DefaultDesigns):
+				hash_it(
+					a.designs,
+					a.parameters,
+					a.params,
+					ha=ha,
+				)
+			elif isinstance(a, NamedDict):
+				hash_it(
+					a.name,
+					tuple(a.items()),
+					ha=ha,
+				)
 			else:
 				print("cant hashit",(type(a)))
 				print(a)

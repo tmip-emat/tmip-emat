@@ -952,6 +952,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             constraints=None,
             epsilons=0.1,
             cache_dir=None,
+            algorithm=None,
+            check_extremes=False,
             **kwargs,
     ):
         """
@@ -1012,6 +1014,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if cache_dir is not None:
             try:
                 from ..util.hasher import hash_it
+                if isinstance(algorithm, str) or algorithm is None:
+                    alg = algorithm
+                else:
+                    alg = algorithm.__name__
                 hh = hash_it(
                     scenarios,
                     convergence,
@@ -1020,6 +1026,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     epsilons,
                     nfe,
                     robustness_functions,
+                    alg,
+                    check_extremes,
                 )
                 os.makedirs(os.path.join(cache_dir,hh[2:4],hh[4:6]), exist_ok=True)
                 cache_file = os.path.join(cache_dir,hh[2:4],hh[4:6],hh[6:]+".gz")
@@ -1044,6 +1052,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 convergence_freq=convergence_freq,
                 constraints=constraints,
                 epsilons=epsilons,
+                check_extremes=check_extremes,
                 **kwargs,
             )
         elif display_convergence:
@@ -1067,6 +1076,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 print("epsilons=", epsilons, file=notes)
                 print("nfe=", nfe, file=notes)
                 print("robustness_functions=", robustness_functions, file=notes)
+                print("algorithm=", algorithm, file=notes)
         return result
 
     def robust_evaluate(
@@ -1075,6 +1085,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             scenarios,
             policies,
             evaluator=None,
+            cache_dir=None,
     ):
         """
         Perform robust evaluation(s).
@@ -1105,25 +1116,61 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         Returns:
             pandas.DataFrame: The computed value of each item
-            in `robustness_functions`, for each policy in `policies`.
+                in `robustness_functions`, for each policy in `policies`.
         """
+        robust_results = None
+        cache_file = None
+        if cache_dir is not None:
+            try:
+                from ..util.hasher import hash_it
+                hh = hash_it(
+                    scenarios,
+                    policies,
+                    robustness_functions,
+                )
+                os.makedirs(os.path.join(cache_dir,hh[2:4],hh[4:6]), exist_ok=True)
+                cache_file = os.path.join(cache_dir,hh[2:4],hh[4:6],hh[6:]+".gz")
+                if os.path.exists(cache_file):
+                    from ..util.filez import load
+                    robust_results = load(cache_file)
+                    cache_file = None
+            except:
+                import warnings, traceback
+                warnings.warn('unable to manage cache')
+                traceback.print_exc()
 
-        if evaluator is None:
-            from ema_workbench.em_framework import SequentialEvaluator
-            evaluator = SequentialEvaluator(self)
+        if robust_results is not None:
+            if evaluator is None:
+                from ema_workbench.em_framework import SequentialEvaluator
+                evaluator = SequentialEvaluator(self)
 
-        from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
+            if not isinstance(evaluator, BaseEvaluator):
+                from dask.distributed import Client
+                if isinstance(evaluator, Client):
+                    from ema_workbench.em_framework.ema_distributed import DistributedEvaluator
+                    evaluator = DistributedEvaluator(self, client=evaluator)
 
-        if isinstance(scenarios, int):
-            n_scenarios = scenarios
-            scenarios = sample_uncertainties(self, n_scenarios)
+            from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
 
-        with evaluator:
-            robust_results = evaluator.robust_evaluate(
-                robustness_functions,
-                scenarios,
-                policies,
-            )
+            if isinstance(scenarios, int):
+                n_scenarios = scenarios
+                scenarios = sample_uncertainties(self, n_scenarios)
 
-        robust_results = self.ensure_dtypes(robust_results)
+            with evaluator:
+                robust_results = evaluator.robust_evaluate(
+                    robustness_functions,
+                    scenarios,
+                    policies,
+                )
+
+            robust_results = self.ensure_dtypes(robust_results)
+
+        if cache_file is not None:
+            from ..util.filez import save
+            save(robust_results, cache_file, overwrite=True)
+            with open(cache_file.replace('.gz','.info.txt'), 'wt') as notes:
+                print("scenarios=", scenarios, file=notes)
+                print("robustness_functions=", robustness_functions, file=notes)
+                print("policies=", policies, file=notes)
+
         return robust_results

@@ -554,6 +554,23 @@ class Parameter(workbench_param.Parameter, ShortnameMixin):
     def __repr__(self):
         return f"<emat.{self.__class__.__name__} '{self.name}'>"
 
+    def _hash_it(self, ha=None):
+        from ..util.hasher import hash_it
+        return hash_it(
+            self.name,
+            self.dist_def,
+            self.resolution,
+            self.address,
+            self.dtype,
+            self.pff,
+            tuple(self.variable_name),
+            self.shortname,
+            self.ptype,
+            self.corr,
+            ha=ha,
+        )
+
+
 class RealParameter(Parameter, workbench_param.RealParameter):
 
     dtype = 'real'

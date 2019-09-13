@@ -1,10 +1,12 @@
 
-from joblib import Memory
 from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
+import platypus
 
 from .optimization_result import OptimizationResult
 from ..model.core_model import AbstractCoreModel
 from ..scope.measure import Measure
+from ..scope.parameter import CategoricalParameter
+
 
 def robust_optimize(
 		model,
@@ -17,6 +19,8 @@ def robust_optimize(
 		convergence_freq=100,
 		constraints=None,
 		epsilons=0.1,
+		algorithm=None,
+		check_extremes=False,
 		**kwargs,
 ):
 	"""
@@ -50,19 +54,28 @@ def robust_optimize(
 		evaluator (Evaluator, optional): The evaluator to use to
 			run the model. If not given, a SequentialEvaluator will
 			be created.
-		algorithm (platypus.Algorithm, optional): Select an
-			algorithm for multi-objective optimization.  See
-			`platypus` documentation for details.
 		nfe (int, default 10_000): Number of function evaluations.
 			This generally needs to be fairly large to achieve stable
 			results in all but the most trivial applications.
 		convergence ('default', None, or emat.optimization.ConvergenceMetrics):
 			A convergence display during optimization.
+		display_convergence (bool, default True): Automatically display
+			the convergence metric figures when optimizing.
 		constraints (Collection[Constraint], optional)
 			Solutions will be constrained to only include values that
 			satisfy these constraints. The constraints can be based on
 			the policy levers, or on the computed values of the robustness
 			functions, or some combination thereof.
+		epsilons (float or array-like): Used to limit the number of
+			distinct solutions generated.  Set to a larger value to get
+			fewer distinct solutions.
+		algorithm (platypus.Algorithm or str, optional): Select an
+			algorithm for multi-objective optimization.  The algorithm can
+			be given directly, or named in a string. See `platypus`
+			documentation for details.
+		check_extremes (bool or int, default False): Conduct additional
+			evaluations, setting individual policy levers to their
+			extreme values, for each candidate Pareto optimal solution.
 		kwargs: any additional arguments will be passed on to the
 			platypus algorithm.
 
@@ -87,6 +100,14 @@ def robust_optimize(
 		epsilons, convergence, display_convergence, evaluator
 	)
 
+	if algorithm is None:
+		algorithm = platypus.EpsNSGAII
+	if isinstance(algorithm, str):
+		algorithm = getattr(platypus, algorithm, algorithm)
+		if isinstance(algorithm, str):
+			raise ValueError(f"platypus algorithm {algorithm} not found")
+	if not issubclass(algorithm, platypus.Algorithm):
+		raise ValueError(f"algorithm must be a platypus.Algorithm subclass, not {algorithm}")
 
 	if isinstance(scenarios, int):
 		n_scenarios = scenarios
@@ -101,6 +122,7 @@ def robust_optimize(
 			epsilons=epsilons,
 			convergence=convergence,
 			convergence_freq=convergence_freq,
+			algorithm=algorithm,
 			**kwargs,
 		)
 
@@ -111,9 +133,22 @@ def robust_optimize(
 
 	robust_results = model.ensure_dtypes(robust_results)
 
-	return OptimizationResult(
+	result = OptimizationResult(
 		robust_results,
 		result_convergence,
 		scope=model.scope,
 		robustness_functions=robustness_functions,
+		scenarios=scenarios,
 	)
+
+	if check_extremes:
+		result.check_extremes(
+			model,
+			1 if check_extremes is True else check_extremes,
+			evaluator=evaluator,
+		)
+
+	return result
+
+import platypus
+platypus.EpsMOEA
