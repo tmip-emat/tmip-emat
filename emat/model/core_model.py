@@ -948,7 +948,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             nfe=10000,
             convergence='default',
             display_convergence=True,
-            convergence_freq=10,
+            convergence_freq=100,
             constraints=None,
             epsilons=0.1,
             cache_dir=None,
@@ -985,19 +985,32 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             evaluator (Evaluator, optional): The evaluator to use to
                 run the model. If not given, a SequentialEvaluator will
                 be created.
-            algorithm (platypus.Algorithm, optional): Select an
-                algorithm for multi-objective optimization.  See
-                `platypus` documentation for details.
             nfe (int, default 10_000): Number of function evaluations.
                 This generally needs to be fairly large to achieve stable
                 results in all but the most trivial applications.
             convergence ('default', None, or emat.optimization.ConvergenceMetrics):
                 A convergence display during optimization.
+            display_convergence (bool, default True): Automatically display
+                the convergence metric figures when optimizing.
+            convergence_freq (int, default 100): The frequency at which
+                convergence metric figures are updated.
             constraints (Collection[Constraint], optional)
                 Solutions will be constrained to only include values that
                 satisfy these constraints. The constraints can be based on
                 the policy levers, or on the computed values of the robustness
                 functions, or some combination thereof.
+            epsilons (float or array-like): Used to limit the number of
+                distinct solutions generated.  Set to a larger value to get
+                fewer distinct solutions.
+            cache_dir (path-like, optional): A directory in which to
+                cache results.
+            algorithm (platypus.Algorithm or str, optional): Select an
+                algorithm for multi-objective optimization.  The algorithm can
+                be given directly, or named in a string. See `platypus`
+                documentation for details.
+            check_extremes (bool or int, default False): Conduct additional
+                evaluations, setting individual policy levers to their
+                extreme values, for each candidate Pareto optimal solution.
             kwargs: any additional arguments will be passed on to the
                 platypus algorithm.
 
@@ -1113,6 +1126,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             evaluator (Evaluator, optional): The evaluator to use to
                 run the model. If not given, a SequentialEvaluator will
                 be created.
+            cache_dir (path-like, optional): A directory in which to
+                cache results.
 
         Returns:
             pandas.DataFrame: The computed value of each item
@@ -1131,6 +1146,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 os.makedirs(os.path.join(cache_dir,hh[2:4],hh[4:6]), exist_ok=True)
                 cache_file = os.path.join(cache_dir,hh[2:4],hh[4:6],hh[6:]+".gz")
                 if os.path.exists(cache_file):
+                    _logger.log(25, f"loading from cache_file={cache_file}")
                     from ..util.filez import load
                     robust_results = load(cache_file)
                     cache_file = None

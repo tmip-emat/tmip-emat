@@ -56,6 +56,7 @@ these model execution methods should not need to be overridden.
 
 .. automethod:: AbstractCoreModel.design_experiments
 .. automethod:: AbstractCoreModel.run_experiments
+.. automethod:: AbstractCoreModel.optimize
 .. automethod:: AbstractCoreModel.robust_optimize
 .. automethod:: AbstractCoreModel.robust_evaluate
 .. automethod:: AbstractCoreModel.get_feature_scores
