@@ -2,6 +2,22 @@
 from ..scope.measure import Measure
 
 def nondominated_solutions(df, scope, robustness_functions):
+	"""
+	Identify the set of non-dominated solutions among a set of candidate solutions.
+
+	Parameters
+	----------
+	df : pandas.DataFrame
+		Candidate solutions
+	scope : emat.Scope
+		The model scope
+	robustness_functions : Collection[emat.Measure], optional
+		Robustness functions
+
+	Returns
+	-------
+	pandas.DataFrame
+	"""
 
 	keeps = set()
 	flips = set()
