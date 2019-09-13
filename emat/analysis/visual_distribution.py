@@ -3,6 +3,32 @@ from emat.viz import scatter_graphs, scatter_graphs_2
 from emat.viz.scatter import ScatterMass
 from IPython.display import HTML, display, display_html
 
+
+def _shorten_category_names(scope, experiment_results, original_cats):
+	for k in scope.get_all_names():
+		abbrev = getattr(scope[k], 'abbrev', {})
+		if k in experiment_results.columns:
+			try:
+				is_cat = experiment_results[k].dtype == 'category'
+			except TypeError:
+				is_cat = False
+			if is_cat:
+				original_cats[k] = experiment_results[k].cat.categories
+				experiment_results[k].cat.categories = [abbrev.get(i, i) for i in experiment_results[k].cat.categories]
+	return experiment_results, original_cats
+
+
+def _restore_category_names(experiment_results, original_cats):
+	for k, v in original_cats.items():
+		try:
+			experiment_results[k].cat.categories = v
+		except:
+			print(k)
+			print(experiment_results[k].cat.categories)
+			print(v)
+			raise
+
+
 def display_experiments(
 		scope,
 		experiment_results=None,
@@ -66,18 +92,29 @@ def display_experiments(
 	if measures is None:
 		measures = scope.get_measure_names()
 
-	figures = {
-		meas:scatter_graphs(meas, experiment_results, scope=scope, render=render, use_gl=use_gl, mass=mass)
-		for meas in measures
-	}
+	original_cats = {}
+	try:
+		experiment_results, original_cats = _shorten_category_names(scope, experiment_results, original_cats)
 
-	if return_figures:
-		return figures
+		figures = {}
+		for meas in measures:
+			if not return_figures:
+				display_html(f"<h4>{meas}</h4>", raw=True)
+			fig = scatter_graphs(meas, experiment_results, scope=scope, render=render, use_gl=use_gl, mass=mass)
+			try:
+				fig.update_layout(height=250)
+			except:
+				pass
+			if return_figures:
+				figures[meas] = fig
+			else:
+				display(fig)
 
-	for meas, fig in figures.items():
-		display_html(f"<h4>{meas}</h4>", raw=True)
-		display(fig)
+		if return_figures:
+			return figures
 
+	finally:
+		_restore_category_names(experiment_results, original_cats)
 
 
 
@@ -153,16 +190,25 @@ def contrast_experiments(
 	if measures is None:
 		measures = scope.get_measure_names()
 
-	figures = {
-		meas:scatter_graphs_2(meas, [experiments_1, experiments_2], scope=scope, render=render, use_gl=use_gl)
-		for meas in measures
-	}
+	original_cats1 = {}
+	original_cats2 = {}
+	try:
+		experiments_1, original_cats1 = _shorten_category_names(scope, experiments_1, original_cats1)
+		experiments_2, original_cats2 = _shorten_category_names(scope, experiments_2, original_cats2)
 
-	if return_figures:
-		return figures
+		figures = {}
+		for meas in measures:
+			if not return_figures:
+				display_html(f"<h4>{meas}</h4>", raw=True)
+			fig = scatter_graphs_2(meas, [experiments_1, experiments_2], scope=scope, render=render, use_gl=use_gl, mass=mass)
+			if return_figures:
+				figures[meas] = fig
+			else:
+				display(fig)
 
-	for meas, fig in figures.items():
-		display_html(f"<h4>{meas}</h4>", raw=True)
-		display(fig)
+		if return_figures:
+			return figures
 
-		from plotly.subplots import make_subplots
+	finally:
+		_restore_category_names(experiments_1, original_cats1)
+		_restore_category_names(experiments_2, original_cats2)
