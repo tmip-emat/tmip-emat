@@ -1146,7 +1146,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 os.makedirs(os.path.join(cache_dir,hh[2:4],hh[4:6]), exist_ok=True)
                 cache_file = os.path.join(cache_dir,hh[2:4],hh[4:6],hh[6:]+".gz")
                 if os.path.exists(cache_file):
-                    _logger.log(25, f"loading from cache_file={cache_file}")
+                    _logger.debug(f"loading from cache_file={cache_file}")
                     from ..util.filez import load
                     robust_results = load(cache_file)
                     cache_file = None
