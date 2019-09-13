@@ -388,6 +388,7 @@ class Explore(GenericBox):
 				layout=dict(
 					showlegend=False,
 					margin=dict(l=10, r=10, t=10, b=10),
+					yaxis_showticklabels=False,
 					**styles.figure_dims,
 				),
 			)
@@ -620,7 +621,7 @@ class Explore(GenericBox):
 			fig = self.get_histogram_figure(i, **histogram)
 
 		stack = [
-			widget.Label(i),
+			widget.HTML(f'<span title="{i}">{self.scope.shortname(i)}</span>'),
 			fig
 		]
 		if with_selector:
