@@ -1139,7 +1139,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 warnings.warn('unable to manage cache')
                 traceback.print_exc()
 
-        if robust_results is not None:
+        if robust_results is None:
             if evaluator is None:
                 from ema_workbench.em_framework import SequentialEvaluator
                 evaluator = SequentialEvaluator(self)

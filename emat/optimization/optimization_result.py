@@ -39,7 +39,7 @@ class OptimizationResult:
 		return self
 
 
-	def check_extremes(self, model, n=1, evaluator=None):
+	def check_extremes(self, model, n=1, evaluator=None, cache_dir=None):
 		from ..scope.parameter import CategoricalParameter
 		for _ in range(n):
 			for lever_name in model.scope.get_lever_names():
@@ -55,5 +55,6 @@ class OptimizationResult:
 						scenarios=self.scenarios,
 						policies=df,
 						evaluator=evaluator,
+						cache_dir=cache_dir,
 					))
 		return self
