@@ -830,6 +830,12 @@ class Box(GenericBox):
 		"""
 		Set both lower and upper bounds.
 
+		If values are both set to None and this key becomes
+		unbounded, it is moved from thresholds to
+		relevant_features.  Conversely, if no bounds were previously
+		set but the key appears in relevant_features, it is
+		removed from that set.
+
 		Args:
 			key (str):
 				The feature name to which these bounds
@@ -855,16 +861,27 @@ class Box(GenericBox):
 			lowerbound, upperbound = b.lowerbound, b.upperbound
 
 		if self.scope is not None:
-			if key in self.scope.get_all_names():
-				self._thresholds[key] = Bounds(lowerbound, upperbound)
-			else:
-				raise ScopeError(f"cannot set threshold on '{key}'")
+			if key not in self.scope.get_all_names():
+				raise ScopeError(f"cannot set bounds on '{key}'")
+
+		if lowerbound is None and upperbound is None:
+			del self._thresholds[key]
+			self._relevant_features.add(key)
 		else:
 			self._thresholds[key] = Bounds(lowerbound, upperbound)
+			if key in self._relevant_features:
+				self._relevant_features.remove(key)
 
 	def replace_allowed_set(self, key, values):
 		"""
 		Replace the allowed set.
+
+		If the new allowed set is the same as the complete set of
+		possible values defined in the scope, this key becomes
+		unbounded and it is moved from thresholds to
+		relevant_features.  Conversely, if no bounds were previously
+		set but the key appears in relevant_features, it is
+		removed from that set.
 
 		Args:
 			key (str):
@@ -873,15 +890,22 @@ class Box(GenericBox):
 			values (set):
 				A set of values to use as the allowed set.
 		"""
+		action = True
 		if self.scope is not None:
-			if key in self.scope.get_all_names():
-				self._thresholds[key] = set(values)
-			else:
-				raise ScopeError(f"cannot set threshold on '{key}'")
-		else:
+			if key not in self.scope.get_all_names():
+				raise ScopeError(f"cannot set allowed_set on '{key}'")
+			cat_values = set(self.scope.get_cat_values(key))
+			if not cat_values.issuperset(values):
+				raise ScopeError(f"allowed_set is not a subset of scope defined values for '{key}'")
+			if len(cat_values) == len(values):
+				action = False
+		if action:
 			self._thresholds[key] = set(values)
-
-
+			if key in self._relevant_features:
+				self._relevant_features.remove(key)
+		else:
+			del self._thresholds[key]
+			self._relevant_features.add(key)
 
 	def __iter__(self):
 		return itertools.chain(
