@@ -952,6 +952,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             constraints=None,
             epsilons=0.1,
             cache_dir=None,
+            cache_file=None,
             algorithm=None,
             check_extremes=False,
             **kwargs,
@@ -1003,7 +1004,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 distinct solutions generated.  Set to a larger value to get
                 fewer distinct solutions.
             cache_dir (path-like, optional): A directory in which to
-                cache results.
+                cache results.  Most of the arguments will be hashed
+                to develop a unique filename for these results, making this
+                generally safer than `cache_file`.
+            cache_file (path-like, optional): A file into which to
+                cache results.  If this file exists, the contents of the
+                file will be loaded and all other arguments are ignored.
+                Use with great caution.
             algorithm (platypus.Algorithm or str, optional): Select an
                 algorithm for multi-objective optimization.  The algorithm can
                 be given directly, or named in a string. See `platypus`
@@ -1023,8 +1030,17 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         from ..optimization.optimize import robust_optimize
 
         result = None
-        cache_file = None
-        if cache_dir is not None:
+
+        # If given and it exists, load the cache_file and be done
+        if cache_file is not None:
+            if os.path.exists(cache_file):
+                from ..util.filez import load
+                result = load(cache_file)
+                cache_file = None
+                cache_dir = None
+
+        # If cache_dir is used
+        if cache_dir is not None and cache_file is None:
             try:
                 from ..util.hasher import hash_it
                 if isinstance(algorithm, str) or algorithm is None:
@@ -1080,16 +1096,18 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         if cache_file is not None:
             from ..util.filez import save
+            result.cache_file = cache_file
             save(result, cache_file, overwrite=True)
-            with open(cache_file.replace('.gz','.info.txt'), 'wt') as notes:
-                print("scenarios=", scenarios, file=notes)
-                print("convergence=", convergence, file=notes)
-                print("convergence_freq=", convergence_freq, file=notes)
-                print("constraints=", constraints, file=notes)
-                print("epsilons=", epsilons, file=notes)
-                print("nfe=", nfe, file=notes)
-                print("robustness_functions=", robustness_functions, file=notes)
-                print("algorithm=", algorithm, file=notes)
+            if '.gz' in cache_file:
+                with open(cache_file.replace('.gz','.info.txt'), 'wt') as notes:
+                    print("scenarios=", scenarios, file=notes)
+                    print("convergence=", convergence, file=notes)
+                    print("convergence_freq=", convergence_freq, file=notes)
+                    print("constraints=", constraints, file=notes)
+                    print("epsilons=", epsilons, file=notes)
+                    print("nfe=", nfe, file=notes)
+                    print("robustness_functions=", robustness_functions, file=notes)
+                    print("algorithm=", algorithm, file=notes)
         return result
 
     def robust_evaluate(
