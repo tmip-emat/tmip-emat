@@ -418,6 +418,7 @@ class Parameter(workbench_param.Parameter, ShortnameMixin):
             corr=None,
             dist_def=None,
             shortname=None,
+            abbrev=None,
     ):
 
         # The default constructor for ema_workbench parameters uses no distribution
@@ -495,6 +496,10 @@ class Parameter(workbench_param.Parameter, ShortnameMixin):
 
         self._shortname = shortname
 
+        self.abbrev = abbrev or {}
+        """Dict: Abbreviations used for long attribute names in figures."""
+
+
     @property
     def min(self):
         return self.lower_bound
@@ -570,6 +575,21 @@ class Parameter(workbench_param.Parameter, ShortnameMixin):
             ha=ha,
         )
 
+    def get_abbrev(self, name):
+        """Get an abbreviated name if available."""
+        try:
+            return self.abbrev.get(name, name)
+        except AttributeError:
+            return name
+
+    def set_abbrev(self, values=None, **kwargs):
+        if values is None:
+            values = {}
+        try:
+            self.abbrev.update(values, **kwargs)
+        except AttributeError:
+            self.abbrev = {}
+            self.abbrev.update(values, **kwargs)
 
 class RealParameter(Parameter, workbench_param.RealParameter):
 
@@ -577,7 +597,7 @@ class RealParameter(Parameter, workbench_param.RealParameter):
 
     def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
-                 desc="", address=None, ptype=None, corr=None):
+                 desc="", address=None, ptype=None, corr=None, abbrev=None):
 
         if dist is None and (lower_bound is None or upper_bound is None):
             raise ValueError("must give lower_bound and upper_bound, or dist")
@@ -599,6 +619,7 @@ class RealParameter(Parameter, workbench_param.RealParameter):
             ptype=ptype,
             corr=corr,
             dist_def=dist_def,
+            abbrev=abbrev,
         )
         
 
@@ -617,7 +638,7 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
 
     def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
-                 desc="", address=None, ptype=None, corr=None):
+                 desc="", address=None, ptype=None, corr=None, abbrev=None):
 
         if dist is None and (lower_bound is None or upper_bound is None):
             raise ValueError("must give lower_bound and upper_bound, or dist")        
@@ -634,6 +655,7 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
             default=default, variable_name=variable_name, pff=pff,
             desc=desc, address=address, ptype=ptype, corr=corr,
             dist_def=dist_def,
+            abbrev=abbrev,
         )
 
         if self.resolution is not None:
@@ -658,7 +680,7 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
 
     def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
-                 desc="", address=None, ptype=None, corr=None):
+                 desc="", address=None, ptype=None, corr=None, abbrev=None):
 
         Parameter.__init__(
             self,
@@ -668,6 +690,7 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
             default=default, variable_name=variable_name, pff=pff,
             desc=desc, address=address, ptype=ptype, corr=corr,
             dist_def=dist_def,
+            abbrev=abbrev,
         )
 
         cats = [workbench_param.create_category(cat) for cat in [False, True]]
@@ -700,7 +723,7 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
     def __init__(self, name, categories, *, default=None, variable_name=None,
                  pff=False, multivalue=False,
                  desc="", address=None, ptype=None, corr=None,
-                 dist=None, singleton_ok=False):
+                 dist=None, singleton_ok=False, abbrev=None):
         lower_bound = 0
         upper_bound = len(categories) - 1
 
@@ -717,6 +740,7 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
             resolution=None,
             default=default, variable_name=variable_name, pff=pff,
             desc=desc, address=address, ptype=ptype, corr=corr,
+            abbrev=abbrev,
         )
 
         cats = [workbench_param.create_category(cat) for cat in categories]

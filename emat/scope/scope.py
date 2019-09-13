@@ -304,6 +304,7 @@ class Scope:
 
         const_keys = ['ptype','desc','dtype','default']
         parameter_keys = OrderedDict([
+            # ('shortname', lambda x: x or None), # processed separately
             ('ptype', lambda x: x),
             ('desc', lambda x: x),
             ('dtype', lambda x: x),
@@ -313,8 +314,10 @@ class Scope:
             # ('dist', lambda x: _name_or_dict(x) or None), # processed separately
             ('corr', lambda x: x or None),
             ('values', lambda x: x or None),
+            ('abbrev', lambda x: x or None),
         ])
         measure_keys = {
+            # 'shortname': lambda x: x or None,  # processed separately
             'kind':  lambda x: {-1:'minimize', 0:'info', 1:'maximize'}.get(x,x),
             'transform': lambda x: x,
             'metamodeltype': lambda x: 'linear' if x is None else x,
@@ -332,6 +335,8 @@ class Scope:
 
         for i in self._x_list + self._l_list:
             s['inputs'][i.name] = {}
+            if i.shortname_if_any:
+                s['inputs'][i.name]['shortname'] = i.shortname_if_any
             for k in parameter_keys:
                 if hasattr(i, k):
                     v = parameter_keys[k](getattr(i,k))
@@ -347,6 +352,8 @@ class Scope:
             if exclude_measures is not None and i.name in exclude_measures:
                 continue
             s['outputs'][i.name] = {}
+            if i.shortname_if_any:
+                s['outputs'][i.name]['shortname'] = i.shortname_if_any
             for k in measure_keys:
                 if hasattr(i, k):
                     s['outputs'][i.name][k] = measure_keys[k](getattr(i,k))

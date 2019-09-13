@@ -9,7 +9,9 @@ class MultiToggleButtons_AllOrSome(Box):
 	options = traitlets.Union([traitlets.List(), traitlets.Dict()])
 	style = traitlets.Dict()
 
-	def __init__(self, **kwargs):
+	def __init__(self, *, short_label_map=None, **kwargs):
+		if short_label_map is None:
+			short_label_map = {}
 		super().__init__(**kwargs)
 		self._selection_obj = widget_selection._MultipleSelection()
 		traitlets.link((self, 'options'), (self._selection_obj, 'options'))
@@ -17,12 +19,17 @@ class MultiToggleButtons_AllOrSome(Box):
 
 		@observer(self, 'options')
 		def _(*_):
-			self.buttons = [ToggleButton(description=label,
-											layout=Layout(
-												margin='1',
-												width='auto'
-											))
-							for label in self._selection_obj._options_labels]
+			self.buttons = []
+			for label in self._selection_obj._options_labels:
+				short_label = short_label_map.get(label, label)
+				self.buttons.append(ToggleButton(
+					description=short_label if len(short_label)<15 else short_label[:12]+"…",
+					tooltip=label,
+					layout=Layout(
+						margin='1',
+						width='auto',
+					),
+				))
 			if self.description:
 				self.label = Label(self.description, layout=Layout(width=self.style.get('description_width', '100px')))
 			else:
