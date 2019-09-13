@@ -3,6 +3,23 @@
 Installing using Anaconda
 =========================
 
+Quick Start
+-----------
+
+To get started with TMIP-EMAT, you'll need to follow a few simple steps.
+
+1. Install `Anaconda Python 3.7 <https://www.anaconda.com/download>`_.
+2. Open the 'Anaconda Prompt' that was installed and run the following
+   commands:
+
+.. code-block:: console
+
+    conda env create TMIP/EMAT
+    conda activate EMAT
+    jupyter-notebook
+
+More detailed instructions appear below.
+
 Installing Python
 -----------------
 
@@ -158,10 +175,12 @@ JupyterLab integrates many more features and provides for running
 multiple notebooks, and multiple views of the same notebook.
 It is in general compatible with TMIP-EMAT, although some of the
 interactive exploratory visualizations may be less responsive in
-JupyterLab than the Notebook interface alone.
+JupyterLab than the Notebook interface alone.  You may also need
+to install one or more JupyterLab extensions to enable the full
+suite of TMIP-EMAT functionality.
 
 If it's not already installed in your base or working
-environments, you can install it using conda:
+environments, you can install JupyterLab using conda:
 
 .. code-block:: console
 
