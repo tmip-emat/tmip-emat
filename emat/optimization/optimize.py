@@ -84,6 +84,15 @@ def robust_optimize(
 			The set of non-dominated solutions found.
 			When `convergence` is given, the convergence measures are
 			included, as a pandas.DataFrame in the `convergence` attribute.
+
+	Raises:
+		ValueError:
+			If any of the `robustness_functions` are not emat.Measures, or
+			do not have a function set, or share a name with any parameter,
+			measure, constant, or performance measure in the scope.
+		KeyError:
+			If any of the `robustness_functions` relies on a named variable
+			that does not appear in the scope.
 	"""
 	if not isinstance(model, AbstractCoreModel):
 		raise ValueError(f'model must be AbstractCoreModel subclass, not {type(model)}')
@@ -95,6 +104,9 @@ def robust_optimize(
 			raise ValueError(f'robustness function must have a function attribute set ({rf.name})')
 		if rf.name in model.scope:
 			raise ValueError(f'cannot name robustness function the same as any scope name ({rf.name})')
+		for rf_v in rf.variable_name:
+			if rf_v not in model.scope:
+				raise KeyError(rf_v)
 
 	epsilons, convergence, display_convergence, evaluator = model._common_optimization_setup(
 		epsilons, convergence, display_convergence, evaluator
@@ -150,5 +162,3 @@ def robust_optimize(
 
 	return result
 
-import platypus
-platypus.EpsMOEA
