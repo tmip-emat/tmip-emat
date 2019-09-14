@@ -839,7 +839,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             constraints=None,
             reference=None,
             reverse_targets=False,
+            algorithm=None,
             epsilons=0.1,
+            cache_dir=None,
+            cache_file=None,
             **kwargs,
     ):
         """
@@ -895,6 +898,14 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             epsilons (float or array-like): Used to limit the number of
                 distinct solutions generated.  Set to a larger value to get
                 fewer distinct solutions.
+            cache_dir (path-like, optional): A directory in which to
+                cache results.  Most of the arguments will be hashed
+                to develop a unique filename for these results, making this
+                generally safer than `cache_file`.
+            cache_file (path-like, optional): A file into which to
+                cache results.  If this file exists, the contents of the
+                file will be loaded and all other arguments are ignored.
+                Use with great caution.
             kwargs: Any additional arguments will be passed on to the
                 platypus algorithm.
 
@@ -904,41 +915,75 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 When `convergence` is given, the convergence measures are
                 included, as a pandas.DataFrame in the `convergence` attribute.
         """
-        epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
-            epsilons, convergence, display_convergence, evaluator
+        from ..util.disk_cache import load_cache_if_available, save_cache
+        if isinstance(algorithm, str) or algorithm is None:
+            alg = algorithm
+        else:
+            alg = algorithm.__name__
+        x, cache_file = load_cache_if_available(
+            cache_file=cache_file,
+            cache_dir=cache_dir,
+            search_over=search_over,
+            nfe=nfe,
+            convergence=convergence,
+            convergence_freq=convergence_freq,
+            constraints=constraints,
+            reference=reference,
+            reverse_targets=reverse_targets,
+            algorithm=alg,
+            epsilons=epsilons,
         )
 
-        if reverse_targets:
-            for k in self.scope.get_measures():
-                k.kind_original = k.kind
-                k.kind = k.kind * -1
+        if x is None:
+            epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
+                epsilons, convergence, display_convergence, evaluator
+            )
 
-        try:
-            with evaluator:
-                results = evaluator.optimize(
-                    search_over=search_over,
-                    reference=reference,
-                    nfe=nfe,
-                    constraints=constraints,
-                    convergence=convergence,
-                    convergence_freq=convergence_freq,
-                    epsilons=epsilons,
-                    **kwargs,
-                )
-
-            if isinstance(results, tuple) and len(results) == 2:
-                results, result_convergence = results
-            else:
-                result_convergence = None
-
-            results = self.ensure_dtypes(results)
-
-        finally:
             if reverse_targets:
                 for k in self.scope.get_measures():
-                    k.kind = k.kind_original
-                    del k.kind_original
-        return OptimizationResult(results, result_convergence, scope=self.scope)
+                    k.kind_original = k.kind
+                    k.kind = k.kind * -1
+
+            try:
+                with evaluator:
+                    results = evaluator.optimize(
+                        search_over=search_over,
+                        reference=reference,
+                        nfe=nfe,
+                        constraints=constraints,
+                        convergence=convergence,
+                        convergence_freq=convergence_freq,
+                        epsilons=epsilons,
+                        **kwargs,
+                    )
+
+                if isinstance(results, tuple) and len(results) == 2:
+                    results, result_convergence = results
+                else:
+                    result_convergence = None
+
+                results = self.ensure_dtypes(results)
+
+            finally:
+                if reverse_targets:
+                    for k in self.scope.get_measures():
+                        k.kind = k.kind_original
+                        del k.kind_original
+            x = OptimizationResult(results, result_convergence, scope=self.scope)
+
+        elif display_convergence:
+            _, convergence, display_convergence, _ = self._common_optimization_setup(
+                None, convergence, display_convergence, False
+            )
+            for c in convergence:
+                try:
+                    c.rebuild(x.convergence)
+                except:
+                    pass
+
+        x.cache_file = cache_file
+        save_cache(x, cache_file)
+        return x
 
     def robust_optimize(
             self,
@@ -1029,45 +1074,24 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         """
         from ..optimization.optimize import robust_optimize
 
-        result = None
-
-        # If given and it exists, load the cache_file and be done
-        if cache_file is not None:
-            if os.path.exists(cache_file):
-                from ..util.filez import load
-                result = load(cache_file)
-                cache_file = None
-                cache_dir = None
-
-        # If cache_dir is used
-        if cache_dir is not None and cache_file is None:
-            try:
-                from ..util.hasher import hash_it
-                if isinstance(algorithm, str) or algorithm is None:
-                    alg = algorithm
-                else:
-                    alg = algorithm.__name__
-                hh = hash_it(
-                    scenarios,
-                    convergence,
-                    convergence_freq,
-                    constraints,
-                    epsilons,
-                    nfe,
-                    robustness_functions,
-                    alg,
-                    check_extremes,
-                )
-                os.makedirs(os.path.join(cache_dir,hh[2:4],hh[4:6]), exist_ok=True)
-                cache_file = os.path.join(cache_dir,hh[2:4],hh[4:6],hh[6:]+".gz")
-                if os.path.exists(cache_file):
-                    from ..util.filez import load
-                    result = load(cache_file)
-                    cache_file = None
-            except:
-                import warnings, traceback
-                warnings.warn('unable to manage cache')
-                traceback.print_exc()
+        from ..util.disk_cache import load_cache_if_available, save_cache
+        if isinstance(algorithm, str) or algorithm is None:
+            alg = algorithm
+        else:
+            alg = algorithm.__name__
+        result, cache_file = load_cache_if_available(
+            cache_file=cache_file,
+            cache_dir=cache_dir,
+            scenarios=scenarios,
+            convergence=convergence,
+            convergence_freq=convergence_freq,
+            constraints=constraints,
+            epsilons=epsilons,
+            nfe=nfe,
+            robustness_functions=robustness_functions,
+            alg=alg,
+            check_extremes=check_extremes,
+        )
 
         if result is None:
             result = robust_optimize(
@@ -1094,20 +1118,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 except:
                     pass
 
-        if cache_file is not None:
-            from ..util.filez import save
-            result.cache_file = cache_file
-            save(result, cache_file, overwrite=True)
-            if '.gz' in cache_file:
-                with open(cache_file.replace('.gz','.info.txt'), 'wt') as notes:
-                    print("scenarios=", scenarios, file=notes)
-                    print("convergence=", convergence, file=notes)
-                    print("convergence_freq=", convergence_freq, file=notes)
-                    print("constraints=", constraints, file=notes)
-                    print("epsilons=", epsilons, file=notes)
-                    print("nfe=", nfe, file=notes)
-                    print("robustness_functions=", robustness_functions, file=notes)
-                    print("algorithm=", algorithm, file=notes)
+        result.cache_file = cache_file
+        save_cache(result, cache_file)
         return result
 
     def robust_evaluate(
