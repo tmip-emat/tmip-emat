@@ -109,6 +109,9 @@ def scatter_graphs(
 		if render == 'png':
 			render = dict(format='png', width=1400, height=270, scale=2)
 
+		if render == 'svg':
+			render = dict(format='svg', width=1400, height=270)
+
 		import plotly.io as pio
 		try:
 			img_bytes = pio.to_image(fig, **render)
@@ -234,6 +237,9 @@ def scatter_graphs_2(
 	if render:
 		if render == 'png':
 			render = dict(format='png', width=1400, height=270, scale=2)
+
+		if render == 'svg':
+			render = dict(format='svg', width=1400, height=270)
 
 		import plotly.io as pio
 		try:
