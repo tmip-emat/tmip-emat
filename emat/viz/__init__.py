@@ -223,7 +223,7 @@ def scatter_graphs_2(
 			[(c if c in data.columns else None) for c in contrast],
 			column,
 			df = data,
-			marker_opacity=marker_opacity_,
+			marker_opacity=marker_opacity_[-1],
 			y_title=y_title,
 			layout=dict(
 				margin=dict(l=50, r=2, t=5, b=40)
