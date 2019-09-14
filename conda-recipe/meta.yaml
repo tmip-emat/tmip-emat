@@ -45,7 +45,7 @@ requirements:
     - altair
     - salib
     - sqlalchemy
-    - tmip::ema_workbench
+    - tmip::ema_workbench>=2.1.505,<2.2
 
 test:
   # Python imports
