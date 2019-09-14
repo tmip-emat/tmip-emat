@@ -10,10 +10,10 @@ def require_version(required_version, pkg):
 		raise ValueError(f"this {pkg.__name__} is version {pkg.__version__}")
 	if 'CS' in required_version and 'CS' not in pkg.__version__:
 		raise ValueError(f"this {pkg.__name__} is version {pkg.__version__}, a 'CS' patched version is required\n"
-						 "try using: conda update ema_workbench -c jpn")
+						 "try using: conda update ema_workbench -c tmip")
 
 import ema_workbench
-require_version('2.1.CS1', ema_workbench)
+require_version('2.1.505', ema_workbench)
 
 _currently_captured = (logging._warnings_showwarning is not None)
 logging.captureWarnings(True)
