@@ -16,11 +16,11 @@ def perturb(x, epsilon=0.05):
 def _wrap_with_br(text, width=70, **kwargs):
 	return "<br>   ".join(textwrap.wrap(text, width=width, **kwargs))
 
-SYMBOL_MIMIMIZE = '⊖'
-SYMBOL_MAXIMIZE = '⊕'
-SYMBOL_INFOMEASURE = '⊙'
-SYMBOL_LEVER = '⎆' # ୰
-SYMBOL_UNCERTAINTY = '‽'
+SYMBOL_MIMIMIZE = '(M-)'    # '⊖'
+SYMBOL_MAXIMIZE = '(M+)'    #'⊕'
+SYMBOL_INFOMEASURE = '(M)'  #'⊙'
+SYMBOL_LEVER = '(L)'        #'⎆' # ୰
+SYMBOL_UNCERTAINTY = '(X)'  #'‽'
 
 def _prefix_symbols(scope, robustness_functions):
 	prefix_chars = {}
