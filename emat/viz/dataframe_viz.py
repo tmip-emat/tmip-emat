@@ -682,7 +682,7 @@ class DataFrameViewer(HBox):
 				self.change_selection_color(colors.DEFAULT_LASSO_COLOR)
 			elif payload['new'] == 'PRIM Target':
 				self.change_selection_color(colors.DEFAULT_PRIMTARGET_COLOR)
-			else:
+			elif payload['new'] != 'None':
 				self.change_selection_color(colors.DEFAULT_HIGHLIGHT_COLOR)
 
 	def _clear_selection(self):
