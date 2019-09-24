@@ -212,6 +212,9 @@ class DataFrameViewer(HBox):
 			)
 		)
 
+		self.scattergraph.on_selection(self._on_select_points)
+		self.out_logger = Output()
+
 	def _get_sectional_names(self, columns):
 		scope = self.scope
 		uncs = scope.get_uncertainty_names()
@@ -508,6 +511,14 @@ class DataFrameViewer(HBox):
 
 			self.draw_box()
 
+	def change_selection_color(self, new_color=None):
+		if new_color is None:
+			new_color = colors.DEFAULT_HIGHLIGHT_COLOR
+		with self.graph.batch_update():
+			self.scattergraph.marker.colorscale = [[0, colors.DEFAULT_BASE_COLOR], [1, new_color]]
+			self.x_hist_s.marker.color = new_color
+			self.y_hist_s.marker.color = new_color
+
 	def change_selection(self, new_selection):
 		if new_selection is None:
 			self.selection = None
@@ -648,17 +659,38 @@ class DataFrameViewer(HBox):
 		return df.eval(txt).astype(bool)
 
 	def _on_change_selection_choose(self, payload):
-		if payload['new'] != 'Expr':
-			self.selection_expr.disabled = True
-		if payload['new'] == 'Expr':
-			self.selection_expr.disabled = False
-			self._on_change_selection_expr({'new':self.selection_expr.value})
-		elif payload['new'] == 'Box':
-			self.change_selection(self.box.inside(self.df))
-		elif payload['new'] == 'None':
-			self.change_selection(None)
-		else:
-			self.change_selection(self._alt_selections[payload['new']])
+		with self.graph.batch_update():
+			if payload['new'] != 'Expr':
+				self.selection_expr.disabled = True
+			if payload['new'] == 'Expr':
+				self.selection_expr.disabled = False
+				self._on_change_selection_expr({'new':self.selection_expr.value})
+			elif payload['new'] == 'Box':
+				self.change_selection(self.box.inside(self.df))
+			elif payload['new'] == 'None':
+				self.change_selection(None)
+			elif payload['new'] == 'Use Lasso Target':
+				lasso_target = self._alt_selections['Use Lasso Target']
+				del self._alt_selections['Use Lasso Target']
+				self.add_alt_selection('Lasso Target', lasso_target)
+				self.selection_choose.value = 'Lasso Target'
+				self._clear_selection()
+			else:
+				self.change_selection(self._alt_selections[payload['new']])
+
+			if payload['new'] in ('Lasso Target', 'Use Lasso Target'):
+				self.change_selection_color(colors.DEFAULT_LASSO_COLOR)
+			elif payload['new'] == 'PRIM Target':
+				self.change_selection_color(colors.DEFAULT_PRIMTARGET_COLOR)
+			else:
+				self.change_selection_color(colors.DEFAULT_HIGHLIGHT_COLOR)
+
+	def _clear_selection(self):
+		self.scattergraph.selectedpoints = None
+		self.x_hist.selectedpoints = None
+		self.x_hist_s.selectedpoints = None
+		self.y_hist.selectedpoints = None
+		self.y_hist_s.selectedpoints = None
 
 	def _on_change_selection_expr(self, payload):
 		expression = payload['new']
@@ -701,7 +733,12 @@ class DataFrameViewer(HBox):
 			raise ValueError(f"value size ({value.size}) "
 							 f"does not match length of data ({len(self.df)})")
 		self._alt_selections[key] = value
+		cache = self.selection_choose.value
 		self.selection_choose.options = ['None', 'Box', 'Expr'] + list(self._alt_selections.keys())
+		try:
+			self.selection_choose.value = cache
+		except:
+			pass
 
 	def lasso_selected_indexes(self):
 		"""
@@ -714,7 +751,7 @@ class DataFrameViewer(HBox):
 
 		return self.df.index[list(self.scattergraph.selectedpoints)]
 
-	def lasso_selected(self):
+	def lasso_selected_data(self):
 		"""
 		Get the full data of points selected interactively in the figure.
 
@@ -723,3 +760,26 @@ class DataFrameViewer(HBox):
 		pandas.DataFrame
 		"""
 		return self.df.loc[self.lasso_selected_indexes()]
+
+	def lasso_selected(self):
+		"""
+		Get a boolean array indicating points selected interactively in the figure.
+
+		Returns
+		-------
+		pandas.Series
+		"""
+		s = pandas.Series(data=False, index=self.df.index)
+		s.iloc[list(self.scattergraph.selectedpoints)] = True
+		return s
+
+	def _on_select_points(self, trace, points, selector):
+		# callback function for selection
+		s = pandas.Series(data=False, index=self.df.index)
+		for i in points.point_inds:
+			s.iloc[i] = True
+		self.add_alt_selection("Use Lasso Target", s)
+		# with self.out_logger:
+		# 	print(points)
+		# 	print(selector)
+

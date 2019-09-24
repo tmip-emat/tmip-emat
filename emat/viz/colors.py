@@ -2,8 +2,10 @@
 from ..util import webcolors
 import re
 
-DEFAULT_BASE_COLOR = 'rgb(31, 119, 180)'
-DEFAULT_HIGHLIGHT_COLOR = 'rgb(255, 127, 14)'
+DEFAULT_BASE_COLOR = 'rgb(31, 119, 180)'      # Blue
+DEFAULT_HIGHLIGHT_COLOR = 'rgb(255, 127, 14)' # Orange
+DEFAULT_LASSO_COLOR = 'rgb(255, 46, 241)'     # Hot Pink
+DEFAULT_PRIMTARGET_COLOR = 'rgb(227, 20, 20)' # Red
 DEFAULT_BOX_BG_COLOR = '#2ca02c'
 DEFAULT_BOX_LINE_COLOR = '#2ca02c'
 
