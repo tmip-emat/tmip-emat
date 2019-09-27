@@ -151,3 +151,43 @@ class Measure(ScalarOutcome, ShortnameMixin):
             self.metamodeltype,
             ha=ha,
         )
+
+    def info(self, return_string=False):
+        """Print some information about this measure
+
+        Args:
+            return_string (bool): Defaults False (print to stdout) but if given as True
+                then this function returns the string instead of printing it.
+        """
+
+        if return_string:
+            import io
+            f = io.StringIO
+        else:
+            f = None
+
+        print(f"{self.name}:")
+        if self._shortname:
+            print(f"  shortname: {self._shortname}", file=f)
+        kind = {
+            ScalarOutcome.MINIMIZE: 'minimize',
+            ScalarOutcome.MAXIMIZE: 'maximize',
+            ScalarOutcome.INFO: 'info',
+        }.get(self.kind)
+        print(f"  kind: {kind}", file=f)
+        if self.address:
+            print(f"  address: {self.address}", file=f)
+        if self.dtype != 'real':
+            print(f"  dtype: {self.dtype}", file=f)
+        if self.metamodeltype != 'linear':
+            print(f"  metamodeltype: {self.metamodeltype}", file=f)
+        try:
+            expected_range = self.expected_range
+        except ValueError:
+            expected_range = None
+        if expected_range is not None:
+            print(f"  min: {expected_range[0]}", file=f)
+            print(f"  max: {expected_range[1]}", file=f)
+
+        if return_string:
+            return f.getvalue()

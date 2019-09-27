@@ -1,0 +1,27 @@
+searchover = uncertainties
+
+
+nfe = 10000
+
+
+convergence = default
+
+
+convergence_freq = 100
+
+
+constraints = None
+
+
+reference = Policy({'expand_capacity': 100.0, 'amortization_period': 50, 'debt_type': 'PayGo', 'interest_rate_lock': False})
+
+
+reverse_targets = True
+
+
+algorithm = None
+
+
+epsilons = 0.1
+
+

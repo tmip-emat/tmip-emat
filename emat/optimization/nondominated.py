@@ -44,6 +44,8 @@ def nondominated_solutions(df, scope, robustness_functions, nearly=1e-5):
 	solutions = df[keeps+flips].copy()
 	solutions[flips] = -solutions[flips]
 
+	solutions_ = solutions.values
+
 	dominated_solutions = set()
 
 	for i in range(len(solutions)):
@@ -52,12 +54,17 @@ def nondominated_solutions(df, scope, robustness_functions, nearly=1e-5):
 		for j in range(i+1, len(solutions)):
 			if j in dominated_solutions:
 				continue
-			diff = (solutions.iloc[i] - solutions.iloc[j])
-			if diff.max() < 0:
+			diff = (solutions_[i] - solutions_[j])
+			dmax, dmin = diff.max(), diff.min()
+			if dmax < 0:
 				dominated_solutions.add(i)
-			elif diff.min() > 0:
+			elif dmax == 0 and dmin < 0:
+				dominated_solutions.add(i)
+			elif dmin > 0:
 				dominated_solutions.add(j)
-			elif nearly and diff.max() < nearly and diff.min() > -nearly:
+			elif dmin == 0 and dmax > 0:
+				dominated_solutions.add(j)
+			elif nearly and dmax < nearly and dmin > -nearly:
 				dominated_solutions.add(j)
 
 	return df.loc[[k for k in range(len(solutions)) if k not in dominated_solutions]]

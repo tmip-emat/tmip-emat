@@ -830,7 +830,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
     def optimize(
             self,
-            search_over='levers',
+            searchover='levers',
             evaluator=None,
             nfe=10000,
             convergence='default',
@@ -843,6 +843,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             epsilons=0.1,
             cache_dir=None,
             cache_file=None,
+            check_extremes=False,
             **kwargs,
     ):
         """
@@ -920,10 +921,23 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             alg = algorithm
         else:
             alg = algorithm.__name__
+
+        if reference is not None:
+            from ema_workbench import Policy, Scenario
+            if searchover == 'levers' and not isinstance(reference, Scenario):
+                reference = Scenario("ReferenceScenario", **reference)
+            elif searchover == 'uncertainties' and not isinstance(reference, Policy):
+                reference = Policy("ReferencePolicy", **reference)
+        else:
+            if searchover == 'levers':
+                reference = self.scope.default_scenario()
+            elif searchover == 'uncertainties':
+                reference = self.scope.default_policy()
+
         x, cache_file = load_cache_if_available(
             cache_file=cache_file,
             cache_dir=cache_dir,
-            search_over=search_over,
+            searchover=searchover,
             nfe=nfe,
             convergence=convergence,
             convergence_freq=convergence_freq,
@@ -947,7 +961,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             try:
                 with evaluator:
                     results = evaluator.optimize(
-                        search_over=search_over,
+                        searchover=searchover,
                         reference=reference,
                         nfe=nfe,
                         constraints=constraints,
@@ -957,19 +971,34 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                         **kwargs,
                     )
 
-                if isinstance(results, tuple) and len(results) == 2:
-                    results, result_convergence = results
-                else:
-                    result_convergence = None
+                    if isinstance(results, tuple) and len(results) == 2:
+                        results, result_convergence = results
+                    else:
+                        result_convergence = None
 
-                results = self.ensure_dtypes(results)
+                    results = self.ensure_dtypes(results)
+                    x = OptimizationResult(results, result_convergence, scope=self.scope)
+
+                    if searchover == 'levers':
+                        x.scenarios = reference
+                    elif searchover == 'uncertainties':
+                        x.policies = reference
+
+                    if check_extremes:
+                        x.check_extremes(
+                            self,
+                            1 if check_extremes is True else check_extremes,
+                            evaluator=evaluator,
+                            searchover=searchover,
+                            robust=False,
+                        )
 
             finally:
                 if reverse_targets:
                     for k in self.scope.get_measures():
                         k.kind = k.kind_original
                         del k.kind_original
-            x = OptimizationResult(results, result_convergence, scope=self.scope)
+
 
         elif display_convergence:
             _, convergence, display_convergence, _ = self._common_optimization_setup(
