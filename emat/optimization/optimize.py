@@ -108,6 +108,10 @@ def robust_optimize(
 			if rf_v not in model.scope:
 				raise KeyError(rf_v)
 
+	if constraints:
+		for c in constraints:
+			pass # TODO: validate constraint
+
 	epsilons, convergence, display_convergence, evaluator = model._common_optimization_setup(
 		epsilons, convergence, display_convergence, evaluator
 	)
@@ -158,6 +162,7 @@ def robust_optimize(
 			model,
 			1 if check_extremes is True else check_extremes,
 			evaluator=evaluator,
+			constraints=constraints,
 		)
 
 	return result

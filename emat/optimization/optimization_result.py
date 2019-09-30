@@ -2,6 +2,7 @@
 import pandas
 from ..viz.parcoords import ParCoordsViewer
 from .nondominated import nondominated_solutions
+from ..util.constraints import batch_contraint_check
 
 from ema_workbench import Scenario, Policy
 
@@ -65,7 +66,7 @@ class OptimizationResult:
 		return self
 
 
-	def check_extremes(self, model, n=1, evaluator=None, cache_dir=None, searchover='levers', robust=True):
+	def check_extremes(self, model, n=1, evaluator=None, cache_dir=None, searchover='levers', robust=True, constraints=None):
 		from ..scope.parameter import CategoricalParameter
 		for i in range(n):
 			if searchover == 'levers':
@@ -85,30 +86,43 @@ class OptimizationResult:
 					extremes = (model.scope[lever_name].min, model.scope[lever_name].max)
 				for x in extremes:
 					df.loc[:, lever_name] = x
+
+					if constraints:
+						keep = batch_contraint_check(constraints, df, scope=model.scope, only_parameters=True)
+						df_ = df[keep]
+					else:
+						df_ = df
+
 					if robust:
-						self.add_solutions(model.robust_evaluate(
+						possibles = model.robust_evaluate(
 							self.robustness_functions,
 							scenarios=self.scenarios,
-							policies=df,
+							policies=df_,
 							evaluator=evaluator,
 							cache_dir=cache_dir,
-						))
+						)
 					elif searchover == 'levers':
 						if self.scenarios is not None:
 							for k in self.scenarios:
-								df[k] = self.scenarios[k]
-						self.add_solutions(model.run_experiments(
-							design=df,
+								df_[k] = self.scenarios[k]
+						possibles = model.run_experiments(
+							design=df_,
 							evaluator=evaluator,
 							db=False,
-						))
+						)
 					elif searchover == 'uncertainties':
 						if self.policies is not None:
 							for k in self.policies:
-								df[k] = self.policies[k]
-						self.add_solutions(model.run_experiments(
-							design=df,
+								df_[k] = self.policies[k]
+						possibles = model.run_experiments(
+							design=df_,
 							evaluator=evaluator,
 							db=False,
-						))
+						)
+					else:
+						raise ValueError(f"not robust, searchover={searchover}")
+					if constraints:
+						self.add_solutions(possibles[batch_contraint_check(constraints, possibles, scope=model.scope)])
+					else:
+						self.add_solutions(possibles)
 		return self
