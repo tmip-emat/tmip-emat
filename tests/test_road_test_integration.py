@@ -81,7 +81,7 @@ class TestRoadTest(unittest.TestCase):
 			[2154.41598475, 12369.38053473, 4468.50683924, 6526.32517089, 2460.91070514])
 
 		assert lhs_results.head()['net_benefits'].values == approx(
-			[-79.51551505, -205.32148044, -151.94431822, -167.62487134, -3.97293985])
+			[ -22.29090499,  -16.84301382, -113.98841188,   11.53956058,        78.03661612])
 
 		with SequentialEvaluator(m) as eval_seq:
 			lhs_large_results = m.run_experiments(design_name='lhs_large', evaluator=eval_seq)
@@ -430,4 +430,194 @@ class TestRoadTest(unittest.TestCase):
 		correct2['debt_type'] = correct2['debt_type'].astype(
 			pandas.CategoricalDtype(categories=['GO Bond', 'Rev Bond', 'Paygo'], ordered=True))
 		pandas.testing.assert_frame_equal(robust_results, correct2, check_less_precise=True)
+
+	def test_robust_optimization(self):
+
+		import numpy.random
+		import random
+		numpy.random.seed(42)
+		random.seed(42)
+		import textwrap
+		import pandas
+		import numpy
+		import emat.examples
+		scope, db, model = emat.examples.road_test()
+
+		result = model.optimize(
+			nfe=10,
+			searchover='levers',
+			check_extremes=1,
+		)
+
+		if not os.path.exists('./test_robust_optimization.1.pkl.gz'):
+			result.result.to_pickle('./test_robust_optimization.1.pkl.gz')
+		pandas.testing.assert_frame_equal(result.result, pandas.read_pickle('./test_robust_optimization.1.pkl.gz'))
+
+		from ema_workbench import Scenario, Policy
+		assert result.scenario == Scenario(**{
+			'alpha': 0.15, 'beta': 4.0, 'input_flow': 100,
+			'value_of_time': 0.075, 'unit_cost_expansion': 100,
+			'interest_rate': 0.03, 'yield_curve': 0.01
+		})
+
+		worst = model.optimize(
+			nfe=10,
+			searchover='uncertainties',
+			reverse_targets = True,
+			check_extremes=1,
+			reference={
+				'expand_capacity': 100.0,
+				'amortization_period': 50,
+				'debt_type': 'PayGo',
+				'interest_rate_lock': False,
+			}
+		)
+
+		if not os.path.exists('./test_robust_optimization.2.pkl.gz'):
+			worst.result.to_pickle('./test_robust_optimization.2.pkl.gz')
+		pandas.testing.assert_frame_equal(worst.result, pandas.read_pickle('./test_robust_optimization.2.pkl.gz'))
+
+		from emat import Measure
+
+		minimum_net_benefit = Measure(
+			name='Minimum Net Benefits',
+			kind=Measure.MAXIMIZE,
+			variable_name='net_benefits',
+			function=min,
+		)
+
+		expected_net_benefit = Measure(
+			name='Mean Net Benefits',
+			kind=Measure.MAXIMIZE,
+			variable_name='net_benefits',
+			function=numpy.mean,
+		)
+
+		import functools
+
+		pct5_net_benefit = Measure(
+			'5%ile Net Benefits',
+			kind = Measure.MAXIMIZE,
+			variable_name = 'net_benefits',
+			function = functools.partial(numpy.percentile, q=5),
+		)
+
+		from scipy.stats import percentileofscore
+
+		neg_net_benefit = Measure(
+			'Possibility of Negative Net Benefits',
+			kind = Measure.MINIMIZE,
+			variable_name = 'net_benefits',
+			function = functools.partial(percentileofscore, score=0, kind='strict'),
+		)
+
+		pct95_cost = Measure(
+			'95%ile Capacity Expansion Cost',
+			kind = Measure.MINIMIZE,
+			variable_name = 'cost_of_capacity_expansion',
+			function = functools.partial(numpy.percentile, q = 95),
+		)
+
+		expected_time_savings = Measure(
+			'Expected Time Savings',
+			kind = Measure.MAXIMIZE,
+			variable_name = 'time_savings',
+			function = numpy.mean,
+		)
+
+		robust_result = model.robust_optimize(
+			robustness_functions=[
+				expected_net_benefit,
+				pct5_net_benefit,
+				neg_net_benefit,
+				pct95_cost,
+				expected_time_savings,
+			],
+			scenarios=50,
+			nfe=10,
+			check_extremes=1,
+		)
+
+		if not os.path.exists('./test_robust_optimization.3.pkl.gz'):
+			robust_result.result.to_pickle('./test_robust_optimization.3.pkl.gz')
+		pandas.testing.assert_frame_equal(robust_result.result, pandas.read_pickle('./test_robust_optimization.3.pkl.gz'))
+
+		from emat import Constraint
+
+		c_min_expansion = Constraint(
+			"Minimum Capacity Expansion",
+			parameter_names="expand_capacity",
+			function=Constraint.must_be_greater_than(10),
+		)
+
+		c_positive_mean_net_benefit = Constraint(
+			"Minimum Net Benefit",
+			outcome_names = "Mean Net Benefits",
+			function = Constraint.must_be_greater_than(0),
+		)
+
+		constraint_bad = Constraint(
+			"Maximum Interest Rate",
+			parameter_names = "interest_rate",
+			function = Constraint.must_be_less_than(0.03),
+		)
+
+		pct99_present_cost = Measure(
+			'99%ile Present Cost',
+			kind=Measure.INFO,
+			variable_name='present_cost_expansion',
+			function=functools.partial(numpy.percentile, q=99),
+		)
+
+		c_max_paygo = Constraint(
+			"Maximum Paygo",
+			parameter_names='debt_type',
+			outcome_names='99%ile Present Cost',
+			function=lambda i,j: max(0, j-3000) if i=='Paygo' else 0,
+		)
+
+		robust_constrained = model.robust_optimize(
+			robustness_functions=[
+				expected_net_benefit,
+				pct5_net_benefit,
+				neg_net_benefit,
+				pct95_cost,
+				expected_time_savings,
+				pct99_present_cost,
+			],
+			constraints = [
+				c_min_expansion,
+				c_positive_mean_net_benefit,
+				c_max_paygo,
+			],
+			scenarios=50,
+			nfe=10,
+			check_extremes=1,
+		)
+
+		if not os.path.exists('./test_robust_optimization.4.pkl.gz'):
+			robust_constrained.result.to_pickle('./test_robust_optimization.4.pkl.gz')
+		pandas.testing.assert_frame_equal(robust_constrained.result, pandas.read_pickle('./test_robust_optimization.4.pkl.gz'))
+
+
+		# with pytest.raises(Exception):
+		_ = model.robust_optimize(
+			robustness_functions=[
+				expected_net_benefit,
+				pct5_net_benefit,
+				neg_net_benefit,
+				pct95_cost,
+				expected_time_savings,
+				pct99_present_cost,
+			],
+			constraints = [
+				constraint_bad,
+				c_min_expansion,
+				c_positive_mean_net_benefit,
+				c_max_paygo,
+			],
+			scenarios=50,
+			nfe=10,
+			check_extremes=1,
+		)
 

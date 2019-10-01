@@ -16,6 +16,7 @@ from ..database.database import Database
 from ..scope.scope import Scope
 from ..optimization.optimization_result import OptimizationResult
 from ..optimization import EpsilonProgress, ConvergenceMetrics, SolutionCount
+from ..util.evaluators import prepare_evaluator
 
 from .._pkg_constants import *
 
@@ -467,12 +468,16 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                                                                                  name='ExperimentL'))
         ]
 
-        if not evaluator:
-            from ema_workbench import SequentialEvaluator
-            evaluator = SequentialEvaluator(self)
+        evaluator = prepare_evaluator(evaluator, self)
 
-        experiments, outcomes = perform_experiments(self, scenarios=scenarios, policies=policies,
-                                                    zip_over={'scenarios', 'policies'}, evaluator=evaluator)
+        with evaluator:
+            experiments, outcomes = perform_experiments(
+                self,
+                scenarios=scenarios,
+                policies=policies,
+                zip_over={'scenarios', 'policies'},
+                evaluator=evaluator,
+            )
         experiments.index = design.index
 
 
@@ -746,54 +751,47 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         )
 
 
-    def get_feature_scores(
+    def feature_scores(
             self,
             design,
-            return_raw=False,
+            return_type='styled',
             random_state=None,
+            cmap='viridis',
     ):
         """
         Calculate feature scores based on a design of experiments.
 
         Args:
             design (str or pandas.DataFrame): The name of the design of experiments
-                to use for feature scoring, or a pandas.DataFrame containing the
+                to use for feature scoring, or a single pandas.DataFrame containing the
                 experimental design and results.
-            return_raw (bool, default False): Whether to return a raw pandas.DataFrame
-                containing the computed feature scores, instead of a formatted heatmap
-                table.
+            return_type ({'styled', 'figure', 'dataframe'}):
+                The format to return, either a heatmap figure as an SVG render in and
+                xmle.Elem, or a plain pandas.DataFrame, or a styled dataframe.
+            random_state (int or numpy.RandomState, optional):
+                Random state to use.
+            cmap (string or colormap, default 'viridis'): matplotlib colormap
+                to use for rendering.
 
         Returns:
             xmle.Elem or pandas.DataFrame:
                 Returns a rendered SVG as xml, or a DataFrame,
-                depending on the `return_raw` argument.
+                depending on the `return_type` argument.
 
         This function internally uses feature_scoring from the EMA Workbench, which in turn
         scores features using the "extra trees" regression approach.
         """
-        from ema_workbench.analysis import feature_scoring
-        from ..viz import heatmap_table
-        import pandas
-
-        if isinstance(design, str):
-            inputs = self.read_experiment_parameters(design)
-            outcomes = self.read_experiment_measures(design)
-            design_name = design
-        elif isinstance(design, pandas.DataFrame):
-            inputs = design[[c for c in design.columns if c in self.scope.get_parameter_names()]]
-            outcomes = design[[c for c in design.columns if c in self.scope.get_measure_names()]]
-            design_name = None
-        else:
-            raise TypeError('must name design or give DataFrame')
-
-        fs = feature_scoring.get_feature_scores_all(inputs, outcomes, random_state=random_state)
-        if return_raw:
-            return fs
-        return heatmap_table(
-            fs.T,
-            xlabel='Model Parameters', ylabel='Performance Measures',
-            title='Feature Scoring' + (f' [{design_name}]' if design_name else ''),
+        from ..analysis.feature_scoring import feature_scores
+        return feature_scores(
+            self.scope,
+            design=design,
+            return_type=return_type,
+            db=self.db,
+            random_state=random_state,
+            cmap=cmap,
         )
+
+    get_feature_scores = feature_scores # for compatability with prior versions of TMIP-EMAT
 
     def _common_optimization_setup(
             self,
@@ -816,15 +814,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             from IPython.display import display
             display(convergence)
 
-        if evaluator is None:
-            from ema_workbench.em_framework import SequentialEvaluator
-            evaluator = SequentialEvaluator(self)
-
-        if not isinstance(evaluator, BaseEvaluator):
-            from dask.distributed import Client
-            if isinstance(evaluator, Client):
-                from ema_workbench.em_framework.ema_distributed import DistributedEvaluator
-                evaluator = DistributedEvaluator(self, client=evaluator)
+        evaluator = prepare_evaluator(evaluator, self)
 
         return epsilons, convergence, display_convergence, evaluator
 
@@ -840,7 +830,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             reference=None,
             reverse_targets=False,
             algorithm=None,
-            epsilons=0.1,
+            epsilons='auto',
+            min_epsilon=0.1,
             cache_dir=None,
             cache_file=None,
             check_extremes=False,
@@ -960,6 +951,25 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
             try:
                 with evaluator:
+
+                    if epsilons == 'auto':
+                        from ema_workbench import perform_experiments
+                        if searchover == 'levers':
+                            _, trial_outcomes = perform_experiments(
+                                self,
+                                scenarios=reference,
+                                policies=30,
+                                evaluator=evaluator,
+                            )
+                        else:
+                            _, trial_outcomes = perform_experiments(
+                                self,
+                                scenarios=30,
+                                policies=reference,
+                                evaluator=evaluator,
+                            )
+                        epsilons = [max(min_epsilon, np.std(trial_outcomes[mn]) / 20) for mn in self.scope.get_measure_names()]
+
                     results = evaluator.optimize(
                         searchover=searchover,
                         reference=reference,

@@ -55,10 +55,12 @@ inputs:
     value_of_time:
         ptype: uncertainty
         desc: Value of a unit of travel time savings per person
-        default: 0.01
+        default: 0.075
         min: 0.001
-        max: 0.08
-        dist: uniform
+        max: 0.250
+        dist:
+            name: pert
+            peak: 0.075
         corr: []
 
     unit_cost_expansion:

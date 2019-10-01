@@ -1,6 +1,7 @@
 
 from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
 import platypus
+import numpy
 
 from .optimization_result import OptimizationResult
 from ..model.core_model import AbstractCoreModel
@@ -66,9 +67,10 @@ def robust_optimize(
 			satisfy these constraints. The constraints can be based on
 			the policy levers, or on the computed values of the robustness
 			functions, or some combination thereof.
-		epsilons (float or array-like): Used to limit the number of
+		epsilons ('auto' or float or array-like): Used to limit the number of
 			distinct solutions generated.  Set to a larger value to get
-			fewer distinct solutions.
+			fewer distinct solutions.  When 'auto', epsilons are set based
+			on the standard deviations of a preliminary set of experiments.
 		algorithm (platypus.Algorithm or str, optional): Select an
 			algorithm for multi-objective optimization.  The algorithm can
 			be given directly, or named in a string. See `platypus`
@@ -129,7 +131,17 @@ def robust_optimize(
 		n_scenarios = scenarios
 		scenarios = sample_uncertainties(model, n_scenarios)
 
+
 	with evaluator:
+		if epsilons == 'auto':
+			trial = model.robust_evaluate(
+				robustness_functions=robustness_functions,
+				scenarios=scenarios,
+				policies=30,
+				evaluator=evaluator,
+			)
+			epsilons = [max(0.1, numpy.std(trial[rf.name]) / 20) for rf in robustness_functions]
+
 		robust_results = evaluator.robust_optimize(
 			robustness_functions,
 			scenarios,
