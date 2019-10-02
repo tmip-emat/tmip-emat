@@ -21,14 +21,19 @@ We illustrate a few here.
     feature-scoring
     prim
 
-Robust Optimization
--------------------
 
-Optimization is finding a set of policy decisions that give the
-best outcome on one particular measure.  Robust optimization
-generalizes this, seeking to find a set of policy decisions that
-gives good outcomes on multiple measures.  This is generally
-set up as a multi-objective optimization, so that decision makers
-can see and understand the tradeoffs between different outcomes.
+Directed Search
+---------------
+
+The scenario discovery tools outlined above are focused on
+exploring parameters and outcomes across a pre-set sample of
+model runs.  This sample can be small or quite large, but the
+tools only consider cases that have already been evaluated.
+In directed search, we transition to tools that will propose
+and execute *new* cases.
+
+.. toctree::
+
+    optimization
 
 

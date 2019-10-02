@@ -21,18 +21,13 @@ import emat
 emat.__version__
 
 # %% [markdown]
-# # Optimization
+# # Optimization Tools
 
 # %% [markdown]
 # Typically, transportation policy planning models will be used to
 # try to find policies that provide the "best" outcomes.  In a traditional
-# analytical environment, that typically means using models to find optimal outcomes
-# for performance measures, possibly subject to some assumptions about the
-# future values of various possible exogenous uncertainties that may 
-# impact the models.
-
-# %% [markdown]
-# ## Optimization Tools
+# analytical environment, that typically means using models to find 
+# optimal outcomes for performance measures.
 #
 # Transportation models as used in the TMIP-EMAT frawework are 
 # generally characterized by two important features: they are 
@@ -44,7 +39,7 @@ emat.__version__
 # as well as be *robust* against uncertainty.
 
 # %% [markdown]
-# ### Multi-Objective Optimization
+# ## Multi-Objective Optimization
 
 # %% [markdown]
 # With exploratory modeling, optimization is also often undertaken as a 
@@ -82,7 +77,7 @@ emat.__version__
 # on mathematics alone.
 
 # %% [markdown]
-# ### Robust Optimization
+# ## Robust Optimization
 
 # %% [markdown]
 # Robust optimization is a variant of the more traditional optimization
@@ -127,7 +122,7 @@ plt.savefig("robust_example.png")
 plt.show()
 
 # %% [raw] {"raw_mimetype": "text/restructuredtext"}
-# ..image: robust_example.png
+# .. image:: robust_example.png
 
 # %% [markdown]
 # In a naive optimization approach, if we want to minimize the performance
@@ -168,7 +163,7 @@ plt.show()
 # "dominated" and should never be chosen by decision makers.
 
 # %% [markdown]
-# #### Robustness Functions
+# ### Robustness Functions
 
 # %% [markdown]
 # To perform robust optimization in EMAT, we need a core model (or meta-model)
@@ -242,7 +237,7 @@ plt.savefig("robust_measures.png")
 plt.show()
 
 # %% [raw] {"raw_mimetype": "text/restructuredtext"}
-# ..image: robust_measures.png
+# .. image:: robust_measures.png
 
 # %% [markdown]
 # The "maximum performance measure result" robustness function is a very
@@ -268,10 +263,10 @@ plt.show()
 # value robustness functions (i.e., everything except the min and max).
 
 # %% [markdown]
-# ## Mechanics of Using Optimization
+# # Mechanics of Using Optimization
 
 # %% [markdown]
-# ### Policy Optimization: Search over Levers
+# ## Policy Optimization: Search over Levers
 
 # %% [markdown]
 # The simplest optimization tool available for TMIP-EMAT users is 
@@ -366,7 +361,7 @@ result.scenario
 result.par_coords()
 
 # %% [markdown]
-# ### Worst Case Discovery: Search over Uncertainties
+# ## Worst Case Discovery: Search over Uncertainties
 
 # %% [markdown]
 # We can apply the same multiobjective optimization tool in reverse to 
@@ -398,10 +393,10 @@ worst = model.optimize(
 worst.par_coords()
 
 # %% [markdown]
-# ### Robust Optimization
+# ## Using Robust Optimization
 
 # %% [markdown]
-# As dicsussed above, implementing robust optimization requires the
+# As discussed above, implementing robust optimization requires the
 # definition of relevant robustness functions.  Because the functional
 # form of these functions can be so many different things depending on
 # the particular application, TMIP-EMAT does not implement a mechanism
@@ -472,7 +467,7 @@ expected_net_benefit = Measure(
 # instead of one: the array of values, and the target percentile value.
 # Since the `function` of the robust measure needs to accept only a single 
 # argument, we can inject the `q=5` argument here using 
-# [`functools.partial`](https://docs.python.org/3/library/functools.html#functools.partial).
+# [functools.partial](https://docs.python.org/3/library/functools.html#functools.partial).
 
 # %%
 import functools
@@ -560,7 +555,7 @@ robust_result = model.robust_optimize(
 robust_result.par_coords()
 
 # %% [markdown]
-# #### Constraints
+# ### Constraints
 #
 # The robust optimization process can be constrained to only include 
 # solutions that satisfy certain constraints. These constraints can 
