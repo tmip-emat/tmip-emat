@@ -1,6 +1,6 @@
 #
 
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 
 
 import logging
@@ -13,7 +13,7 @@ def require_version(required_version, pkg):
 						 "try using: conda update ema_workbench -c tmip")
 
 import ema_workbench
-require_version('2.1.505', ema_workbench)
+require_version('2.1.506', ema_workbench)
 
 _currently_captured = (logging._warnings_showwarning is not None)
 logging.captureWarnings(True)
@@ -31,6 +31,7 @@ try:
 	from .model.meta_model import MetaModel
 	from .optimization.optimization_result import OptimizationResult
 	from .exceptions import *
+	from .versions import versions
 
 	try:
 		from .model.core_excel import ExcelCoreModel
