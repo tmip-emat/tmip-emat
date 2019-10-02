@@ -112,7 +112,9 @@ def robust_optimize(
 
 	if constraints:
 		for c in constraints:
-			pass # TODO: validate constraint
+			for pn in c.parameter_names:
+				if pn in model.scope.get_uncertainty_names():
+					raise ValueError(f"cannot constrain on uncertainties ({c.name})")
 
 	epsilons, convergence, display_convergence, evaluator = model._common_optimization_setup(
 		epsilons, convergence, display_convergence, evaluator
