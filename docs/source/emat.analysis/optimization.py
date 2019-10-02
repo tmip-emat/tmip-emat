@@ -15,10 +15,8 @@
 # ---
 
 # %%
-import numpy
-import pandas
-import emat
-emat.__version__
+import emat, numpy, pandas
+emat.versions()
 
 # %% [markdown]
 # # Optimization Tools
@@ -316,7 +314,7 @@ result = model.optimize(
     nfe=10_000, 
     searchover='levers', 
     check_extremes=1,
-    cache_file='./optimization_cache/road_test_search_over_levers_1001a.gz',
+    cache_file='./optimization_cache/road_test_search_over_levers.gz',
 )
 
 # %% [markdown]
@@ -380,7 +378,7 @@ worst = model.optimize(
     searchover='uncertainties', 
     reverse_targets = True,
     check_extremes=1,
-    cache_file='./optimization_cache/road_test_search_over_uncs_1001c.gz',
+    cache_file='./optimization_cache/road_test_search_over_uncs.gz',
     reference={
         'expand_capacity': 100.0, 
         'amortization_period': 50, 
@@ -548,7 +546,7 @@ robust_result = model.robust_optimize(
     nfe=25_000,
     check_extremes=1,
     evaluator=get_client(),
-    cache_file='./optimization_cache/road_test_robust_search_1001a.gz',
+    cache_file='./optimization_cache/road_test_robust_search.gz',
 )
 
 # %%
@@ -665,7 +663,7 @@ robust_constrained = model.robust_optimize(
     nfe=10_000,
     check_extremes=1,
     evaluator=get_client(),
-    cache_file='./optimization_cache/road_test_robust_search_constrained_1001a.gz',
+    cache_file='./optimization_cache/road_test_robust_search_constrained.gz',
 )
 
 # %%

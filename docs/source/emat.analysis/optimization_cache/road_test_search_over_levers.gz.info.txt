@@ -1,4 +1,4 @@
-search_over = levers
+searchover = levers
 
 
 nfe = 10000
@@ -13,7 +13,7 @@ convergence_freq = 100
 constraints = None
 
 
-reference = Scenario({'alpha': 0.15, 'beta': 4.0, 'input_flow': 100, 'value_of_time': 0.01, 'unit_cost_expansion': 100, 'interest_rate': 0.03, 'yield_curve': 0.01})
+reference = Scenario({'alpha': 0.15, 'beta': 4.0, 'input_flow': 100, 'value_of_time': 0.075, 'unit_cost_expansion': 100, 'interest_rate': 0.03, 'yield_curve': 0.01})
 
 
 reverse_targets = False

@@ -22,6 +22,6 @@ reverse_targets = True
 algorithm = None
 
 
-epsilons = 0.1
+epsilons = auto
 
 
