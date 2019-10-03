@@ -642,6 +642,25 @@ class Scope:
             except:
                 return name
 
+    def get_description(self, name):
+        """
+        Get a description, if available, for any named parameter or measure.
+
+        Args:
+            name: str
+        Returns:
+            str
+        """
+        try:
+            x = self[name]
+        except KeyError:
+            return ''
+        else:
+            try:
+                return x.desc
+            except:
+                return ''
+
     def default_policy(self, **kwargs):
         """
         The default settings for policy levers.

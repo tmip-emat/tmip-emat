@@ -282,6 +282,7 @@ def make_parameter(
             ptype=ptype,
             corr=corr,
             abbrev=abbrev,
+            shortname=shortname,
         )
     elif dtype == 'int':
         rv_gen = rv_gen or make_rv_frozen(**dist_for_maker, discrete=True)
@@ -303,6 +304,7 @@ def make_parameter(
                 ptype=ptype,
                 corr=corr,
                 abbrev=abbrev,
+                shortname=shortname,
             )
     elif dtype == 'real':
         rv_gen = rv_gen or make_rv_frozen(**dist_for_maker)
@@ -324,6 +326,7 @@ def make_parameter(
                 ptype=ptype,
                 corr=corr,
                 abbrev=abbrev,
+                shortname=shortname,
             )
 
     elif dtype == 'bool':
@@ -342,6 +345,7 @@ def make_parameter(
                 ptype=ptype,
                 corr=corr,
                 abbrev=abbrev,
+                shortname=shortname,
             )
     else:
         raise ValueError(f"invalid dtype {dtype}")
