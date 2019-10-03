@@ -5,6 +5,34 @@ from ..util import xmle
 from plotly.colors import DEFAULT_PLOTLY_COLORS
 import itertools
 
+COLOR_BLUE = "rgb(31, 119, 180)"
+COLOR_RED = 'rgb(227, 20, 20)'
+COLOR_GREEN = "rgb(44, 160, 44)"
+
+
+def _pick_color(scope, x, y):
+	lev = scope.get_lever_names()
+	unc = scope.get_uncertainty_names()
+	if y in lev:
+		if x in lev:
+			return COLOR_BLUE
+		if x in unc:
+			return COLOR_RED
+		return COLOR_BLUE
+	elif y in unc:
+		if x in lev:
+			return COLOR_BLUE
+		if x in unc:
+			return COLOR_RED
+		return COLOR_RED
+	else: # y in meas
+		if x in lev:
+			return COLOR_BLUE
+		if x in unc:
+			return COLOR_RED
+		return COLOR_GREEN
+
+
 def scatter_graphs(
 		column,
 		data,
@@ -87,13 +115,14 @@ def scatter_graphs(
 		marker_opacity = mass.get_opacity(data)
 
 	y_title = column
-	try:
-		y_title = scope[column].shortname
-	except AttributeError:
-		pass
+	if scope is not None:
+		y_title = scope.shortname(y_title)
+
+	contrast_cols = [c for c in contrast if c in data.columns]
+	contrast_color = [_pick_color(scope, c, column) for c in contrast_cols]
 
 	fig = scatter_graph_row(
-		[c for c in contrast if c in data.columns],
+		contrast_cols,
 		column,
 		df = data,
 		marker_opacity=marker_opacity,
@@ -103,6 +132,7 @@ def scatter_graphs(
 		),
 		short_name_func=scope.shortname if scope is not None else None,
 		use_gl=use_gl,
+		C=contrast_color,
 	)
 
 	if render:
