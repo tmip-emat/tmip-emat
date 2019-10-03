@@ -5,6 +5,19 @@
 Analysis
 ========
 
+Visualization
+-------------
+
+Visualization tools are an important part of the exploratory
+modeling process.  They allow analysts and other stakeholders
+to conceptualize the potentially complex relationships represented
+in transportation models.
+
+.. toctree::
+
+    visualization
+
+
 Scenario Discovery
 ------------------
 
