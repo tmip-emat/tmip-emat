@@ -15,7 +15,7 @@ in transportation models.
 
 .. toctree::
 
-    visualization
+    splom
     interactive-explorer
 
 
