@@ -28,7 +28,7 @@ try:
 	from .scope.box import Box, Boxes, ChainedBox, Bounds
 	from .database.sqlite.sqlite_db import SQLiteDB
 	from .model.core_python import PythonCoreModel
-	from .model.meta_model import MetaModel
+	from .model.meta_model import MetaModel, create_metamodel
 	from .optimization.optimization_result import OptimizationResult
 	from .exceptions import *
 	from .versions import versions

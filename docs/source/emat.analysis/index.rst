@@ -16,6 +16,7 @@ in transportation models.
 .. toctree::
 
     visualization
+    interactive-explorer
 
 
 Scenario Discovery

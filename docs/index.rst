@@ -38,7 +38,7 @@ A brief discussion of the differences between these projects is
    source/emat.install
    source/emat.scope/index
    source/emat.models/index
-   source/emat.metamodels
+   source/emat.metamodels/index
    source/emat.database/index
    source/emat.analysis/index
    source/emat.examples/index

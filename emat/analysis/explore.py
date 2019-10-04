@@ -721,7 +721,7 @@ class Explore(GenericBox):
 			The <span style="font-weight:bold;color:{basecolor}">{basecolor_name}</span> bars
 			depict the unconditional frequency of performance measures in the data across
 			all cases, while the <span style="font-weight:bold;color:{highlightcolor}">{highlight_name}</span> 
-			curve depicts the frequency of performance measures conditional on the constraints.
+			bars depict the frequency of performance measures conditional on the constraints.
 			</div>"""
 		return widget.HTML(txt)
 
