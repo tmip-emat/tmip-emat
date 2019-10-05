@@ -42,8 +42,10 @@ VERSION = version('../emat/__init__.py')
 
 # The short X.Y version
 version = VERSION
+
+from datetime import datetime
 # The full version, including alpha/beta/rc tags
-release = '{}, May 2019'.format(VERSION)
+release = '{}, {}'.format(VERSION, datetime.today().strftime("%B %Y"))
 
 
 # -- General configuration ---------------------------------------------------
