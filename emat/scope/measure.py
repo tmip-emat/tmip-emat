@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy
+import re
 from ema_workbench import ScalarOutcome
 from .names import ShortnameMixin
 
@@ -109,7 +110,7 @@ class Measure(ScalarOutcome, ShortnameMixin):
         if transform is None:
             func = function
             if function is not None:
-                transform = f'f:{function}'
+                transform = re.sub(' at 0x[0-9a-fA-F]*', '', f'f:{function}')
         elif isinstance(transform, str) and hasattr(numpy, transform):
             func = getattr(numpy, transform)
         elif isinstance(transform, str) and transform.lower() in ('none',):
@@ -134,4 +135,59 @@ class Measure(ScalarOutcome, ShortnameMixin):
     def __repr__(self):
         return super().__repr__()
 
+    def _hash_it(self, ha=None):
+        from ..util.hasher import hash_it
+        return hash_it(
+            self.name,
+            self.kind,
+            self._expected_range,
+            self.address,
+            self.dtype,
+            self.function is None,
+            self.transform,
+            tuple(self.variable_name),
+            self.shape,
+            self.shortname,
+            self.metamodeltype,
+            ha=ha,
+        )
 
+    def info(self, return_string=False):
+        """Print some information about this measure
+
+        Args:
+            return_string (bool): Defaults False (print to stdout) but if given as True
+                then this function returns the string instead of printing it.
+        """
+
+        if return_string:
+            import io
+            f = io.StringIO
+        else:
+            f = None
+
+        print(f"{self.name}:")
+        if self._shortname:
+            print(f"  shortname: {self._shortname}", file=f)
+        kind = {
+            ScalarOutcome.MINIMIZE: 'minimize',
+            ScalarOutcome.MAXIMIZE: 'maximize',
+            ScalarOutcome.INFO: 'info',
+        }.get(self.kind)
+        print(f"  kind: {kind}", file=f)
+        if self.address:
+            print(f"  address: {self.address}", file=f)
+        if self.dtype != 'real':
+            print(f"  dtype: {self.dtype}", file=f)
+        if self.metamodeltype != 'linear':
+            print(f"  metamodeltype: {self.metamodeltype}", file=f)
+        try:
+            expected_range = self.expected_range
+        except ValueError:
+            expected_range = None
+        if expected_range is not None:
+            print(f"  min: {expected_range[0]}", file=f)
+            print(f"  max: {expected_range[1]}", file=f)
+
+        if return_string:
+            return f.getvalue()

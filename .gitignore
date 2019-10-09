@@ -106,6 +106,7 @@ venv.bak/
 # gh-pages
 public/
 
-docs/source/emat.examples/RoadTest/dask-worker-space
+dask-worker-space
 roadtest.db.tmp
 roadtest.db
+build-docs

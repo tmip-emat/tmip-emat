@@ -27,7 +27,8 @@ class Prim(ema_workbench.analysis.prim.Prim, ScenarioDiscoveryMixin):
 		----------
 		n : int, optional
 			The index number of the PrimBox to use.  If not given,
-			the last found box is used.
+			the last found box is used.  If no boxes have been found
+			yet, giving any value other than -1 will raise an error.
 		colorscale : str, default 'viridis'
 			A valid color scale name, as compatible with the
 			color_palette method in seaborn.
@@ -158,10 +159,12 @@ class PrimBox(ema_workbench.analysis.prim.PrimBox):
 			hoverinfo="text",
 		).data[-1]
 
-		fig.layout = dict(
+		fig.update_layout(
 			margin=dict(l=10, r=10, t=10, b=10),
 			width=600,
 			height=400,
+			xaxis_title_text='Coverage',
+			yaxis_title_text='Density',
 		)
 
 		# create callback function

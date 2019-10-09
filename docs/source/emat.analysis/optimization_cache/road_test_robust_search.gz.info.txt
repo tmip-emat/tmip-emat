@@ -1,0 +1,27 @@
+scenarios = 250
+
+
+convergence = default
+
+
+convergence_freq = 100
+
+
+constraints = None
+
+
+epsilons = auto
+
+
+nfe = 25000
+
+
+robustness_functions = [Measure('Mean Net Benefits', variable_name=['net_benefits'], function=<function mean at 0x114939f28>), Measure('5%ile Net Benefits', variable_name=['net_benefits'], function=functools.partial(<function percentile at 0x114a8d158>, q=5)), Measure('Possibility of Negative Net Benefits', variable_name=['net_benefits'], function=functools.partial(<function percentileofscore at 0x11d94b400>, score=0, kind='strict')), Measure('95%ile Capacity Expansion Cost', variable_name=['cost_of_capacity_expansion'], function=functools.partial(<function percentile at 0x114a8d158>, q=95)), Measure('Expected Time Savings', variable_name=['time_savings'], function=<function mean at 0x114939f28>)]
+
+
+alg = None
+
+
+check_extremes = 1
+
+

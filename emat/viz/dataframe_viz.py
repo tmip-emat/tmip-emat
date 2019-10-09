@@ -3,9 +3,12 @@
 import numpy
 import pandas
 import plotly.graph_objs as go
-from ipywidgets import HBox, VBox, Dropdown, Label, Text
+from ipywidgets import HBox, VBox, Dropdown, Label, Text, Output
 from . import colors
 from ..util.naming import clean_name
+
+import logging
+_logger = logging.getLogger('EMAT.widget')
 
 class DataFrameViewer(HBox):
 
@@ -90,8 +93,12 @@ class DataFrameViewer(HBox):
 			mode = 'markers',
 			marker=dict(
 				opacity=marker_opacity[0],
-				color=colors.DEFAULT_BASE_COLOR,
+				color=None,
+				colorscale=[[0, colors.DEFAULT_BASE_COLOR], [1, colors.DEFAULT_HIGHLIGHT_COLOR]],
+				cmin=0,
+				cmax=1,
 			),
+			name='Cases',
 		)
 
 		self.x_hist = go.Histogram(
@@ -116,16 +123,6 @@ class DataFrameViewer(HBox):
 			bingroup='yyy',
 		)
 
-		self.scattergraph_s = go.Scattergl(
-			x=None,
-			y=None,
-			mode = 'markers',
-			marker=dict(
-				opacity=marker_opacity[1],
-				color=colors.DEFAULT_HIGHLIGHT_COLOR,
-			),
-		)
-
 		self.x_hist_s = go.Histogram(
 			x=None,
 			marker=dict(
@@ -146,15 +143,12 @@ class DataFrameViewer(HBox):
 			bingroup='yyy',
 		)
 
-		self.graph = go.FigureWidget([
-			self.scattergraph,
-			self.x_hist,
-			self.y_hist,
-			self.scattergraph_s,
-			self.x_hist_s,
-			self.y_hist_s,
-		])
-
+		self.graph = go.FigureWidget()
+		self.scattergraph = self.graph.add_trace(self.scattergraph).data[-1]
+		self.x_hist = self.graph.add_trace(self.x_hist).data[-1]
+		self.y_hist = self.graph.add_trace(self.y_hist).data[-1]
+		self.x_hist_s = self.graph.add_trace(self.x_hist_s).data[-1]
+		self.y_hist_s = self.graph.add_trace(self.y_hist_s).data[-1]
 
 		self.graph.layout=dict(
 			xaxis=dict(
@@ -199,6 +193,13 @@ class DataFrameViewer(HBox):
 
 		self.set_x(self.df.columns[0])
 		self.set_y(self.df.columns[-1])
+		self.scattergraph.meta = df.index
+		if df.index.name:
+			hover_name = df.index.name
+		else:
+			hover_name = "Experiment"
+		self.scattergraph.hovertemplate = f"%{{xaxis.title.text}}: %{{x}}<br>%{{yaxis.title.text}}: %{{y}}<extra>{hover_name} %{{meta}}</extra>"
+
 		self.draw_box()
 
 		super().__init__(
@@ -210,6 +211,9 @@ class DataFrameViewer(HBox):
 				align_items='center',
 			)
 		)
+
+		self.scattergraph.on_selection(self._on_select_points)
+		self.out_logger = Output()
 
 	def _get_sectional_names(self, columns):
 		scope = self.scope
@@ -238,16 +242,16 @@ class DataFrameViewer(HBox):
 
 		result = []
 		if len(c_uncs):
-			result.append("-- Uncertainties --")
+			result.append("-- (X) Uncertainties --")
 			result.extend(c_uncs)
 		if len(c_levs):
-			result.append("-- Levers --")
+			result.append("-- (L) Levers --")
 			result.extend(c_levs)
 		if len(c_cons):
 			result.append("-- Constants --")
 			result.extend(c_cons)
 		if len(c_meas):
-			result.append("-- Measures --")
+			result.append("-- (M) Measures --")
 			result.extend(c_meas)
 		if len(c_other):
 			result.append("-- Other --")
@@ -322,31 +326,37 @@ class DataFrameViewer(HBox):
 		self.set_y(self.y_axis_choose.value)
 
 	def __manage_categorical(self, x):
-		valid_scales = ['linear']
-		x_categories = None
-		x_ticktext = None
-		x_tickvals = None
-		if not isinstance(x, pandas.Series):
-			x = pandas.Series(x)
-		if numpy.issubdtype(x.dtype, numpy.bool_):
-			x = x.astype('category')
-		if isinstance(x.dtype, pandas.CategoricalDtype):
-			x_categories = x.cat.categories
-			codes = x.cat.codes
-			x = codes.astype(float)
-			s_ = x.size * 0.01
-			s_ = s_ / (1 + s_)
-			epsilon = 0.05 + 0.20 * s_
-			x = x + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
-			x_tickmode = 'array'
-			x_ticktext = list(x_categories)
-			x_tickvals = list(range(len(x_ticktext)))
-		else:
-			if x.min() >= 0:
-				valid_scales.append('log')
+		try:
+			valid_scales = ['linear']
+			x_categories = None
+			x_ticktext = None
+			x_tickvals = None
+			if not isinstance(x, pandas.Series):
+				x = pandas.Series(x)
+			try:
+				if numpy.issubdtype(x.dtype, numpy.bool_):
+					x = x.astype('category')
+			except TypeError:
+				pass
+			if isinstance(x.dtype, pandas.CategoricalDtype):
+				x_categories = x.cat.categories
+				codes = x.cat.codes
+				x = codes.astype(float)
+				s_ = x.size * 0.01
+				s_ = s_ / (1 + s_)
+				epsilon = 0.05 + 0.20 * s_
+				x = x + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
+				x_tickmode = 'array'
+				x_ticktext = list(x_categories)
+				x_tickvals = list(range(len(x_ticktext)))
+			else:
+				if x.min() >= 0:
+					valid_scales.append('log')
 
-		return x, x_ticktext, x_tickvals, valid_scales
-
+			return x, x_ticktext, x_tickvals, valid_scales
+		except:
+			_logger.exception('ERROR IN __manage_categorical')
+			raise
 
 	def set_x(self, col):
 		"""
@@ -357,61 +367,74 @@ class DataFrameViewer(HBox):
 				The name of the new `x` column in `df`, or a
 				computed array or pandas.Series of values.
 		"""
-		with self.graph.batch_update():
-			if isinstance(col, str):
-				x = self.df[col]
-				self.graph.layout.xaxis.title = self._get_shortname(col)
-			else:
-				x = col
-				try:
-					self.graph.layout.xaxis.title = self._get_shortname(col.name)
-				except:
-					pass
+		try:
+			with self.graph.batch_update():
+				this_label = None
+				if isinstance(col, str):
+					x = self.df[col]
+					this_label = self._get_shortname(col)
+				else:
+					x = col
+					try:
+						this_label = self._get_shortname(col.name)
+					except:
+						pass
 
-			x, x_ticktext, x_tickvals, x_scales = self.__manage_categorical(x)
-			self.x_axis_scale.options = x_scales
-			self._x = x
-			self._x_ticktext = x_ticktext or []
-			self._x_tickvals = x_tickvals or []
+				x, x_ticktext, x_tickvals, x_scales = self.__manage_categorical(x)
+				self.x_axis_scale.options = x_scales
+				self._x = x
+				self._x_ticktext = x_ticktext or []
+				self._x_tickvals = x_tickvals or []
 
-			is_linear = (self.x_axis_scale.value == 'linear')
+				is_linear = (self.x_axis_scale.value == 'linear')
+				is_log = (self.x_axis_scale.value == 'log')
 
-			if self.selection is None:
-				self.graph.data[0].x = x
-				self.graph.data[3].x = None
-				self.graph.data[1].x = x if is_linear else None
-				self.graph.data[4].x = None
-			else:
-				self.graph.data[0].x = x[~self.selection]
-				self.graph.data[3].x = x[self.selection]
-				self.graph.data[1].x = x if is_linear else None
-				self.graph.data[4].x = x[self.selection] if is_linear else None
-			if x_ticktext is not None:
-				self._x_data_range = [x.min(), x.max()]
-				self.graph.layout.xaxis.range = (
-					self._x_data_range[0] - 0.3,
-					self._x_data_range[1] + 0.3,
-				)
-				self.graph.layout.xaxis.tickmode = 'array'
-				self.graph.layout.xaxis.ticktext = x_ticktext
-				self.graph.layout.xaxis.tickvals = x_tickvals
-				self.graph.data[1].xbins = dict(
-					start=-0.25, end=self._x_data_range[1] + 0.25, size=0.5,
-				)
-				self.graph.data[1].autobinx = False
-			else:
-				self._x_data_range = [x.min(), x.max()]
-				self.graph.layout.xaxis.range = (
-					self._x_data_range[0] - self._x_data_width * 0.07,
-					self._x_data_range[1] + self._x_data_width * 0.07,
-				)
-				self.graph.layout.xaxis.type = self.x_axis_scale.value
-				self.graph.layout.xaxis.tickmode = None
-				self.graph.layout.xaxis.ticktext = None
-				self.graph.layout.xaxis.tickvals = None
-				self.graph.data[1].xbins = None
-				self.graph.data[1].autobinx = True
-			self.draw_box()
+				if this_label is not None:
+					self.graph.layout.xaxis.title = this_label
+					self.x_hist.name = this_label+' Unselected Density'
+					self.x_hist_s.name = this_label+' Selected Density'
+				else:
+					self.graph.layout.xaxis.title = 'x axis'
+					self.x_hist.name = 'Unselected Density'
+					self.x_hist_s.name = 'Selected Density'
+
+				if self.selection is None:
+					self.scattergraph.x = x
+					self.x_hist.x = x if is_linear else None
+					self.x_hist_s.x = None
+				else:
+					self.scattergraph.x = x
+					self.x_hist.x = x if is_linear else None
+					self.x_hist_s.x = x[self.selection] if is_linear else None
+				if x_ticktext is not None:
+					self._x_data_range = [x.min(), x.max()]
+					self.graph.layout.xaxis.range = (
+						self._x_data_range[0] - 0.3,
+						self._x_data_range[1] + 0.3,
+					)
+					self.graph.layout.xaxis.tickmode = 'array'
+					self.graph.layout.xaxis.ticktext = x_ticktext
+					self.graph.layout.xaxis.tickvals = x_tickvals
+					self.x_hist.xbins = dict(
+						start=-0.25, end=self._x_data_range[1] + 0.25, size=0.5,
+					)
+					self.x_hist.autobinx = False
+				else:
+					self._x_data_range = [x.min(), x.max()]
+					self.graph.layout.xaxis.range = (
+						self._x_data_range[0] - self._x_data_width * 0.07,
+						self._x_data_range[1] + self._x_data_width * 0.07,
+					)
+					self.graph.layout.xaxis.type = self.x_axis_scale.value
+					self.graph.layout.xaxis.tickmode = None
+					self.graph.layout.xaxis.ticktext = None
+					self.graph.layout.xaxis.tickvals = None
+					self.x_hist.xbins = None
+					self.x_hist.autobinx = True
+				self.draw_box()
+		except:
+			_logger.exception('ERROR IN DataFrameViewer.set_x')
+			raise
 
 	def set_y(self, col):
 		"""
@@ -423,13 +446,14 @@ class DataFrameViewer(HBox):
 				computed array or pandas.Series of values.
 		"""
 		with self.graph.batch_update():
+			this_label = None
 			if isinstance(col, str):
 				y = self.df[col]
-				self.graph.layout.yaxis.title = self._get_shortname(col)
+				this_label = self._get_shortname(col)
 			else:
 				y = col
 				try:
-					self.graph.layout.yaxis.title = self._get_shortname(col.name)
+					this_label = self._get_shortname(col.name)
 				except:
 					pass
 
@@ -440,17 +464,25 @@ class DataFrameViewer(HBox):
 			self._y_tickvals = y_tickvals or []
 
 			is_linear = (self.y_axis_scale.value == 'linear')
+			is_log = (self.y_axis_scale.value == 'log')
+
+			if this_label is not None:
+				self.graph.layout.yaxis.title = this_label
+				self.y_hist.name = this_label+' Unselected Density'
+				self.y_hist_s.name = this_label+' Selected Density'
+			else:
+				self.graph.layout.yaxis.title = 'y axis'
+				self.y_hist.name = 'Unselected Density'
+				self.y_hist_s.name = 'Selected Density'
 
 			if self.selection is None:
-				self.graph.data[0].y = y
-				self.graph.data[3].y = None
-				self.graph.data[2].y = y if is_linear else None
-				self.graph.data[5].y = None
+				self.scattergraph.y = y
+				self.y_hist.y = y if is_linear else None
+				self.y_hist_s.y = None
 			else:
-				self.graph.data[0].y = y[~self.selection]
-				self.graph.data[3].y = y[self.selection]
-				self.graph.data[2].y = y if is_linear else None
-				self.graph.data[5].y = y[self.selection] if is_linear else None
+				self.scattergraph.y = y
+				self.y_hist.y = y if is_linear else None
+				self.y_hist_s.y = y[self.selection] if is_linear else None
 			if y_ticktext is not None:
 				self._y_data_range = [y.min(), y.max()]
 				self.graph.layout.yaxis.range = (
@@ -460,10 +492,10 @@ class DataFrameViewer(HBox):
 				self.graph.layout.yaxis.tickmode = 'array'
 				self.graph.layout.yaxis.ticktext = y_ticktext
 				self.graph.layout.yaxis.tickvals = y_tickvals
-				self.graph.data[2].ybins = dict(
+				self.y_hist.ybins = dict(
 					start=-0.25, end=self._y_data_range[1] + 0.25, size=0.5,
 				)
-				self.graph.data[2].autobiny = False
+				self.y_hist.autobiny = False
 			else:
 				self._y_data_range = [y.min(), y.max()]
 				self.graph.layout.yaxis.range = (
@@ -474,10 +506,18 @@ class DataFrameViewer(HBox):
 				self.graph.layout.yaxis.tickmode = None
 				self.graph.layout.yaxis.ticktext = None
 				self.graph.layout.yaxis.tickvals = None
-				self.graph.data[2].ybins = None
-				self.graph.data[2].autobiny = True
+				self.y_hist.ybins = None
+				self.y_hist.autobiny = True
 
 			self.draw_box()
+
+	def change_selection_color(self, new_color=None):
+		if new_color is None:
+			new_color = colors.DEFAULT_HIGHLIGHT_COLOR
+		with self.graph.batch_update():
+			self.scattergraph.marker.colorscale = [[0, colors.DEFAULT_BASE_COLOR], [1, new_color]]
+			self.x_hist_s.marker.color = new_color
+			self.y_hist_s.marker.color = new_color
 
 	def change_selection(self, new_selection):
 		if new_selection is None:
@@ -486,16 +526,14 @@ class DataFrameViewer(HBox):
 			x = self._x
 			y = self._y
 			with self.graph.batch_update():
-				self.graph.data[0].x = x
-				self.graph.data[0].y = y
-				self.graph.data[3].x = None
-				self.graph.data[3].y = None
+				self.scattergraph.x = x
+				self.scattergraph.y = y
+				self.scattergraph.marker.color = numpy.zeros(x.shape, numpy.int8)
 				marker_opacity = self._compute_marker_opacity()
-				self.graph.data[0].marker.opacity = marker_opacity[0]
-				self.graph.data[3].marker.opacity = marker_opacity[1]
+				self.scattergraph.marker.opacity = marker_opacity[0]
 				# Update Selected Portion of Histograms
-				self.graph.data[4].x = None
-				self.graph.data[5].y = None
+				self.x_hist_s.x = None
+				self.y_hist_s.y = None
 				self.draw_box()
 			return
 
@@ -507,18 +545,15 @@ class DataFrameViewer(HBox):
 			# Update Selected Portion of Scatters
 			x = self._x
 			y = self._y
-			# x = self.df[self.x_axis_choose.value]
-			# y = self.df[self.y_axis_choose.value]
-			self.graph.data[0].x = x[~self.selection]
-			self.graph.data[0].y = y[~self.selection]
-			self.graph.data[3].x = x[self.selection]
-			self.graph.data[3].y = y[self.selection]
+			self.scattergraph.x = x #[~self.selection]
+			self.scattergraph.y = y #[~self.selection]
+			selection_as_int = self.selection.astype(int)
+			self.scattergraph.marker.color = selection_as_int
 			marker_opacity = self._compute_marker_opacity()
-			self.graph.data[0].marker.opacity = marker_opacity[0]
-			self.graph.data[3].marker.opacity = marker_opacity[1]
+			self.scattergraph.marker.opacity = [marker_opacity[j] for j in selection_as_int]
 			# Update Selected Portion of Histograms
-			self.graph.data[4].x = x[self.selection]
-			self.graph.data[5].y = y[self.selection]
+			self.x_hist_s.x = x[self.selection]
+			self.y_hist_s.y = y[self.selection]
 			self.draw_box()
 
 	def draw_box(self, box=None):
@@ -624,17 +659,38 @@ class DataFrameViewer(HBox):
 		return df.eval(txt).astype(bool)
 
 	def _on_change_selection_choose(self, payload):
-		if payload['new'] != 'Expr':
-			self.selection_expr.disabled = True
-		if payload['new'] == 'Expr':
-			self.selection_expr.disabled = False
-			self._on_change_selection_expr({'new':self.selection_expr.value})
-		elif payload['new'] == 'Box':
-			self.change_selection(self.box.inside(self.df))
-		elif payload['new'] == 'None':
-			self.change_selection(None)
-		else:
-			self.change_selection(self._alt_selections[payload['new']])
+		with self.graph.batch_update():
+			if payload['new'] != 'Expr':
+				self.selection_expr.disabled = True
+			if payload['new'] == 'Expr':
+				self.selection_expr.disabled = False
+				self._on_change_selection_expr({'new':self.selection_expr.value})
+			elif payload['new'] == 'Box':
+				self.change_selection(self.box.inside(self.df))
+			elif payload['new'] == 'None':
+				self.change_selection(None)
+			elif payload['new'] == 'Use Lasso Target':
+				lasso_target = self._alt_selections['Use Lasso Target']
+				del self._alt_selections['Use Lasso Target']
+				self.add_alt_selection('Lasso Target', lasso_target)
+				self.selection_choose.value = 'Lasso Target'
+				self._clear_selection()
+			else:
+				self.change_selection(self._alt_selections[payload['new']])
+
+			if payload['new'] in ('Lasso Target', 'Use Lasso Target'):
+				self.change_selection_color(colors.DEFAULT_LASSO_COLOR)
+			elif payload['new'] == 'PRIM Target':
+				self.change_selection_color(colors.DEFAULT_PRIMTARGET_COLOR)
+			elif payload['new'] != 'None':
+				self.change_selection_color(colors.DEFAULT_HIGHLIGHT_COLOR)
+
+	def _clear_selection(self):
+		self.scattergraph.selectedpoints = None
+		self.x_hist.selectedpoints = None
+		self.x_hist_s.selectedpoints = None
+		self.y_hist.selectedpoints = None
+		self.y_hist_s.selectedpoints = None
 
 	def _on_change_selection_expr(self, payload):
 		expression = payload['new']
@@ -677,4 +733,53 @@ class DataFrameViewer(HBox):
 			raise ValueError(f"value size ({value.size}) "
 							 f"does not match length of data ({len(self.df)})")
 		self._alt_selections[key] = value
+		cache = self.selection_choose.value
 		self.selection_choose.options = ['None', 'Box', 'Expr'] + list(self._alt_selections.keys())
+		try:
+			self.selection_choose.value = cache
+		except:
+			pass
+
+	def lasso_selected_indexes(self):
+		"""
+		Get the index values of points selected interactively in the figure.
+
+		Returns
+		-------
+		pandas.Index
+		"""
+
+		return self.df.index[list(self.scattergraph.selectedpoints)]
+
+	def lasso_selected_data(self):
+		"""
+		Get the full data of points selected interactively in the figure.
+
+		Returns
+		-------
+		pandas.DataFrame
+		"""
+		return self.df.loc[self.lasso_selected_indexes()]
+
+	def lasso_selected(self):
+		"""
+		Get a boolean array indicating points selected interactively in the figure.
+
+		Returns
+		-------
+		pandas.Series
+		"""
+		s = pandas.Series(data=False, index=self.df.index)
+		s.iloc[list(self.scattergraph.selectedpoints)] = True
+		return s
+
+	def _on_select_points(self, trace, points, selector):
+		# callback function for selection
+		s = pandas.Series(data=False, index=self.df.index)
+		for i in points.point_inds:
+			s.iloc[i] = True
+		self.add_alt_selection("Use Lasso Target", s)
+		# with self.out_logger:
+		# 	print(points)
+		# 	print(selector)
+

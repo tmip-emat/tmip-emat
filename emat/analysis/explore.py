@@ -332,6 +332,13 @@ class Explore(GenericBox):
 			if selection is None:
 				selection = self.box.inside(self.data)
 			bar_heights, bar_heights_select, labels = self._compute_frequencies(col, selection, labels=labels)
+			if self.scope is not None:
+				try:
+					label_name_map = self.scope[col].abbrev
+				except:
+					pass
+				else:
+					labels = [label_name_map.get(i,i) for i in labels]
 			fig = go.FigureWidget(
 				data=[
 					go.Bar(
@@ -388,6 +395,7 @@ class Explore(GenericBox):
 				layout=dict(
 					showlegend=False,
 					margin=dict(l=10, r=10, t=10, b=10),
+					yaxis_showticklabels=False,
 					**styles.figure_dims,
 				),
 			)
@@ -517,7 +525,13 @@ class Explore(GenericBox):
 
 		current_setting = self.box.get(i, None)
 
+		try:
+			short_label_map = self.scope[i].abbrev
+		except:
+			short_label_map = None
+
 		controller = MultiToggleButtons_AllOrSome(
+			short_label_map=short_label_map,
 			description='',
 			style=styles.slider_style,
 			options=list(cats),
@@ -620,7 +634,7 @@ class Explore(GenericBox):
 			fig = self.get_histogram_figure(i, **histogram)
 
 		stack = [
-			widget.Label(i),
+			widget.HTML(f'<span title="{i}">{self.scope.shortname(i)}</span>'),
 			fig
 		]
 		if with_selector:

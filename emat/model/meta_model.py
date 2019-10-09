@@ -104,6 +104,14 @@ def create_metamodel(
                          for i in output_transforms
                          if i in meas}
 
+    # change log tranforms to log1p when the experimental minimum is
+    # non-positive but not less than -1
+    for i, i_transform in output_transforms.items():
+        if i_transform == 'log' and i in experiment_outputs:
+            i_min = experiment_outputs[i].min()
+            if -1 < i_min <= 0:
+                output_transforms[i] = 'log1p'
+
     disabled_outputs = [i for i in scope.get_measure_names()
                         if i not in experiment_outputs.columns]
 
