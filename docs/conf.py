@@ -124,6 +124,7 @@ rst_prolog = """
 
 """
 
+nbsphinx_timeout = 300
 
 # -- Options for HTML output -------------------------------------------------
 
