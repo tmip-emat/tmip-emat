@@ -172,6 +172,7 @@ class ParCoordsViewer(VBox):
 			data,
 			scope,
 			robustness_functions=None,
+			initial_max_active_measures = 3,
 	):
 		self.data = data
 		self.scope = scope
@@ -191,11 +192,24 @@ class ParCoordsViewer(VBox):
 
 		prefix_chars = _prefix_symbols(scope, robustness_functions)
 
+		n_active_measures = 0
+		measure_names = set(self.scope.get_measure_names())
 		for i in self.data.columns:
 			short_i = i
 			if self.scope is not None:
 				short_i = self.scope.shortname(i)
-			cb = NamedCheckbox(description=prefix_chars.get(i,'')+short_i, value=True, name=i, description_tooltip=i)
+			i_value = True
+			if i in measure_names:
+				print("measurename",i)
+				if n_active_measures >= initial_max_active_measures:
+					i_value = False
+					for dim in self.parcoords.data[0].dimensions:
+						if dim.name == i:
+							dim.visible = False
+				else:
+					n_active_measures += 1
+			print("i was", i, n_active_measures)
+			cb = NamedCheckbox(description=prefix_chars.get(i,'')+short_i, value=i_value, name=i, description_tooltip=i)
 			cb.observe(self._on_dim_choose_toggle, names='value')
 			self.dim_activators.append(cb)
 
