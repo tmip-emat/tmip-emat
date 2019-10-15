@@ -166,12 +166,13 @@ def parallel_coords(
 	)
 
 _NOTHING = ' '
-_SELECT_ALL_UNCS     = '   Select All Exogenous Uncertainties'
-_DESELECT_ALL_UNCS   = '   Deselect All Exogenous Uncertainties'
-_SELECT_ALL_LEVERS   = '   Select All Policy Levers'
-_DESELECT_ALL_LEVERS = '   Deselect All Policy Levers'
-_SELECT_ALL_MEAS     = '   Select All Measures'
-_DESELECT_ALL_MEAS   = '   Deselect All Measures'
+_CLEAR_CONSTRAINT_RANGES = '   Clear Selection Constraints'
+_SELECT_ALL_UNCS     = '   Show All Exogenous Uncertainties'
+_DESELECT_ALL_UNCS   = '   Hide All Exogenous Uncertainties'
+_SELECT_ALL_LEVERS   = '   Show All Policy Levers'
+_DESELECT_ALL_LEVERS = '   Hide All Policy Levers'
+_SELECT_ALL_MEAS     = '   Show All Performance Measures'
+_DESELECT_ALL_MEAS   = '   Hide All Performance Measures'
 
 
 class ParCoordsViewer(VBox):
@@ -224,10 +225,15 @@ class ParCoordsViewer(VBox):
 			self.dim_activators.append(cb)
 			self.dim_activators_by_name[i] = cb
 
-		self.dim_choose = Accordion(children=[widget.Box(
-			self.dim_activators,
-			layout=widget.Layout(flex_flow='row wrap')
-		)])
+		self.dim_choose = Accordion(
+			children=[
+				widget.Box(
+					self.dim_activators,
+					layout=widget.Layout(flex_flow='row wrap')
+				)
+			],
+			layout=widget.Layout(width='100%')
+		)
 		self.dim_choose.set_title(0, 'Axes')
 		self.dim_choose.selected_index = None
 
@@ -241,6 +247,7 @@ class ParCoordsViewer(VBox):
 		self.select_menu = widget.Dropdown(
 			options=[
 				_NOTHING,
+				_CLEAR_CONSTRAINT_RANGES,
 				"-- (X) Uncertainties --",
 				_SELECT_ALL_UNCS    ,
 				_DESELECT_ALL_UNCS  ,
@@ -251,7 +258,7 @@ class ParCoordsViewer(VBox):
 				_SELECT_ALL_MEAS    ,
 				_DESELECT_ALL_MEAS  ,
 			],
-			description='Axes:',
+			description='View:',
 			value=_NOTHING,
 		)
 		self.select_menu.observe(self._on_select_menu, names='value')
@@ -280,6 +287,14 @@ class ParCoordsViewer(VBox):
 				align_items='center',
 			)
 		)
+
+	def clear_all_constraint_ranges(self):
+		"""
+		Clear any constraint ranges across all dimensions.
+		"""
+		with self.parcoords.batch_update():
+			for dim in self.parcoords.data[0].dimensions:
+				dim.constraintrange = None
 
 	def _on_dim_choose_toggle(self, payload):
 		for dim in self.parcoords.data[0].dimensions:
@@ -317,34 +332,36 @@ class ParCoordsViewer(VBox):
 		with self.out_logger:
 			try:
 				with self.parcoords.batch_update():
-					color_dim_name = payload['new']
-					if color_dim_name == _NOTHING:
+					command_name = payload['new']
+					if command_name == _NOTHING:
 						pass
 					else:
-						if color_dim_name == _SELECT_ALL_MEAS:
+						if command_name == _SELECT_ALL_MEAS:
 							for meas in self.scope.get_measure_names():
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = True
-						elif color_dim_name == _DESELECT_ALL_MEAS:
+						elif command_name == _DESELECT_ALL_MEAS:
 							for meas in self.scope.get_measure_names():
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = False
-						elif color_dim_name == _SELECT_ALL_LEVERS:
+						elif command_name == _SELECT_ALL_LEVERS:
 							for meas in self.scope.get_lever_names():
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = True
-						elif color_dim_name == _DESELECT_ALL_LEVERS:
+						elif command_name == _DESELECT_ALL_LEVERS:
 							for meas in self.scope.get_lever_names():
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = False
-						elif color_dim_name == _SELECT_ALL_UNCS:
+						elif command_name == _SELECT_ALL_UNCS:
 							for meas in self.scope.get_uncertainty_names():
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = True
-						elif color_dim_name == _DESELECT_ALL_UNCS:
+						elif command_name == _DESELECT_ALL_UNCS:
 							for meas in self.scope.get_uncertainty_names():
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = False
+						elif command_name == _CLEAR_CONSTRAINT_RANGES:
+							self.clear_all_constraint_ranges()
 						self.select_menu.value = _NOTHING
 			except:
 				import traceback
