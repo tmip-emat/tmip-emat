@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 from ema_workbench.em_framework.parameters import Category, CategoricalParameter, BooleanParameter
 from ema_workbench.em_framework.outcomes import ScalarOutcome
 
-from ipywidgets import VBox, HBox, Checkbox
+from ipywidgets import VBox, HBox, Checkbox, Accordion
 from ..analysis.widgets import NamedCheckbox
 import ipywidgets as widget
 
@@ -181,7 +181,7 @@ class ParCoordsViewer(VBox):
 			data,
 			scope,
 			robustness_functions=None,
-			initial_max_active_measures = 3,
+			initial_max_active_measures = 5,
 	):
 		self.data = data
 		self.scope = scope
@@ -204,13 +204,14 @@ class ParCoordsViewer(VBox):
 
 		n_active_measures = 0
 		measure_names = set(self.scope.get_measure_names())
+		if robustness_functions is not None:
+			measure_names |= set(rf.name for rf in robustness_functions)
 		for i in self.data.columns:
 			short_i = i
 			if self.scope is not None:
 				short_i = self.scope.shortname(i)
 			i_value = True
 			if i in measure_names:
-				print("measurename",i)
 				if n_active_measures >= initial_max_active_measures:
 					i_value = False
 					for dim in self.parcoords.data[0].dimensions:
@@ -218,16 +219,17 @@ class ParCoordsViewer(VBox):
 							dim.visible = False
 				else:
 					n_active_measures += 1
-			print("i was", i, n_active_measures)
 			cb = NamedCheckbox(description=prefix_chars.get(i,'')+short_i, value=i_value, name=i, description_tooltip=i)
 			cb.observe(self._on_dim_choose_toggle, names='value')
 			self.dim_activators.append(cb)
 			self.dim_activators_by_name[i] = cb
 
-		self.dim_choose = widget.Box(
+		self.dim_choose = Accordion(children=[widget.Box(
 			self.dim_activators,
 			layout=widget.Layout(flex_flow='row wrap')
-		)
+		)])
+		self.dim_choose.set_title(0, 'Axes')
+		self.dim_choose.selected_index = None
 
 		self.color_dim_choose = widget.Dropdown(
 			options=['< None >']+list(self.data.columns),
