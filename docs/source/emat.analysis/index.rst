@@ -16,6 +16,7 @@ in transportation models.
 .. toctree::
 
     splom
+    corruption
     interactive-explorer
 
 
