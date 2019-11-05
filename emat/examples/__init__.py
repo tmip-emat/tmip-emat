@@ -5,7 +5,8 @@ def road_test(*args, yamlfile='road_test.yaml', **kwargs):
 	road_test_scope_file = package_file('model', 'tests', yamlfile)
 	s = Scope(road_test_scope_file)
 	db = SQLiteDB(*args, **kwargs)
-	s.store_scope(db)
+	if s.name not in db.read_scope_names():
+		s.store_scope(db)
 	from ..model.core_python import Road_Capacity_Investment
 	m = PythonCoreModel(Road_Capacity_Investment, scope=s, db=db)
 	return s, db, m
