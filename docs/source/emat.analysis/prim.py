@@ -9,9 +9,9 @@
 #       format_version: '1.2'
 #       jupytext_version: 1.2.4
 #   kernelspec:
-#     display_name: Python [conda env:EMAT-DEV]
+#     display_name: EMAT
 #     language: python
-#     name: conda-env-EMAT-DEV-py
+#     name: emat
 # ---
 
 # %%
