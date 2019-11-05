@@ -991,6 +991,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     else:
                         result_convergence = None
 
+                    # Put constants back in to results
+                    for i in self.scope.get_constants():
+                        results[i.name] = i.value
+
                     results = self.ensure_dtypes(results)
                     x = OptimizationResult(results, result_convergence, scope=self.scope)
 
