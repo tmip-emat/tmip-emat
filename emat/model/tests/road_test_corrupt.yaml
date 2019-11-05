@@ -2,7 +2,7 @@
 # EMAT Road Test Scope Definition
 
 scope:
-    name: EMAT Road Test
+    name: EMAT Corrupt Test
     desc: prototype run
 
 
