@@ -9,9 +9,9 @@
 #       format_version: '1.2'
 #       jupytext_version: 1.2.4
 #   kernelspec:
-#     display_name: EMAT-DEV
+#     display_name: EMAT
 #     language: python
-#     name: emat-dev
+#     name: emat
 # ---
 
 # %%
@@ -285,9 +285,6 @@ plt.show()
 import emat.examples
 scope, db, model = emat.examples.road_test()
 
-# %%
-scope['value_of_time'].max
-
 # %% [markdown]
 # The scope defined for a model in TMIP-EMAT will already provide
 # information about the preferred directionality of performance
@@ -359,7 +356,8 @@ result.scenario
 # goals.
 
 # %%
-result.par_coords()
+q=result.par_coords()
+q
 
 # %% [markdown]
 # As noted above, nearly all but not exactly all of the identified Pareto optimal
