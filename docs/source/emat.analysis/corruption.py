@@ -8,9 +8,9 @@
 #       format_version: '1.2'
 #       jupytext_version: 1.2.4
 #   kernelspec:
-#     display_name: EMAT-DEV
+#     display_name: EMAT
 #     language: python
-#     name: emat-dev
+#     name: emat
 # ---
 
 # %%
