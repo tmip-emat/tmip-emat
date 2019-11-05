@@ -8,9 +8,9 @@
 #       format_version: '1.2'
 #       jupytext_version: 1.2.4
 #   kernelspec:
-#     display_name: EMAT-DEV
+#     display_name: EMAT
 #     language: python
-#     name: emat-dev
+#     name: emat
 # ---
 
 # %%
@@ -44,11 +44,14 @@ from emat.analysis import Explore
 xp = Explore(scope=scope, data=results)
 
 # %% [markdown]
-# <p style="color:red; border:1px solid; padding:5px; max-width:500px; font-size:80%;">
+# <span style="color:red; font-size:80%;">
 # Note: The interactivity of the figures displayed directly on the
 # TMIP-EMAT website is not enabled.  This interactivity requires
 # a live running Python kernel to support the calculations to
-# update the figures.</p>
+# update the figures.
+# You can try to open a live interactive version in
+# <a href="https://mybinder.org/v2/gh/tmip-emat/tmip-emat/ab5ea96371751d7d3ddd95dd5599b384d781f92e?filepath=docs%2Fsource%2Femat.analysis%2Finteractive-explorer.ipynb">Binder</a>
+# but it may take a bit of time to load.</span>
 
 # %% [markdown]
 # ## Single Dimension Figures
@@ -102,6 +105,9 @@ xp.remove_from_allowed_set('debt_type', 'Rev Bond')
 # %%
 xp.viewers(['time_savings', 'net_benefits'], style='kde')
 
+# %%
+xp.viewers(['input_flow', 'net_benefits', 'value_of_time'], style='kde')
+
 # %% [markdown]
 # ## Two Dimension Figures
 
@@ -118,4 +124,20 @@ xp.viewers(['time_savings', 'net_benefits'], style='kde')
 # %%
 xp.two_way(x='expand_capacity', y='time_savings')
 
+# %% [markdown]
+# ## Using PRIM with the Interactive Explorer
+#
+# The PRIM tools are available directly within the interactive explorer. Simply 
+# set a target as shown.
+
 # %%
+prim = xp.prim(target=xp.data['net_benefits'] > 0)
+
+# %% [markdown]
+# The tradeoff selector is directly integrated into the explorer.  In addition
+# to the information visible by hovering over any point in the tradeoff selector
+# figure, clicking on that point will set all of the interactive constraints 
+# to the bounds given by that particular point.
+
+# %%
+prim.tradeoff_selector()
