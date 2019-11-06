@@ -128,7 +128,7 @@ def parallel_coords(
 			ticktext=ticktext.get(col, None),
 			name=col,
 		)
-		for col in df.columns
+		for col in df.columns if col not in scope.get_constant_names()
 	]
 
 	## Line coloring dimension
@@ -208,6 +208,8 @@ class ParCoordsViewer(VBox):
 		if robustness_functions is not None:
 			measure_names |= set(rf.name for rf in robustness_functions)
 		for i in self.data.columns:
+			if i in self.scope.get_constant_names():
+				continue
 			short_i = i
 			if self.scope is not None:
 				short_i = self.scope.shortname(i)
