@@ -288,7 +288,7 @@ class Explore(GenericBox):
 		for key in self._two_way:
 			self._two_way[key]._on_box_change(selection=selection)
 
-	def _create_histogram_figure(self, col, bins=20, *, selection=None):
+	def _create_histogram_figure(self, col, bins=20, *, selection=None, marker_line_width=None):
 		if col in self._figures_hist:
 			self._update_histogram_figure(col, selection=selection)
 		else:
@@ -305,6 +305,7 @@ class Explore(GenericBox):
 						width=bins_width,
 						name='Inside',
 						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+						marker_line_width=marker_line_width,
 					),
 					go.Bar(
 						x=bins_left,
@@ -312,6 +313,7 @@ class Explore(GenericBox):
 						width=bins_width,
 						name='Outside',
 						marker_color=colors.DEFAULT_BASE_COLOR,
+						marker_line_width=marker_line_width,
 					),
 				],
 				layout=dict(
@@ -380,14 +382,14 @@ class Explore(GenericBox):
 					go.Scatter(
 						x=x_points,
 						y=y_base,
-						name='Inside',
+						name='Overall',
 						fill='tozeroy',
 						marker_color=colors.DEFAULT_BASE_COLOR,
 					),
 					go.Scatter(
 						x=x_points,
 						y=y_select,
-						name='Outside',
+						name='Inside',
 						fill='tozeroy',  #fill='tonexty',
 						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
 					),
@@ -402,14 +404,20 @@ class Explore(GenericBox):
 			fig._figure_kind = 'kde'
 			self._figures_kde[col] = fig
 
-	def get_histogram_figure(self, col, bins=20):
+	def get_histogram_figure(self, col, bins=20, marker_line_width=None):
 		try:
 			this_type = self.scope.get_dtype(col)
 		except:
 			this_type = 'float'
 		if this_type in ('cat','bool'):
 			return self.get_frequency_figure(col)
-		self._create_histogram_figure(col, bins=bins)
+		if this_type in ('int',):
+			param = self.scope[col]
+			if param.max - param.min + 1 <= bins * 4:
+				bins = param.max - param.min + 1
+				if marker_line_width is None:
+					marker_line_width = 0
+		self._create_histogram_figure(col, bins=bins, marker_line_width=marker_line_width)
 		return self._figures_hist[col]
 
 	def get_frequency_figure(self, col):
