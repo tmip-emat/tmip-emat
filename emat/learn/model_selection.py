@@ -136,6 +136,7 @@ class CrossValMixin:
 			use_cache=True,
 			n_repeats=1,
 			shuffle=False,
+			n_jobs=-1,
 	):
 		"""
 		Compute the cross validation scores for this model.
@@ -219,7 +220,7 @@ class CrossValMixin:
 				cv = check_cv(cv, Y, classifier=is_classifier(self),
 							  random_state=random_state, n_repeats=n_repeats,
 							  shuffle=shuffle)
-				p = cross_validate(self, X, Y, cv=cv, scoring=ms, n_jobs=-1)
+				p = cross_validate(self, X, Y, cv=cv, scoring=ms, n_jobs=n_jobs)
 
 		if hashkey is not None:
 			self._cross_validate_results[hashkey] = p
@@ -227,7 +228,7 @@ class CrossValMixin:
 
 	def cross_val_scores(self, X, Y, cv=5, S=None,
 						 random_state=None, n_repeats=1,
-						 cache_metadata=None):
+						 cache_metadata=None, n_jobs=-1):
 		"""
 		Calculate the cross validation scores for this model.
 
@@ -263,6 +264,7 @@ class CrossValMixin:
 		p = self._cross_validate(
 			X, Y, cv=cv, S=S, random_state=random_state,
 			cache_metadata=cache_metadata, n_repeats=n_repeats,
+			n_jobs=n_jobs,
 		)
 		try:
 			return pandas.Series({j:p[f"test_{j}"].mean() for j in self.Y_columns})

@@ -21,7 +21,7 @@ instructions on
 Configuring Your Fork to Also Use TMIP-EMAT as a Remote
 -------------------------------------------------------
 
-If you want to keep your fork in sync woth future changes
+If you want to keep your fork in sync with future changes
 to the master TMIP-EMAT repository, you can do so by making
 the master TMIP-EMAT repository an "upstream remote".
 

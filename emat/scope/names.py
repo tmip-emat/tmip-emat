@@ -25,3 +25,10 @@ class ShortnameMixin:
 	def shortname(self):
 		self._shortname = None
 
+	@property
+	def shortname_if_any(self):
+		"""Str: The abbreviated name, or None."""
+		if not hasattr(self, '_shortname') or self._shortname is None:
+			return None
+		return self._shortname
+

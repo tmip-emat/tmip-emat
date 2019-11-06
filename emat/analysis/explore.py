@@ -288,7 +288,7 @@ class Explore(GenericBox):
 		for key in self._two_way:
 			self._two_way[key]._on_box_change(selection=selection)
 
-	def _create_histogram_figure(self, col, bins=20, *, selection=None):
+	def _create_histogram_figure(self, col, bins=20, *, selection=None, marker_line_width=None):
 		if col in self._figures_hist:
 			self._update_histogram_figure(col, selection=selection)
 		else:
@@ -305,6 +305,7 @@ class Explore(GenericBox):
 						width=bins_width,
 						name='Inside',
 						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+						marker_line_width=marker_line_width,
 					),
 					go.Bar(
 						x=bins_left,
@@ -312,6 +313,7 @@ class Explore(GenericBox):
 						width=bins_width,
 						name='Outside',
 						marker_color=colors.DEFAULT_BASE_COLOR,
+						marker_line_width=marker_line_width,
 					),
 				],
 				layout=dict(
@@ -332,6 +334,13 @@ class Explore(GenericBox):
 			if selection is None:
 				selection = self.box.inside(self.data)
 			bar_heights, bar_heights_select, labels = self._compute_frequencies(col, selection, labels=labels)
+			if self.scope is not None:
+				try:
+					label_name_map = self.scope[col].abbrev
+				except:
+					pass
+				else:
+					labels = [label_name_map.get(i,i) for i in labels]
 			fig = go.FigureWidget(
 				data=[
 					go.Bar(
@@ -373,14 +382,14 @@ class Explore(GenericBox):
 					go.Scatter(
 						x=x_points,
 						y=y_base,
-						name='Inside',
+						name='Overall',
 						fill='tozeroy',
 						marker_color=colors.DEFAULT_BASE_COLOR,
 					),
 					go.Scatter(
 						x=x_points,
 						y=y_select,
-						name='Outside',
+						name='Inside',
 						fill='tozeroy',  #fill='tonexty',
 						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
 					),
@@ -388,20 +397,27 @@ class Explore(GenericBox):
 				layout=dict(
 					showlegend=False,
 					margin=dict(l=10, r=10, t=10, b=10),
+					yaxis_showticklabels=False,
 					**styles.figure_dims,
 				),
 			)
 			fig._figure_kind = 'kde'
 			self._figures_kde[col] = fig
 
-	def get_histogram_figure(self, col, bins=20):
+	def get_histogram_figure(self, col, bins=20, marker_line_width=None):
 		try:
 			this_type = self.scope.get_dtype(col)
 		except:
 			this_type = 'float'
 		if this_type in ('cat','bool'):
 			return self.get_frequency_figure(col)
-		self._create_histogram_figure(col, bins=bins)
+		if this_type in ('int',):
+			param = self.scope[col]
+			if param.max - param.min + 1 <= bins * 4:
+				bins = param.max - param.min + 1
+				if marker_line_width is None:
+					marker_line_width = 0
+		self._create_histogram_figure(col, bins=bins, marker_line_width=marker_line_width)
 		return self._figures_hist[col]
 
 	def get_frequency_figure(self, col):
@@ -517,7 +533,13 @@ class Explore(GenericBox):
 
 		current_setting = self.box.get(i, None)
 
+		try:
+			short_label_map = self.scope[i].abbrev
+		except:
+			short_label_map = None
+
 		controller = MultiToggleButtons_AllOrSome(
+			short_label_map=short_label_map,
 			description='',
 			style=styles.slider_style,
 			options=list(cats),
@@ -620,7 +642,7 @@ class Explore(GenericBox):
 			fig = self.get_histogram_figure(i, **histogram)
 
 		stack = [
-			widget.Label(i),
+			widget.HTML(f'<span title="{i}">{self.scope.shortname(i)}</span>'),
 			fig
 		]
 		if with_selector:
@@ -687,7 +709,7 @@ class Explore(GenericBox):
 			self.selectors(*self.scope.get_uncertainty_names()),
 			widget.HTML("<h3>Performance Measures</h3>"),
 			self._measure_notes(style=measure_style),
-			self.measure_viewers(style=measure_style),
+			self.measure_selectors(style=measure_style),
 		])
 
 	def _measure_notes(self, style='kde'):
@@ -707,7 +729,7 @@ class Explore(GenericBox):
 			The <span style="font-weight:bold;color:{basecolor}">{basecolor_name}</span> bars
 			depict the unconditional frequency of performance measures in the data across
 			all cases, while the <span style="font-weight:bold;color:{highlightcolor}">{highlight_name}</span> 
-			curve depicts the frequency of performance measures conditional on the constraints.
+			bars depict the frequency of performance measures conditional on the constraints.
 			</div>"""
 		return widget.HTML(txt)
 

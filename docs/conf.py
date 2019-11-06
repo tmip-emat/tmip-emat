@@ -42,8 +42,10 @@ VERSION = version('../emat/__init__.py')
 
 # The short X.Y version
 version = VERSION
+
+from datetime import datetime
 # The full version, including alpha/beta/rc tags
-release = '{}, May 2019'.format(VERSION)
+release = '{}, {}'.format(VERSION, datetime.today().strftime("%B %Y"))
 
 
 # -- General configuration ---------------------------------------------------
@@ -69,6 +71,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinxcontrib.restbuilder',
     'nbsphinx',
+    'jupyter_sphinx.execute',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -105,6 +108,7 @@ intersphinx_mapping = {
 	'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
 	'sklearn': ('https://scikit-learn.org/stable/', None),
     'ema_workbench': ('https://emaworkbench.readthedocs.io/en/latest/', None),
+    'conda': ('https://docs.conda.io/projects/conda/en/latest/', None),
 }
 
 
@@ -120,6 +124,7 @@ rst_prolog = """
 
 """
 
+nbsphinx_timeout = 300
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -132,6 +137,8 @@ import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_theme_options = {}
+
+html4_writer=True  # see https://github.com/readthedocs/sphinx_rtd_theme/issues/766
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

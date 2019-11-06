@@ -5,6 +5,34 @@ from ..util import xmle
 from plotly.colors import DEFAULT_PLOTLY_COLORS
 import itertools
 
+COLOR_BLUE = "rgb(31, 119, 180)"
+COLOR_RED = 'rgb(227, 20, 20)'
+COLOR_GREEN = "rgb(44, 160, 44)"
+
+
+def _pick_color(scope, x, y):
+	lev = scope.get_lever_names()
+	unc = scope.get_uncertainty_names()
+	if y in lev:
+		if x in lev:
+			return COLOR_BLUE
+		if x in unc:
+			return COLOR_RED
+		return COLOR_BLUE
+	elif y in unc:
+		if x in lev:
+			return COLOR_BLUE
+		if x in unc:
+			return COLOR_RED
+		return COLOR_RED
+	else: # y in meas
+		if x in lev:
+			return COLOR_BLUE
+		if x in unc:
+			return COLOR_RED
+		return COLOR_GREEN
+
+
 def scatter_graphs(
 		column,
 		data,
@@ -12,7 +40,10 @@ def scatter_graphs(
 		db=None,
 		contrast='infer',
 		marker_opacity=None,
+		mass=1000,
 		render=None,
+		use_gl=True,
+		render_fallback=True,
 ):
 	"""Generate a row of scatter plots comparing one column against others.
 
@@ -32,11 +63,18 @@ def scatter_graphs(
 		marker_opacity (float, optional): The opacity to use for markers.  If the number
 			of markers is large, the figure may appear as a solid blob; by setting opacity
 			to less than 1.0, the figure can more readily show relative density in various
-			regions.  If not specified, marker_opacity is set to 100/len(data), bounded by
-			0.01 and 1.0.
+			regions.  If not specified, marker_opacity is set based on `mass` instead.
+		mass : int or emat.viz.ScatterMass, default 1000
+			The target number of rendered points in each figure. Setting
+			to a number less than the number of experiments will make
+			each scatter point partially transparent, which will help
+			visually convey relative density when there are a very large
+			number of points.
 		render (str or dict, optional): If given, the graph[s] will be rendered to a
 			static image using `plotly.io.to_image`.  For default settings, pass
 			'png', or give a dictionary that specifies keyword arguments to that function.
+		render_fallback (bool, default True): If rendering fails, return the
+			original FigureWidget instead of an error message.
 
 	Returns:
 		FigureWidget or xmle.Elem
@@ -70,37 +108,49 @@ def scatter_graphs(
 			raise ValueError('db cannot be None if data is a design name')
 		data = db.read_experiment_all(data)
 
+	if isinstance(mass, int):
+		mass = ScatterMass(mass)
+
 	if marker_opacity is None:
-		if len(data) > 10000:
-			marker_opacity = 0.01
-		elif len(data) > 100:
-			marker_opacity = 100/len(data)
-		else:
-			marker_opacity = 1.0
+		marker_opacity = mass.get_opacity(data)
 
 	y_title = column
-	try:
-		y_title = scope[column].shortname
-	except AttributeError:
-		pass
+	if scope is not None:
+		y_title = scope.shortname(y_title)
+
+	contrast_cols = [c for c in contrast if c in data.columns]
+	contrast_color = [_pick_color(scope, c, column) for c in contrast_cols]
 
 	fig = scatter_graph_row(
-		[c for c in contrast if c in data.columns],
+		contrast_cols,
 		column,
 		df = data,
 		marker_opacity=marker_opacity,
 		y_title=y_title,
 		layout=dict(
 			margin=dict(l=50, r=2, t=5, b=40)
-		)
+		),
+		short_name_func=scope.shortname if scope is not None else None,
+		use_gl=use_gl,
+		C=contrast_color,
 	)
 
 	if render:
 		if render == 'png':
 			render = dict(format='png', width=1400, height=270, scale=2)
 
+		if render == 'svg':
+			render = dict(format='svg', width=1400, height=270)
+
 		import plotly.io as pio
-		img_bytes = pio.to_image(fig, **render)
+		try:
+			img_bytes = pio.to_image(fig, **render)
+		except:
+			if render_fallback:
+				return fig
+			else:
+				import traceback
+				return traceback.format_exc()
 		return xmle.Elem.from_any(img_bytes)
 
 	return fig
@@ -114,6 +164,9 @@ def scatter_graphs_2(
 		contrast='infer',
 		render=None,
 		colors=None,
+		use_gl=True,
+		mass=1000,
+		render_fallback=True,
 ):
 	"""Generate a row of scatter plots comparing one column against others.
 
@@ -133,6 +186,14 @@ def scatter_graphs_2(
 		render (str or dict, optional): If given, the graph[s] will be rendered to a
 			static image using `plotly.io.to_image`.  For default settings, pass
 			'png', or give a dictionary that specifies keyword arguments to that function.
+		mass : int or emat.viz.ScatterMass, default 1000
+			The target number of rendered points in each figure. Setting
+			to a number less than the number of experiments will make
+			each scatter point partially transparent, which will help
+			visually convey relative density when there are a very large
+			number of points.
+		render_fallback (bool, default True): If rendering fails, return the
+			original FigureWidget instead of an error message.
 
 	Returns:
 		FigureWidget or xmle.Elem
@@ -161,6 +222,9 @@ def scatter_graphs_2(
 	elif contrast == 'measures':
 		contrast = scope.get_measure_names()
 
+	if isinstance(mass, int):
+		mass = ScatterMass(mass)
+
 	data_ = []
 	marker_opacity_ = []
 	fig = 'widget'
@@ -177,12 +241,7 @@ def scatter_graphs_2(
 		data_.append(data)
 
 	for data in data_:
-		marker_opacity = 1.0
-		if len(data) > 1000:
-			marker_opacity = 1000 / len(data)
-		if marker_opacity < 0.1:
-			marker_opacity = 0.1
-		marker_opacity_.append(marker_opacity)
+		marker_opacity_.append(mass.get_opacity(data))
 
 		y_title = column
 		try:
@@ -194,21 +253,33 @@ def scatter_graphs_2(
 			[(c if c in data.columns else None) for c in contrast],
 			column,
 			df = data,
-			marker_opacity=marker_opacity,
+			marker_opacity=marker_opacity_[-1],
 			y_title=y_title,
 			layout=dict(
 				margin=dict(l=50, r=2, t=5, b=40)
 			),
 			output=fig,
 			C=colorcycle.__next__(),
+			short_name_func=scope.shortname if scope is not None else None,
+			use_gl=use_gl,
 		)
 
 	if render:
 		if render == 'png':
 			render = dict(format='png', width=1400, height=270, scale=2)
 
+		if render == 'svg':
+			render = dict(format='svg', width=1400, height=270)
+
 		import plotly.io as pio
-		img_bytes = pio.to_image(fig, **render)
+		try:
+			img_bytes = pio.to_image(fig, **render)
+		except:
+			if render_fallback:
+				return fig
+			else:
+				import traceback
+				return traceback.format_exc()
 		return xmle.Elem.from_any(img_bytes)
 
 	return fig

@@ -67,6 +67,11 @@ class AnisotropicGaussianProcessRegressor(
 		if self.standardize_before_fit:
 			y = numpy.copy(y)
 			self.standardize_Y = y.std(axis=0, ddof=0)
+			if isinstance(self.standardize_Y, numpy.float):
+				if self.standardize_Y == 0:
+					self.standardize_Y = 1
+			else:
+				self.standardize_Y[self.standardize_Y==0] = 1
 			y /= self.standardize_Y
 		else:
 			self.standardize_Y = None
@@ -123,7 +128,7 @@ class AnisotropicGaussianProcessRegressor(
 		if self.standardize_Y is not None:
 			try:
 				y_hat *= self.standardize_Y[None, :]
-			except IndexError:
+			except (IndexError, TypeError):
 				y_hat *= self.standardize_Y
 			if y_std is not None:
 				try:

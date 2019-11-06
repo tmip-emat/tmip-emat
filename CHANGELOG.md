@@ -3,6 +3,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.2.0 -- September 2019
+
+### New Features
+
+- A new emat.learn subpackage, which replaces and streamlines the
+  meta-model development process, including new meta-model types
+  that are more consistent with scikit-learn standards.
+- Interactive analysis tools for Jupyter notebooks, including
+  an Explorer, secenario discovery with PRIM, and simplified
+  multi-objective optimization.
+- Database design enhancement to allow multiple metamodel results
+  be be stored for the same set of experiments.
+- Adds a 'shortname' attribute to parameters and measures in
+  scope definitions, to allow neater graphic presentation when
+  names are too long.
+
+
 ## v0.1.4 -- July 2019
 
 ### New Features

@@ -3,13 +3,42 @@ from emat.viz import scatter_graphs, scatter_graphs_2
 from emat.viz.scatter import ScatterMass
 from IPython.display import HTML, display, display_html
 
+
+def _shorten_category_names(scope, experiment_results, original_cats):
+	for k in scope.get_all_names():
+		abbrev = getattr(scope[k], 'abbrev', {})
+		if k in experiment_results.columns:
+			try:
+				is_cat = experiment_results[k].dtype == 'category'
+			except TypeError:
+				is_cat = False
+			if is_cat:
+				original_cats[k] = experiment_results[k].cat.categories
+				experiment_results[k].cat.categories = [abbrev.get(i, i) for i in experiment_results[k].cat.categories]
+	return experiment_results, original_cats
+
+
+def _restore_category_names(experiment_results, original_cats):
+	for k, v in original_cats.items():
+		try:
+			experiment_results[k].cat.categories = v
+		except:
+			print(k)
+			print(experiment_results[k].cat.categories)
+			print(v)
+			raise
+
+
 def display_experiments(
 		scope,
 		experiment_results=None,
 		db=None,
 		render='png',
-		measures=None,
+		rows='measures',
+		columns='infer',
 		mass=1000,
+		use_gl=True,
+		return_figures=False,
 ):
 	"""
 	Render a visualization of experimental results.
@@ -31,7 +60,8 @@ def display_experiments(
 		a string, the experiments are loaded from this database
 		using the scope name as well as the given string as the
 		design name.
-	render (str or dict or None, default 'png'): If given, the graph[s]
+	render : str or dict or None, default 'png')
+		If given, the graph[s]
 		will be rendered to a static image using `plotly.io.to_image`.
 		For default settings, pass 'png', or give a dictionary
 		that specifies keyword arguments to that function. If no
@@ -39,15 +69,25 @@ def display_experiments(
 		plotly figures are returned -- this may result in a very
 		large number of javascript figures and may slow down your
 		browser.
-	measures : Collection, optional
-		A subset of measures to include.  If not given, all
-		measures from the defined scope are included.
+	rows : {'measures', 'levers', 'uncertainties'} or Collection, default 'measures'
+		Give a named group to generate a row of figures for each
+		item in that group, or give a collection of individual
+		names to generate a row of figures for each named item.
+	columns : {'infer', 'measures', 'levers', 'uncertainties'} or Collection, default 'infer'
+		Give a named group to generate a column of plots for each
+		item in that group, or give a collection of individual
+		names to generate a column of plots for each named item.
+		The default 'infer' value will select all parameters when
+		the row is a measure, and all measures otherwise.
 	mass : int or emat.viz.ScatterMass, default 1000
 		The target number of rendered points in each figure. Setting
 		to a number less than the number of experiments will make
 		each scatter point partially transparent, which will help
 		visually convey relative density when there are a very large
 		number of points.
+	return_figures : bool, default False
+		Set this to True to return the FigureWidgets instead of
+		simply displaying them.
 	"""
 
 	if isinstance(experiment_results, str):
@@ -58,12 +98,36 @@ def display_experiments(
 			design_name=experiment_results,
 		)
 
-	if measures is None:
-		measures = scope.get_measure_names()
+	if rows == 'measures':
+		rows = scope.get_measure_names()
+	elif rows == 'levers':
+		rows = scope.get_lever_names()
+	elif rows == 'uncertainties':
+		rows = scope.get_uncertainty_names()
+	
+	original_cats = {}
+	try:
+		experiment_results, original_cats = _shorten_category_names(scope, experiment_results, original_cats)
 
-	for meas in measures:
-		display_html(f"<h4>{meas}</h4>", raw=True)
-		display(scatter_graphs(meas, experiment_results, scope=scope, render=render))
+		figures = {}
+		for row in rows:
+			if not return_figures:
+				display_html(f'<h4 title="{scope.get_description(row)}">{scope.shortname(row)}</h4>', raw=True)
+			fig = scatter_graphs(row, experiment_results, scope=scope, render=render, use_gl=use_gl, mass=mass, contrast=columns)
+			try:
+				fig.update_layout(height=250)
+			except:
+				pass
+			if return_figures:
+				figures[row] = fig
+			else:
+				display(fig)
+
+		if return_figures:
+			return figures
+
+	finally:
+		_restore_category_names(experiment_results, original_cats)
 
 
 
@@ -73,8 +137,11 @@ def contrast_experiments(
 		experiments_2,
 		db=None,
 		render='png',
-		measures=None,
+		rows='measures',
+		columns='infer',
 		mass=1000,
+		use_gl=True,
+		return_figures=False,
 ):
 	"""
 	Render a visualization of two sets of experimental results.
@@ -104,15 +171,25 @@ def contrast_experiments(
 		plotly figures are returned -- this may result in a very
 		large number of javascript figures and may slow down your
 		browser.
-	measures : Collection, optional
-		A subset of measures to include.  If not given, all
-		measures from the defined scope are included.
+	rows : {'measures', 'levers', 'uncertainties'} or Collection, default 'measures'
+		Give a named group to generate a row of figures for each
+		item in that group, or give a collection of individual
+		names to generate a row of figures for each named item.
+	columns : {'infer', 'measures', 'levers', 'uncertainties'} or Collection, default 'infer'
+		Give a named group to generate a column of plots for each
+		item in that group, or give a collection of individual
+		names to generate a column of plots for each named item.
+		The default 'infer' value will select all parameters when
+		the row is a measure, and all measures otherwise.
 	mass : int or emat.viz.ScatterMass, default 1000
 		The target number of rendered points in each figure. Setting
 		to a number less than the number of experiments will make
 		each scatter point partially transparent, which will help
 		visually convey relative density when there are a very large
 		number of points.
+	return_figures : bool, default False
+		Set this to True to return the FigureWidgets instead of
+		simply displaying them.
 	"""
 
 	if isinstance(experiments_1, str):
@@ -131,9 +208,35 @@ def contrast_experiments(
 			design_name=experiments_2,
 		)
 
-	if measures is None:
-		measures = scope.get_measure_names()
+	if rows == 'measures':
+		rows = scope.get_measure_names()
+	elif rows == 'levers':
+		rows = scope.get_lever_names()
+	elif rows == 'uncertainties':
+		rows = scope.get_uncertainty_names()
 
-	for meas in measures:
-		display_html(f"<h4>{meas}</h4>", raw=True)
-		display(scatter_graphs_2(meas, [experiments_1, experiments_2], scope=scope, render=render))
+	# if measures is None:
+	# 	measures = scope.get_measure_names()
+
+	original_cats1 = {}
+	original_cats2 = {}
+	try:
+		experiments_1, original_cats1 = _shorten_category_names(scope, experiments_1, original_cats1)
+		experiments_2, original_cats2 = _shorten_category_names(scope, experiments_2, original_cats2)
+
+		figures = {}
+		for row in rows:
+			if not return_figures:
+				display_html(f'<h4 title="{scope.get_description(row)}">{scope.shortname(row)}</h4>', raw=True)
+			fig = scatter_graphs_2(row, [experiments_1, experiments_2], scope=scope, render=render, use_gl=use_gl, mass=mass, contrast=columns)
+			if return_figures:
+				figures[row] = fig
+			else:
+				display(fig)
+
+		if return_figures:
+			return figures
+
+	finally:
+		_restore_category_names(experiments_1, original_cats1)
+		_restore_category_names(experiments_2, original_cats2)

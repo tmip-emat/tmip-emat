@@ -93,6 +93,7 @@ def Road_Capacity_Investment(
         amortization_period=30,
         interest_rate_lock=False,
         debt_type='GO Bond',
+        lane_width=10,
 
         **kwargs,
 ):
@@ -134,6 +135,9 @@ def Road_Capacity_Investment(
             bonds are assumed to have a lower interest rate than revenue bonds, but
             may be politically less desirable.  Pay-as-you-go financing incurs no actual
             interest costs, but requires actually having the funds available.
+        lane_width (float, default 10): The width of lanes on the roadway.  This parameter
+            is intentionally wacky, causing massive congestion for any value other than 10,
+            to demonstrate what might happen with broken model inputs.
 
     Returns:
         dict:
@@ -167,6 +171,7 @@ def Road_Capacity_Investment(
     average_travel_time0 = free_flow_time * (1 + alpha*(input_flow/initial_capacity)**beta)
     capacity = initial_capacity + expand_capacity
     average_travel_time1 = free_flow_time * (1 + alpha*(input_flow/capacity)**beta)
+    average_travel_time1 += (numpy.absolute(lane_width-10)*1000)**0.5
     travel_time_savings = average_travel_time0 - average_travel_time1
     value_of_time_savings = value_of_time * travel_time_savings * input_flow
     present_cost_of_capacity_expansion = unit_cost_expansion * expand_capacity

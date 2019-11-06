@@ -50,5 +50,6 @@ dependencies:
 - sphinx_rtd_theme
 - sphinxcontrib-restbuilder
 - nbsphinx
+- jupyter_sphinx
 
 ## For development, install ema_workbench and emat locally

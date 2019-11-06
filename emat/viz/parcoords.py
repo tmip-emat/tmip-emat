@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 from ema_workbench.em_framework.parameters import Category, CategoricalParameter, BooleanParameter
 from ema_workbench.em_framework.outcomes import ScalarOutcome
 
-from ipywidgets import VBox, HBox, Checkbox
+from ipywidgets import VBox, HBox, Checkbox, Accordion
 from ..analysis.widgets import NamedCheckbox
 import ipywidgets as widget
 
@@ -16,11 +16,11 @@ def perturb(x, epsilon=0.05):
 def _wrap_with_br(text, width=70, **kwargs):
 	return "<br>   ".join(textwrap.wrap(text, width=width, **kwargs))
 
-SYMBOL_MIMIMIZE = '⊖'
-SYMBOL_MAXIMIZE = '⊕'
-SYMBOL_INFOMEASURE = '⊙'
-SYMBOL_LEVER = '⎆' # ୰
-SYMBOL_UNCERTAINTY = '‽'
+SYMBOL_MIMIMIZE = '(M-)'    # '⊖'
+SYMBOL_MAXIMIZE = '(M+)'    #'⊕'
+SYMBOL_INFOMEASURE = '(M)'  #'⊙'
+SYMBOL_LEVER = '(L)'        #'⎆' # ୰
+SYMBOL_UNCERTAINTY = '(X)'  #'‽'
 
 def _prefix_symbols(scope, robustness_functions):
 	prefix_chars = {}
@@ -50,7 +50,7 @@ def parallel_coords(
 		df,
 		scope=None,
 		flip_dims=(),
-		robustness_functions=(),
+		robustness_functions=None,
 		color_dim=0,
 		colorscale='Viridis',
 		title=None,
@@ -66,15 +66,6 @@ def parallel_coords(
 	"""
 
 	df = df.copy(deep=True)
-
-	# if model is not None:
-	# 	categorical_parameters = [
-	# 		i for i in model.levers if isinstance(i, CategoricalParameter)
-	# 	] + [
-	# 		i for i in model.uncertainties if isinstance(i, CategoricalParameter)
-	# 	]
-	# else:
-	# 	categorical_parameters = []
 
 	categorical_parameters = df.columns[df.dtypes == 'category']
 	bool_columns = df.columns[df.dtypes == bool]
@@ -137,7 +128,7 @@ def parallel_coords(
 			ticktext=ticktext.get(col, None),
 			name=col,
 		)
-		for col in df.columns
+		for col in df.columns if col not in scope.get_constant_names()
 	]
 
 	## Line coloring dimension
@@ -174,6 +165,16 @@ def parallel_coords(
 		)
 	)
 
+_NOTHING = ' '
+_CLEAR_CONSTRAINT_RANGES = '   Clear Selection Constraints'
+_SELECT_ALL_UNCS     = '   Show All Exogenous Uncertainties'
+_DESELECT_ALL_UNCS   = '   Hide All Exogenous Uncertainties'
+_SELECT_ALL_LEVERS   = '   Show All Policy Levers'
+_DESELECT_ALL_LEVERS = '   Hide All Policy Levers'
+_SELECT_ALL_MEAS     = '   Show All Performance Measures'
+_DESELECT_ALL_MEAS   = '   Hide All Performance Measures'
+
+
 class ParCoordsViewer(VBox):
 
 	def __init__(
@@ -181,6 +182,7 @@ class ParCoordsViewer(VBox):
 			data,
 			scope,
 			robustness_functions=None,
+			initial_max_active_measures = 5,
 	):
 		self.data = data
 		self.scope = scope
@@ -189,36 +191,84 @@ class ParCoordsViewer(VBox):
 				self.data,
 				scope=self.scope,
 				flip_dims=(),
-				robustness_functions=(),
+				robustness_functions=robustness_functions,
 				color_dim=0,
 				colorscale='Viridis',
 				title=None,
 		)
 
 		self.dim_activators = []
+		self.dim_activators_by_name = {}
 		self.out_logger = widget.Output()
 
 		prefix_chars = _prefix_symbols(scope, robustness_functions)
 
+		n_active_measures = 0
+		measure_names = set(self.scope.get_measure_names())
+		if robustness_functions is not None:
+			measure_names |= set(rf.name for rf in robustness_functions)
 		for i in self.data.columns:
+			if i in self.scope.get_constant_names():
+				continue
 			short_i = i
 			if self.scope is not None:
 				short_i = self.scope.shortname(i)
-			cb = NamedCheckbox(description=prefix_chars.get(i,'')+short_i, value=True, name=i, description_tooltip=i)
+			i_value = True
+			if i in measure_names:
+				if n_active_measures >= initial_max_active_measures:
+					i_value = False
+					for dim in self.parcoords.data[0].dimensions:
+						if dim.name == i:
+							dim.visible = False
+				else:
+					n_active_measures += 1
+			cb = NamedCheckbox(description=prefix_chars.get(i,'')+short_i, value=i_value, name=i, description_tooltip=i)
 			cb.observe(self._on_dim_choose_toggle, names='value')
 			self.dim_activators.append(cb)
+			self.dim_activators_by_name[i] = cb
 
-		self.dim_choose = widget.Box(
-			self.dim_activators,
-			layout=widget.Layout(flex_flow='row wrap')
+		self.dim_choose = Accordion(
+			children=[
+				widget.Box(
+					self.dim_activators,
+					layout=widget.Layout(flex_flow='row wrap')
+				)
+			],
+			layout=widget.Layout(width='100%')
 		)
+		self.dim_choose.set_title(0, 'Axes')
+		self.dim_choose.selected_index = None
 
 		self.color_dim_choose = widget.Dropdown(
-			options=self.data.columns,
+			options=['< None >']+list(self.data.columns),
 			description='Colorize:',
 			value=self.data.columns[0],
 		)
 		self.color_dim_choose.observe(self._on_color_choose, names='value')
+
+		self.select_menu = widget.Dropdown(
+			options=[
+				_NOTHING,
+				_CLEAR_CONSTRAINT_RANGES,
+				"-- (X) Uncertainties --",
+				_SELECT_ALL_UNCS    ,
+				_DESELECT_ALL_UNCS  ,
+				"-- (L) Levers --",
+				_SELECT_ALL_LEVERS  ,
+				_DESELECT_ALL_LEVERS,
+				"-- (M) Measures --",
+				_SELECT_ALL_MEAS    ,
+				_DESELECT_ALL_MEAS  ,
+			],
+			description='View:',
+			value=_NOTHING,
+		)
+		self.select_menu.observe(self._on_select_menu, names='value')
+
+		self.menus = HBox([
+			self.color_dim_choose,
+			self.select_menu,
+		])
 
 		self.symbol_legend = widget.HTML(f"""
 			{SYMBOL_MIMIMIZE} Performance Measure to Minimize<br>
@@ -231,7 +281,7 @@ class ParCoordsViewer(VBox):
 		super().__init__(
 			[
 				self.parcoords,
-				self.color_dim_choose,
+				self.menus,
 				self.dim_choose,
 				self.symbol_legend,
 			],
@@ -239,6 +289,14 @@ class ParCoordsViewer(VBox):
 				align_items='center',
 			)
 		)
+
+	def clear_all_constraint_ranges(self):
+		"""
+		Clear any constraint ranges across all dimensions.
+		"""
+		with self.parcoords.batch_update():
+			for dim in self.parcoords.data[0].dimensions:
+				dim.constraintrange = None
 
 	def _on_dim_choose_toggle(self, payload):
 		for dim in self.parcoords.data[0].dimensions:
@@ -249,18 +307,64 @@ class ParCoordsViewer(VBox):
 		with self.out_logger:
 			try:
 				with self.parcoords.batch_update():
-					color_data = self.data[payload['new']]
-					self.parcoords.data[0].line.color = color_data
-					if self.scope is not None:
-						self.parcoords.data[0].line.colorbar.title.text = self.scope.shortname(payload['new'])
+					color_dim_name = payload['new']
+					if color_dim_name == '< None >':
+						self.parcoords.data[0].line.color = 'rgb(200,0,0)'
+						self.parcoords.data[0].line.showscale = False
 					else:
-						self.parcoords.data[0].line.colorbar.title.text = payload['new']
-					if color_data.dtype == numpy.bool_:
-						self.parcoords.data[0].line.cmin = 0
-						self.parcoords.data[0].line.cmax = 1
+						color_data = self.data[payload['new']]
+						self.parcoords.data[0].line.color = color_data
+						self.parcoords.data[0].line.showscale = True
+						if self.scope is not None:
+							self.parcoords.data[0].line.colorbar.title.text = self.scope.shortname(payload['new'])
+						else:
+							self.parcoords.data[0].line.colorbar.title.text = payload['new']
+						if color_data.dtype == numpy.bool_:
+							self.parcoords.data[0].line.cmin = 0
+							self.parcoords.data[0].line.cmax = 1
+						else:
+							self.parcoords.data[0].line.cmin = color_data.min()
+							self.parcoords.data[0].line.cmax = color_data.max()
+			except:
+				import traceback
+				traceback.print_exc()
+				raise
+
+	def _on_select_menu(self, payload):
+		with self.out_logger:
+			try:
+				with self.parcoords.batch_update():
+					command_name = payload['new']
+					if command_name == _NOTHING:
+						pass
 					else:
-						self.parcoords.data[0].line.cmin = color_data.min()
-						self.parcoords.data[0].line.cmax = color_data.max()
+						if command_name == _SELECT_ALL_MEAS:
+							for meas in self.scope.get_measure_names():
+								if meas in self.dim_activators_by_name:
+									self.dim_activators_by_name[meas].value = True
+						elif command_name == _DESELECT_ALL_MEAS:
+							for meas in self.scope.get_measure_names():
+								if meas in self.dim_activators_by_name:
+									self.dim_activators_by_name[meas].value = False
+						elif command_name == _SELECT_ALL_LEVERS:
+							for meas in self.scope.get_lever_names():
+								if meas in self.dim_activators_by_name:
+									self.dim_activators_by_name[meas].value = True
+						elif command_name == _DESELECT_ALL_LEVERS:
+							for meas in self.scope.get_lever_names():
+								if meas in self.dim_activators_by_name:
+									self.dim_activators_by_name[meas].value = False
+						elif command_name == _SELECT_ALL_UNCS:
+							for meas in self.scope.get_uncertainty_names():
+								if meas in self.dim_activators_by_name:
+									self.dim_activators_by_name[meas].value = True
+						elif command_name == _DESELECT_ALL_UNCS:
+							for meas in self.scope.get_uncertainty_names():
+								if meas in self.dim_activators_by_name:
+									self.dim_activators_by_name[meas].value = False
+						elif command_name == _CLEAR_CONSTRAINT_RANGES:
+							self.clear_all_constraint_ranges()
+						self.select_menu.value = _NOTHING
 			except:
 				import traceback
 				traceback.print_exc()

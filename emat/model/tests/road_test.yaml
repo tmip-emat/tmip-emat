@@ -9,6 +9,7 @@ scope:
 inputs:
 
     free_flow_time:
+        shortname: Free Flow Time
         ptype: constant
         desc: Free flow travel time on road segment
         dtype: float
@@ -17,6 +18,7 @@ inputs:
         corr: []
 
     initial_capacity:
+        shortname: Init Capacity
         ptype: constant
         desc: Initial capacity on road segment
         dtype: float
@@ -44,6 +46,7 @@ inputs:
         corr: []
 
     input_flow:
+        shortname: Input Flow
         ptype: uncertainty
         desc: Average Flow input on link
         default: 100
@@ -53,15 +56,19 @@ inputs:
         corr: []
 
     value_of_time:
+        shortname: Value of Time
         ptype: uncertainty
         desc: Value of a unit of travel time savings per person
-        default: 0.01
+        default: 0.075
         min: 0.001
-        max: 0.08
-        dist: uniform
+        max: 0.250
+        dist:
+            name: pert
+            peak: 0.075
         corr: []
 
     unit_cost_expansion:
+        shortname: Unit Cost Expand
         ptype: uncertainty
         desc: Per unit cost of capacity expansion
         dtype: float
@@ -72,6 +79,7 @@ inputs:
         corr: []
 
     expand_capacity:
+        shortname: Expand Amount
         ptype: policy lever
         desc: How much to expand capacity
         dtype: float
@@ -80,6 +88,7 @@ inputs:
         max: 100
 
     amortization_period:
+        shortname: Amortization
         ptype: policy lever
         desc: Time period over which the investment is amortized
         dtype: int
@@ -88,6 +97,7 @@ inputs:
         max: 50
 
     debt_type:
+        shortname: Debt Type
         desc: Type of financing
         ptype: policy lever
         dtype: cat
@@ -98,12 +108,14 @@ inputs:
             - Paygo
 
     interest_rate_lock:
+        shortname: Rate Lock
         ptype: policy lever
         desc: Whether to lock in present interest rates of 0.03 (15 year) to 0.04 (50 years)
         dtype: bool
         default: False
 
     interest_rate:
+        shortname: Interest Rate
         ptype: uncertainty
         desc: Interest rate for investment amortization in 15 years
         dtype: float
@@ -114,6 +126,7 @@ inputs:
         corr: []
 
     yield_curve:
+        shortname: Yield Curve
         ptype: uncertainty
         desc: Excess interest rate for investment amortization in 50 years
         dtype: float
@@ -127,29 +140,36 @@ inputs:
 outputs:
 
     no_build_travel_time:
+        shortname: No Build Time
         kind: info
         metamodeltype: logxp-linear(-59)
 
     build_travel_time:
+        shortname: Build Time
         kind: minimize
         metamodeltype: logxp-linear(-59)
 
     time_savings:
+        shortname: Time Savings
         kind: maximize
         metamodeltype: log-linear
 
     value_of_time_savings:
+        shortname: Value Time Save
         kind: maximize
         metamodeltype: log-linear
 
     net_benefits:
+        shortname: Net Benefits
         kind: maximize
 
     cost_of_capacity_expansion:
+        shortname: Cost of Expand
         kind: minimize
         metamodeltype: log-linear
 
     present_cost_expansion:
+        shortname: Present Cost
         kind: info
         metamodeltype: log-linear
 

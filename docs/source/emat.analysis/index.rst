@@ -5,6 +5,21 @@
 Analysis
 ========
 
+Visualization
+-------------
+
+Visualization tools are an important part of the exploratory
+modeling process.  They allow analysts and other stakeholders
+to conceptualize the potentially complex relationships represented
+in transportation models.
+
+.. toctree::
+
+    splom
+    corruption
+    interactive-explorer
+
+
 Scenario Discovery
 ------------------
 
@@ -18,16 +33,22 @@ We illustrate a few here.
 
 .. toctree::
 
+    feature-scoring
     prim
 
-Robust Optimization
--------------------
 
-Optimization is finding a set of policy decisions that give the
-best outcome on one particular measure.  Robust optimization
-generalizes this, seeking to find a set of policy decisions that
-gives good outcomes on multiple measures.  This is generally
-set up as a multi-objective optimization, so that decision makers
-can see and understand the tradeoffs between different outcomes.
+Directed Search
+---------------
+
+The scenario discovery tools outlined above are focused on
+exploring parameters and outcomes across a pre-set sample of
+model runs.  This sample can be small or quite large, but the
+tools only consider cases that have already been evaluated.
+In directed search, we transition to tools that will propose
+and execute *new* cases.
+
+.. toctree::
+
+    optimization
 
 

@@ -211,6 +211,7 @@ class Database(abc.ABC):
             design_name,
             source=None,
             only_pending=False,
+            only_complete=False,
             ensure_dtypes=False,
     ):
         """Read experiment definitions and results
@@ -232,6 +233,9 @@ class Database(abc.ABC):
             only_pending (bool, default False): If True, only pending
                 experiments (which have no performance measure results
                 stored in the database) are returned.
+            only_complete (bool, default False): If True, only complete
+                experiments (which have no missing performance measure
+                results stored in the database) are returned.
             ensure_dtypes (bool, default False): If True, the scope
                 associated with these experiments is also read out
                 of the database, and that scope file is used to

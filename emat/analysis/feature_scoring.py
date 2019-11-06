@@ -7,7 +7,7 @@ from ..viz import heatmap_table
 def feature_scores(
 		scope,
 		design,
-		return_type='figure',
+		return_type='styled',
 		db=None,
 		random_state=None,
 		cmap='viridis',
@@ -20,7 +20,7 @@ def feature_scores(
 		design (str or pandas.DataFrame): The name of the design of experiments
 			to use for feature scoring, or a single pandas.DataFrame containing the
 			experimental design and results.
-		return_type ({'figure', 'dataframe', 'styled'}):
+		return_type ({'styled', 'figure', 'dataframe'}):
 			The format to return, either a heatmap figure as an SVG render in and
 			xmle.Elem, or a plain pandas.DataFrame, or a styled dataframe.
 		db (emat.Database): If `design` is given as a string, extract the experiments
@@ -43,9 +43,11 @@ def feature_scores(
 	if isinstance(design, str):
 		if db is None:
 			raise ValueError('must give db to use design name')
+		design_name = design
 		inputs = db.read_experiment_parameters(scope.name, design)
 		outcomes = db.read_experiment_measures(scope.name, design)
 	elif isinstance(design, pandas.DataFrame):
+		design_name = None
 		inputs = design[[c for c in design.columns if c in scope.get_parameter_names()]]
 		outcomes = design[[c for c in design.columns if c in scope.get_measure_names()]]
 	else:
@@ -63,7 +65,7 @@ def feature_scores(
 		return heatmap_table(
 			fs.T,
 			xlabel='Model Parameters', ylabel='Performance Measures',
-			title='Feature Scoring' + (f' [{design}]' if design else ''),
+			title='Feature Scoring' + (f' [{design_name}]' if design_name else ''),
 			cmap=cmap,
 		)
 	elif return_type.lower() == 'styled':

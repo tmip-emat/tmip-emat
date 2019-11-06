@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """ core_model.py - define coure model API"""
+import os
 import abc
 import yaml
 import pandas as pd
@@ -9,11 +10,13 @@ from ema_workbench.em_framework.model import AbstractModel as AbstractWorkbenchM
 from ema_workbench.em_framework.evaluators import BaseEvaluator
 
 from typing import Collection
+from typing import Iterable
 
 from ..database.database import Database
 from ..scope.scope import Scope
 from ..optimization.optimization_result import OptimizationResult
 from ..optimization import EpsilonProgress, ConvergenceMetrics, SolutionCount
+from ..util.evaluators import prepare_evaluator
 
 from .._pkg_constants import *
 
@@ -454,8 +457,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             raise ValueError(f"no experiments available")
 
         scenarios = [
-            Scenario(**dict(zip(self.scope.get_uncertainty_names(), i)))
-            for i in design[self.scope.get_uncertainty_names()].itertuples(index=False,
+            Scenario(**dict(zip(self.scope._get_uncertainty_and_constant_names(), i)))
+            for i in design[self.scope._get_uncertainty_and_constant_names()].itertuples(index=False,
                                                                            name='ExperimentX')
         ]
 
@@ -465,12 +468,16 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                                                                                  name='ExperimentL'))
         ]
 
-        if not evaluator:
-            from ema_workbench import SequentialEvaluator
-            evaluator = SequentialEvaluator(self)
+        evaluator = prepare_evaluator(evaluator, self)
 
-        experiments, outcomes = perform_experiments(self, scenarios=scenarios, policies=policies,
-                                                    zip_over={'scenarios', 'policies'}, evaluator=evaluator)
+        with evaluator:
+            experiments, outcomes = perform_experiments(
+                self,
+                scenarios=scenarios,
+                policies=policies,
+                zip_over={'scenarios', 'policies'},
+                evaluator=evaluator,
+            )
         experiments.index = design.index
 
 
@@ -481,8 +488,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if db:
             db.write_experiment_measures(self.scope.name, self.metamodel_id, outcomes)
 
+        # Put constants back into experiments
+        experiments_ = experiments.drop(columns=['scenario', 'policy', 'model'])
+        for i in self.scope.get_constants():
+            experiments_[i.name] = i.value
+
         return self.ensure_dtypes(pd.concat([
-            experiments.drop(columns=['scenario','policy','model']),
+            experiments_,
             outcomes
         ], axis=1, sort=False))
 
@@ -744,52 +756,47 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         )
 
 
-    def get_feature_scores(
+    def feature_scores(
             self,
             design,
-            return_raw=False,
+            return_type='styled',
             random_state=None,
+            cmap='viridis',
     ):
         """
         Calculate feature scores based on a design of experiments.
 
         Args:
             design (str or pandas.DataFrame): The name of the design of experiments
-                to use for feature scoring, or a pandas.DataFrame containing the
+                to use for feature scoring, or a single pandas.DataFrame containing the
                 experimental design and results.
-            return_raw (bool, default False): Whether to return a raw pandas.DataFrame
-                containing the computed feature scores, instead of a formatted heatmap
-                table.
+            return_type ({'styled', 'figure', 'dataframe'}):
+                The format to return, either a heatmap figure as an SVG render in and
+                xmle.Elem, or a plain pandas.DataFrame, or a styled dataframe.
+            random_state (int or numpy.RandomState, optional):
+                Random state to use.
+            cmap (string or colormap, default 'viridis'): matplotlib colormap
+                to use for rendering.
 
         Returns:
             xmle.Elem or pandas.DataFrame:
                 Returns a rendered SVG as xml, or a DataFrame,
-                depending on the `return_raw` argument.
+                depending on the `return_type` argument.
 
         This function internally uses feature_scoring from the EMA Workbench, which in turn
         scores features using the "extra trees" regression approach.
         """
-        from ema_workbench.analysis import feature_scoring
-        from ..viz import heatmap_table
-        import pandas
-
-        if isinstance(design, str):
-            inputs = self.read_experiment_parameters(design)
-            outcomes = self.read_experiment_measures(design)
-        elif isinstance(design, pandas.DataFrame):
-            inputs = design[[c for c in design.columns if c in self.scope.get_parameter_names()]]
-            outcomes = design[[c for c in design.columns if c in self.scope.get_measure_names()]]
-        else:
-            raise TypeError('must name design or give DataFrame')
-
-        fs = feature_scoring.get_feature_scores_all(inputs, outcomes, random_state=random_state)
-        if return_raw:
-            return fs
-        return heatmap_table(
-            fs.T,
-            xlabel='Model Parameters', ylabel='Performance Measures',
-            title='Feature Scoring' + (f' [{design}]' if design else ''),
+        from ..analysis.feature_scoring import feature_scores
+        return feature_scores(
+            self.scope,
+            design=design,
+            return_type=return_type,
+            db=self.db,
+            random_state=random_state,
+            cmap=cmap,
         )
+
+    get_feature_scores = feature_scores # for compatability with prior versions of TMIP-EMAT
 
     def _common_optimization_setup(
             self,
@@ -812,70 +819,219 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             from IPython.display import display
             display(convergence)
 
-        if evaluator is None:
-            from ema_workbench.em_framework import SequentialEvaluator
-            evaluator = SequentialEvaluator(self)
-
-        if not isinstance(evaluator, BaseEvaluator):
-            from dask.distributed import Client
-            if isinstance(evaluator, Client):
-                from ema_workbench.em_framework.ema_distributed import DistributedEvaluator
-                evaluator = DistributedEvaluator(self, client=evaluator)
+        evaluator = prepare_evaluator(evaluator, self)
 
         return epsilons, convergence, display_convergence, evaluator
 
     def optimize(
             self,
-            search_over='levers',
+            searchover='levers',
             evaluator=None,
             nfe=10000,
             convergence='default',
-            constraints=None,
-            reference=None,
             display_convergence=True,
             convergence_freq=100,
+            constraints=None,
+            reference=None,
             reverse_targets=False,
-            epsilons=0.1,
+            algorithm=None,
+            epsilons='auto',
+            min_epsilon=0.1,
+            cache_dir=None,
+            cache_file=None,
+            check_extremes=False,
             **kwargs,
     ):
-        epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
-            epsilons, convergence, display_convergence, evaluator
+        """
+        Perform multi-objective optimization over levers or uncertainties.
+
+        The targets for the multi-objective optimization (i.e. whether each
+        individual performance measures is to be maximized or minimized) are
+        read from the model's scope.
+
+        Args:
+            searchover ({'levers', 'uncertainties'}):
+                Which group of inputs to search over.  The other group
+                will be set at their default values, unless other values
+                are provided in the `reference` argument.
+            evaluator (Evaluator, optional): The evaluator to use to
+                run the model. If not given, a SequentialEvaluator will
+                be created.
+            nfe (int, default 10_000): Number of function evaluations.
+                This generally needs to be fairly large to achieve stable
+                results in all but the most trivial applications.
+            convergence ('default', None, or emat.optimization.ConvergenceMetrics):
+                A convergence display during optimization.  The default
+                value is to report the epsilon-progress (the number of
+                solutions that ever enter the candidate pool of non-dominated
+                solutions) and the number of solutions remaining in that candidate
+                pool.  Pass `None` explicitly to disable convergence tracking.
+            display_convergence (bool, default True): Whether to automatically
+                display figures that dynamically track convergence.  Set to
+                `False` if you are not using this method within a Jupyter
+                interactive environment.
+            convergence_freq (int, default 100): How frequently to update the
+                convergence measures.  There is some computational overhead to
+                these convergence updates, so setting a value too small may
+                noticeably slow down the process.
+            constraints (Collection[Constraint], optional):
+                Solutions will be constrained to only include values that
+                satisfy these constraints. The constraints can be based on
+                the search parameters (levers or uncertainties, depending on the
+                value given for `searchover`), or performance measures, or
+                some combination thereof.
+            reference (Mapping): A set of values for the non-active inputs,
+                i.e. the uncertainties if `searchover` is 'levers', or the
+                levers if `searchover` is 'uncertainties'.  Any values not
+                set here revert to the default values identified in the scope.
+            reverse_targets (bool, default False): Whether to reverse the
+                optimization targets given in the scope (i.e., changing
+                minimize to maximize, or vice versa).  This will result in
+                the optimization searching for the worst outcomes, instead of
+                the best outcomes.
+            algorithm (platypus.Algorithm, optional): Select an
+                algorithm for multi-objective optimization.  The default
+                algorithm is EpsNSGAII. See `platypus` documentation for details.
+            epsilons (float or array-like): Used to limit the number of
+                distinct solutions generated.  Set to a larger value to get
+                fewer distinct solutions.
+            cache_dir (path-like, optional): A directory in which to
+                cache results.  Most of the arguments will be hashed
+                to develop a unique filename for these results, making this
+                generally safer than `cache_file`.
+            cache_file (path-like, optional): A file into which to
+                cache results.  If this file exists, the contents of the
+                file will be loaded and all other arguments are ignored.
+                Use with great caution.
+            kwargs: Any additional arguments will be passed on to the
+                platypus algorithm.
+
+        Returns:
+            emat.OptimizationResult:
+                The set of non-dominated solutions found.
+                When `convergence` is given, the convergence measures are
+                included, as a pandas.DataFrame in the `convergence` attribute.
+        """
+        from ..util.disk_cache import load_cache_if_available, save_cache
+        if isinstance(algorithm, str) or algorithm is None:
+            alg = algorithm
+        else:
+            alg = algorithm.__name__
+
+        if reference is not None:
+            from ema_workbench import Policy, Scenario
+            if searchover == 'levers' and not isinstance(reference, Scenario):
+                reference = Scenario("ReferenceScenario", **reference)
+            elif searchover == 'uncertainties' and not isinstance(reference, Policy):
+                reference = Policy("ReferencePolicy", **reference)
+        else:
+            if searchover == 'levers':
+                reference = self.scope.default_scenario()
+            elif searchover == 'uncertainties':
+                reference = self.scope.default_policy()
+
+        x, cache_file = load_cache_if_available(
+            cache_file=cache_file,
+            cache_dir=cache_dir,
+            searchover=searchover,
+            nfe=nfe,
+            convergence=convergence,
+            convergence_freq=convergence_freq,
+            constraints=constraints,
+            reference=reference,
+            reverse_targets=reverse_targets,
+            algorithm=alg,
+            epsilons=epsilons,
         )
 
-        if reverse_targets:
-            for k in self.scope.get_measures():
-                k.kind_original = k.kind
-                k.kind = k.kind * -1
+        if x is None:
+            epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
+                epsilons, convergence, display_convergence, evaluator
+            )
 
-        try:
-            with evaluator:
-                results = evaluator.optimize(
-                    search_over=search_over,
-                    reference=reference,
-                    nfe=nfe,
-                    constraints=constraints,
-                    convergence=convergence,
-                    convergence_freq=convergence_freq,
-                    epsilons=epsilons,
-                    **kwargs,
-                )
-
-            if isinstance(results, tuple) and len(results) == 2:
-                results, result_convergence = results
-            else:
-                result_convergence = None
-
-            results = self.ensure_dtypes(results)
-
-        finally:
             if reverse_targets:
                 for k in self.scope.get_measures():
-                    k.kind = k.kind_original
-                    del k.kind_original
-        if result_convergence is None:
-            return OptimizationResult(results, None, scope=self.scope)
-        else:
-            return OptimizationResult(results, result_convergence, scope=self.scope)
+                    k.kind_original = k.kind
+                    k.kind = k.kind * -1
+
+            try:
+                with evaluator:
+
+                    if epsilons == 'auto':
+                        from ema_workbench import perform_experiments
+                        if searchover == 'levers':
+                            _, trial_outcomes = perform_experiments(
+                                self,
+                                scenarios=reference,
+                                policies=30,
+                                evaluator=evaluator,
+                            )
+                        else:
+                            _, trial_outcomes = perform_experiments(
+                                self,
+                                scenarios=30,
+                                policies=reference,
+                                evaluator=evaluator,
+                            )
+                        epsilons = [max(min_epsilon, np.std(trial_outcomes[mn]) / 20) for mn in self.scope.get_measure_names()]
+
+                    results = evaluator.optimize(
+                        searchover=searchover,
+                        reference=reference,
+                        nfe=nfe,
+                        constraints=constraints,
+                        convergence=convergence,
+                        convergence_freq=convergence_freq,
+                        epsilons=epsilons,
+                        **kwargs,
+                    )
+
+                    if isinstance(results, tuple) and len(results) == 2:
+                        results, result_convergence = results
+                    else:
+                        result_convergence = None
+
+                    # Put constants back in to results
+                    for i in self.scope.get_constants():
+                        results[i.name] = i.value
+
+                    results = self.ensure_dtypes(results)
+                    x = OptimizationResult(results, result_convergence, scope=self.scope)
+
+                    if searchover == 'levers':
+                        x.scenarios = reference
+                    elif searchover == 'uncertainties':
+                        x.policies = reference
+
+                    if check_extremes:
+                        x.check_extremes(
+                            self,
+                            1 if check_extremes is True else check_extremes,
+                            evaluator=evaluator,
+                            searchover=searchover,
+                            robust=False,
+                        )
+
+            finally:
+                if reverse_targets:
+                    for k in self.scope.get_measures():
+                        k.kind = k.kind_original
+                        del k.kind_original
+
+
+        elif display_convergence:
+            _, convergence, display_convergence, _ = self._common_optimization_setup(
+                None, convergence, display_convergence, False
+            )
+            for c in convergence:
+                try:
+                    c.rebuild(x.convergence)
+                except:
+                    pass
+
+        x.cache_file = cache_file
+        save_cache(x, cache_file)
+        return x
 
     def robust_optimize(
             self,
@@ -885,8 +1041,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             nfe=10000,
             convergence='default',
             display_convergence=True,
+            convergence_freq=100,
             constraints=None,
             epsilons=0.1,
+            cache_dir=None,
+            cache_file=None,
+            algorithm=None,
+            check_extremes=False,
             **kwargs,
     ):
         """
@@ -918,57 +1079,96 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             evaluator (Evaluator, optional): The evaluator to use to
                 run the model. If not given, a SequentialEvaluator will
                 be created.
-            algorithm (platypus.Algorithm, optional): Select an
-                algorithm for multi-objective optimization.  See
-                `platypus` documentation for details.
             nfe (int, default 10_000): Number of function evaluations.
                 This generally needs to be fairly large to achieve stable
                 results in all but the most trivial applications.
             convergence ('default', None, or emat.optimization.ConvergenceMetrics):
                 A convergence display during optimization.
+            display_convergence (bool, default True): Automatically display
+                the convergence metric figures when optimizing.
+            convergence_freq (int, default 100): The frequency at which
+                convergence metric figures are updated.
             constraints (Collection[Constraint], optional)
+                Solutions will be constrained to only include values that
+                satisfy these constraints. The constraints can be based on
+                the policy levers, or on the computed values of the robustness
+                functions, or some combination thereof.
+            epsilons (float or array-like): Used to limit the number of
+                distinct solutions generated.  Set to a larger value to get
+                fewer distinct solutions.
+            cache_dir (path-like, optional): A directory in which to
+                cache results.  Most of the arguments will be hashed
+                to develop a unique filename for these results, making this
+                generally safer than `cache_file`.
+            cache_file (path-like, optional): A file into which to
+                cache results.  If this file exists, the contents of the
+                file will be loaded and all other arguments are ignored.
+                Use with great caution.
+            algorithm (platypus.Algorithm or str, optional): Select an
+                algorithm for multi-objective optimization.  The algorithm can
+                be given directly, or named in a string. See `platypus`
+                documentation for details.
+            check_extremes (bool or int, default False): Conduct additional
+                evaluations, setting individual policy levers to their
+                extreme values, for each candidate Pareto optimal solution.
             kwargs: any additional arguments will be passed on to the
                 platypus algorithm.
 
         Returns:
-            pandas.DataFrame: The set of non-dominated solutions found.
-
-            When `convergence` is given, the convergence measures are
-            also returned, as a second pandas.DataFrame.
+            emat.OptimizationResult:
+                The set of non-dominated solutions found.
+                When `convergence` is given, the convergence measures are
+                included, as a pandas.DataFrame in the `convergence` attribute.
         """
+        from ..optimization.optimize import robust_optimize
 
-        epsilons, convergence, display_convergence, evaluator = self._common_optimization_setup(
-            epsilons, convergence, display_convergence, evaluator
+        from ..util.disk_cache import load_cache_if_available, save_cache
+        if isinstance(algorithm, str) or algorithm is None:
+            alg = algorithm
+        else:
+            alg = algorithm.__name__
+        result, cache_file = load_cache_if_available(
+            cache_file=cache_file,
+            cache_dir=cache_dir,
+            scenarios=scenarios,
+            convergence=convergence,
+            convergence_freq=convergence_freq,
+            constraints=constraints,
+            epsilons=epsilons,
+            nfe=nfe,
+            robustness_functions=robustness_functions,
+            alg=alg,
+            check_extremes=check_extremes,
         )
 
-        from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
-
-        if isinstance(scenarios, int):
-            n_scenarios = scenarios
-            scenarios = sample_uncertainties(self, n_scenarios)
-
-        with evaluator:
-            robust_results = evaluator.robust_optimize(
+        if result is None:
+            result = robust_optimize(
+                self,
                 robustness_functions,
                 scenarios,
+                evaluator=evaluator,
                 nfe=nfe,
+                convergence=convergence,
+                display_convergence=display_convergence,
+                convergence_freq=convergence_freq,
                 constraints=constraints,
                 epsilons=epsilons,
-                convergence=convergence,
+                check_extremes=check_extremes,
                 **kwargs,
             )
+        elif display_convergence:
+            _, convergence, display_convergence, _ = self._common_optimization_setup(
+                None, convergence, display_convergence, False
+            )
+            for c in convergence:
+                try:
+                    c.rebuild(result.convergence)
+                except:
+                    pass
 
-        if isinstance(robust_results, tuple) and len(robust_results) == 2:
-            robust_results, result_convergence = robust_results
-        else:
-            result_convergence = None
-
-        robust_results = self.ensure_dtypes(robust_results)
-
-        if result_convergence is None:
-            return OptimizationResult(robust_results, None, scope=self.scope)
-        else:
-            return OptimizationResult(robust_results, result_convergence, scope=self.scope)
+        result.cache_file = cache_file
+        save_cache(result, cache_file)
+        return result
 
     def robust_evaluate(
             self,
@@ -976,6 +1176,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             scenarios,
             policies,
             evaluator=None,
+            cache_dir=None,
     ):
         """
         Perform robust evaluation(s).
@@ -1003,28 +1204,67 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             evaluator (Evaluator, optional): The evaluator to use to
                 run the model. If not given, a SequentialEvaluator will
                 be created.
+            cache_dir (path-like, optional): A directory in which to
+                cache results.
 
         Returns:
             pandas.DataFrame: The computed value of each item
-            in `robustness_functions`, for each policy in `policies`.
+                in `robustness_functions`, for each policy in `policies`.
         """
+        robust_results = None
+        cache_file = None
+        if cache_dir is not None:
+            try:
+                from ..util.hasher import hash_it
+                hh = hash_it(
+                    scenarios,
+                    policies,
+                    robustness_functions,
+                )
+                os.makedirs(os.path.join(cache_dir,hh[2:4],hh[4:6]), exist_ok=True)
+                cache_file = os.path.join(cache_dir,hh[2:4],hh[4:6],hh[6:]+".gz")
+                if os.path.exists(cache_file):
+                    _logger.debug(f"loading from cache_file={cache_file}")
+                    from ..util.filez import load
+                    robust_results = load(cache_file)
+                    cache_file = None
+            except:
+                import warnings, traceback
+                warnings.warn('unable to manage cache')
+                traceback.print_exc()
 
-        if evaluator is None:
-            from ema_workbench.em_framework import SequentialEvaluator
-            evaluator = SequentialEvaluator(self)
+        if robust_results is None:
+            if evaluator is None:
+                from ema_workbench.em_framework import SequentialEvaluator
+                evaluator = SequentialEvaluator(self)
 
-        from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
+            if not isinstance(evaluator, BaseEvaluator):
+                from dask.distributed import Client
+                if isinstance(evaluator, Client):
+                    from ema_workbench.em_framework.ema_distributed import DistributedEvaluator
+                    evaluator = DistributedEvaluator(self, client=evaluator)
 
-        if isinstance(scenarios, int):
-            n_scenarios = scenarios
-            scenarios = sample_uncertainties(self, n_scenarios)
+            from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
 
-        with evaluator:
-            robust_results = evaluator.robust_evaluate(
-                robustness_functions,
-                scenarios,
-                policies,
-            )
+            if isinstance(scenarios, int):
+                n_scenarios = scenarios
+                scenarios = sample_uncertainties(self, n_scenarios)
 
-        robust_results = self.ensure_dtypes(robust_results)
+            with evaluator:
+                robust_results = evaluator.robust_evaluate(
+                    robustness_functions,
+                    scenarios,
+                    policies,
+                )
+
+            robust_results = self.ensure_dtypes(robust_results)
+
+        if cache_file is not None:
+            from ..util.filez import save
+            save(robust_results, cache_file, overwrite=True)
+            with open(cache_file.replace('.gz','.info.txt'), 'wt') as notes:
+                print("scenarios=", scenarios, file=notes)
+                print("robustness_functions=", robustness_functions, file=notes)
+                print("policies=", policies, file=notes)
+
         return robust_results

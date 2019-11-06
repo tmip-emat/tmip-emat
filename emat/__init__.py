@@ -1,6 +1,6 @@
 #
 
-__version__ = '0.1.4'
+__version__ = '0.2.6'
 
 
 import logging
@@ -10,10 +10,10 @@ def require_version(required_version, pkg):
 		raise ValueError(f"this {pkg.__name__} is version {pkg.__version__}")
 	if 'CS' in required_version and 'CS' not in pkg.__version__:
 		raise ValueError(f"this {pkg.__name__} is version {pkg.__version__}, a 'CS' patched version is required\n"
-						 "try using: conda update ema_workbench -c jpn")
+						 "try using: conda update ema_workbench -c tmip")
 
 import ema_workbench
-require_version('2.1.CS1', ema_workbench)
+require_version('2.1.506', ema_workbench)
 
 _currently_captured = (logging._warnings_showwarning is not None)
 logging.captureWarnings(True)
@@ -28,8 +28,10 @@ try:
 	from .scope.box import Box, Boxes, ChainedBox, Bounds
 	from .database.sqlite.sqlite_db import SQLiteDB
 	from .model.core_python import PythonCoreModel
-	from .model.meta_model import MetaModel
+	from .model.meta_model import MetaModel, create_metamodel
+	from .optimization.optimization_result import OptimizationResult
 	from .exceptions import *
+	from .versions import versions
 
 	try:
 		from .model.core_excel import ExcelCoreModel

@@ -183,3 +183,15 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
         """
         self.outcomes_output = super().run_experiment(experiment)
         return self.outcomes_output
+
+    def __getattr__(self, item):
+        """
+        Pass through getattr to the function.
+        """
+
+        try:
+            if hasattr(self.function, item):
+                return getattr(self.function, item)
+        except:
+            pass
+        raise AttributeError(item)

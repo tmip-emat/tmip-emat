@@ -531,8 +531,12 @@ class GBNRTCModel(FilesCoreModel):
             # The TransCAD macro that creates the file SUMMARY_VMTVHT.csv
             # does not attach a header row with column names, so we
             # need to give column names here to enable the label-based
-            # loc getters above.
+            # loc getters above. The column names include the first
+            # columns, which is a row identifier that will be used as
+            # the index of the resulting loaded dataframe, and not column
+            # data.
             names=[
+                'identifier',
                 'Daily Auto VMT', 'Daily Truck VMT',
                 'Daily Total VMT', 'Daily Auto VHT',
                 'Daily Truck VHT', 'Daily Total VHT','Daily Auto FFVHT',
@@ -549,7 +553,9 @@ class GBNRTCModel(FilesCoreModel):
                 'MD Auto FFVHT', 'MD Truck FFVHT', 'MD Total FFVHT',
                 'PM Auto FFVHT', 'PM Truck FFVHT', 'PM Total FFVHT',
                 'NT Auto FFVHT', 'NT Truck FFVHT', 'NT Total FFVHT'
-            ]
+            ],
+            index_col=0,
+            dtype={'identifier':int},
         ),
 
         TableParser(
@@ -567,6 +573,7 @@ class GBNRTCModel(FilesCoreModel):
             # need to give column names here to enable the label-based
             # loc getters above.
             names=[
+                'identifier',
                 'Daily Auto VMT', 'Daily Truck VMT',
                 'Daily Total VMT', 'Daily Auto VHT',
                 'Daily Truck VHT', 'Daily Total VHT','Daily Auto FFVHT',
@@ -583,7 +590,9 @@ class GBNRTCModel(FilesCoreModel):
                 'MD Auto FFVHT', 'MD Truck FFVHT', 'MD Total FFVHT',
                 'PM Auto FFVHT', 'PM Truck FFVHT', 'PM Total FFVHT',
                 'NT Auto FFVHT', 'NT Truck FFVHT', 'NT Total FFVHT'
-            ]
+            ],
+            index_col=0,
+            dtype={'identifier':int},
         ),
 
         TableParser(

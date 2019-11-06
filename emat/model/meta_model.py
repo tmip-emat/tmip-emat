@@ -32,6 +32,7 @@ def create_metamodel(
     Create a MetaModel from a set of input and output observations.
 
     Args:
+        scope (emat.Scope): The scope for this model.
         experiments (pandas.DataFrame): This dataframe
             should contain all of the experimental inputs and outputs,
             including values for each uncertainty, level, constant, and
@@ -103,6 +104,14 @@ def create_metamodel(
     output_transforms = {i: output_transforms[i]
                          for i in output_transforms
                          if i in meas}
+
+    # change log tranforms to log1p when the experimental minimum is
+    # non-positive but not less than -1
+    for i, i_transform in output_transforms.items():
+        if i_transform == 'log' and i in experiment_outputs:
+            i_min = experiment_outputs[i].min()
+            if -1 < i_min <= 0:
+                output_transforms[i] = 'log1p'
 
     disabled_outputs = [i for i in scope.get_measure_names()
                         if i not in experiment_outputs.columns]
@@ -245,7 +254,7 @@ class MetaModel:
         input_sample = self.var_thresh.transform(input_sample)
 
         self.input_sample = input_sample
-        self.output_sample = output_sample.copy(deep=(metamodel_types is not None))
+        self.output_sample = output_sample.copy(deep=(metamodel_types is not None)).astype(float)
         self.sample_stratification = sample_stratification
 
         self.output_transforms = {}

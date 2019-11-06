@@ -143,7 +143,7 @@ class BoostedRegressor(_BaseComposition, RegressorMixin, FrameableMixin, CrossVa
 		Yhat = self._post_predict(X, Yhat)
 		return Yhat
 
-	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, n_repeats=None, tier=None):
+	def cross_val_scores(self, X, Y, cv=5, S=None, random_state=None, n_repeats=None, tier=None, n_jobs=-1):
 		"""
 		Calculate the cross validation scores for this model.
 
@@ -180,6 +180,7 @@ class BoostedRegressor(_BaseComposition, RegressorMixin, FrameableMixin, CrossVa
 		p = self._cross_validate(
 			X, Y, cv=cv, S=S, random_state=random_state,
 			cache_metadata=self.prediction_tier, n_repeats=n_repeats,
+			n_jobs=n_jobs,
 		)
 		try:
 			return pandas.Series({j: p[f"test_{j}"].mean() for j in self.Y_columns})
@@ -205,6 +206,127 @@ def LinearAndGaussian(
 		use_cv_predict=False,
 		single_target=False
 ):
+	"""
+	Create a detrended Gaussian process regressor.
+
+	This is the default regressor used in TMIP-EMAT.
+	This two stage regressor first fits a simple linear regression
+	model, then fits a Gaussian process regression on the
+	*residuals* of the linear regression.
+
+	Parameters
+	----------
+	fit_intercept : boolean, optional, default True
+		Whether to calculate the intercept for the linear
+		regression step in this model. If set
+		to False, no intercept will be used in calculations
+		(e.g. data is expected to be already centered).
+
+	n_jobs : int or None, optional (default=None)
+		The number of jobs to use for the computation of the linear model.
+		This will only provide
+		speedups for n_targets > 1 and sufficiently large problems.
+		``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+		``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+		for more details.
+
+	stats_on_fit : boolean, optional, default True
+		Whether to calculate a number of statistical measures for the linear
+		regression model when it is fit, including standard errors and
+		t-stats for coefficients and R^2 goodness of fit for overall
+		models.
+
+	kernel_generator : Callable, optional
+		A function that takes the number of input features, and returns
+		a kernel function to be used in the Gaussian regression model.
+		See `AnisotropicGaussianProcessRegressor` for details.
+
+	alpha : float or array-like, optional (default: 1e-10)
+		Value added to the diagonal of the kernel matrix during fitting.
+		Larger values correspond to increased noise level in the observations.
+		This can also prevent a potential numerical issue during fitting, by
+		ensuring that the calculated values form a positive definite matrix.
+		If an array is passed, it must have the same number of entries as the
+		data used for fitting and is used as datapoint-dependent noise level.
+		Note that this is equivalent to adding a WhiteKernel with c=alpha.
+		Allowing to specify the noise level directly as a parameter is mainly
+		for convenience and for consistency with Ridge.
+
+	optimizer : string or callable, optional (default: "fmin_l_bfgs_b")
+		Can either be one of the internally supported optimizers for optimizing
+		the kernel's parameters, specified by a string, or an externally
+		defined optimizer passed as a callable. If a callable is passed, it
+		must have the signature::
+
+			def optimizer(obj_func, initial_theta, bounds):
+				# * 'obj_func' is the objective function to be minimized, which
+				#   takes the hyperparameters theta as parameter and an
+				#   optional flag eval_gradient, which determines if the
+				#   gradient is returned additionally to the function value
+				# * 'initial_theta': the initial value for theta, which can be
+				#   used by local optimizers
+				# * 'bounds': the bounds on the values of theta
+				....
+				# Returned are the best found hyperparameters theta and
+				# the corresponding value of the target function.
+				return theta_opt, func_min
+
+		Per default, the 'fmin_l_bfgs_b' algorithm from scipy.optimize
+		is used. If None is passed, the kernel's parameters are kept fixed.
+		Available internal optimizers are::
+
+			'fmin_l_bfgs_b'
+
+	n_restarts_optimizer : int, optional (default: 0)
+		The number of restarts of the optimizer for finding the kernel's
+		parameters which maximize the log-marginal likelihood. The first run
+		of the optimizer is performed from the kernel's initial parameters,
+		the remaining ones (if any) from thetas sampled log-uniform randomly
+		from the space of allowed theta-values. If greater than 0, all bounds
+		must be finite. Note that n_restarts_optimizer == 0 implies that one
+		run is performed.
+
+	normalize_y : boolean, optional (default: False)
+		Whether the target values y are normalized, i.e., the mean of the
+		observed target values become zero. This parameter should be set to
+		True if the target values' mean is expected to differ considerable from
+		zero. When enabled, the normalization effectively modifies the GP's
+		prior based on the data, which contradicts the likelihood principle;
+		normalization is thus disabled per default.
+
+	standardize_before_fit : bool, optional (default: True)
+		Whether to standardize by scaling the target values of the Gaussian
+		regression so they have unit variance.  This is replaces the inclusion
+		of a scalar term in the kernel function, and may help increase the
+		stability of results, especially with smaller sized datasets.
+
+	copy_X_train : bool, optional (default: True)
+		If True, a persistent copy of the training data is stored in the
+		object. Otherwise, just a reference to the training data is stored,
+		which might cause predictions to change if the data is modified
+		externally.
+
+	random_state : int, RandomState instance or None, optional (default: None)
+		The generator used to initialize the centers. If int, random_state is
+		the seed used by the random number generator; If RandomState instance,
+		random_state is the random number generator; If None, the random number
+		generator is the RandomState instance used by `np.random`.
+
+	use_cv_predict : bool, optional (default: False)
+		Whether to use cross-validated predictors to create residuals from the
+		linear regression during model fitting.
+
+	single_target : bool, optional (default: False)
+		Whether the target values will be a single dimension or multi-dimensional.
+
+
+	Returns
+	-------
+	BoostedRegressor
+
+	"""
+
+
 	from .linear_model import LinearRegression
 	from .anisotropic import AnisotropicGaussianProcessRegressor
 
