@@ -33,7 +33,7 @@ dependencies:
   - defusedxml=0.6.0
   - distributed=2.4.0
   - docutils=0.15.2
-  - tmip::ema_workbench=2.1.506
+  - tmip::ema_workbench=2.1.507
   - tmip::emat=0.2.5
   - entrypoints=0.3
   - expat=2.2.6

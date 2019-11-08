@@ -1,6 +1,6 @@
 #
 
-__version__ = '0.2.6'
+__version__ = '0.2.7'
 
 
 import logging
@@ -13,7 +13,7 @@ def require_version(required_version, pkg):
 						 "try using: conda update ema_workbench -c tmip")
 
 import ema_workbench
-require_version('2.1.506', ema_workbench)
+require_version('2.1.507', ema_workbench)
 
 _currently_captured = (logging._warnings_showwarning is not None)
 logging.captureWarnings(True)
