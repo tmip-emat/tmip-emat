@@ -343,11 +343,11 @@ class ParCoordsViewer(VBox):
 						pass
 					else:
 						if command_name == _SELECT_ALL_MEAS:
-							for meas in itertools.chain(self.scope.get_measure_names(), self.robustness_functions):
+							for meas in itertools.chain(self.scope.get_measure_names(), [_.name for _ in self.robustness_functions]):
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = True
 						elif command_name == _DESELECT_ALL_MEAS:
-							for meas in itertools.chain(self.scope.get_measure_names(), self.robustness_functions):
+							for meas in itertools.chain(self.scope.get_measure_names(), [_.name for _ in self.robustness_functions]):
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = False
 						elif command_name == _SELECT_ALL_LEVERS:
