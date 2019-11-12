@@ -2,6 +2,7 @@
 import numpy
 import textwrap
 import plotly.graph_objs as go
+import itertools
 
 from ema_workbench.em_framework.parameters import Category, CategoricalParameter, BooleanParameter
 from ema_workbench.em_framework.outcomes import ScalarOutcome
@@ -186,6 +187,9 @@ class ParCoordsViewer(VBox):
 	):
 		self.data = data
 		self.scope = scope
+		self.robustness_functions = robustness_functions
+		if self.robustness_functions is None:
+			self.robustness_functions = ()
 
 		self.parcoords = parallel_coords(
 				self.data,
@@ -339,11 +343,11 @@ class ParCoordsViewer(VBox):
 						pass
 					else:
 						if command_name == _SELECT_ALL_MEAS:
-							for meas in self.scope.get_measure_names():
+							for meas in itertools.chain(self.scope.get_measure_names(), self.robustness_functions):
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = True
 						elif command_name == _DESELECT_ALL_MEAS:
-							for meas in self.scope.get_measure_names():
+							for meas in itertools.chain(self.scope.get_measure_names(), self.robustness_functions):
 								if meas in self.dim_activators_by_name:
 									self.dim_activators_by_name[meas].value = False
 						elif command_name == _SELECT_ALL_LEVERS:
