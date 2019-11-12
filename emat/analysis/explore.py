@@ -741,6 +741,7 @@ class Explore(GenericBox):
 			*,
 			x=None,
 			y=None,
+			use_gl=True,
 	):
 		if key is None and (x is not None or y is not None):
 			key = (x,y)
@@ -749,7 +750,7 @@ class Explore(GenericBox):
 			return self._two_way[key]
 
 		from ..viz.dataframe_viz import DataFrameViewer
-		self._two_way[key] = DataFrameViewer(self.data, box=self.box, scope=self.scope)
+		self._two_way[key] = DataFrameViewer(self.data, box=self.box, scope=self.scope, use_gl=use_gl)
 		self._two_way[key].selection_choose.value = 'Box'
 		_try_set_value(self._two_way[key].x_axis_choose, x, 'the x axis dimension')
 		_try_set_value(self._two_way[key].y_axis_choose, y, 'the y axis dimension')

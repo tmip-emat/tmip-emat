@@ -20,6 +20,7 @@ class DataFrameViewer(HBox):
 			scope=None,
 			target_marker_opacity=1000,
 			minimum_marker_opacity=0.25,
+			use_gl=True,
 	):
 		self.df = df
 
@@ -87,7 +88,8 @@ class DataFrameViewer(HBox):
 		self._x_data_range = [0,1]
 		self._y_data_range = [0,1]
 
-		self.scattergraph = go.Scattergl(
+		Scatter = go.Scattergl if use_gl else go.Scatter
+		self.scattergraph = Scatter(
 			x=None,
 			y=None,
 			mode = 'markers',
