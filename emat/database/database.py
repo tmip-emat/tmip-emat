@@ -53,7 +53,7 @@ class Database(abc.ABC):
     
     @abc.abstractmethod
     def write_scope(self, scope_name, sheet, scp_xl, scp_m, content):
-        """Save the emat scope information to the database
+        """Save the emat scope information to the database.
           
         Args:
             scope_name (str): scope name, used to identify experiments,
@@ -68,7 +68,18 @@ class Database(abc.ABC):
                 available, or the performance measures are not initialized
                 in the database.
         
-        """     
+        """
+
+    @abc.abstractmethod
+    def store_scope(self, scope):
+        """
+        Save an emat.Scope directly to the database.
+
+        Args:
+            scope (Scope): The scope object to store.
+        Raises:
+            KeyError: If scope name already exists.
+        """
 
     @abc.abstractmethod
     def read_scope(self, scope_name):

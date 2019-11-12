@@ -168,6 +168,10 @@ class SQLiteDB(Database):
     
         self.conn.commit()
 
+    @copydoc(Database.store_scope)
+    def store_scope(self, scope):
+        return scope.store_scope(self)
+
     @copydoc(Database.read_scope)
     def read_scope(self, scope_name):
         try:
