@@ -34,7 +34,7 @@ dependencies:
   - distributed=2.4.0
   - docutils=0.15.2
   - tmip::ema_workbench=2.1.507
-  - tmip::emat=0.2.9
+  - tmip::emat=0.2.10
   - entrypoints=0.3
   - expat=2.2.6
   - fontconfig=2.13.0
