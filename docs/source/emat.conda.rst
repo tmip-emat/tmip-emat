@@ -169,6 +169,11 @@ directory where you can find your notebook file, and run it the the
     (EMAT) C:\Users\cfinley> cd Documents\Modeling
     (EMAT) C:\Users\cfinley\Documents\Modeling> jupyter-notebook myfilename.ipynb
 
+If you don't already have a notebook file to work with (they are
+identifiable by the ".ipynb" at the end of the filename) you
+can simply start jupyter-notebook with no file name, and you'll
+be presented with an interface to create one in the current directory.
+
 Alternatively, the next generation interface of Jupyter is called
 `JupyterLab <https://jupyterlab.readthedocs.io/en/stable/>`_.
 JupyterLab integrates many more features and provides for running
@@ -193,3 +198,19 @@ Then to start JupyterLab,
     jupyter lab
 
 JupyterLab will open automatically in your browser.
+
+
+
+Troubleshooting
+---------------
+
+A common reason for problems encountered in the installation process
+is an out-of-date *conda* installation.  If your main conda
+installation is out of date, you
+may need to install or update the *conda* and *anaconda-client* packages
+before the installation of new environments or packages will work:
+
+.. code-block:: console
+
+    conda install -n base -c defaults conda anaconda-client
+
