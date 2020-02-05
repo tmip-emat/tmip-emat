@@ -40,6 +40,7 @@ dependencies:
 - altair
 - salib
 - sqlalchemy
+- statsmodels
 - tmip::ema_workbench
 - tmip::emat
 

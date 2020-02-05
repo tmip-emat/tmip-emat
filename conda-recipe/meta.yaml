@@ -9,12 +9,14 @@ source:
 
 build:
   noarch: python
+  number: 3
+  script: "python -m pip install . --no-deps -vv"
 
 requirements:
   build:
-    - python {{ python }}
+    - python
   run:
-    - python {{ python }}
+    - python
     - numpy
     - pandas
     - pydot
@@ -32,20 +34,14 @@ requirements:
     - dask
     - distributed
     - cloudpickle
-    - ipykernel
-    - nb_conda
-    - jupyter_contrib_nbextensions   # on conda-forge only
-    - jupyter
-    - notebook
     - pytest
-    - pyscaffold
     - ipyparallel
     - pyzmq
     - platypus-opt
     - altair
     - salib
     - sqlalchemy
-    - tmip::ema_workbench>=2.1.507,<2.2
+    - tmip::ema_workbench>=2.1.508,<2.2
 
 test:
   # Python imports
