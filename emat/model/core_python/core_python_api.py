@@ -114,7 +114,7 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
             content.append(f"{len(self.scope._l_list)} levers")
         if len(self.scope._m_list):
             content.append(f"{len(self.scope._m_list)} measures")
-        metamodel_tag = "" if self.metamodel_id==0 else f", metamodel_id={self.metamodel_id}"
+        metamodel_tag = "" if (self.metamodel_id==0 or self.metamodel_id is None) else f", metamodel_id={self.metamodel_id}"
         return f'<emat.PythonCoreModel "{self.name}"{metamodel_tag} with {", ".join(content)}>'
 
     @copydoc(AbstractCoreModel.setup)
@@ -183,3 +183,15 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
         """
         self.outcomes_output = super().run_experiment(experiment)
         return self.outcomes_output
+
+    def __getattr__(self, item):
+        """
+        Pass through getattr to the function.
+        """
+
+        try:
+            if hasattr(self.function, item):
+                return getattr(self.function, item)
+        except:
+            pass
+        raise AttributeError(item)

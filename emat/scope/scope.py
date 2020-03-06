@@ -421,6 +421,10 @@ class Scope:
         """Get a list of exogenous uncertainty names."""
         return [i.name for i in self._x_list]
 
+    def _get_uncertainty_and_constant_names(self):
+        """Get a list of exogenous uncertainty and constant names."""
+        return self.get_uncertainty_names() + self.get_constant_names()
+
     def get_lever_names(self):
         """Get a list of policy lever names."""
         return [i.name for i in self._l_list]

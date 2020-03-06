@@ -209,6 +209,7 @@ def LinearAndGaussian(
 	"""
 	Create a detrended Gaussian process regressor.
 
+	This is the default regressor used in TMIP-EMAT.
 	This two stage regressor first fits a simple linear regression
 	model, then fits a Gaussian process regression on the
 	*residuals* of the linear regression.

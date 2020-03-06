@@ -9,7 +9,6 @@ from .model_selection import CrossValMixin
 from sklearn.multioutput import _partial_fit_estimator, _fit_estimator
 from sklearn.base import BaseEstimator, RegressorMixin, is_classifier, clone
 from sklearn.utils import check_array, check_X_y, check_random_state
-from sklearn.utils.fixes import parallel_helper
 from sklearn.utils.metaestimators import if_delegate_has_method
 from sklearn.utils.validation import check_is_fitted, has_fit_parameter
 from sklearn.utils.multiclass import check_classification_targets
@@ -220,7 +219,7 @@ class MultiOutputEstimatorDiverse(BaseEstimator, CompositeCVMixin, metaclass=ABC
 		X = check_array(X, accept_sparse=True)
 
 		y = Parallel(n_jobs=self.n_jobs)(
-			delayed(parallel_helper)(e, 'predict', X)
+			delayed(e.predict)(X)
 			for e in self.estimators_)
 
 		return np.asarray(y).T

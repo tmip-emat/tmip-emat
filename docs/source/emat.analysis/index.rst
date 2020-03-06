@@ -15,7 +15,9 @@ in transportation models.
 
 .. toctree::
 
-    visualization
+    splom
+    corruption
+    interactive-explorer
 
 
 Scenario Discovery

@@ -32,6 +32,7 @@ def create_metamodel(
     Create a MetaModel from a set of input and output observations.
 
     Args:
+        scope (emat.Scope): The scope for this model.
         experiments (pandas.DataFrame): This dataframe
             should contain all of the experimental inputs and outputs,
             including values for each uncertainty, level, constant, and

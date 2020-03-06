@@ -288,7 +288,7 @@ class Explore(GenericBox):
 		for key in self._two_way:
 			self._two_way[key]._on_box_change(selection=selection)
 
-	def _create_histogram_figure(self, col, bins=20, *, selection=None):
+	def _create_histogram_figure(self, col, bins=20, *, selection=None, marker_line_width=None):
 		if col in self._figures_hist:
 			self._update_histogram_figure(col, selection=selection)
 		else:
@@ -305,6 +305,7 @@ class Explore(GenericBox):
 						width=bins_width,
 						name='Inside',
 						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+						marker_line_width=marker_line_width,
 					),
 					go.Bar(
 						x=bins_left,
@@ -312,12 +313,14 @@ class Explore(GenericBox):
 						width=bins_width,
 						name='Outside',
 						marker_color=colors.DEFAULT_BASE_COLOR,
+						marker_line_width=marker_line_width,
 					),
 				],
 				layout=dict(
 					barmode='stack',
 					showlegend=False,
 					margin=dict(l=10, r=10, t=10, b=10),
+					yaxis_showticklabels=False,
 					**styles.figure_dims,
 				),
 			)
@@ -358,8 +361,8 @@ class Explore(GenericBox):
 					barmode='stack',
 					showlegend=False,
 					margin=dict(l=10, r=10, t=10, b=10),
-					width=250,
-					height=150,
+					yaxis_showticklabels=False,
+					**styles.figure_dims,
 				),
 			)
 			fig._labels = labels
@@ -380,14 +383,14 @@ class Explore(GenericBox):
 					go.Scatter(
 						x=x_points,
 						y=y_base,
-						name='Inside',
+						name='Overall',
 						fill='tozeroy',
 						marker_color=colors.DEFAULT_BASE_COLOR,
 					),
 					go.Scatter(
 						x=x_points,
 						y=y_select,
-						name='Outside',
+						name='Inside',
 						fill='tozeroy',  #fill='tonexty',
 						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
 					),
@@ -402,14 +405,20 @@ class Explore(GenericBox):
 			fig._figure_kind = 'kde'
 			self._figures_kde[col] = fig
 
-	def get_histogram_figure(self, col, bins=20):
+	def get_histogram_figure(self, col, bins=20, marker_line_width=None):
 		try:
 			this_type = self.scope.get_dtype(col)
 		except:
 			this_type = 'float'
 		if this_type in ('cat','bool'):
 			return self.get_frequency_figure(col)
-		self._create_histogram_figure(col, bins=bins)
+		if this_type in ('int',):
+			param = self.scope[col]
+			if param.max - param.min + 1 <= bins * 4:
+				bins = param.max - param.min + 1
+				if marker_line_width is None:
+					marker_line_width = 0
+		self._create_histogram_figure(col, bins=bins, marker_line_width=marker_line_width)
 		return self._figures_hist[col]
 
 	def get_frequency_figure(self, col):
@@ -701,7 +710,7 @@ class Explore(GenericBox):
 			self.selectors(*self.scope.get_uncertainty_names()),
 			widget.HTML("<h3>Performance Measures</h3>"),
 			self._measure_notes(style=measure_style),
-			self.measure_viewers(style=measure_style),
+			self.measure_selectors(style=measure_style),
 		])
 
 	def _measure_notes(self, style='kde'):
@@ -721,7 +730,7 @@ class Explore(GenericBox):
 			The <span style="font-weight:bold;color:{basecolor}">{basecolor_name}</span> bars
 			depict the unconditional frequency of performance measures in the data across
 			all cases, while the <span style="font-weight:bold;color:{highlightcolor}">{highlight_name}</span> 
-			curve depicts the frequency of performance measures conditional on the constraints.
+			bars depict the frequency of performance measures conditional on the constraints.
 			</div>"""
 		return widget.HTML(txt)
 
@@ -732,6 +741,7 @@ class Explore(GenericBox):
 			*,
 			x=None,
 			y=None,
+			use_gl=True,
 	):
 		if key is None and (x is not None or y is not None):
 			key = (x,y)
@@ -740,7 +750,7 @@ class Explore(GenericBox):
 			return self._two_way[key]
 
 		from ..viz.dataframe_viz import DataFrameViewer
-		self._two_way[key] = DataFrameViewer(self.data, box=self.box, scope=self.scope)
+		self._two_way[key] = DataFrameViewer(self.data, box=self.box, scope=self.scope, use_gl=use_gl)
 		self._two_way[key].selection_choose.value = 'Box'
 		_try_set_value(self._two_way[key].x_axis_choose, x, 'the x axis dimension')
 		_try_set_value(self._two_way[key].y_axis_choose, y, 'the y axis dimension')

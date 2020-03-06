@@ -920,7 +920,7 @@ class Box(GenericBox):
 		)
 
 	def __repr__(self):
-		if self.keys() or self.relevant_features:
+		if self.keys() or self.relevant_features or self.name=='0':
 			demands = list(self.keys()) or [" "]
 			relevent = list(self.relevant_features) or [" "]
 			m = max(
@@ -953,7 +953,10 @@ class Box(GenericBox):
 				head += f'\n   density:  {self.density:.5f}'
 			if hasattr(self, 'mass'):
 				head += f'\n   mass:     {self.mass:.5f}'
-			return head+"\n   " + '\n   '.join(members)
+			if members:
+				return head+"\n   " + '\n   '.join(members)
+			else:
+				return head
 		else:
 			return "<empty "+ self.__class__.__name__ + ">"
 

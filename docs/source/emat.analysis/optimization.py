@@ -9,9 +9,9 @@
 #       format_version: '1.2'
 #       jupytext_version: 1.2.4
 #   kernelspec:
-#     display_name: EMAT-DEV
+#     display_name: EMAT
 #     language: python
-#     name: emat-dev
+#     name: emat
 # ---
 
 # %%
@@ -342,9 +342,9 @@ result.scenario
 # performance measure axis results in a "better" outcome for that performance
 # measure.
 #
-# In the figure below, we can quickly see that all the all of the Pareto
+# In the figure below, we can quickly see that pretty much all the all of the Pareto
 # optimal policy solutions for our reference scenario share an amortization
-# period of 50 years and a debt type of 'Paygo'.  By contrast, the set of 
+# period of 50 years, and all share a debt type of 'Paygo'.  By contrast, the set of 
 # solutions include multiple different values for the expand capacity lever,
 # ranging from 0 to 100.  These different values offer possible tradeoffs 
 # among the performance measures: lower levels of capacity expansion (shown
@@ -356,7 +356,51 @@ result.scenario
 # goals.
 
 # %%
-result.par_coords()
+q=result.par_coords()
+q
+
+# %% [markdown]
+# As noted above, nearly all but not exactly all of the identified Pareto optimal
+# solutions in this figure share an amortization period of 50 years.  We can review a table 
+# of a subset of particular solutions using the `query` method of a pandas DataFrame.  
+# In this example, we may want to see a table of the instances where the amortization period 
+# is not 50 years.
+
+# %%
+result.result.query("amortization_period != 50")
+
+# %% [markdown]
+# The first row in this table shows a particular edge case: when the capacity expansion is
+# exactly zero, all of the remaining policy levers have no effect -- the details of debt
+# financing are irrelevant when there is no debt at all, and thus no values of the other
+# levers result in a Pareto-optimal solution that would dominate any other such solution.
+# On the other hand other solution shown is a different edge case, with a capacity 
+# expansion at the maximum (100). Here, the numerical difference between an amortization
+# period of 49 years and 50 years may be two small for the algorithm to catch (i.e., it 
+# may be swallowed by a rounding error somewhere inside the calculations).  In each case,
+# an analyst with domain knowledge, who understands the underlying system being modeled,
+# will be able to bring a more nuanced understanding of the results than can be achieved
+# merely by applying the mathematical algorithms in TMIP-EMAT, and correctly infer
+# that the 50 year amortization is always an optimal solution, and that the outlier
+# solutions are not important.
+
+# %% [markdown]
+# Lastly, a note on the interpretation of the visualization of parallel coordinates
+# plots: for numerical parameters and measures, the range of values shown in each 
+# vertical axis of plot is determined not by the full range of possible values, but instead
+# it only displays the range of values included in the solutions being visualized.
+# For example, the `amortization_period` axis only shows values between 47 and 50, even
+# though the actual range of values is defined in the scope to be between 15 and 50 years.
+# Similarly, the range of values for `net_benefits` is between 0.08 and -194.18.
+# Because the solutions being displayed are optimal, the top value of 0.08 is 
+# (barring numerical problems) the best value of `net_benefits` that might be obtained,
+# but the bottom value of -194.18 is by no means the worst possible `net_benefits`
+# outcome that could arise from various different policies.  Instead, this bottom
+# value is not a worst outcome but *also an optimal value*, except it is conditional 
+# on also achieving some particular other desirable outcome.  In the example shown, this 
+# other desirable outcome is a high level of travel time savings.  It is left entirely
+# up to the analyst and policy makers to judge whether this outcome is "bad" or not,
+# relative to the other possible outcomes.
 
 # %% [markdown]
 # ## Worst Case Discovery: Search over Uncertainties

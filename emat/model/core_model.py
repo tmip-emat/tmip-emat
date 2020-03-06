@@ -457,8 +457,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             raise ValueError(f"no experiments available")
 
         scenarios = [
-            Scenario(**dict(zip(self.scope.get_uncertainty_names(), i)))
-            for i in design[self.scope.get_uncertainty_names()].itertuples(index=False,
+            Scenario(**dict(zip(self.scope._get_uncertainty_and_constant_names(), i)))
+            for i in design[self.scope._get_uncertainty_and_constant_names()].itertuples(index=False,
                                                                            name='ExperimentX')
         ]
 
@@ -488,8 +488,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if db:
             db.write_experiment_measures(self.scope.name, self.metamodel_id, outcomes)
 
+        # Put constants back into experiments
+        experiments_ = experiments.drop(columns=['scenario', 'policy', 'model'])
+        for i in self.scope.get_constants():
+            experiments_[i.name] = i.value
+
         return self.ensure_dtypes(pd.concat([
-            experiments.drop(columns=['scenario','policy','model']),
+            experiments_,
             outcomes
         ], axis=1, sort=False))
 
@@ -985,6 +990,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                         results, result_convergence = results
                     else:
                         result_convergence = None
+
+                    # Put constants back in to results
+                    for i in self.scope.get_constants():
+                        results[i.name] = i.value
 
                     results = self.ensure_dtypes(results)
                     x = OptimizationResult(results, result_convergence, scope=self.scope)

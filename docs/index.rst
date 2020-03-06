@@ -29,6 +29,13 @@ capabilities of the `EMA Workbench, version 2 <https://github.com/quaquel/EMAwor
 A brief discussion of the differences between these projects is
 :doc:`available <source/emat.vs.workbench>`.
 
+For an introduction to the concepts and tools contained in TMIP-EMAT,
+you can view our TMIP Webinars:
+
+* `Introducing the Exploratory Modeling and Analysis Tool <https://tmip.org/content/tmip-webinar-introducing-exploratory-modeling-and-analysis-tool-tmip-emat>`_
+* `Using TMIP-EMAT for Exploratory Analysis <https://tmip.org/content/using-tmip-emat-exploratory-analysis>`_
+
+
 .. toctree::
    :maxdepth: 3
    :caption: Contents:
@@ -38,7 +45,7 @@ A brief discussion of the differences between these projects is
    source/emat.install
    source/emat.scope/index
    source/emat.models/index
-   source/emat.metamodels
+   source/emat.metamodels/index
    source/emat.database/index
    source/emat.analysis/index
    source/emat.examples/index
