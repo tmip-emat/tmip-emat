@@ -180,6 +180,30 @@ class ODOTModel(FilesCoreModel):
         ),
 
         TableParser(
+            "Access_byLowIncome.csv",
+            {
+                'Percentage of Low Income Population with Access to 50k Jobs by Car within 5mins in PM': loc['Per_Pop_w_50K_Jobs_in_5_mins', 'x'],
+                'Percentage of Low Income Population with Access to 50k Jobs by Car within 10mins in PM': loc['Per_Pop_w_50K_Jobs_in_10_mins', 'x'],
+                'Percentage of Low Income Population with Access to 50k Jobs by Car within 20mins in PM': loc['Per_Pop_w_50K_Jobs_in_20_mins', 'x'],
+                'Percentage of Low Income Population with Access to 50k Jobs by Car within 30mins in PM': loc['Per_Pop_w_50K_Jobs_in_30_mins', 'x'],
+            },
+            index_col=0,
+            handle_errors='nan',
+        ),
+
+        TableParser(
+            "Access_byAbove65.csv",
+            {
+                'Percentage of Above 65 Population with Access to 50k Jobs by Car within 5mins in PM': loc['Per_Pop_w_50K_Jobs_in_5_mins', 'x'],
+                'Percentage of Above 65 Population with Access to 50k Jobs by Car within 10mins in PM': loc['Per_Pop_w_50K_Jobs_in_10_mins', 'x'],
+                'Percentage of Above 65 Population with Access to 50k Jobs by Car within 20mins in PM': loc['Per_Pop_w_50K_Jobs_in_20_mins', 'x'],
+                'Percentage of Above 65 Population with Access to 50k Jobs by Car within 30mins in PM': loc['Per_Pop_w_50K_Jobs_in_30_mins', 'x'],
+            },
+            index_col=0,
+            handle_errors='nan',
+        ),
+
+        TableParser(
             "ModeSplit.csv",
             {
                 'Auto SOV Mode Share': loc['AutoSOV', 'x'],
@@ -251,6 +275,52 @@ class ODOTModel(FilesCoreModel):
             # using the handle_errors argument.
             handle_errors='nan',
         ),
+
+        TableParser(
+            "VMT_byVC.csv",
+            {
+                'Percentage VMT in Light Congestion': loc['Light25', 'x'],
+                'Percentage VMT in Medium Congestion': loc['Mid25to75', 'x'],
+                'Percentage VMT in High Congestion': loc['High75', 'x'],
+            },
+            index_col=0,
+            handle_errors='nan',
+        ),
+
+        TableParser(
+            "VMT_bySpeed.csv",
+            {
+                'Percentage VMT Below 30mph': loc['Below30', 'x'],
+                'Percentage VMT Between 30 and 50mph': loc['30-50', 'x'],
+                'Percentage VMT Above 50mph': loc['Above50', 'x'],
+            },
+            index_col=0,
+            handle_errors='nan',
+        ),
+
+        TableParser(
+            "millionsVMT_byIncome.csv",
+            {
+                'Millions of VMT for Households Below 25k': loc['HHINC1_2', 'x'],
+                'Millions of VMT for Households Between 25-35k': loc['HHINC3', 'x'],
+                'Millions of VMT for Households Between 35-50k': loc['HHINC4', 'x'],
+                'Millions of VMT for Households Between 50-75k': loc['HHINC5', 'x'],
+                'Millions of VMT for Households Between 75-100k': loc['HHINC6', 'x'],
+                'Millions of VMT for Households Between 100-150k': loc['HHINC7', 'x'],
+                'Millions of VMT for Households Above 150k': loc['HHINC8', 'x'],
+            },
+            index_col=0,
+            handle_errors='nan',
+        ),
+        
+        TableParser(
+            "VMT_Revenue_inMillions.csv",
+            {
+                'Millions of Daily Dollars from Road Use Pricing': loc['1', 'x'],
+            },
+            index_col=0,
+            handle_errors='nan',
+        ),        
 
         TableParser(
             "thousand_VHT.csv",
