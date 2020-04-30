@@ -316,7 +316,7 @@ class ODOTModel(FilesCoreModel):
         TableParser(
             "VMT_Revenue_inMillions.csv",
             {
-                'Millions of Daily Dollars from Road Use Pricing': loc['1', 'x'],
+                'Millions of Daily Dollars from Road Use Pricing': loc[1, 'x'],
             },
             index_col=0,
             handle_errors='nan',
