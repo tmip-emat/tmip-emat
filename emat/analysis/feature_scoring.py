@@ -38,7 +38,7 @@ def feature_scores(
 	This function internally uses feature_scoring from the EMA Workbench, which in turn
 	scores features using the "extra trees" regression approach.
 	"""
-	import pandas
+	import pandas, numpy
 
 	if isinstance(design, str):
 		if db is None:
@@ -53,7 +53,23 @@ def feature_scores(
 	else:
 		raise TypeError('must name design or give DataFrame')
 
-	fs = feature_scoring.get_feature_scores_all(inputs, outcomes, random_state=random_state)
+	# remove columns with NaN's
+	drop_inputs = list(inputs.columns[pandas.isna(inputs).sum()>0])
+	for c in scope.get_constant_names():
+		if c in inputs.columns and c not in drop_inputs:
+			drop_inputs.append(c)
+	drop_outcomes = list(outcomes.columns[pandas.isna(outcomes).sum()>0])
+	outcomes_ = outcomes.drop(columns=drop_outcomes)
+	inputs_ = inputs.drop(columns=drop_inputs)
+
+	fs = feature_scoring.get_feature_scores_all(inputs_, outcomes_, random_state=random_state)
+
+	for i in drop_outcomes:
+		fs[i] = numpy.nan
+	if drop_inputs:
+		fs.append(pandas.DataFrame(index=drop_inputs, data=numpy.nan, columns=[]))
+	# restore original row/col ordering
+	fs = fs.reindex(index=inputs.columns, columns=outcomes.columns)
 
 	if return_type.lower() in ('figure','styled'):
 		try:
