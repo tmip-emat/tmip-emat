@@ -142,6 +142,7 @@ def contrast_experiments(
 		mass=1000,
 		use_gl=True,
 		return_figures=False,
+		render_fallback=True,
 ):
 	"""
 	Render a visualization of two sets of experimental results.
@@ -190,6 +191,8 @@ def contrast_experiments(
 	return_figures : bool, default False
 		Set this to True to return the FigureWidgets instead of
 		simply displaying them.
+	render_fallback (bool, default True): If rendering fails, return the
+		original FigureWidget instead of an error message.
 	"""
 
 	if isinstance(experiments_1, str):
@@ -228,7 +231,16 @@ def contrast_experiments(
 		for row in rows:
 			if not return_figures:
 				display_html(f'<h4 title="{scope.get_description(row)}">{scope.shortname(row)}</h4>', raw=True)
-			fig = scatter_graphs_2(row, [experiments_1, experiments_2], scope=scope, render=render, use_gl=use_gl, mass=mass, contrast=columns)
+			fig = scatter_graphs_2(
+				row,
+				[experiments_1, experiments_2],
+				scope=scope,
+				render=render,
+				use_gl=use_gl,
+				mass=mass,
+				contrast=columns,
+				render_fallback=render_fallback,
+			)
 			if return_figures:
 				figures[row] = fig
 			else:
