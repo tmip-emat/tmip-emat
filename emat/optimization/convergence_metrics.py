@@ -90,12 +90,6 @@ class HyperVolume(AbstractConvergenceMetricGraph):
 	def __init__(self, minimum, maximum):
 		super().__init__("hypervolume", title = "Hypervolume")
 		self.hypervolume_func = Hypervolume(minimum=minimum, maximum=maximum)
-		# self.figure = line_graph(
-		# 	X=None, Y=None, widget=True, title = "Hypervolume", xtitle='Generation', interpolate='linear',
-		# )
-		# self.figure.layout.height = FIG_HEIGHT
-		# self.figure.layout.width = FIG_WIDTH
-		# self.figure.layout.margin = FIG_MARGINS
 
 	def __call__(self, optimizer):
 		self.results.append(self.hypervolume_func.calculate(optimizer.algorithm.archive))
@@ -105,7 +99,6 @@ class HyperVolume(AbstractConvergenceMetricGraph):
 			while start < len(self.results) and self.results[start] == 0:
 				start += 1
 			figure_data = self.results[start:]
-			# self.figure.data[0].y = figure_data
 			try:
 				y_range = min(figure_data), max(figure_data)
 			except:
@@ -137,14 +130,6 @@ class SolutionCount(AbstractConvergenceMetricGraph):
 
 	def __init__(self):
 		super().__init__("solution_count", title="Number of Solutions")
-		# self.figure = line_graph(
-		# 	X=None, Y=None, widget=True, title="Number of Solutions",
-		# 	xtitle='Number of Function Evaluations', interpolate='linear',
-		# )
-		# self.figure.layout.height = FIG_HEIGHT
-		# self.figure.layout.width = FIG_WIDTH
-		# self.figure.layout.margin = FIG_MARGINS
-		# self.nfes = []
 
 	def __call__(self, optimizer):
 		n_solutions = 0
@@ -152,10 +137,6 @@ class SolutionCount(AbstractConvergenceMetricGraph):
 			n_solutions += 1
 		self.results.append(n_solutions)
 		super().__call__(optimizer)
-		# self.nfes.append(optimizer.algorithm.nfe)
-		# with self.figure.batch_update():
-		# 	self.figure.data[0].y = self.results
-		# 	self.figure.data[0].x = self.nfes
 
 class SolutionViewer(AbstractConvergenceMetric):
 	"""
