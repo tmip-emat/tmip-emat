@@ -6,4 +6,5 @@ plotly
 scipy
 seaborn
 pyyaml
+cloudpickle
 ema_workbench
