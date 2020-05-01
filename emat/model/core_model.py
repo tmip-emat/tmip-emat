@@ -93,15 +93,40 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
     @abc.abstractmethod
     def setup(self, params):
         """
-        Configure the core model with the experiment variable values
-        
-        
+        Configure the core model with the experiment variable values.
+
+        This method is the place where the core model set up takes place,
+        including creating or modifying files as necessary to prepare
+        for a core model run.  When running experiments, this method
+        is called once for each core model experiment, where each experiment
+        is defined by a set of particular values for both the exogenous
+        uncertainties and the policy levers.  These values are passed to
+        the experiment only here, and not in the `run` method itself.
+        This facilitates debugging, as the `setup` method can potentially
+        be used without the `run` method, allowing the user to manually
+        inspect the prepared files and ensure they are correct before
+        actually running a potentially expensive model.
+
+        Each input exogenous uncertainty or policy lever can potentially
+        be used to manipulate multiple different aspects of the underlying
+        core model.  For example, a policy lever that includes a number of
+        discrete future network "build" options might trigger the replacement
+        of multiple related network definition files.  Or, a single uncertainty
+        relating to the cost of fuel might scale both a parameter linked to
+        the modeled per-mile cost of operating an automobile, as well as the
+        modeled total cost of fuel used by transit services.
+
+        At the end of the `setup` method, a core model experiment should be
+        ready to run using the `run` method.
+
         Args:
-            params (dict): experiment variables including both exogenous 
+            params (dict):
+                experiment variables including both exogenous
                 uncertainty and policy levers
                 
         Raises:
-            KeyError: if experiment variable defined is not supported
+            KeyError:
+                if a defined experiment variable is not supported
                 by the core model        
         """     
  
