@@ -133,11 +133,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
     @abc.abstractmethod
     def get_experiment_archive_path(self, experiment_id: int) -> str:
         """
-        Returns path to store model run outputs
-        
-        Can be useful for long model runs if additional measures will be
-        defined at a later time (e.g. link volumes). 
-        
+        Returns a file system location to store model run outputs.
+
+        For core models with long model run times, it is recommended
+        to store the complete model run results in an archive.  This
+        will facilitate adding additional performance measures to the
+        scope at a later time.
+                
         Both the scope name and experiment id can be used to create the 
         folder path. 
         
@@ -152,36 +154,72 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
     @abc.abstractmethod
     def run(self):
         """
-        Initiates the core model run
-        
-        Model should be 'setup' first
-                
+        Run the core model.
+
+        This method is the place where the core model run takes place.
+        Note that this method takes no arguments; all the input
+        exogenous uncertainties and policy levers are delivered to the
+        core model in the `setup` method, which will be executed prior
+        to calling this method. This facilitates debugging, as the `setup`
+        method can potentially be used without the `run` method, allowing
+        the user to manually inspect the prepared files and ensure they
+        are correct before actually running a potentially expensive model.
+        When running experiments, this method is called once for each core
+        model experiment, after the `setup` method completes.
+
+        If the core model requires some post-processing by `post_process`
+        method defined in this API, then when this function terminates
+        the model directory should be in a state that is ready to run the
+        `post_process` command next.
+
         Raises:
             UserWarning: If model is not properly setup
         """     
     
-    @abc.abstractmethod
     def post_process(self, params, measure_names, output_path=None):
         """
-        Runs post processors associated with measures.
+        Runs post processors associated with particular performance measures.
 
-        The model should have previously been prepared using
-        the `setup` method.
+        This method is the place to conduct automatic post-processing
+        of core model run results, in particular any post-processing that
+        is expensive or that will write new output files into the core model's
+        output directory.  The core model run should already have
+        been completed using `setup` and `run`.  If the relevant performance
+        measures do not require any post-processing to create (i.e. they
+        can all be read directly from output files created during the core
+        model run itself) then this method does not need to be overloaded
+        for a particular core model implementation.
 
         Args:
             params (dict):
-                Dictionary of experiment variables - indices
-                are variable names, values are the experiment settings
+                Dictionary of experiment variables, with keys as variable names
+                and values as the experiment settings. Most post-processing
+                scripts will not need to know the particular values of the
+                inputs (exogenous uncertainties and policy levers), but this
+                method receives the experiment input parameters as an argument
+                in case one or more of these parameter values needs to be known
+                in order to complete the post-processing.
             measure_names (List[str]):
-                List of measures to be processed
-            output_path (str):
-                Path to model outputs - if set to none
-                will use local values
+                List of measures to be processed.  Normally for the first pass
+                of core model run experiments, post-processing will be completed
+                for all performance measures.  However, it is possible to use
+                this argument to give only a subset of performance measures to
+                post-process, which may be desirable if the post-processing
+                of some performance measures is expensive.  Additionally, this
+                method may also be called on archived model results, allowing
+                it to run to generate only a subset of (probably new) performance
+                measures based on these archived runs.
+            output_path (str, optional):
+                Path to model outputs.  If this is not given (typical for the
+                initial run of core model experiments) then the local/default
+                model directory is used.  This argument is provided primarily
+                to facilitate post-processing archived model runs to make new
+                performance measures (i.e. measures that were not in-scope when
+                the core model was actually run).
 
         Raises:
             KeyError:
-                If post process is not available for specified
-                measure
+                If post process is not available for specified measure
         """
     
     @abc.abstractmethod
@@ -191,15 +229,21 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             *,
             rel_output_path=None,
             abs_output_path=None,
-	) -> dict:
+    ) -> dict:
         """
         Import selected measures from the core model.
         
+        This method is the place to put code that can actually reach into
+        files in the core model's run results and extract performance
+        measures. It is expected that it should not do any post-processing
+        of results (i.e. it should read from but not write to the model
+        outputs directory).
+
         Imports measures from active scenario
         
         Args:
             measure_names (Collection[str]):
-                Collection of measures to be processed
+                Collection of measures to be loaded.
             rel_output_path, abs_output_path (str, optional):
                 Path to model output locations, either relative
                 to the `model_path` directory (when a subclass
@@ -220,7 +264,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
     @abc.abstractmethod
     def archive(self, params, model_results_path, experiment_id:int=0):
         """
-        Copies model outputs to archive location
+        Copies model outputs to archive location.
         
         Args:
             params (dict): Dictionary of experiment variables
