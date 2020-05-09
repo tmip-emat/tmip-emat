@@ -679,11 +679,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         """
         db = db if db is not None else self.db
 
-        if db is not None:
-            check_df = db.read_experiment_parameters(self.scope.name, design_name, only_pending=True)
-            if not check_df.empty:
-                from ..exceptions import PendingExperimentsError
-                raise PendingExperimentsError(f'design "{design_name}" has pending experiments')
+        if db is None:
+            raise ValueError("db is None")
+
+        check_df = db.read_experiment_parameters(self.scope.name, design_name, only_pending=True)
+        if not check_df.empty:
+            from ..exceptions import PendingExperimentsError
+            raise PendingExperimentsError(f'design "{design_name}" has pending experiments')
 
         experiment_inputs = db.read_experiment_parameters(self.scope.name, design_name)
         experiment_outputs = db.read_experiment_measures(self.scope.name, design_name)
