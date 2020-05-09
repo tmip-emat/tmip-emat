@@ -80,21 +80,27 @@ def create_metamodel(
         experiments = db.read_experiment_all(scope.name, design_name)
 
     experiments = scope.ensure_dtypes(experiments)
+    _actually_excluded_measures = []
 
     meas = []
     for j in scope.get_measure_names():
         if include_measures is not None and j not in include_measures:
+            _actually_excluded_measures.append(j)
             continue
         if exclude_measures is not None and j in exclude_measures:
+            _actually_excluded_measures.append(j)
             continue
         if j not in experiments:
+            _actually_excluded_measures.append(j)
             continue
         j_na_count = experiments[j].isna().sum()
         if j_na_count == len(experiments[j]):
             warnings.warn(f"measure '{j}' is all missing data, excluding it from the metamodel")
+            _actually_excluded_measures.append(j)
             continue
         if j_na_count:
             warnings.warn(f"measure '{j}' has some missing data, excluding it from the metamodel")
+            _actually_excluded_measures.append(j)
             continue # TODO: allow for development of meta-models with the non-missing parts
         meas.append(j)
     experiment_outputs = experiments[meas]
@@ -146,7 +152,7 @@ def create_metamodel(
     scope_ = scope.duplicate(
         strip_measure_transforms=True,
         include_measures=include_measures,
-        exclude_measures=exclude_measures,
+        exclude_measures=_actually_excluded_measures,
     )
 
     result = PythonCoreModel(
