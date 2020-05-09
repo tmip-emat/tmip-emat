@@ -3,6 +3,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.3.0 -- May 2020
+
+### New Features
+
+- Added a `render_fallback` argument to `contrast_experiments`,
+  which allows for creating figures when the default renderer
+  fails.
+- The `feature_scores` and `create_metamodel` methods have been
+  made resistant to the presence of NaN data in the performance
+  measures.
+- Functions that generate plotly Scatter traces have added a
+  `use_gl` argument for improved performance on large datasets.
+- The `scope_name` argument of `Database.read_scope` is optional 
+  when there is only one scope in the database.
+
+### Changes / Removals
+
+- `create_metamodel_from_design` now raises a ValueError if there 
+  is no `db` defined.
+- `read_metamodel` now raises a KeyError instead of an IndexError
+  when the given metamodel id is not found for the given scope.
+
+  
+
 ## v0.2.0 -- September 2019
 
 ### New Features
