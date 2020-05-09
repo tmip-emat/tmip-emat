@@ -82,14 +82,23 @@ class Database(abc.ABC):
         """
 
     @abc.abstractmethod
-    def read_scope(self, scope_name):
+    def read_scope(self, scope_name=None):
         """Load the pickled scope from the database.
 
         Args:
-            scope_name (str): scope name
+            scope_name (str, optional):
+                The name of the scope to load.  If not
+                given and there is only one scope stored
+                in the database, that scope is loaded. If not
+                given and  there are multiple scopes stored in
+                the database, a KeyError is raised.
 
         Returns:
             Scope
+        Raises:
+            KeyError: If a name is given but is not found in
+                the database, or if no name is given but there
+                is more than one scope stored.
         """
 
     @abc.abstractmethod
