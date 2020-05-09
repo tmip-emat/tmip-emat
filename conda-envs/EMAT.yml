@@ -5,7 +5,6 @@ name: EMAT
 
 channels:
 - tmip
-- defaults
 - conda-forge
 - plotly
 
@@ -21,7 +20,7 @@ dependencies:
 - pydot
 - graphviz>=2.38
 - plotly>=3.2.1
-- plotly-orca  # Plotly Static Image Export
+- plotly::plotly-orca  # Plotly Static Image Export
 - ipywidgets>=7.2
 - joblib>=0.13.2
 - dask>=1.0
