@@ -2,6 +2,7 @@
 
 import pandas
 import numpy
+import warnings
 from typing import Mapping
 from ..learn.base import clone_or_construct
 from ..learn.boosting import LinearAndGaussian
@@ -17,7 +18,7 @@ _logger = get_module_logger(__name__)
 
 def create_metamodel(
         scope,
-        experiments: pandas.DataFrame,
+        experiments: pandas.DataFrame = None,
         metamodel_id: int = None,
         db=None,
         include_measures=None,
@@ -27,6 +28,7 @@ def create_metamodel(
         suppress_converge_warnings=False,
         regressor=None,
         name=None,
+        design_name=None,
 ):
     """
     Create a MetaModel from a set of input and output observations.
@@ -59,7 +61,9 @@ def create_metamodel(
             multi-target regression.  If not given, a detrended simple Gaussian
             process regression is used.
         name (str, optional): A descriptive name for this metamodel.
-
+        design_name (str, optional): The name of the design of experiments
+            from `db` to use to create the metamodel. Only used if `experiments`
+            is not given explicitly.
     Returns:
         PythonCoreModel:
             a callable object that, when called as if a
@@ -69,6 +73,11 @@ def create_metamodel(
     _logger.info("creating metamodel from data")
 
     from .core_python import PythonCoreModel
+
+    if experiments is None:
+        if design_name is None or db is None:
+            raise ValueError('must give `experiments` as a DataFrame or both `db` and `design_name`')
+        experiments = db.read_experiment_all(scope.name, design_name)
 
     experiments = scope.ensure_dtypes(experiments)
 
@@ -80,6 +89,13 @@ def create_metamodel(
             continue
         if j not in experiments:
             continue
+        j_na_count = experiments[j].isna().sum()
+        if j_na_count == len(experiments[j]):
+            warnings.warn(f"measure '{j}' is all missing data, excluding it from the metamodel")
+            continue
+        if j_na_count:
+            warnings.warn(f"measure '{j}' has some missing data, excluding it from the metamodel")
+            continue # TODO: allow for development of meta-models with the non-missing parts
         meas.append(j)
     experiment_outputs = experiments[meas]
 
