@@ -244,8 +244,15 @@ class SQLiteDB(Database):
             else:
                 raise ValueError(f'{len(candidate_ids)} metamodels for scope "{scope_name}" are stored')
 
-        name, blob = self.cur.execute(sq.GET_METAMODEL_PICKLE,
-                               [scope_name, metamodel_id]).fetchall()[0]
+        query_result = self.cur.execute(
+            sq.GET_METAMODEL_PICKLE,
+            [scope_name, metamodel_id]
+        ).fetchall()
+        try:
+            name, blob = query_result[0]
+        except IndexError:
+            raise KeyError(f"no metamodel_id {metamodel_id} for scope named '{scope_name}'")
+
         import gzip, pickle
         mm = pickle.loads(gzip.decompress(blob))
 
