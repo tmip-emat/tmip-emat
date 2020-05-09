@@ -48,7 +48,13 @@ class TestMetaModelMethods(unittest.TestCase):
 
         m.run_experiments(design_name='tiny')
 
-        mm = m.create_metamodel_from_design('tiny', random_state=123)
+        mm = emat.create_metamodel(
+            m.scope,
+            db.read_experiment_all(s.name, 'tiny'),
+            random_state=123,
+            metamodel_id=db.get_new_metamodel_id(None),
+        )
+        mm.db = db # add db after creation to prevent writing it into the db
         assert mm.scope == m.scope
 
         tiny2 = m.design_experiments(n_samples=10, design_name='tiny2', random_seed=456)
@@ -107,10 +113,15 @@ class TestMetaModelMethods(unittest.TestCase):
 
         m.run_experiments(design_name='tiny')
 
-        mm = m.create_metamodel_from_design('tiny', random_state=123)
+        mm = emat.create_metamodel(
+            m.scope,
+            db.read_experiment_all(s.name, 'tiny'),
+            random_state=123,
+            metamodel_id=db.get_new_metamodel_id(None),
+        )
 
         assert mm.scope != m.scope  # now not equal as road_test2 has transforms that are stripped.
-
+        mm.db = db
         tiny2 = m.design_experiments(n_samples=10, design_name='tiny2', random_seed=456)
 
         assert tiny2.iloc[0]['debt_type'] == 'GO Bond'
