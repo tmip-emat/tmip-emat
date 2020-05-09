@@ -139,7 +139,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         to store the complete model run results in an archive.  This
         will facilitate adding additional performance measures to the
         scope at a later time.
-                
+
         Both the scope name and experiment id can be used to create the 
         folder path. 
         
@@ -595,8 +595,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 a column for each performance measure. The index
                 for the outputs should match the index for the
                 `experiment_inputs`, so that the I-O matches row-by-row.
-            output_transforms (dict): A mapping of performance measure
-                transforms to use in meta-model estimation and application.
+            output_transforms (dict): Deprecated.  Specify the
+                output transforms directly in the scope instead.
             metamodel_id (int, optional): An identifier for this meta-model.
                 If not given, a unique id number will be created randomly.
             include_measures (Collection[str], optional): If provided, only
@@ -623,61 +623,19 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 function, accepts keyword arguments as inputs and
                 returns a dictionary of (measure name: value) pairs.
         """
-        from .core_python import PythonCoreModel
-        from .meta_model import MetaModel
-
-        db = db if db is not None else self.db
-
-        experiment_inputs = self.ensure_dtypes(experiment_inputs)
-
-        if metamodel_id is None:
-            if db is not None:
-                scope_name = self.scope.name
-                metamodel_id = db.get_new_metamodel_id(scope_name)
-            else:
-                metamodel_id = np.random.randint(1,2**63,dtype='int64')
-
-        if output_transforms is None:
-            output_transforms = {}
-
-        if include_measures is not None:
-            experiment_outputs = experiment_outputs[[i for i in include_measures
-                                                     if i in experiment_outputs.columns]]
-            output_transforms = {i: output_transforms[i]
-                                 for i in include_measures
-                                 if i in output_transforms }
-            
-        if exclude_measures is not None:
-            experiment_outputs = experiment_outputs.drop(exclude_measures, axis=1)
-            for i in exclude_measures:
-                del output_transforms[i]
-
-        disabled_outputs = [i for i in self.scope.get_measure_names()
-                            if i not in experiment_outputs.columns]
-
-        func = MetaModel(
-            experiment_inputs,
-            experiment_outputs,
-            output_transforms,
-            disabled_outputs,
-            random_state,
-            experiment_stratification,
+        from .meta_model import create_metamodel
+        return create_metamodel(
+            scope=self.scope,
+            experiments=pd.concat([experiment_inputs, experiment_outputs], axis=1),
+            metamodel_id=metamodel_id,
+            db=db,
+            include_measures=include_measures,
+            exclude_measures=exclude_measures,
+            random_state=random_state,
+            experiment_stratification=experiment_stratification,
             suppress_converge_warnings=suppress_converge_warnings,
             regressor=regressor,
-        )
-
-        scope_ = self.scope.duplicate(strip_measure_transforms=True, 
-                                      include_measures=include_measures,
-                                      exclude_measures=exclude_measures)
-
-        return PythonCoreModel(
-            func,
-            configuration = None,
-            scope=scope_,
-            safe=True,
-            db = db,
-            name=self.name+"Meta",
-            metamodel_id=metamodel_id,
+            name=None,
         )
 
     def create_metamodel_from_design(
