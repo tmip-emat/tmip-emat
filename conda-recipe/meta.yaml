@@ -9,7 +9,7 @@ source:
 
 build:
   noarch: python
-  number: 3
+  number: 0
   script: "python -m pip install . --no-deps -vv"
 
 requirements:
