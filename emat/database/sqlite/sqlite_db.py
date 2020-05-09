@@ -173,11 +173,19 @@ class SQLiteDB(Database):
         return scope.store_scope(self)
 
     @copydoc(Database.read_scope)
-    def read_scope(self, scope_name):
+    def read_scope(self, scope_name=None):
+        if scope_name is None:
+            scope_names = self.read_scope_names()
+            if len(scope_names) > 1:
+                raise ValueError("multiple scopes stored in database, you must identify one:\n -"+"\n -".join(scope_names))
+            elif len(scope_names) == 0:
+                raise ValueError("no scopes stored in database")
+            else:
+                scope_name = scope_names[0]
         try:
             blob = self.cur.execute(sq.GET_SCOPE, [scope_name]).fetchall()[0][0]
         except IndexError:
-            blob = None
+            raise KeyError(f"scope '{scope_name}' not found")
         if blob is None:
             return blob
         import gzip, cloudpickle
