@@ -281,3 +281,124 @@ iloc_sum = __IlocSumMaker()
 iloc_mean = __IlocMeanMaker()
 
 
+
+
+class MappingParser(TableParser):
+	"""
+	A tool to parse performance measure from an arbitrary mapping format.
+
+	This object provides a way to systematically extract values
+	from an output file that has a well defined name and format that defines
+	some kind of mapping (i.e. like a Python dict).  This is
+	exactly what we would expect for a files-based core model, which when
+	run (and post-processed, if applicable) will generate one or more
+	named and regularly formatted output files.
+
+	Args:
+		filename (str):
+			The name of the file in which the mapping data is stored.
+			The filename is a relative path to the file, and will be
+			evaluated relative to the `from_dir` argument in the `read`
+			method.  Generally the `from_dir` will be a directory
+			containing a set of model output files from a single model
+			run, and this `filename` will be just the name of the file,
+			unless the core model run constructs a sub-directory hierarchy
+			within the output directory (this is unusual).
+		measure_getters (Mapping[str, Getter]): A mapping that
+			relates scalar performance measure values to Getters that
+			extract values from the mapping data.
+		reader_method (Callable, default pandas.read_csv): A function that
+			accepts one positional argument (the filename to be read) and
+			optionally some keyword arguments, and returns a Python mapping
+			(i.e. a dict, or something that acts like a dict).
+		handle_errors (str, default 'raise'): How to handle errors when
+			reading a file, one of {'raise', 'nan'}
+		**kwargs (Mapping, optional): A set of fixed keyword arguments
+			that will be passed to `reader_method` each time it is called.
+
+	"""
+	def __init__(
+			self,
+			filename,
+			measure_getters,
+			reader_method = None,
+			handle_errors = 'raise',
+			**kwargs,
+	):
+		if reader_method is None:
+			import yaml
+			def safeload(f, **kw):
+				with open(f, 'rt') as fi:
+					return yaml.safe_load(fi, **kw)
+			reader_method = safeload
+		super().__init__(filename, measure_getters, reader_method, handle_errors, **kwargs)
+
+	def raw(self, from_dir):
+		"""
+		Read the raw mapping data.
+
+		This method will read the raw file, using the `reader_method`
+		defined for this `MappingParser` and any designated keyword
+		arguments for that reader, but it will not actually run
+		any of the `measure_getters` that convert the table into
+		individual performance measures.  This method is exposed for
+		users primarily to test be able to conveniently test `MappingParser`
+		objects during development.
+
+		Args:
+			from_dir (Path-like): The base directory from which to read the data.
+
+		Returns:
+			Mapping
+		"""
+		f = os.path.join(from_dir, self.filename)
+		if not os.path.exists(f):
+			raise FileNotFoundError(f)
+		return self.reader_method( f, **self.reader_kwargs, )
+
+	def read(self, from_dir):
+		"""
+		Read the performance measures.
+
+		Args:
+			from_dir (Path-like): The base directory from which to read the data.
+
+		Returns:
+			Dict: The measures read from this file.
+		"""
+		data = self.raw(from_dir)
+		result = {}
+
+		for measure_name, getter in self.measure_getters.items():
+			try:
+				result[measure_name] = getter(data)
+			except:
+				if self.handle_errors == 'nan':
+					_logger.exception(f"Error in reading {os.path.join(from_dir, self.filename)}")
+					result[measure_name] = np.nan
+				else:
+					_logger.error(f"Error in reading {os.path.join(from_dir, self.filename)}")
+					_logger.error(f"  mapping len {len(data)}")
+					_logger.error(f"  mapping {data}")
+					raise
+
+		return result
+
+	@property
+	def measure_names(self):
+		"""
+		List: the measure names contained in this TableParser.
+		"""
+		return sorted(self.measure_getters.keys())
+
+
+class _Key(SingleGetter):
+	def __call__(self, x):
+		return x[self._item[0]]
+
+class __KeyMaker:
+	def __getitem__(self, item):
+		return _Key(item)
+
+key = __KeyMaker()
+

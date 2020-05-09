@@ -1,0 +1,14 @@
+---
+# This file defines uncertainty values for the files-based
+# Road Test example.  It is intentionally a complex way
+# to implement this Python-based model, designed to
+# demonstrate how to use a files-based model called
+# from the command line.
+alpha: 0.15
+beta: 4.0
+input_flow: 100
+value_of_time: 0.01
+unit_cost_expansion: 1
+interest_rate: 0.03
+yield_curve: 0.01
+...

@@ -43,5 +43,10 @@ setup(
         ],
     },
     install_requires=install_requires,
+    entry_points={
+        'console_scripts': [
+            'emat-road-test-demo = emat.model.core_python.core_python_examples:_Road_Capacity_Investment_CmdLine',
+        ],
+    }
 )
 

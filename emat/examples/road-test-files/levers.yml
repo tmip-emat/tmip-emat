@@ -1,0 +1,13 @@
+---
+# This file defines lever values for the files-based
+# Road Test example.  It is intentionally a complex way
+# to implement this Python-based model, designed to
+# demonstrate how to use a files-based model called
+# from the command line.
+expand_capacity: 10
+amortization_period: 30
+interest_rate_lock: False
+debt_type: GO Bond
+lane_width: 10
+mandatory_unused_lever: 42
+...
