@@ -321,6 +321,8 @@ class Explore(GenericBox):
 					showlegend=False,
 					margin=dict(l=10, r=10, t=10, b=10),
 					yaxis_showticklabels=False,
+					selectdirection='h',
+					dragmode='select',
 					**styles.figure_dims,
 				),
 			)

@@ -3,6 +3,7 @@
 import numpy
 import pandas
 import plotly.graph_objs as go
+from plotly.callbacks import BoxSelector, LassoSelector
 from ipywidgets import HBox, VBox, Dropdown, Label, Text, Output
 from . import colors
 from ..util.naming import clean_name
@@ -64,6 +65,13 @@ class DataFrameViewer(HBox):
 			disabled=True,
 		)
 
+		self.selection_name = Text(
+			value='',
+			disabled=True,
+		)
+
+		self.label_expr = Label("Expression")
+
 		self.axis_choose = VBox(
 			[
 				Label("X Axis"),
@@ -74,6 +82,8 @@ class DataFrameViewer(HBox):
 				self.y_axis_scale,
 				Label("Selection"),
 				self.selection_choose,
+				self.selection_name,
+				self.label_expr,
 				self.selection_expr,
 			],
 			layout=dict(
@@ -182,6 +192,7 @@ class DataFrameViewer(HBox):
 			barmode="overlay",
 			showlegend=False,
 			margin=dict(l=10, r=10, t=10, b=10),
+			dragmode="lasso",
 		)
 
 		self.x_axis_choose.observe(self._observe_change_column_x, names='value')
@@ -671,16 +682,19 @@ class DataFrameViewer(HBox):
 				self.change_selection(self.box.inside(self.df))
 			elif payload['new'] == 'None':
 				self.change_selection(None)
-			elif payload['new'] == 'Use Lasso Target':
-				lasso_target = self._alt_selections['Use Lasso Target']
-				del self._alt_selections['Use Lasso Target']
-				self.add_alt_selection('Lasso Target', lasso_target)
-				self.selection_choose.value = 'Lasso Target'
+			elif payload['new'] == 'Use Manual Target':
+				lasso_target = self._alt_selections['Use Manual Target']
+				del self._alt_selections['Use Manual Target']
+				lasso_select_name = self.selection_name.value
+				self.add_alt_selection(lasso_select_name, lasso_target)
+				self.selection_choose.value = lasso_select_name
+				self.selection_name.disabled = True
+				self.selection_name.value = ""
 				self._clear_selection()
 			else:
 				self.change_selection(self._alt_selections[payload['new']])
 
-			if payload['new'] in ('Lasso Target', 'Use Lasso Target'):
+			if payload['new'] == 'Use Manual Target' or payload['new'] in self._alt_selections.keys():
 				self.change_selection_color(colors.DEFAULT_LASSO_COLOR)
 			elif payload['new'] == 'PRIM Target':
 				self.change_selection_color(colors.DEFAULT_PRIMTARGET_COLOR)
@@ -780,8 +794,21 @@ class DataFrameViewer(HBox):
 		s = pandas.Series(data=False, index=self.df.index)
 		for i in points.point_inds:
 			s.iloc[i] = True
-		self.add_alt_selection("Use Lasso Target", s)
 		# with self.out_logger:
 		# 	print(points)
 		# 	print(selector)
+		self.add_alt_selection("Use Manual Target", s)
+		self.selection_name.disabled = False
+		if isinstance(selector, LassoSelector):
+			default_name = "Lasso Target"
+		else:
+			default_name = "Rectangular Target"
+		if self.selection_name.value == "":
+			self.selection_name.value = default_name
+		tentative_name = self.selection_name.value
+		n=2
+		while tentative_name in self._alt_selections.keys():
+			tentative_name = f"{default_name} {n}"
+			n += 1
+		self.selection_name.value = tentative_name
 
