@@ -376,10 +376,10 @@ class DataFrameVisualizer(DataFrameExplorer):
 			for col in self._figures_freq:
 				self._update_frequencies_figure(col)
 			for key in self._two_way:
+				self._two_way[key].refresh_selection_names()
 				self._two_way[key]._on_change_selection_choose(payload={
 					'new':self.active_selection_name(),
 				})
-				self._two_way[key].refresh_selection_names()
 		finally:
 			del self._active_selection_changing_
 
@@ -615,5 +615,61 @@ class DataFrameVisualizer(DataFrameExplorer):
 	def __setitem__(self, key, value):
 		if not isinstance(key, str):
 			raise TypeError(f'selection names must be str not {type(key)}')
+		color = None
+		if value is None:
+			from ...scope.box import Box
+			value = Box(name=key, scope=self.scope)
 		if isinstance(value, GenericBox):
-			self.new_selection(value, name=key)
+			color = colors.DEFAULT_HIGHLIGHT_COLOR
+		elif isinstance(value, str):
+			color = colors.DEFAULT_EXPRESSION_COLOR
+		elif isinstance(value, pandas.Series):
+			color = colors.DEFAULT_LASSO_COLOR
+		self.new_selection(value, name=key, color=color)
+
+	def __getitem__(self, item):
+		if item not in self.selection_names():
+			return KeyError(item)
+		return self._selection_defs.get(item, None)
+
+	def prim(self, data='parameters', target=None, threshold=0.2, **kwargs):
+
+		from .prim import Prim
+
+		if target is None:
+			of_interest = self.active_selection()
+		elif isinstance(target, str):
+			of_interest = self._selections[target]
+		else:
+			raise ValueError("must give a target")
+
+		if data == 'parameters':
+			data_ = self.data[self.scope.get_parameter_names()]
+		elif data == 'levers':
+			data_ = self.data[self.scope.get_lever_names()]
+		elif data == 'uncertainties':
+			data_ = self.data[self.scope.get_uncertainty_names()]
+		elif data == 'measures':
+			data_ = self.data[self.scope.get_measure_names()]
+		elif data == 'all':
+			data_ = self.data
+		else:
+			data_ = self.data[data]
+
+		self._prim_target = of_interest
+
+		if (of_interest).all():
+			raise ValueError("all points are in the target, cannot run PRIM")
+		if (~of_interest).all():
+			raise ValueError("no points are in the target, cannot run PRIM")
+
+		result = Prim(
+			data_,
+			of_interest,
+			threshold=threshold,
+			**kwargs,
+		)
+
+		result._explorer = self
+
+		return result

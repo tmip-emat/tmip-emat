@@ -53,8 +53,13 @@ class DataFrameExplorerBase():
 			name = self._active_selection_name
 		assert isinstance(name, str)
 		if isinstance(values, GenericBox):
+			proposal = values.inside(self.data)
 			self._selection_defs[name] = values
-			values = values.inside(self.data)
+			values = proposal
+		if isinstance(values, str):
+			proposal = self.data.eval(values).fillna(0).astype(bool)
+			self._selection_defs[name] = values
+			values = proposal
 		assert isinstance(values, pandas.Series)
 		self._selections[name] = values
 		if self._selections[name].dtype != numpy.bool:
@@ -119,6 +124,8 @@ class DataFrameExplorerBase():
 			return 'explicit'
 		if isinstance(self._selection_defs[name], GenericBox):
 			return 'box'
+		if isinstance(self._selection_defs[name], str):
+			return 'expression'
 		return 'unknown'
 
 class DataFrameExplorer(DataFrameExplorerBase):

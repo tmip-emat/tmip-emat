@@ -7,6 +7,7 @@ from ipywidgets import HBox, VBox, Dropdown, Label, Text, Output
 from ...viz import colors
 from ...util.naming import clean_name
 from .explore_visualizer import DataFrameVisualizer
+from .menu import Menu
 
 import logging
 _logger = logging.getLogger('EMAT.widget')
@@ -62,6 +63,13 @@ class TwoWayFigure(HBox):
 			value='None',
 		)
 
+		self.selection_edit_menu = Menu(
+			"Edit Selection...",
+			{
+				"Use Manual Selection":self._use_manual_selection,
+			}
+		)
+
 		self.selection_expr = Text(
 			value='True',
 			disabled=True,
@@ -83,7 +91,8 @@ class TwoWayFigure(HBox):
 				self.y_axis_choose,
 				self.y_axis_scale,
 				Label("Selection"),
-				self.selection_choose,
+				self._dfv._active_selection_chooser,
+				self.selection_edit_menu,
 				self.selection_name,
 				self.label_expr,
 				self.selection_expr,
@@ -675,6 +684,18 @@ class TwoWayFigure(HBox):
 	def _selection_eval(self, txt):
 		df = self._dfv.data.rename(columns={i: clean_name(i) for i in self._dfv.data.columns})
 		return df.eval(txt).astype(bool)
+
+	def _use_manual_selection(self):
+		if 'Use Manual Target' not in self._alt_selections:
+			return
+		lasso_target = self._alt_selections['Use Manual Target']
+		del self._alt_selections['Use Manual Target']
+		lasso_select_name = self.selection_name.value
+		self._dfv.new_selection(lasso_target, lasso_select_name, color=colors.DEFAULT_LASSO_COLOR, activate=True)
+		self.refresh_selection_names()
+		self.selection_name.disabled = True
+		self.selection_name.value = ""
+		self._clear_selection()
 
 	def _on_change_selection_choose(self, payload):
 		if "on_change_selection_choose" in self._update_state_: return
