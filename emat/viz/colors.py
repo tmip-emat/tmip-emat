@@ -7,8 +7,19 @@ DEFAULT_HIGHLIGHT_COLOR = 'rgb(255, 127, 14)' # Orange
 DEFAULT_LASSO_COLOR = 'rgb(255, 46, 241)'     # Hot Pink
 DEFAULT_PRIMTARGET_COLOR = 'rgb(227, 20, 20)' # Red
 DEFAULT_EXPRESSION_COLOR = 'rgb(227, 20, 20)' # Red
-DEFAULT_BOX_BG_COLOR = '#2ca02c'
-DEFAULT_BOX_LINE_COLOR = '#2ca02c'
+DEFAULT_BOX_BG_COLOR = '#2ca02c'    # Green
+DEFAULT_BOX_LINE_COLOR = '#2ca02c'  # Green
+DEFAULT_REF_LINE_COLOR = '#000000'  # Black
+
+DEFAULT_REF_LINE_STYLE = dict(
+	line=dict(
+		width=2,
+		color=DEFAULT_REF_LINE_COLOR,
+		dash="dot",
+	),
+	opacity=0.8,
+)
+
 
 color_names = {
 	'#000000':'Black'	,

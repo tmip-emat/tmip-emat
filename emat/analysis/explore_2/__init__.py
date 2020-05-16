@@ -1,4 +1,4 @@
-from .explore_visualizer import DataFrameVisualizer
+from .explore_visualizer import Visualizer
 from .twoway import TwoWayFigure
 
 

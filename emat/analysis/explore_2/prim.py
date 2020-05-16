@@ -207,8 +207,8 @@ class PrimBox(ema_workbench.analysis.prim.PrimBox):
 
 	def explore(self, scope=None, data=None):
 		if getattr(self, '_explorer', None) is None:
-			from .explore_visualizer import DataFrameVisualizer
-			self._explorer = DataFrameVisualizer(scope=scope, data=data)
+			from .explore_visualizer import Visualizer
+			self._explorer = Visualizer(scope=scope, data=data)
 			self._explorer["PRIM Target"] = self.to_emat_box()
 		return self._explorer
 

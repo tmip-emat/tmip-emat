@@ -6,7 +6,7 @@ from plotly.callbacks import BoxSelector, LassoSelector
 from ipywidgets import HBox, VBox, Dropdown, Label, Text, Output
 from ...viz import colors
 from ...util.naming import clean_name
-from .explore_visualizer import DataFrameVisualizer
+from .explore_visualizer import Visualizer
 from .menu import Menu
 
 import logging
@@ -29,7 +29,7 @@ class TwoWayFigure(HBox):
 			minimum_marker_opacity=0.25,
 			use_gl=True,
 	):
-		assert isinstance(dfv, DataFrameVisualizer)
+		assert isinstance(dfv, Visualizer)
 		self._dfv = dfv
 
 		self._alt_selections = {}
@@ -80,8 +80,6 @@ class TwoWayFigure(HBox):
 			disabled=True,
 		)
 
-		self.label_expr = Label("Expression")
-
 		self.axis_choose = VBox(
 			[
 				Label("X Axis"),
@@ -94,8 +92,6 @@ class TwoWayFigure(HBox):
 				self._dfv._active_selection_chooser,
 				self.selection_edit_menu,
 				self.selection_name,
-				self.label_expr,
-				self.selection_expr,
 			],
 			layout=dict(
 				overflow='hidden',
@@ -586,100 +582,132 @@ class TwoWayFigure(HBox):
 		from ...scope.box import Bounds
 		x_label = self.x_axis_choose.value
 		y_label = self.y_axis_choose.value
+		background_shapes, foreground_shapes = [], []
 
-		if self._dfv.active_selection_deftype() != 'box':
-			self.graph.layout.shapes = []
-			return
+		if self._dfv.active_selection_deftype() == 'box':
 
-		box = self._dfv._selection_defs[self._dfv.active_selection_name()]
+			box = self._dfv._selection_defs[self._dfv.active_selection_name()]
 
-		if x_label in box.thresholds or y_label in box.thresholds:
-			x_lo, x_hi = None, None
-			thresh = box.thresholds.get(x_label)
-			if isinstance(thresh, Bounds):
-				x_lo, x_hi = thresh
-			if isinstance(thresh, set):
-				x_lo, x_hi = [], []
-				for tickval, ticktext in zip(self._x_tickvals, self._x_ticktext):
-					if ticktext in thresh:
-						x_lo.append(tickval -0.3)
-						x_hi.append(tickval +0.3)
-			if x_lo is None:
-				x_lo = self._x.min( ) -self._x_data_width * 0.02
-			if x_hi is None:
-				x_hi = self._x.max( ) +self._x_data_width * 0.02
-			if not isinstance(x_lo, list):
-				x_lo = [x_lo]
-			if not isinstance(x_hi, list):
-				x_hi = [x_hi]
+			if x_label in box.thresholds or y_label in box.thresholds:
+				x_lo, x_hi = None, None
+				thresh = box.thresholds.get(x_label)
+				if isinstance(thresh, Bounds):
+					x_lo, x_hi = thresh
+				if isinstance(thresh, set):
+					x_lo, x_hi = [], []
+					for tickval, ticktext in zip(self._x_tickvals, self._x_ticktext):
+						if ticktext in thresh:
+							x_lo.append(tickval -0.3)
+							x_hi.append(tickval +0.3)
+				if x_lo is None:
+					x_lo = self._x.min( ) -self._x_data_width * 0.02
+				if x_hi is None:
+					x_hi = self._x.max( ) +self._x_data_width * 0.02
+				if not isinstance(x_lo, list):
+					x_lo = [x_lo]
+				if not isinstance(x_hi, list):
+					x_hi = [x_hi]
 
-			y_lo, y_hi = None, None
-			thresh = box.thresholds.get(y_label)
-			if isinstance(thresh, Bounds):
-				y_lo, y_hi = thresh
-			if isinstance(thresh, set):
-				y_lo, y_hi = [], []
-				for tickval, ticktext in zip(self._y_tickvals, self._y_ticktext):
-					if ticktext in thresh:
-						y_lo.append(tickval -0.3)
-						y_hi.append(tickval +0.3)
-			if y_lo is None:
-				y_lo = self._y.min( ) -self._y_data_width * 0.02
-			if y_hi is None:
-				y_hi = self._y.max( ) +self._y_data_width * 0.02
-			if not isinstance(y_lo, list):
-				y_lo = [y_lo]
-			if not isinstance(y_hi, list):
-				y_hi = [y_hi]
+				y_lo, y_hi = None, None
+				thresh = box.thresholds.get(y_label)
+				if isinstance(thresh, Bounds):
+					y_lo, y_hi = thresh
+				if isinstance(thresh, set):
+					y_lo, y_hi = [], []
+					for tickval, ticktext in zip(self._y_tickvals, self._y_ticktext):
+						if ticktext in thresh:
+							y_lo.append(tickval -0.3)
+							y_hi.append(tickval +0.3)
+				if y_lo is None:
+					y_lo = self._y.min( ) -self._y_data_width * 0.02
+				if y_hi is None:
+					y_hi = self._y.max( ) +self._y_data_width * 0.02
+				if not isinstance(y_lo, list):
+					y_lo = [y_lo]
+				if not isinstance(y_hi, list):
+					y_hi = [y_hi]
 
-			x_pairs = list(zip(x_lo, x_hi))
-			y_pairs = list(zip(y_lo, y_hi))
+				x_pairs = list(zip(x_lo, x_hi))
+				y_pairs = list(zip(y_lo, y_hi))
 
-			background_shapes = [
-				# Rectangle background color
+				background_shapes += [
+					# Rectangle background color
+					go.layout.Shape(
+						type="rect",
+						xref="x1",
+						yref="y1",
+						x0=x_pair[0],
+						y0=y_pair[0],
+						x1=x_pair[1],
+						y1=y_pair[1],
+						line=dict(
+							width=0,
+						),
+						fillcolor=colors.DEFAULT_BOX_BG_COLOR,
+						opacity=0.2,
+						layer="below",
+					)
+					for x_pair in x_pairs
+					for y_pair in y_pairs
+				]
+
+				foreground_shapes += [
+					# Rectangle reference to the axes
+					go.layout.Shape(
+						type="rect",
+						xref="x1",
+						yref="y1",
+						x0=x_pair[0],
+						y0=y_pair[0],
+						x1=x_pair[1],
+						y1=y_pair[1],
+						line=dict(
+							width=1,
+							color=colors.DEFAULT_BOX_LINE_COLOR,
+						),
+						fillcolor='rgba(0,0,0,0)',
+						opacity=1.0,
+					)
+					for x_pair in x_pairs
+					for y_pair in y_pairs
+				]
+
+		x_refpoint = self._dfv.reference_point(x_label)
+		y_refpoint = self._dfv.reference_point(y_label)
+
+		if x_refpoint is not None:
+			_y_lo = self._y.min( ) -self._y_data_width * 0.02
+			_y_hi = self._y.max( ) +self._y_data_width * 0.02
+			foreground_shapes.append(
 				go.layout.Shape(
-					type="rect",
+					type="line",
 					xref="x1",
 					yref="y1",
-					x0=x_pair[0],
-					y0=y_pair[0],
-					x1=x_pair[1],
-					y1=y_pair[1],
-					line=dict(
-						width=0,
-					),
-					fillcolor=colors.DEFAULT_BOX_BG_COLOR,
-					opacity=0.2,
-					layer="below",
+					y0=_y_lo,
+					x0=x_refpoint,
+					y1=_y_hi,
+					x1=x_refpoint,
+					**colors.DEFAULT_REF_LINE_STYLE,
 				)
-				for x_pair in x_pairs
-				for y_pair in y_pairs
-			]
+			)
 
-			foreground_shapes = [
-				# Rectangle reference to the axes
+		if y_refpoint is not None:
+			_x_lo = self._x.min( ) -self._x_data_width * 0.02
+			_x_hi = self._x.max( ) +self._x_data_width * 0.02
+			foreground_shapes.append(
 				go.layout.Shape(
-					type="rect",
+					type="line",
 					xref="x1",
 					yref="y1",
-					x0=x_pair[0],
-					y0=y_pair[0],
-					x1=x_pair[1],
-					y1=y_pair[1],
-					line=dict(
-						width=1,
-						color=colors.DEFAULT_BOX_LINE_COLOR,
-					),
-					fillcolor='rgba(0,0,0,0)',
-					opacity=1.0,
+					x0=_x_lo,
+					y0=y_refpoint,
+					x1=_x_hi,
+					y1=y_refpoint,
+					**colors.DEFAULT_REF_LINE_STYLE,
 				)
-				for x_pair in x_pairs
-				for y_pair in y_pairs
-			]
+			)
 
-			self.graph.layout.shapes = background_shapes +foreground_shapes
-		else:
-			self.graph.layout.shapes =[]
+		self.graph.layout.shapes = background_shapes +foreground_shapes
 
 	def _selection_eval(self, txt):
 		df = self._dfv.data.rename(columns={i: clean_name(i) for i in self._dfv.data.columns})

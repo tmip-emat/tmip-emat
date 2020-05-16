@@ -26,7 +26,7 @@ def _y_maximum(fig):
 # def _debugprint(s):
 # 	print(s.replace("rgb(255, 127, 14)", "<ORANGE>").replace("rgb(255, 46, 241)","<PINK>"))
 
-class DataFrameVisualizer(DataFrameExplorer):
+class Visualizer(DataFrameExplorer):
 
 	def __init__(
 			self,
@@ -34,11 +34,13 @@ class DataFrameVisualizer(DataFrameExplorer):
 			selections=None,
 			scope=None,
 			active_selection_name=None,
+			reference_point=None,
 	):
 		super().__init__(
 			data,
 			selections=selections,
 			active_selection_name=active_selection_name,
+			reference_point=reference_point,
 		)
 		self.scope = scope
 		self._figures_hist = {}
@@ -60,7 +62,7 @@ class DataFrameVisualizer(DataFrameExplorer):
 				textfont_size=10,
 				marker=dict(
 					colors=[
-						colors.DEFAULT_HIGHLIGHT_COLOR,
+						self.active_selection_color(),
 						colors.DEFAULT_BASE_COLOR,
 					],
 					line=dict(color='#FFF', width=0.25),
@@ -74,7 +76,10 @@ class DataFrameVisualizer(DataFrameExplorer):
 			)
 		)
 		self._status = widget.HBox(
-			[self._status_txt, self._status_pie],
+			[
+				widget.VBox([self._active_selection_chooser, self._status_txt]),
+				self._status_pie
+			],
 			layout=dict(
 				justify_content = 'space-between',
 				align_items = 'center',
@@ -120,7 +125,7 @@ class DataFrameVisualizer(DataFrameExplorer):
 						y=bar_heights_select,
 						width=bins_width,
 						name='Inside',
-						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+						marker_color=self.active_selection_color(),
 						marker_line_width=marker_line_width,
 						hoverinfo='skip',
 					),
@@ -179,7 +184,7 @@ class DataFrameVisualizer(DataFrameExplorer):
 						x=labels,
 						y=bar_heights_select,
 						name='Inside',
-						marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+						marker_color=self.active_selection_color(),
 						hoverinfo='none',
 					),
 					go.Bar(
@@ -325,7 +330,7 @@ class DataFrameVisualizer(DataFrameExplorer):
 		select_min = int(numpy.ceil(select_min))
 		select_max = int(numpy.ceil(select_max))
 
-		fig = self._get_figure(name)
+		fig = self.get_figure(name)
 
 		toggles = fig.data[0].x[select_min:select_max]
 		fig.for_each_trace(_deselect_all_points)
@@ -369,17 +374,18 @@ class DataFrameVisualizer(DataFrameExplorer):
 			return # prevent recursive looping
 		try:
 			self._active_selection_changing_ = True
-			super()._active_selection_changed()
-			self._update_status()
-			for col in self._figures_hist:
-				self._update_histogram_figure(col)
-			for col in self._figures_freq:
-				self._update_frequencies_figure(col)
-			for key in self._two_way:
-				self._two_way[key].refresh_selection_names()
-				self._two_way[key]._on_change_selection_choose(payload={
-					'new':self.active_selection_name(),
-				})
+			with self._status_pie.batch_update():
+				super()._active_selection_changed()
+				self._update_status()
+				for col in self._figures_hist:
+					self._update_histogram_figure(col)
+				for col in self._figures_freq:
+					self._update_frequencies_figure(col)
+				for key in self._two_way:
+					self._two_way[key].refresh_selection_names()
+					self._two_way[key]._on_change_selection_choose(payload={
+						'new':self.active_selection_name(),
+					})
 		finally:
 			del self._active_selection_changing_
 
@@ -395,7 +401,7 @@ class DataFrameVisualizer(DataFrameExplorer):
 
 
 
-	def _get_figure(self, col):
+	def get_figure(self, col):
 		if col in self._figures_hist:
 			return self._figures_hist[col]
 		if col in self._figures_freq:
@@ -403,9 +409,33 @@ class DataFrameVisualizer(DataFrameExplorer):
 		return None
 
 	def _clear_boxes_on_figure(self, col):
-		fig = self._get_figure(col)
+		fig = self.get_figure(col)
 		if fig is None: return
-		fig.layout.shapes = []
+
+		foreground_shapes = []
+		refpoint = self.reference_point(col)
+		if refpoint is not None:
+			if refpoint in (True, False):
+				refpoint = str(refpoint).lower()
+			_y_max = sum(t.y for t in fig.select_traces()).max()
+			y_range = (
+				-_y_max * 0.02,
+				_y_max * 1.04,
+			)
+			foreground_shapes.append(
+				go.layout.Shape(
+					type="line",
+					xref="x1",
+					yref="y1",
+					x0=refpoint,
+					y0=y_range[0],
+					x1=refpoint,
+					y1=y_range[1],
+					**colors.DEFAULT_REF_LINE_STYLE,
+				)
+			)
+
+		fig.layout.shapes= foreground_shapes
 		fig.layout.title.font.color = 'black'
 		fig.layout.title.text = col
 
@@ -415,7 +445,7 @@ class DataFrameVisualizer(DataFrameExplorer):
 			self._clear_boxes_on_figure(col)
 			return
 
-		fig = self._get_figure(col)
+		fig = self.get_figure(col)
 		if fig is None: return
 		box = self._selection_defs[self.active_selection_name()]
 		if box is None:
@@ -517,6 +547,23 @@ class DataFrameVisualizer(DataFrameExplorer):
 				for y_pair in y_pairs
 			]
 
+			refpoint = self.reference_point(col)
+			if refpoint is not None:
+				if refpoint in (True, False):
+					refpoint = str(refpoint).lower()
+				foreground_shapes.append(
+					go.layout.Shape(
+						type="line",
+						xref="x1",
+						yref="y1",
+						x0=refpoint,
+						y0=y_range[0],
+						x1=refpoint,
+						y1=y_range[1],
+						**colors.DEFAULT_REF_LINE_STYLE,
+					)
+				)
+
 			fig.layout.shapes=background_shapes+foreground_shapes
 			fig.layout.title.font.color = colors.DEFAULT_BOX_LINE_COLOR
 			fig.layout.title.text = f'<b>{col}</b>'
@@ -577,8 +624,13 @@ class DataFrameVisualizer(DataFrameExplorer):
 
 	def refresh_selection_names(self):
 		super().refresh_selection_names()
-		for k, twoway in self._two_way.items():
-			twoway.refresh_selection_names()
+		try:
+			_two_way = self._two_way
+		except AttributeError:
+			pass
+		else:
+			for k, twoway in _two_way.items():
+				twoway.refresh_selection_names()
 
 	def two_way(
 			self,

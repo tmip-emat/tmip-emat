@@ -22,9 +22,18 @@ class DataFrameExplorerBase():
 			data,
 			selections=None,
 			active_selection_name=None,
+			reference_point=None,
 	):
 		assert isinstance(data, pandas.DataFrame)
 		self.data = data
+		if isinstance(selections, dict):
+			make_selections = selections
+			selections = None
+		elif isinstance(selections, pandas.DataFrame):
+			make_selections = None
+		else:
+			make_selections = {getattr(v, 'name', str(v)):v for v in selections}
+			selections = None
 		if selections is None:
 			selections = pandas.DataFrame(
 				data=True,
@@ -35,13 +44,17 @@ class DataFrameExplorerBase():
 		self._selections = selections
 		self._selection_defs = {}
 		self._colors = {}
+		self._update_state_ = set()
+		self._reference_point = reference_point
+		if make_selections:
+			for k,v in make_selections.items():
+				self.new_selection(v, name=k, activate=False)
 		if active_selection_name is None:
 			active_selection_name = self.selection_names()[0]
 		else:
 			if active_selection_name not in self.selection_names:
 				raise KeyError(f"active_selection_name '{active_selection_name}' not found")
 		self._active_selection_name = active_selection_name
-		self._update_state_ = set()
 
 	def selection_names(self):
 		return self._selections.columns
@@ -128,6 +141,16 @@ class DataFrameExplorerBase():
 			return 'expression'
 		return 'unknown'
 
+	def reference_point(self, column):
+		if self._reference_point is None:
+			return None
+		return self._reference_point.get(column, None)
+
+	def set_reference_point(self, column, value):
+		if self._reference_point is None:
+			self._reference_point = {}
+		self._reference_point[column] = value
+
 class DataFrameExplorer(DataFrameExplorerBase):
 
 	def __init__(
@@ -135,11 +158,13 @@ class DataFrameExplorer(DataFrameExplorerBase):
 			data,
 			selections=None,
 			active_selection_name=None,
+			reference_point=None,
 	):
 		super().__init__(
 			data,
 			selections=selections,
 			active_selection_name=active_selection_name,
+			reference_point=reference_point,
 		)
 		self._active_selection_chooser = Dropdown(
 			options=self.selection_names(),
@@ -177,5 +202,7 @@ class DataFrameExplorer(DataFrameExplorerBase):
 			except:
 				# The old value is gone, reset to the new selection value
 				self.set_active_selection_name(self._active_selection_chooser.value)
+		except AttributeError:
+			pass
 		finally:
 			self._update_state_.discard("refresh_selection_names")
