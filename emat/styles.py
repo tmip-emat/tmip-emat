@@ -15,8 +15,12 @@ togglebuttons_layout = widgets.Layout(
 )
 
 figure_dims = dict(
-    width=250,
-    height=150,
+    width=300,
+    height=175,
+)
+
+figure_margins = dict(
+    l=10, r=10, t=40, b=10,
 )
 
 widget_frame = dict(
