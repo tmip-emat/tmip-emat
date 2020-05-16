@@ -36,6 +36,12 @@ class Visualizer(DataFrameExplorer):
 			active_selection_name=None,
 			reference_point=None,
 	):
+		if selections is None:
+			from ...scope.box import Box
+			selections = {'Explore': Box(name='Explore', scope=scope)}
+			if active_selection_name is None:
+				active_selection_name = 'Explore'
+
 		super().__init__(
 			data,
 			selections=selections,
@@ -85,6 +91,7 @@ class Visualizer(DataFrameExplorer):
 				align_items = 'center',
 			)
 		)
+		self._update_status()
 
 	def get_histogram_figure(self, col, bins=20, marker_line_width=None):
 		try:
@@ -725,3 +732,23 @@ class Visualizer(DataFrameExplorer):
 		result._explorer = self
 
 		return result
+
+
+	def clear_box(self, name=None):
+		if name is None:
+			name = self.active_selection_name()
+		if self.selection_deftype(name) == 'box':
+			box = self._selection_defs[self.active_selection_name()]
+			box.clear()
+			self[name] = box
+
+	def new_box(self, name, **kwargs):
+		from ...scope.box import Box
+		scope = kwargs.pop('scope', self.scope)
+		activate = kwargs.pop('activate', True)
+		self.new_selection(
+			Box(name, scope=scope, **kwargs),
+			name=name,
+			color=colors.DEFAULT_HIGHLIGHT_COLOR,
+			activate=activate,
+		)

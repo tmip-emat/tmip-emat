@@ -1297,3 +1297,17 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 print("policies=", policies, file=notes)
 
         return robust_results
+
+    def io_experiment(self, params):
+        """
+        Run an experiment, and return a dictionary of inputs and outputs together.
+
+        Args:
+            params: dict
+
+        Returns:
+            dict
+        """
+        out = self.run_experiment(params).copy()
+        out.update(params)
+        return out

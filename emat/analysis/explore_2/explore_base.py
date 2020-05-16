@@ -29,7 +29,7 @@ class DataFrameExplorerBase():
 		if isinstance(selections, dict):
 			make_selections = selections
 			selections = None
-		elif isinstance(selections, pandas.DataFrame):
+		elif isinstance(selections, pandas.DataFrame) or selections is None:
 			make_selections = None
 		else:
 			make_selections = {getattr(v, 'name', str(v)):v for v in selections}
@@ -52,7 +52,7 @@ class DataFrameExplorerBase():
 		if active_selection_name is None:
 			active_selection_name = self.selection_names()[0]
 		else:
-			if active_selection_name not in self.selection_names:
+			if active_selection_name not in self.selection_names():
 				raise KeyError(f"active_selection_name '{active_selection_name}' not found")
 		self._active_selection_name = active_selection_name
 

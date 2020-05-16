@@ -461,6 +461,10 @@ class Scope:
         """Get a list of model parameters (uncertainties+levers+constants)."""
         return self.get_constants()+self.get_uncertainties()+self.get_levers()
 
+    def get_parameter_defaults(self):
+        """Get a dict of default values of model parameters (uncertainties+levers+constants)."""
+        return {p.name:p.default for p in self.get_parameters()}
+
     def get_measures(self):
         """Get a list of performance measures."""
         return [i for i in self._m_list]
