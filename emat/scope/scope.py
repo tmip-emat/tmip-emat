@@ -117,11 +117,11 @@ class Scope:
                 if x_attr_type == 'missing':
                     raise ScopeFormatError(f'inputs:{x_name} is missing ptype, must be uncertainty, lever, or constant')
                 if not isinstance(x_attr_type, str):
-                    raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr_type}')
+                    raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr_type}, it must be uncertainty, lever, or constant')
                 try:
                     x_attr_type = standardize_parameter_type(x_attr_type)
                 except ValueError:
-                    raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr.get("ptype")}')
+                    raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr.get("ptype")}, it must be uncertainty, lever, or constant')
 
                 try:
                     p = make_parameter(x_name, **x_attr)
