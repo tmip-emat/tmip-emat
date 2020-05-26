@@ -17,7 +17,7 @@ from sklearn import tree
 
 from . import scenario_discovery_util as sdutil
 from ..util import get_module_logger
-from ema_workbench.util.ema_exceptions import EMAError
+from ..util.ema_exceptions import EMAError
 from pygments.unistring import cats
 
 # Created on May 22, 2015

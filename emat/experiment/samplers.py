@@ -6,7 +6,7 @@ import operator
 from scipy import stats
 from typing import Mapping
 
-from ema_workbench.em_framework.samplers import (
+from ..workbench.em_framework.samplers import (
     AbstractSampler,
     LHSSampler,
     UniformLHSSampler,

@@ -1,5 +1,5 @@
 
-from ema_workbench.em_framework.evaluators import BaseEvaluator, SequentialEvaluator
+from ..workbench.em_framework.evaluators import BaseEvaluator, SequentialEvaluator
 
 
 def prepare_evaluator(evaluator, model):
@@ -18,7 +18,7 @@ def prepare_evaluator(evaluator, model):
 	if not isinstance(evaluator, BaseEvaluator):
 		from dask.distributed import Client
 		if isinstance(evaluator, Client):
-			from ema_workbench.em_framework.ema_distributed import DistributedEvaluator
+			from ..workbench.em_framework.ema_distributed import DistributedEvaluator
 			evaluator = DistributedEvaluator(model, client=evaluator)
 
 	return evaluator

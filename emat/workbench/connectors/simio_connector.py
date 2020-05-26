@@ -13,9 +13,9 @@ clr.AddReference('SimioDLL')
 clr.AddReference('SimioAPI')
 import SimioAPI  # @UnresolvedImport
 
-from ema_workbench.em_framework import FileModel, SingleReplication
-from ema_workbench.util import CaseError, EMAError
-from ema_workbench.util.ema_logging import get_module_logger, method_logger
+from ..em_framework import FileModel, SingleReplication
+from ..util import CaseError, EMAError
+from ..util.ema_logging import get_module_logger, method_logger
 
 # Created on 27 June 2019
 #

@@ -1,5 +1,5 @@
 
-from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
+from ..workbench.em_framework.samplers import sample_uncertainties, sample_levers
 import platypus
 import numpy
 

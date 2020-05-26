@@ -10,7 +10,7 @@ from ..util import ema_logging
 from .parameters import experiment_generator, Case
 from ..util.ema_exceptions import EMAError, CaseError
 
-from ema_workbench.util import get_module_logger
+from ..util import get_module_logger
 _logger = get_module_logger(__name__)
 
 from dask.distributed import Client, as_completed, get_worker

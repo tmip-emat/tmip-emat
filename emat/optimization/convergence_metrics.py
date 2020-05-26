@@ -1,5 +1,5 @@
 
-from ema_workbench.em_framework.optimization import AbstractConvergenceMetric, Hypervolume, to_dataframe
+from ..workbench.em_framework.optimization import AbstractConvergenceMetric, Hypervolume, to_dataframe
 import pandas
 import platypus
 from ..viz.line import line_graph

@@ -4,8 +4,8 @@ import textwrap
 import plotly.graph_objs as go
 import itertools
 
-from ema_workbench.em_framework.parameters import Category, CategoricalParameter, BooleanParameter
-from ema_workbench.em_framework.outcomes import ScalarOutcome
+from ..workbench.em_framework.parameters import Category, CategoricalParameter, BooleanParameter
+from ..workbench.em_framework.outcomes import ScalarOutcome
 
 from ipywidgets import VBox, HBox, Checkbox, Accordion
 from ..analysis.widgets import NamedCheckbox

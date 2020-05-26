@@ -1,6 +1,6 @@
 
 import seaborn as sns
-from ema_workbench.analysis import feature_scoring
+from ..workbench.analysis import feature_scoring
 from ..viz import heatmap_table
 
 

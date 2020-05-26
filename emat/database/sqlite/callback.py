@@ -2,9 +2,9 @@
 import pandas as pd
 import numpy as np
 
-from ema_workbench import RealParameter, IntegerParameter, BooleanParameter, CategoricalParameter
-from ema_workbench.em_framework.callbacks import AbstractCallback
-from ema_workbench.util.ema_exceptions import EMAError
+from ...workbench import RealParameter, IntegerParameter, BooleanParameter, CategoricalParameter
+from ...workbench.em_framework.callbacks import AbstractCallback
+from ...workbench.util.ema_exceptions import EMAError
 
 from ...util.loggers import get_module_logger
 from ..._pkg_constants import *

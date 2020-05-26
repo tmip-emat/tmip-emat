@@ -6,7 +6,7 @@ import inspect
 import pandas
 
 from typing import Union, Mapping, Callable, Collection
-from ema_workbench.em_framework import Model as WorkbenchModel
+from ...workbench.em_framework import Model as WorkbenchModel
 
 from ...scope.scope import Scope
 from ...database.database import Database

@@ -2,7 +2,7 @@
 
 import numpy
 import re
-from ema_workbench import ScalarOutcome
+from ..workbench import ScalarOutcome
 from .names import ShortnameMixin
 
 class Measure(ScalarOutcome, ShortnameMixin):

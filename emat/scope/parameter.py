@@ -3,7 +3,7 @@ import numbers
 from typing import Collection, Any, Mapping
 import numpy
 
-from ema_workbench.em_framework import parameters as workbench_param
+from ..workbench.em_framework import parameters as workbench_param
 from scipy import stats
 from scipy.stats._distn_infrastructure import rv_frozen
 

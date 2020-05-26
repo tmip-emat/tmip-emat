@@ -13,7 +13,7 @@ import numpy as np
 from matplotlib.collections import PolyCollection, PathCollection
 from matplotlib.colors import ColorConverter
 
-from ema_workbench.util import get_module_logger
+from ..util import get_module_logger
 from ..util import EMAError
 
 

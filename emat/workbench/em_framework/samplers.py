@@ -16,7 +16,7 @@ from . import util
 from .parameters import (IntegerParameter, Policy, Scenario,
                          BooleanParameter, CategoricalParameter,
                          Category)
-from ema_workbench.util.ema_exceptions import EMAError
+from ..util.ema_exceptions import EMAError
 
 # Created on 16 aug. 2011
 #
@@ -597,7 +597,7 @@ class DefaultDesigns(object):
 
     def __str__(self):
 
-        return ("ema_workbench.DefaultDesigns, "
+        return ("emat.workbench.DefaultDesigns, "
                 "{} designs on {} parameters").format(self.n, len(self.params))
 
     def __len__(self):

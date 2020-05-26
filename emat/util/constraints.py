@@ -1,6 +1,6 @@
 
 import pandas
-from ema_workbench import Constraint
+from ..workbench import Constraint
 
 def batch_contraint_check(
 		constraints,

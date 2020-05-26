@@ -8,8 +8,8 @@ import os
 import pysd
 
 from ..em_framework.model import AbstractModel
-from ema_workbench.util.ema_logging import method_logger
-from ema_workbench.em_framework.model import SingleReplication
+from ..util.ema_logging import method_logger
+from ..em_framework.model import SingleReplication
 
 __all__ = ['PysdModel']
 

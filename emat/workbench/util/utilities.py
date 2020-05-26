@@ -23,7 +23,6 @@ import pandas as pd
 from pandas.io.parsers import read_csv
 
 from . import EMAError, get_module_logger
-import ema_workbench
 
 PY3 = sys.version_info[0] == 3
 if PY3:
@@ -256,7 +255,8 @@ def experiments_to_scenarios(experiments, model=None):
             cases.append(case)
             cache.add((case_tuple))
 
-    scenarios = [ema_workbench.em_framework.parameters.Scenario(
+    from ...workbench.em_framework.parameters import Scenario
+    scenarios = [Scenario(
         **entry) for entry in cases]
 
     return scenarios

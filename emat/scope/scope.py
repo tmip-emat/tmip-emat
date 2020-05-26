@@ -5,8 +5,8 @@ import numpy
 import yaml
 import warnings
 import itertools
-from ema_workbench import ScalarOutcome
-from ema_workbench.em_framework.parameters import Category
+from ..workbench import ScalarOutcome
+from ..workbench.em_framework.parameters import Category
 from typing import Mapping
 from scipy.stats._distn_infrastructure import rv_frozen
 
@@ -679,9 +679,9 @@ class Scope:
                 with these values.
 
         Returns:
-            ema_workbench.Policy
+            emat.workbench.Policy
         """
-        from ema_workbench import Policy
+        from ..workbench import Policy
         values = {l.name: l.default for l in self.get_levers()}
         values.update(kwargs)
         return Policy('default', **values)
@@ -696,9 +696,9 @@ class Scope:
                 with these values.
 
         Returns:
-            ema_workbench.Scenario
+            emat.workbench.Scenario
         """
-        from ema_workbench import Scenario
+        from ..workbench import Scenario
         values = {u.name: u.default for u in self.get_uncertainties()}
         values.update(kwargs)
         return Scenario('default', **values)

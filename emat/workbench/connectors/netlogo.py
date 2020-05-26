@@ -12,9 +12,9 @@ substantial overhead.
 
 
 '''
-from ema_workbench.em_framework.model import Replicator, SingleReplication
-from ema_workbench.util.ema_logging import get_module_logger
-from ema_workbench.em_framework.outcomes import TimeSeriesOutcome
+from ..em_framework.model import Replicator, SingleReplication
+from ..util.ema_logging import get_module_logger
+from ..em_framework.outcomes import TimeSeriesOutcome
 from pyNetLogo.core import NetLogoException
 
 try:

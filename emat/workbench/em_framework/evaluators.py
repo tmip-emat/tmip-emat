@@ -14,7 +14,7 @@ import threading
 import warnings
 import operator
 import functools
-from ema_workbench.em_framework.samplers import AbstractSampler
+from .samplers import AbstractSampler
 
 warnings.simplefilter("once", ImportWarning)
 

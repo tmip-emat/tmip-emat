@@ -1,8 +1,8 @@
 
 import hashlib
 from typing import Collection
-from ema_workbench.em_framework.samplers import DefaultDesigns
-from ema_workbench.em_framework.util import NamedDict
+from ..workbench.em_framework.samplers import DefaultDesigns
+from ..workbench.em_framework.util import NamedDict
 import pandas
 from pandas.util import hash_pandas_object
 

@@ -11,12 +11,12 @@ import pytest
 from pytest import approx
 import emat
 
-import ema_workbench
+import emat.workbench
 import os, numpy, pandas, functools, random
 from emat.experiment.experimental_design import design_experiments
 from emat.model.core_python import PythonCoreModel
 from emat.model.core_python import Road_Capacity_Investment
-from ema_workbench import SequentialEvaluator
+from emat.workbench import SequentialEvaluator
 
 def stable_df(filename, df):
 	if not os.path.exists(filename):
@@ -103,7 +103,7 @@ class TestRoadTest(unittest.TestCase):
 		scores = m.get_feature_scores('lhs', random_state=123)
 		stable_df("./road_test_feature_scores.pkl.gz", scores.data)
 
-		from ema_workbench.analysis import prim
+		from emat.workbench.analysis import prim
 
 		x = m.read_experiment_parameters(design_name='lhs_large')
 
@@ -122,7 +122,7 @@ class TestRoadTest(unittest.TestCase):
 
 		assert isinstance(Show(box1.show_tradeoff()), Elem)
 
-		from ema_workbench.analysis import cart
+		from emat.workbench.analysis import cart
 
 		cart_alg = cart.CART(
 			m.read_experiment_parameters(design_name='lhs_large'),
@@ -251,7 +251,7 @@ class TestRoadTest(unittest.TestCase):
 		import os
 		test_dir = os.path.dirname(__file__)
 
-		from ema_workbench import ema_logging, MultiprocessingEvaluator, SequentialEvaluator
+		from emat.workbench import ema_logging, MultiprocessingEvaluator, SequentialEvaluator
 		from emat.examples import road_test
 		import numpy, pandas, functools
 		from emat import Measure
@@ -317,7 +317,7 @@ class TestRoadTest(unittest.TestCase):
 
 		numpy.random.seed(7)
 
-		from ema_workbench.em_framework.samplers import sample_uncertainties
+		from emat.workbench.em_framework.samplers import sample_uncertainties
 		scenes = sample_uncertainties(m, 20)
 
 		scenes0 = pandas.DataFrame(scenes)
@@ -394,7 +394,7 @@ class TestRoadTest(unittest.TestCase):
 
 		stable_df('./test_robust_optimization.1.pkl.gz', result.result)
 
-		from ema_workbench import Scenario, Policy
+		from emat.workbench import Scenario, Policy
 		assert result.scenario == Scenario(**{
 			'alpha': 0.15, 'beta': 4.0, 'input_flow': 100,
 			'value_of_time': 0.075, 'unit_cost_expansion': 100,

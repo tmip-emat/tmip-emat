@@ -3,14 +3,14 @@ import numpy
 import pandas
 import operator
 
-import ema_workbench.analysis.prim
+from ..workbench.analysis import prim
 from ..scope.box import Box, Bounds, Boxes
 from ..scope.scope import Scope
 from .discovery import ScenarioDiscoveryMixin
 
 from plotly import graph_objects as go
 
-class Prim(ema_workbench.analysis.prim.Prim, ScenarioDiscoveryMixin):
+class Prim(prim.Prim, ScenarioDiscoveryMixin):
 
 	def find_box(self):
 		result = super().find_box()
@@ -58,7 +58,7 @@ def _discrete_color_scale(name='viridis', n=8):
 	return colorlist
 
 
-class PrimBox(ema_workbench.analysis.prim.PrimBox):
+class PrimBox(prim.PrimBox):
 
 	def to_emat_box(self, i=None, name=None):
 		if i is None:

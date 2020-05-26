@@ -6,8 +6,8 @@ import yaml
 import pandas as pd
 import numpy as np
 from typing import Union, Mapping
-from ema_workbench.em_framework.model import AbstractModel as AbstractWorkbenchModel
-from ema_workbench.em_framework.evaluators import BaseEvaluator
+from ..workbench.em_framework.model import AbstractModel as AbstractWorkbenchModel
+from ..workbench.em_framework.evaluators import BaseEvaluator
 
 from typing import Collection
 from typing import Iterable
@@ -482,7 +482,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             design (pandas.DataFrame, optional): experiment definitions
                 given as a DataFrame, where each exogenous uncertainties and
                 policy levers is given as a column, and each row is an experiment.
-            evaluator (ema_workbench.Evaluator, optional): Optionally give an
+            evaluator (emat.workbench.Evaluator, optional): Optionally give an
                 evaluator instance.  If not given, a default SequentialEvaluator
                 will be instantiated.
             design_name (str, optional): The name of a design of experiments to
@@ -507,7 +507,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         """
 
-        from ema_workbench import Scenario, Policy, perform_experiments
+        from ..workbench import Scenario, Policy, perform_experiments
 
         # catch user gives only a design, not experiment_parameters
         if isinstance(design, str) and design_name is None:
@@ -958,7 +958,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             alg = algorithm.__name__
 
         if reference is not None:
-            from ema_workbench import Policy, Scenario
+            from ..workbench import Policy, Scenario
             if searchover == 'levers' and not isinstance(reference, Scenario):
                 reference = Scenario("ReferenceScenario", **reference)
             elif searchover == 'uncertainties' and not isinstance(reference, Policy):
@@ -997,7 +997,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 with evaluator:
 
                     if epsilons == 'auto':
-                        from ema_workbench import perform_experiments
+                        from ..workbench import perform_experiments
                         if searchover == 'levers':
                             _, trial_outcomes = perform_experiments(
                                 self,
@@ -1274,16 +1274,16 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         if robust_results is None:
             if evaluator is None:
-                from ema_workbench.em_framework import SequentialEvaluator
+                from ..workbench.em_framework import SequentialEvaluator
                 evaluator = SequentialEvaluator(self)
 
             if not isinstance(evaluator, BaseEvaluator):
                 from dask.distributed import Client
                 if isinstance(evaluator, Client):
-                    from ema_workbench.em_framework.ema_distributed import DistributedEvaluator
+                    from ..workbench.em_framework.ema_distributed import DistributedEvaluator
                     evaluator = DistributedEvaluator(self, client=evaluator)
 
-            from ema_workbench.em_framework.samplers import sample_uncertainties, sample_levers
+            from ..workbench.em_framework.samplers import sample_uncertainties, sample_levers
 
             if isinstance(scenarios, int):
                 n_scenarios = scenarios

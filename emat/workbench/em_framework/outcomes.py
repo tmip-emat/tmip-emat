@@ -10,7 +10,7 @@ import six
 import pandas
 
 from .util import Variable
-from ema_workbench.util.ema_exceptions import EMAError
+from ..util.ema_exceptions import EMAError
 from ..util import get_module_logger
 
 # Created on 24 mei 2011

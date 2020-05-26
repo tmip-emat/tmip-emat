@@ -1,7 +1,7 @@
 
 import pandas
 
-import ema_workbench.analysis.prim
+import emat.workbench.analysis.prim
 import abc
 from ..scope.box import Box, Bounds, Boxes
 from ..scope.scope import Scope

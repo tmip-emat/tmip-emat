@@ -6,7 +6,7 @@ import inspect
 import pandas
 
 from typing import Union, Mapping, Callable, Collection
-from ema_workbench.connectors.excel import ExcelModel
+from ..workbench.connectors.excel import ExcelModel
 
 from ..scope.scope import Scope
 from ..database.database import Database

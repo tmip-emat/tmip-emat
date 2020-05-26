@@ -4,7 +4,7 @@ from ..viz.parcoords import ParCoordsViewer
 from .nondominated import nondominated_solutions
 from ..util.constraints import batch_contraint_check
 
-from ema_workbench import Scenario, Policy
+from ..workbench import Scenario, Policy
 
 from ..util.loggers import get_module_logger
 _logger = get_module_logger(__name__)
