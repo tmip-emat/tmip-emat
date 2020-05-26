@@ -251,7 +251,7 @@ def _Road_Capacity_Investment_CmdLine():
     # (pseudo)random crash
     if not args.no_random_crashes:
         if 'expand_capacity' in levers and levers['expand_capacity'] > 90 and not os.path.exists('prevent_random_crash.txt'):
-            with open('output.yaml', 'wt') as f:
+            with open('prevent_random_crash.txt', 'wt') as f:
                 f.write("this file will prevent random crashes in `emat-road-test-demo`")
             logger.error("Random crash, ha ha!")
             sys.exit(-9)
