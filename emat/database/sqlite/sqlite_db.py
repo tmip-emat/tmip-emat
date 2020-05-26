@@ -33,7 +33,7 @@ class SQLiteDB(Database):
 
     """
 
-    def __init__(self, database_path: str=":memory:", initialize: bool=False):
+    def __init__(self, database_path: str=":memory:", initialize: bool=False, readonly=False):
 
         if database_path[-3:] == '.gz':
             import tempfile, os, shutil, gzip
@@ -56,6 +56,8 @@ class SQLiteDB(Database):
         self.modules = {}
         if initialize:
             self.conn = self.__create()
+        elif readonly:
+            self.conn = sqlite3.connect(f'file:{database_path}?mode=ro', uri=True)
         else:
             self.conn = sqlite3.connect(database_path)
         self.conn.execute("PRAGMA foreign_keys = ON")
@@ -97,6 +99,8 @@ class SQLiteDB(Database):
         scopes = self.read_scope_names()
         if len(scopes) == 1:
             return f'<emat.SQLiteDB with scope "{scopes[0]}">'
+        elif len(scopes) == 0:
+            return f'<emat.SQLiteDB with no scopes>'
         elif len(scopes) <= 4:
             return f'<emat.SQLiteDB with {len(scopes)} scopes: "{", ".join(scopes[0])}">'
         else:
