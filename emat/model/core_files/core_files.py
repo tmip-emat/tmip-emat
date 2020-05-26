@@ -7,6 +7,7 @@ from shutil import copyfile, copy
 import glob
 import numpy as np
 import pandas as pd
+import subprocess
 from ...model.core_model import AbstractCoreModel
 from ...scope.scope import Scope
 from ...database.database import Database
@@ -155,23 +156,34 @@ class FilesCoreModel(AbstractCoreModel):
 
 		_logger.debug("run_core_model read_experiment_parameters")
 
-		experiment_id = self.db.read_experiment_id(self.scope.name, None, scenario, policy)
-
-		if experiment_id is not None and self.allow_short_circuit:
-			# opportunity to short-circuit run by loading pre-computed values.
-			precomputed = self.db.read_experiment_measures(
-				self.scope.name,
-				design=None,
-				experiment_id=experiment_id,
-			)
-			if not precomputed.empty:
-				self.outcomes_output = dict(precomputed.iloc[0])
-				return
-
+		experiment_id = policy.get("_experiment_id_", None)
 		if experiment_id is None:
-			experiment_id = self.db.write_experiment_parameters_1(
-				self.scope.name, 'ad hoc', scenario, policy
-			)
+			experiment_id = scenario.get("_experiment_id_", None)
+
+		if not hasattr(self, 'db') and hasattr(self, '_db'):
+			self.db = self._db
+
+		if experiment_id is None and hasattr(self, 'db'):
+			experiment_id = self.db.read_experiment_id(self.scope.name, None, scenario, policy)
+
+		# If running a core files model using the DistributedEvaluator,
+		# the workers won't have access to the DB directly.
+		if hasattr(self, 'db'):
+			if experiment_id is not None and self.allow_short_circuit:
+				# opportunity to short-circuit run by loading pre-computed values.
+				precomputed = self.db.read_experiment_measures(
+					self.scope.name,
+					design=None,
+					experiment_id=experiment_id,
+				)
+				if not precomputed.empty:
+					self.outcomes_output = dict(precomputed.iloc[0])
+					return
+
+			if experiment_id is None:
+				experiment_id = self.db.write_experiment_parameters_1(
+					self.scope.name, 'ad hoc', scenario, policy
+				)
 
 		xl = {}
 		xl.update(scenario)
@@ -185,7 +197,25 @@ class FilesCoreModel(AbstractCoreModel):
 		self.setup(xl)
 
 		_logger.debug(f"run_core_model run {experiment_id}")
-		self.run()
+		try:
+			self.run()
+		except subprocess.CalledProcessError as err:
+			_logger.error(f"ERROR in run_core_model run {experiment_id}: {str(err)}")
+			try:
+				archive_path = self.get_experiment_archive_path(experiment_id, makedirs=True)
+			except MissingArchivePathError:
+				pass
+			else:
+				if err.stdout:
+					with open(os.path.join(archive_path, 'error.stdout.log'), 'ab') as stdout:
+						stdout.write(err.stdout)
+				if err.stderr:
+					with open(os.path.join(archive_path, 'error.stderr.log'), 'ab') as stderr:
+						stderr.write(err.stderr)
+			measures_dictionary = {name:np.nan for name in m_names}
+			# Assign to outcomes_output, for ema_workbench compatibility
+			self.outcomes_output = measures_dictionary
+			return
 
 		_logger.debug(f"run_core_model post_process {experiment_id}")
 		self.post_process(xl, m_names)
@@ -198,7 +228,8 @@ class FilesCoreModel(AbstractCoreModel):
 		self.outcomes_output = measures_dictionary
 
 		_logger.debug(f"run_core_model write db {experiment_id}")
-		self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df)
+		if hasattr(self, 'db'):
+			self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df)
 
 		try:
 			archive_path = self.get_experiment_archive_path(experiment_id)
