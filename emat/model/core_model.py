@@ -541,6 +541,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         evaluator = prepare_evaluator(evaluator, self)
 
+        callback = None
+        if db is not None and hasattr(db, 'callback_factory'):
+            callback = db.callback_factory(
+                scope=self.scope,
+                design_name=design_name,
+            )
+
         with evaluator:
             experiments, outcomes = perform_experiments(
                 self,
@@ -548,6 +555,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 policies=policies,
                 zip_over={'scenarios', 'policies'},
                 evaluator=evaluator,
+                callback=callback,
             )
         experiments.index = design.index
 
