@@ -377,9 +377,8 @@ class MappingParser(TableParser):
 					_logger.exception(f"Error in reading {os.path.join(from_dir, self.filename)}")
 					result[measure_name] = np.nan
 				else:
-					_logger.error(f"Error in reading {os.path.join(from_dir, self.filename)}")
-					_logger.error(f"  mapping len {len(data)}")
-					_logger.error(f"  mapping {data}")
+					_logger.error(f"Error in reading mapping {os.path.join(from_dir, self.filename)}")
+					_logger.error(f"  data is: {data}")
 					raise
 
 		return result
