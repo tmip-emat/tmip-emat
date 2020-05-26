@@ -134,7 +134,7 @@ class ExcelCoreModel(AbstractCoreModel, ExcelModel):
         """This method is not needed for Excel models."""
 
     @copydoc(AbstractCoreModel.get_experiment_archive_path)
-    def get_experiment_archive_path(self, experiment_id):
+    def get_experiment_archive_path(self, experiment_id, makedirs=False):
         """This method is not needed for Excel models."""
 
     @copydoc(AbstractCoreModel.run)

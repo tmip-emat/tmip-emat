@@ -122,13 +122,15 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
         self.xl_di = params
     
     @copydoc(AbstractCoreModel.get_experiment_archive_path)
-    def get_experiment_archive_path(self, experiment_id):
+    def get_experiment_archive_path(self, experiment_id, makedirs=False):
         ''' Path is defined with scope name and experiment id '''
         mod_results_path = os.path.join(
             self.archive_path,
             f"scp_{self.scope.name}",
             f"exp_{experiment_id}"
         )
+        if makedirs:
+            os.makedirs(mod_results_path, exist_ok=True)
         return mod_results_path
 
     @copydoc(AbstractCoreModel.run)

@@ -209,7 +209,7 @@ class FilesCoreModel(AbstractCoreModel):
 			self.archive(xl, archive_path, experiment_id)
 
 	@copydoc(AbstractCoreModel.get_experiment_archive_path)
-	def get_experiment_archive_path(self, experiment_id: int) -> str:
+	def get_experiment_archive_path(self, experiment_id: int, makedirs:bool=False) -> str:
 		if self.archive_path is None:
 			raise MissingArchivePathError('no archive set for this core model')
 		mod_results_path = os.path.join(
@@ -217,6 +217,8 @@ class FilesCoreModel(AbstractCoreModel):
 			f"scp_{self.scope.name}",
 			f"exp_{experiment_id}"
 		)
+		if makedirs:
+			os.makedirs(mod_results_path, exist_ok=True)
 		return mod_results_path
 
 	def setup(self, params: dict):

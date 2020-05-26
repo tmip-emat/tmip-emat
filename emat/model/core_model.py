@@ -131,7 +131,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         """     
  
     @abc.abstractmethod
-    def get_experiment_archive_path(self, experiment_id: int) -> str:
+    def get_experiment_archive_path(self, experiment_id: int, makedirs:bool=False) -> str:
         """
         Returns a file system location to store model run outputs.
 
@@ -146,6 +146,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         Args:
             experiment_id (int):
                 experiment id integer (row id of experiment in database)
+            makedirs (bool, default False):
+                If this archive directory does not yet exist, create it.
                 
         Returns:
             str: model result path (no trailing backslashes)
