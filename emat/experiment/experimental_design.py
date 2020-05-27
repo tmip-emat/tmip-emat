@@ -30,6 +30,42 @@ samplers = {
     'ulhs95': lambda: TrimmedUniformLHSSampler(0.05),
 }
 
+
+class ExperimentalDesignSeries(pd.Series):
+    # normal properties
+    _metadata = ['design_name', 'sampler_name', 'scope']
+
+    @property
+    def scope_name(self):
+        if hasattr(self.scope, 'name'):
+            return self.scope.name
+
+    @property
+    def _constructor(self):
+        return ExperimentalDesignSeries
+
+    @property
+    def _constructor_expanddim(self):
+        return ExperimentalDesign
+
+class ExperimentalDesign(pd.DataFrame):
+    # normal properties
+    _metadata = ['design_name', 'sampler_name', 'scope']
+
+    @property
+    def scope_name(self):
+        if hasattr(self.scope, 'name'):
+            return self.scope.name
+
+    @property
+    def _constructor(self):
+        return ExperimentalDesign
+
+    @property
+    def _constructor_sliced(self):
+        return ExperimentalDesignSeries
+
+
 def design_experiments(
         scope: Scope,
         n_samples_per_factor: int = 10,
@@ -83,7 +119,10 @@ def design_experiments(
             Note that jointly may produce a very large design;
 
     Returns:
-        pandas.DataFrame: The resulting design.
+        emat.experiment.ExperimentalDesign:
+            The resulting design. This is a specialized sub-class of a regular
+            pandas.DataFrame, which attaches some useful meta-data to the
+            DataFrame, including `design_name`, `sampler_name`, and `scope`.
     """
     if db is False:
         db = None
@@ -176,11 +215,17 @@ def design_experiments(
         for i in scope.get_constants():
             design[i.name] = i.default
 
+    design = scope.ensure_dtypes(design)
+
     if db is not None and sample_from is 'all':
         experiment_ids = db.write_experiment_parameters(scope.name, design_name, design)
         design.index = experiment_ids
         design.index.name = 'experiment'
 
+    design = ExperimentalDesign(design)
+    design.design_name = design_name
+    design.sampler_name = sampler
+    design.scope = scope
     return design
 
 
