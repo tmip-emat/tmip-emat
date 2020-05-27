@@ -481,24 +481,39 @@ class SQLiteDB(Database):
         return scope_name
 
     @copydoc(Database.read_experiment_parameters)
-    def read_experiment_parameters(self, scope_name: str, design:str=None, only_pending:bool=False)-> pd.DataFrame:
+    def read_experiment_parameters(
+            self,
+            scope_name: str,
+            design_name: str=None,
+            only_pending: bool=False,
+            design: str=None,
+    )-> pd.DataFrame:
 
-        scope_name = self._validate_scope(scope_name, 'design')
+        if design is not None:
+            if design_name is None:
+                design_name = design
+                import warnings
+                warnings.warn("the `design` argument is deprecated for "
+                              "read_experiment_parameters, use `design_name`", DeprecationWarning)
+            elif design != design_name:
+                raise ValueError("cannot give both `design_name` and `design`")
+
+        scope_name = self._validate_scope(scope_name, 'design_name')
 
         if only_pending:
-            if design is None:
+            if design_name is None:
                 xl_df = pd.DataFrame(self.cur.execute(
                     sq.GET_EX_XL_ALL_PENDING, [scope_name, ]).fetchall())
             else:
                 xl_df = pd.DataFrame(self.cur.execute(
-                    sq.GET_EX_XL_PENDING, [scope_name, design]).fetchall())
+                    sq.GET_EX_XL_PENDING, [scope_name, design_name]).fetchall())
         else:
-            if design is None:
+            if design_name is None:
                 xl_df = pd.DataFrame(self.cur.execute(
                         sq.GET_EX_XL_ALL, [scope_name, ]).fetchall())
             else:
                 xl_df = pd.DataFrame(self.cur.execute(
-                        sq.GET_EX_XL, [scope_name, design]).fetchall())
+                        sq.GET_EX_XL, [scope_name, design_name]).fetchall())
         if xl_df.empty is False:
             xl_df = xl_df.pivot(index=0, columns=1, values=2)
         xl_df.index.name = 'experiment'
@@ -510,7 +525,10 @@ class SQLiteDB(Database):
                 + self.read_levers(scope_name)
         )
 
-        return xl_df[[i for i in column_order if i in xl_df.columns]]
+        from ...experiment.experimental_design import ExperimentalDesign
+        result = ExperimentalDesign(xl_df[[i for i in column_order if i in xl_df.columns]])
+        result.design_name = design_name
+        return result
 
     @copydoc(Database.write_experiment_measures)
     def write_experiment_measures(self,
@@ -589,7 +607,7 @@ class SQLiteDB(Database):
             only_complete=False,
             ensure_dtypes=False,
     ) ->pd.DataFrame:
-        scope_name = self._validate_scope(scope_name, 'design')
+        scope_name = self._validate_scope(scope_name, 'design_name')
         if design_name is None:
             if source is None:
                 ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_ALL,
@@ -654,12 +672,23 @@ class SQLiteDB(Database):
     def read_experiment_measures(
             self,
             scope_name: str,
-            design: str,
+            design_name: str,
             experiment_id=None,
-            source=None
+            source=None,
+            design=None,
     ) ->pd.DataFrame:
-        scope_name = self._validate_scope(scope_name, 'design')
-        if design is None:
+
+        if design is not None:
+            if design_name is None:
+                design_name = design
+                import warnings
+                warnings.warn("the `design` argument is deprecated for "
+                              "read_experiment_parameters, use `design_name`", DeprecationWarning)
+            elif design != design_name:
+                raise ValueError("cannot give both `design_name` and `design`")
+
+        scope_name = self._validate_scope(scope_name, 'design_name')
+        if design_name is None:
             if experiment_id is None:
                 sql = sq.GET_EX_M_ALL
                 arg = [scope_name]
@@ -675,13 +704,13 @@ class SQLiteDB(Database):
         else:
             if experiment_id is None:
                 sql = sq.GET_EX_M
-                arg = [scope_name, design]
+                arg = [scope_name, design_name]
                 if source is not None:
                     sql += ' AND ema_experiment_measure.measure_source =?3'
                     arg.append(source)
             else:
                 sql = sq.GET_EX_M_BY_ID
-                arg = [scope_name, design, experiment_id]
+                arg = [scope_name, design_name, experiment_id]
                 if source is not None:
                     sql += ' AND ema_experiment_measure.measure_source =?4'
                     arg.append(source)
@@ -698,27 +727,35 @@ class SQLiteDB(Database):
         return ex_m[[i for i in column_order if i in ex_m.columns]]
 
     @copydoc(Database.delete_experiments)
-    def delete_experiments(self, scope_name: str, design: str):
-        scope_name = self._validate_scope(scope_name, 'design')
-        self.cur.execute(sq.DELETE_EX, [scope_name, design])
+    def delete_experiments(self, scope_name, design_name=None, design=None):
+        if design is not None:
+            if design_name is None:
+                design_name = design
+                import warnings
+                warnings.warn("the `design` argument is deprecated for "
+                              "read_experiment_parameters, use `design_name`", DeprecationWarning)
+            elif design != design_name:
+                raise ValueError("cannot give both `design_name` and `design`")
+        scope_name = self._validate_scope(scope_name, 'design_name')
+        self.cur.execute(sq.DELETE_EX, [scope_name, design_name])
         self.conn.commit()
         
     @copydoc(Database.write_experiment_all)
     def write_experiment_all(self,
                      scope_name, 
-                     design: str, 
+                     design_name: str,
                      source: int,
                      xlm_df: pd.DataFrame):
-        scope_name = self._validate_scope(scope_name, 'design')
+        scope_name = self._validate_scope(scope_name, 'design_name')
         fcur = self.conn.cursor()
         
         exist = pd.DataFrame(fcur.execute(sq.GET_EX_XLM, 
                                           [scope_name,
-                                          design]).fetchall())
+                                          design_name]).fetchall())
         if exist.empty is False:
             raise UserWarning('scope {0} with design {1} found \
                                   must be deleted before recording'
-                                  .format(scope_name, design))
+                                  .format(scope_name, design_name))
         
         # get list of experiment variables     
         scp_xl = fcur.execute(sq.GET_SCOPE_XL, [scope_name]).fetchall()
@@ -726,7 +763,7 @@ class SQLiteDB(Database):
         
         for index, row in xlm_df.iterrows():
             # create new experiment and get id
-            fcur.execute(sq.INSERT_EX, [design, scope_name])
+            fcur.execute(sq.INSERT_EX, [design_name, scope_name])
             ex_id = fcur.lastrowid
         
              # set each from experiment defitinion 
