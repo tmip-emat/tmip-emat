@@ -48,7 +48,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             untrusted sources.
         db: An optional Database to store experiments and results.
         name: A name for this model, given as an alphanumeric string.
-            The name is required by ema_workbench operations.
+            The name is required by workbench operations.
             If not given, "EMAT" is used.
         metamodel_id: An identifier for this model, if it is a meta-model.
             Defaults to 0 (i.e., not a meta-model).
