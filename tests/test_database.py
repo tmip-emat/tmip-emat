@@ -94,7 +94,7 @@ class TestDatabaseMethods(unittest.TestCase):
         # write performance measures
         self.db_test.write_experiment_measures(self.scope_name,SOURCE_IS_CORE_MODEL,exp_with_ids)
         xlm_readback = self.db_test.read_experiment_all(self.scope_name,design)
-        self.assertTrue(exp_with_ids.equals(xlm_readback))
+        pd.testing.assert_frame_equal(exp_with_ids, xlm_readback)
 
     def test_write_partial_pm(self):
          # write experiment definition
@@ -111,7 +111,7 @@ class TestDatabaseMethods(unittest.TestCase):
         # write performance measures
         self.db_test.write_experiment_measures(self.scope_name,SOURCE_IS_CORE_MODEL,exp_with_ids)
         xlm_readback = self.db_test.read_experiment_all(self.scope_name,design)
-        self.assertTrue(exp_with_ids.equals(xlm_readback))
+        pd.testing.assert_frame_equal(exp_with_ids, xlm_readback)
 
     def test_write_experiment(self):
          # write experiment definition
