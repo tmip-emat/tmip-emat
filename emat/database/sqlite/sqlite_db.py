@@ -666,6 +666,11 @@ class SQLiteDB(Database):
         if ensure_dtypes:
             scope = self.read_scope(scope_name)
             result = scope.ensure_dtypes(result)
+
+        from ...experiment.experimental_design import ExperimentalDesign
+        result = ExperimentalDesign(result)
+        result.design_name = design_name
+
         return result
 
     @copydoc(Database.read_experiment_measures)

@@ -24,6 +24,7 @@ try:
 	from .optimization.optimization_result import OptimizationResult
 	from .exceptions import *
 	from .versions import versions
+	from .experiment.experimental_design import ExperimentalDesign
 
 	try:
 		from .model.core_excel import ExcelCoreModel

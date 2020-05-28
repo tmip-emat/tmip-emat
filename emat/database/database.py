@@ -293,10 +293,11 @@ class Database(abc.ABC):
             only_complete=False,
             ensure_dtypes=False,
     ):
-        """Read experiment definitions and results
+        """
+        Read experiment definitions and results
         
         Read the values from each experiment variable and the 
-        results for each performance measure per experiment
+        results for each performance measure per experiment.
         
         Args:
             scope_name (str):
@@ -321,9 +322,13 @@ class Database(abc.ABC):
                 of the database, and that scope file is used to
                 format experimental data consistently (i.e., as
                 float, integer, bool, or categorical).
+
         Returns:
-            experiment (pandas.DataFrame): experiment definition and 
-                performance measures
+            emat.ExperimentalDesign:
+                The experiment parameters are returned in a subclass
+                of a normal pandas.DataFrame, which allows attaching
+                the `design_name` as meta-data to the DataFrame.
+
         Raises:
             ValueError
                 When no source is given but the database contains
