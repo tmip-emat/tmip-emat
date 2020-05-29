@@ -40,7 +40,6 @@ dependencies:
 - salib
 - sqlalchemy
 - statsmodels
-- tmip::ema_workbench
 - tmip::emat
 
 # After setting up and activating this environment, register with jupyter-notebook::

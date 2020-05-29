@@ -9,7 +9,7 @@ source:
 
 build:
   noarch: python
-  number: 0
+  number: 1
   script: "python -m pip install . --no-deps -vv"
 
 requirements:
@@ -41,7 +41,7 @@ requirements:
     - altair
     - salib
     - sqlalchemy
-    - tmip::ema_workbench>=2.1.509,<2.2
+    - statsmodels
 
 test:
   # Python imports

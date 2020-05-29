@@ -52,4 +52,4 @@ dependencies:
 - nbsphinx
 - jupyter_sphinx
 
-## For development, install ema_workbench and emat locally
+## For development, install emat locally
