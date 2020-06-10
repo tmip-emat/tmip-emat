@@ -794,6 +794,38 @@ class Box(GenericBox):
 		names = self.scope.get_lever_names()
 		return {k:v for k,v in self._thresholds.items() if k in names}
 
+	def to_json(self):
+		"""
+		Dump the thresholds for this box to a json string.
+
+		Only the thresholds are saved, not the scope.
+
+		Returns:
+			str
+		"""
+		temp = {'_name_':self.name}
+		for k,v in self.thresholds.items():
+			if isinstance(v, Bounds):
+				temp[k] = {'lowerbound':v.lowerbound, 'upperbound':v.upperbound}
+			else:
+				temp[k] = list(v)
+		import json
+		return json.dumps(temp)
+
+	@classmethod
+	def from_json(cls, j):
+		import json
+		temp = json.loads(j)
+		self = cls(temp.get('_name_', None))
+		for k, v in temp.items():
+			if k == '_name_':
+				pass
+			elif isinstance(v, dict):
+				self.set_bounds(k, v.get('lowerbound', None), v.get('upperbound', None))
+			else:
+				self.replace_allowed_set(k, v)
+		return self
+
 	def __getitem__(self, key):
 		return self._thresholds[key]
 
