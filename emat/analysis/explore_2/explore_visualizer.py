@@ -26,6 +26,221 @@ def _y_maximum(fig):
 # def _debugprint(s):
 # 	print(s.replace("rgb(255, 127, 14)", "<ORANGE>").replace("rgb(255, 46, 241)","<PINK>"))
 
+
+def new_histogram_figure(
+		selection,
+		data_column,
+		bins=20,
+		*,
+		marker_line_width=None,
+		selected_color=None,
+		unselected_color=None,
+		title_text=None,
+		on_select=None,     # lambda *a: self._on_select_from_histogram(*a,name=col)
+		on_deselect=None,   # lambda *a: self._on_deselect_from_histogram(*a,name=col)
+		figure_class=None,
+):
+	"""
+	Create a new histogram figure for use with the visualizer.
+
+	Args:
+		selection (pandas.Series):
+			The currently selected subset of the data.
+		data_column (pandas.Series):
+			The column of data used to define the histogram.
+		bins (int or array-like):
+			The number of histogram bins, or the precomputed bin edges.
+		marker_line_width:
+		selected_color:
+		unselected_color:
+		title_text:
+		on_select:
+		on_deselect:
+		figure_class ({go.FigureWidget, go.Figure}, optional):
+			The class type of figure to generate. If not given,
+			a go.FigureWidget is created.
+
+	Returns:
+		go.FigureWidget or go.Figure
+	"""
+	if unselected_color is None:
+		unselected_color = colors.DEFAULT_BASE_COLOR
+	if selected_color is None:
+		selected_color = colors.DEFAULT_HIGHLIGHT_COLOR
+	if figure_class is None:
+		figure_class = go.FigureWidget
+
+	if bins is None:
+		bins = 20
+	bar_heights, bar_x = numpy.histogram(data_column, bins=bins)
+	bins_left = bar_x[:-1]
+	bins_width = bar_x[1:] - bar_x[:-1]
+	bar_heights_select, bar_x = numpy.histogram(data_column[selection], bins=bar_x)
+
+	fig = figure_class(
+		data=[
+			go.Bar(
+				x=bins_left,
+				y=bar_heights_select,
+				width=bins_width,
+				name='Inside',
+				marker_color=selected_color,
+				marker_line_width=marker_line_width,
+				hoverinfo='skip',
+			),
+			go.Bar(
+				x=bins_left,
+				y=bar_heights - bar_heights_select,
+				width=bins_width,
+				name='Outside',
+				marker_color=unselected_color,
+				marker_line_width=marker_line_width,
+				hoverinfo='skip',
+			),
+		],
+		layout=dict(
+			barmode='stack',
+			showlegend=False,
+			margin=styles.figure_margins,
+			yaxis_showticklabels=False,
+			title_text=title_text,
+			title_x=0.5,
+			title_xanchor='center',
+			selectdirection='h',
+			dragmode='select',
+			**styles.figure_dims,
+		),
+	)
+	# fig._bins = bins
+	# fig._figure_kind = 'histogram'
+	if on_select is not None:
+		fig.data[1].on_selection(on_select)
+	if on_deselect is not None:
+		fig.data[1].on_deselect(on_deselect)
+	_y_max = _y_maximum(fig)
+	fig.layout.yaxis.range = (
+		-_y_max * 0.03,
+		_y_max * 1.05,
+	)
+	# self._figures_hist[col] = fig
+	# self._draw_boxes_on_figure(col)
+	return fig
+
+def update_histogram_figure(
+		fig,
+		selection,
+		data_column,
+):
+	"""
+	Update an existing figure used in the visualizer.
+
+	Args:
+		fig:
+		selection:
+		data_column:
+
+	Returns:
+		fig
+	"""
+	bins = list(fig['data'][0]['x'])
+	bins.append(fig['data'][0]['x'][-1] + fig['data'][0]['width'][-1])
+	bar_heights, bar_x = numpy.histogram(data_column, bins=bins)
+	bar_heights_select, bar_x = numpy.histogram(data_column[selection], bins=bar_x)
+	fig['data'][0]['y'] = bar_heights_select
+	fig['data'][1]['y'] = bar_heights - bar_heights_select
+	return fig
+
+
+
+def new_frequencies_figure(
+		selection,
+		data_column,
+		labels,
+		*,
+		marker_line_width=None,
+		selected_color=None,
+		unselected_color=None,
+		title_text=None,
+		on_select=None,    # lambda *a: self._on_select_from_freq(*a, name=col)
+		on_deselect=None,  # lambda *a: self._on_deselect_from_histogram(*a, name=col)
+		figure_class=None,
+		label_name_map=None,
+):
+	if unselected_color is None:
+		unselected_color = colors.DEFAULT_BASE_COLOR
+	if selected_color is None:
+		selected_color = colors.DEFAULT_HIGHLIGHT_COLOR
+	if figure_class is None:
+		figure_class = go.FigureWidget
+	if label_name_map is None:
+		label_name_map = {}
+
+	v = data_column.astype(
+		pandas.CategoricalDtype(categories=labels, ordered=False)
+	).cat.codes
+	bar_heights, bar_x = numpy.histogram(v, bins=numpy.arange(0, len(labels) + 1))
+	bar_heights_select, _ = numpy.histogram(v[selection], bins=numpy.arange(0, len(labels) + 1))
+
+	labels = [label_name_map.get(i, i) for i in labels]
+	fig = figure_class(
+		data=[
+			go.Bar(
+				x=labels,
+				y=bar_heights_select,
+				name='Inside',
+				marker_color=selected_color,
+				marker_line_width=marker_line_width,
+				hoverinfo='none',
+			),
+			go.Bar(
+				x=labels,
+				y=bar_heights - bar_heights_select,
+				name='Outside',
+				marker_color=unselected_color,
+				marker_line_width=marker_line_width,
+				hoverinfo='none',
+			),
+		],
+		layout=dict(
+			barmode='stack',
+			showlegend=False,
+			margin=styles.figure_margins,
+			yaxis_showticklabels=False,
+			title_text=title_text,
+			title_x=0.5,
+			title_xanchor='center',
+			selectdirection='h',
+			dragmode='select',
+			**styles.figure_dims,
+		),
+	)
+	if on_select is not None:
+		fig.data[1].on_selection(on_select)
+	if on_deselect is not None:
+		fig.data[1].on_deselect(on_deselect)
+	_y_max = _y_maximum(fig)
+	fig.layout.yaxis.range = (
+		-_y_max * 0.03,
+		_y_max * 1.05,
+	)
+	return fig
+
+def update_frequencies_figure(
+		fig,
+		selection,
+		data_column,
+):
+	labels = list(fig['data'][0]['x'])
+	v = data_column.astype(
+		pandas.CategoricalDtype(categories=labels, ordered=False)
+	).cat.codes
+	bar_heights, bar_x = numpy.histogram(v, bins=numpy.arange(0, len(labels) + 1))
+	bar_heights_select, _ = numpy.histogram(v[selection], bins=numpy.arange(0, len(labels) + 1))
+	fig['data'][0]['y'] = bar_heights_select
+	fig['data'][1]['y'] = bar_heights - bar_heights_select
+	return fig
+
+
 class Visualizer(DataFrameExplorer):
 
 	def __init__(
@@ -122,109 +337,25 @@ class Visualizer(DataFrameExplorer):
 			self._update_histogram_figure(col)
 		else:
 			selection = self.active_selection()
-			bar_heights, bar_heights_select, bins_left, bins_width = self._compute_histogram(
-				col, selection, bins=bins
-			)
-			fig = go.FigureWidget(
-				data=[
-					go.Bar(
-						x=bins_left,
-						y=bar_heights_select,
-						width=bins_width,
-						name='Inside',
-						marker_color=self.active_selection_color(),
-						marker_line_width=marker_line_width,
-						hoverinfo='skip',
-					),
-					go.Bar(
-						x=bins_left,
-						y=bar_heights - bar_heights_select,
-						width=bins_width,
-						name='Outside',
-						marker_color=colors.DEFAULT_BASE_COLOR,
-						marker_line_width=marker_line_width,
-						hoverinfo='skip',
-					),
-				],
-				layout=dict(
-					barmode='stack',
-					showlegend=False,
-					margin=styles.figure_margins,
-					yaxis_showticklabels=False,
-					title_text=col,
-					title_x=0.5,
-					title_xanchor='center',
-					selectdirection='h',
-					dragmode='select',
-					#config=dict(displayModeBar=False),
-					**styles.figure_dims,
-				),
-			)
-			fig._bins = bins
-			fig._figure_kind = 'histogram'
-			fig.data[1].on_selection(lambda *a: self._on_select_from_histogram(*a,name=col))
-			fig.data[1].on_deselect(lambda *a: self._on_deselect_from_histogram(*a,name=col))
-			_y_max = _y_maximum(fig)
-			fig.layout.yaxis.range = (
-				-_y_max * 0.03,
-				_y_max * 1.05,
+			fig = new_histogram_figure(
+				selection, self.data[col], bins,
+				marker_line_width=marker_line_width,
+				on_deselect=lambda *a: self._on_deselect_from_histogram(*a,name=col),
+				on_select=lambda *a: self._on_select_from_histogram(*a,name=col),
 			)
 			self._figures_hist[col] = fig
 			self._draw_boxes_on_figure(col)
 
-	def _create_frequencies_figure(self, col, labels=None):
+	def _create_frequencies_figure(self, col, labels=None, *, marker_line_width=None):
 		if col in self._figures_freq:
 			self._update_frequencies_figure(col)
 		else:
 			selection = self.active_selection()
-			bar_heights, bar_heights_select, labels = self._compute_frequencies(col, selection, labels=labels)
-			if self.scope is not None:
-				try:
-					label_name_map = self.scope[col].abbrev
-				except:
-					pass
-				else:
-					labels = [label_name_map.get(i,i) for i in labels]
-			fig = go.FigureWidget(
-				data=[
-					go.Bar(
-						x=labels,
-						y=bar_heights_select,
-						name='Inside',
-						marker_color=self.active_selection_color(),
-						hoverinfo='none',
-					),
-					go.Bar(
-						x=labels,
-						y=bar_heights - bar_heights_select,
-						name='Outside',
-						marker_color=colors.DEFAULT_BASE_COLOR,
-						hoverinfo='none',
-					),
-				],
-				layout=dict(
-					barmode='stack',
-					showlegend=False,
-					margin=styles.figure_margins,
-					yaxis_showticklabels=False,
-					title_text=col,
-					title_x=0.5,
-					title_xanchor='center',
-					selectdirection='h',
-					dragmode='select',
-					**styles.figure_dims,
-				),
-			)
-			fig._labels = labels
-			fig._figure_kind = 'frequency'
-			#fig.data[0].on_click(lambda *a: self._on_click_from_frequencies(*a,name=col))
-			#fig.data[1].on_click(lambda *a: self._on_click_from_frequencies(*a,name=col))
-			fig.data[1].on_selection(lambda *a: self._on_select_from_freq(*a,name=col))
-			fig.data[1].on_deselect(lambda *a: self._on_deselect_from_histogram(*a,name=col))
-			_y_max = _y_maximum(fig)
-			fig.layout.yaxis.range = (
-				-_y_max * 0.03,
-				_y_max * 1.05,
+			fig = new_frequencies_figure(
+				selection, self.data[col], labels,
+				marker_line_width=marker_line_width,
+				on_deselect=lambda *a: self._on_deselect_from_histogram(*a, name=col),
+				on_select=lambda *a: self._on_select_from_histogram(*a, name=col),
 			)
 			self._figures_freq[col] = fig
 			self._draw_boxes_on_figure(col)
@@ -232,23 +363,23 @@ class Visualizer(DataFrameExplorer):
 	def _update_histogram_figure(self, col):
 		if col in self._figures_hist:
 			fig = self._figures_hist[col]
-			bins = fig._bins
-			selection = self.active_selection()
-			bar_heights, bar_heights_select, bins_left, bins_width = self._compute_histogram(col, selection, bins=bins)
 			with fig.batch_update():
-				fig.data[0].y = bar_heights_select
-				fig.data[1].y = bar_heights - bar_heights_select
+				update_histogram_figure(
+					fig,
+					self.active_selection(),
+					self.data[col],
+				)
 				self._draw_boxes_on_figure(col)
 
 	def _update_frequencies_figure(self, col):
 		if col in self._figures_freq:
 			fig = self._figures_freq[col]
-			labels = fig._labels
-			selection = self.active_selection()
-			bar_heights, bar_heights_select, labels = self._compute_frequencies(col, selection, labels=labels)
 			with fig.batch_update():
-				fig.data[0].y = bar_heights_select
-				fig.data[1].y = bar_heights - bar_heights_select
+				update_frequencies_figure(
+					fig,
+					self.active_selection(),
+					self.data[col],
+				)
 				self._draw_boxes_on_figure(col)
 
 	def _compute_histogram(self, col, selection, bins=None):
@@ -345,13 +476,18 @@ class Visualizer(DataFrameExplorer):
 		if self.active_selection_deftype() == 'box':
 			box = self._selection_defs[self.active_selection_name()]
 			box.scope = self.scope
-			for x in toggles:
-				if name not in box or x in box[name]:
-					box.remove_from_allowed_set(name, x)
-					if len(box[name]) == 0:
-						del box[name]
-				else:
+
+			if name not in box:
+				for x in toggles:
 					box.add_to_allowed_set(name, x)
+			else:
+				for x in toggles:
+					if name not in box or x in box[name]:
+						box.remove_from_allowed_set(name, x)
+						if len(box[name]) == 0:
+							del box[name]
+					else:
+						box.add_to_allowed_set(name, x)
 			if toggles:
 				self.new_selection(box, name=self.active_selection_name())
 				self._active_selection_changed()
