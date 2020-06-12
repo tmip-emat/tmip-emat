@@ -156,6 +156,7 @@ outputs:
 
     value_of_time_savings:
         shortname: Value Time Save
+        desc: Implied total value of travel time savings over all travelers
         kind: maximize
         metamodeltype: log-linear
 
