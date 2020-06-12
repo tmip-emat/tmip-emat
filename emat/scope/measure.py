@@ -95,6 +95,7 @@ class Measure(ScalarOutcome, ShortnameMixin):
             variable_name=None,
             metamodeltype=None,
             shortname=None,
+            desc=None,
     ):
 
         if isinstance(kind, str):
@@ -131,6 +132,8 @@ class Measure(ScalarOutcome, ShortnameMixin):
         self.dtype = dtype if dtype is not None else 'real'
         self.metamodeltype = metamodeltype if metamodeltype is not None else 'linear'
         self._shortname = shortname
+        self.desc = desc
+        """str: Human readable description of this performance measure, for reference only"""
 
     def __repr__(self):
         return super().__repr__()
