@@ -487,6 +487,8 @@ class SQLiteDB(Database):
             design_name: str=None,
             only_pending: bool=False,
             design: str=None,
+            *,
+            experiment_ids=None,
     )-> pd.DataFrame:
 
         if design is not None:
@@ -500,7 +502,14 @@ class SQLiteDB(Database):
 
         scope_name = self._validate_scope(scope_name, 'design_name')
 
-        if only_pending:
+        if experiment_ids is not None:
+            query = sq.GET_EX_XL_IDS_IN
+            if isinstance(experiment_ids, int):
+                experiment_ids = [experiment_ids]
+            subquery = ",".join(f"?{n+2}" for n in range(len(experiment_ids)))
+            query = query.replace("???", subquery)
+            xl_df = pd.DataFrame(self.cur.execute(query, [scope_name, *experiment_ids]).fetchall())
+        elif only_pending:
             if design_name is None:
                 xl_df = pd.DataFrame(self.cur.execute(
                     sq.GET_EX_XL_ALL_PENDING, [scope_name, ]).fetchall())
@@ -677,7 +686,7 @@ class SQLiteDB(Database):
     def read_experiment_measures(
             self,
             scope_name: str,
-            design_name: str,
+            design_name: str=None,
             experiment_id=None,
             source=None,
             design=None,

@@ -163,17 +163,24 @@ class FilesCoreModel(AbstractCoreModel):
 		if not hasattr(self, 'db') and hasattr(self, '_db'):
 			self.db = self._db
 
-		if experiment_id is None and hasattr(self, 'db'):
-			experiment_id = self.db.read_experiment_id(self.scope.name, None, scenario, policy)
+		if not hasattr(self, 'db') and hasattr(self, '_sqlitedb_path'):
+			from ...database.sqlite.sqlite_db import SQLiteDB
+			self.db = SQLiteDB(self._sqlitedb_path)
 
 		# If running a core files model using the DistributedEvaluator,
-		# the workers won't have access to the DB directly.
-		if hasattr(self, 'db'):
+		# the workers won't have access to the DB directly, so we'll only
+		# run the short-circuit test and the ad-hoc write-to-database
+		# section of this code if the `db` attribute is available.
+		if hasattr(self, 'db') and self.db is not None:
+
+			if experiment_id is None:
+				experiment_id = self.db.read_experiment_id(self.scope.name, None, scenario, policy)
+
 			if experiment_id is not None and self.allow_short_circuit:
 				# opportunity to short-circuit run by loading pre-computed values.
 				precomputed = self.db.read_experiment_measures(
 					self.scope.name,
-					design=None,
+					design_name=None,
 					experiment_id=experiment_id,
 				)
 				if not precomputed.empty:
@@ -190,8 +197,6 @@ class FilesCoreModel(AbstractCoreModel):
 		xl.update(policy)
 
 		m_names = self.scope.get_measure_names()
-
-		m_out = pd.DataFrame()
 
 		_logger.debug(f"run_core_model setup {experiment_id}")
 		self.setup(xl)
@@ -224,11 +229,11 @@ class FilesCoreModel(AbstractCoreModel):
 		measures_dictionary = self.load_measures(m_names)
 		m_df = pd.DataFrame(measures_dictionary, index=[experiment_id])
 
-		# Assign to outcomes_output, for ema_workbench compatibility
+		# Assign to outcomes_output instead of returning them, for ema_workbench compatibility
 		self.outcomes_output = measures_dictionary
 
 		_logger.debug(f"run_core_model write db {experiment_id}")
-		if hasattr(self, 'db'):
+		if hasattr(self, 'db') and self.db is not None:
 			self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df)
 
 		try:
@@ -331,5 +336,50 @@ class FilesCoreModel(AbstractCoreModel):
 		raise NotImplementedError
 
 	def post_process(self, params, measure_names, output_path=None):
-		raise NotImplementedError
+		"""
+		Runs post processors associated with particular performance measures.
 
+		This method is the place to conduct automatic post-processing
+		of core model run results, in particular any post-processing that
+		is expensive or that will write new output files into the core model's
+		output directory.  The core model run should already have
+		been completed using `setup` and `run`.  If the relevant performance
+		measures do not require any post-processing to create (i.e. they
+		can all be read directly from output files created during the core
+		model run itself) then this method does not need to be overloaded
+		for a particular core model implementation.
+
+		The default implementation of this method is a no-op, but it is
+		available to be overloaded for particular implementations.
+
+		Args:
+			params (dict):
+				Dictionary of experiment variables, with keys as variable names
+				and values as the experiment settings. Most post-processing
+				scripts will not need to know the particular values of the
+				inputs (exogenous uncertainties and policy levers), but this
+				method receives the experiment input parameters as an argument
+				in case one or more of these parameter values needs to be known
+				in order to complete the post-processing.
+			measure_names (List[str]):
+				List of measures to be processed.  Normally for the first pass
+				of core model run experiments, post-processing will be completed
+				for all performance measures.  However, it is possible to use
+				this argument to give only a subset of performance measures to
+				post-process, which may be desirable if the post-processing
+				of some performance measures is expensive.  Additionally, this
+				method may also be called on archived model results, allowing
+				it to run to generate only a subset of (probably new) performance
+				measures based on these archived runs.
+			output_path (str, optional):
+				Path to model outputs.  If this is not given (typical for the
+				initial run of core model experiments) then the local/default
+				model directory is used.  This argument is provided primarily
+				to facilitate post-processing archived model runs to make new
+				performance measures (i.e. measures that were not in-scope when
+				the core model was actually run).
+
+		Raises:
+			KeyError:
+				If post process is not available for specified measure
+		"""

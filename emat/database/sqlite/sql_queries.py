@@ -152,6 +152,15 @@ GET_EX_XL_ALL = (
     '''
     )
 
+GET_EX_XL_IDS_IN = (
+    '''SELECT experiment_id, ema_parameter.name, parameter_value
+            FROM ema_experiment_parameter JOIN ema_parameter on ema_experiment_parameter.parameter_id = ema_parameter.rowid
+            JOIN ema_experiment ON ema_experiment_parameter.experiment_id = ema_experiment.rowid
+            JOIN ema_scope s on ema_experiment.scope_id = s.rowid
+            WHERE s.name =?1 AND experiment_id in (???);
+    '''
+    )
+
 GET_EX_XL_ALL_PENDING = (
     '''SELECT experiment_id, ema_parameter.name, parameter_value
             FROM ema_experiment_parameter 

@@ -311,20 +311,28 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
     def read_experiment_parameters(
             self,
-            design_name,
+            design_name=None,
             db=None,
             only_pending=False,
+            *,
+            experiment_ids=None,
     ):
         """
         Reads uncertainties and levers from a design of experiments from the database.
 
         Args:
-            design_name (str): The name of the design to load.
+            design_name (str, optional): If given, only experiments
+                associated with both the scope and the named design
+                are returned, otherwise all experiments associated
+                with the scope are returned.
             db (Database, optional): The Database from which to read experiments.
                 If no db is given, the default `db` for this model is used.
             only_pending (bool, default False): If True, only pending
                 experiments (which have no performance measure results
                 stored in the database) are returned.
+            experiment_ids (Collection, optional):
+                A collection of experiment id's to load.  If given,
+                both `design_name` and `only_pending` are ignored.
 
         Returns:
             pandas.DataFrame:
@@ -342,7 +350,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             raise ValueError('no database to read from')
 
         return self.ensure_dtypes(
-            db.read_experiment_parameters(self.scope.name, design_name, only_pending=only_pending)
+            db.read_experiment_parameters(
+                self.scope.name,
+                design_name,
+                only_pending=only_pending,
+                experiment_ids=experiment_ids,
+            )
         )
 
     def read_experiment_measures(

@@ -223,7 +223,15 @@ class Database(abc.ABC):
 
 
     @abc.abstractmethod
-    def read_experiment_parameters(self, scope_name, design_name=None, only_pending=False, design=None):
+    def read_experiment_parameters(
+            self,
+            scope_name,
+            design_name=None,
+            only_pending=False,
+            design=None,
+            *,
+            experiment_ids=None,
+    ):
         """
         Read experiment definitions from the database.
         
@@ -242,6 +250,9 @@ class Database(abc.ABC):
                 experiments (which have no performance measure results
                 stored in the database) are returned.
             design (str, optional): Deprecated.  Use design_name.
+            experiment_ids (Collection, optional):
+                A collection of experiment id's to load.  If given,
+                both `design_name` and `only_pending` are ignored.
 
         Returns:
             emat.ExperimentalDesign:
@@ -452,7 +463,12 @@ class Database(abc.ABC):
 
     @abc.abstractmethod
     def read_experiment_ids(self, scope_name:str, design_name:str, xl_df) -> list:
-        """Read the experiment ids previously defined in the database
+        """
+        Read the experiment ids previously defined in the database.
+
+        This method is used to recover the experiment id, if the
+        set of parameter values is known but the id of the experiment
+        is not known.
 
         Args:
             scope_name (str): scope name, used to identify experiments,
