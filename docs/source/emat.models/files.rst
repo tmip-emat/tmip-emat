@@ -8,7 +8,8 @@ The :class:`FilesCoreModel` class defines a common implementation system for
 bespoke models that generate performance measure attributes that can be read from
 one or more files on disk after a model run.  Many of the abstract methods
 defined in the :class:`AbstractCoreModel` remain to be overloaded, but
-a standard `load_measures` implementation is defined here.
+a standard `load_measures` implementation is defined here, along with a
+default implementation of `get_experiment_archive_path` and `post_process`.
 
 You can connect any bespoke transportation model to TMIP-EMAT as long
 as it satisfies these requirements:
@@ -31,10 +32,11 @@ these methods:
 
 - :meth:`AbstractCoreModel.setup`
 - :meth:`AbstractCoreModel.run`
-- :meth:`AbstractCoreModel.post_process`
-- :meth:`AbstractCoreModel.get_experiment_archive_path`
 - :meth:`AbstractCoreModel.archive`
 
+The :class:`FilesCoreModel` class also includes default implementations for
+`get_experiment_archive_path` and `post_process`, but it may be appropriate
+to overload these methods into a custom class as well.
 
 
 .. autoclass:: FilesCoreModel
