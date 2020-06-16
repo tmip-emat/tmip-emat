@@ -220,7 +220,9 @@ class FilesCoreModel(AbstractCoreModel):
 			measures_dictionary = {name:np.nan for name in m_names}
 			# Assign to outcomes_output, for ema_workbench compatibility
 			self.outcomes_output = measures_dictionary
-			return
+
+			if 'ignore_crash' not in self.config:
+				return
 
 		_logger.debug(f"run_core_model post_process {experiment_id}")
 		self.post_process(xl, m_names)
