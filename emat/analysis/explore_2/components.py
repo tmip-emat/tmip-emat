@@ -1,10 +1,11 @@
 
 import pandas, numpy
 from plotly import graph_objs as go
+from plotly.subplots import make_subplots
 
 X_FIGURE_BUFFER = 0.03
 
-from ...viz import colors
+from ...viz import colors, _pick_color
 from ... import styles
 
 def _y_maximum(fig):
@@ -295,7 +296,7 @@ def perturb_categorical_df(df, col=None):
 			return df[col]
 	return df
 
-def new_splom(
+def new_splom_figure(
 		scope,
 		data,
 		rows="LX",
@@ -307,10 +308,8 @@ def new_splom(
 		selection=None,
 		box=None,
 		refpoint=None,
+		figure_class=None,
 ):
-	from plotly.subplots import make_subplots
-	import plotly.graph_objects as go
-	from ...viz import _pick_color
 
 	def _make_axis_list(j):
 		if isinstance(j, str):
@@ -356,8 +355,6 @@ def new_splom(
 		horizontal_spacing=0.1/len(cols),
 		subplot_titles=subplot_titles,
 		specs=specs,
-		# x_title="Performance Measures",
-		# y_title="Parameters",
 	)
 	if row_titles_top:
 		for rowtitle in fig['layout']['annotations']:
@@ -368,16 +365,18 @@ def new_splom(
 
 	Scatter = go.Scattergl if use_gl else go.Scatter
 
-	if isinstance(mass, int):
-		from ...viz import ScatterMass
-		mass = ScatterMass(mass)
+	marker_opacity = _splom_marker_opacity(
+		data.index,
+		selection,
+		mass=mass,
+	)
 
 	if selection is None:
-		marker_opacity = mass.get_opacity(data)
+		marker_color = None
 	else:
-		mo = [mass.get_opacity(data[~selection]), mass.get_opacity(data[selection])]
-		marker_opacity = pandas.Series(data=mo[0], index=data.index)
-		marker_opacity[selection] = mo[1]
+		marker_color = pandas.Series(data=colors.DEFAULT_BASE_COLOR, index=data.index)
+		marker_color[selection] = colors.DEFAULT_HIGHLIGHT_COLOR
+
 	experiment_name = "Experiment"
 	if data.index.name:
 		experiment_name = data.index.name
@@ -386,11 +385,10 @@ def new_splom(
 	for rownum, row in enumerate(rows, start=1):
 		for colnum, col in enumerate(cols, start=1):
 			n += 1
-			if selection is None:
+			if marker_color is None:
 				color = _pick_color(scope, row, col)
 			else:
-				color = pandas.Series(data=colors.DEFAULT_BASE_COLOR, index=data.index)
-				color[selection] = colors.DEFAULT_HIGHLIGHT_COLOR
+				color = marker_color
 
 			x = perturb_categorical_df(data, col)
 			y = perturb_categorical_df(data, row)
@@ -502,12 +500,34 @@ def new_splom(
 	fig.update_layout(margin=dict(
 		l=10, r=10, t=30 if row_titles_top else 10, b=10,
 	))
+	fig.update_layout(meta=dict(
+		rows=rows,
+		cols=cols,
+	))
+	if figure_class is not None:
+		return figure_class(fig)
 	return fig
 
 
 
 
 from ...scope.box import Bounds
+
+def _splom_marker_opacity(
+		data_index,
+		selection,
+		mass=1000,
+):
+	if isinstance(mass, int):
+		from ...viz import ScatterMass
+		mass = ScatterMass(mass)
+	if selection is None:
+		marker_opacity = mass.get_opacity(data_index)
+	else:
+		mo = [mass.get_opacity(data_index[~selection]), mass.get_opacity(data_index[selection])]
+		marker_opacity = pandas.Series(data=mo[0], index=data_index)
+		marker_opacity[selection] = mo[1]
+	return marker_opacity
 
 def _splom_part_boxes(
 		box, ax_num,
@@ -662,3 +682,49 @@ def _splom_part_ref_point(
 		)
 
 	return foreground_shapes
+
+
+def update_splom_figure(
+		scope,
+		data,
+		fig,
+		selection,
+		box,
+		mass=1000,
+):
+	existing_lines = [s for s in fig['layout']['shapes'] if s['type']=='line']
+	data_index = fig['data'][0]['meta']
+	marker_opacity = _splom_marker_opacity(
+		data_index,
+		selection,
+		mass=mass,
+	)
+	if selection is None:
+		marker_color = None
+	else:
+		marker_color = pandas.Series(data=colors.DEFAULT_BASE_COLOR, index=data_index)
+		marker_color[selection] = colors.DEFAULT_HIGHLIGHT_COLOR
+	rows = fig['layout']['meta']['rows']
+	cols = fig['layout']['meta']['cols']
+	n = 0
+	box_shapes = []
+	for rownum, row in enumerate(rows, start=1):
+		for colnum, col in enumerate(cols, start=1):
+			if marker_color is None:
+				color = _pick_color(scope, row, col)
+			else:
+				color = marker_color
+			x = perturb_categorical_df(data, col)
+			y = perturb_categorical_df(data, row)
+			x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.3)
+			y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.3)
+			fig['data'][n]['marker']['color'] = color
+			fig['data'][n]['marker']['opacity'] = marker_opacity
+			n += 1
+			box_shapes.extend(_splom_part_boxes(
+				box, n,
+				x, col, x_tickvals, x_ticktext, x_range,
+				y, row, y_tickvals, y_ticktext, y_range,
+			))
+	fig['layout']['shapes'] = box_shapes + existing_lines
+	return fig

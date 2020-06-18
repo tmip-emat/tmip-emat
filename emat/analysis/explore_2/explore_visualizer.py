@@ -55,6 +55,7 @@ class Visualizer(DataFrameExplorer):
 		self._categorical_data = {}
 		self._freeze = False
 		self._two_way = {}
+		self._splom = {}
 
 		self._status_txt = widget.HTML(
 			value="<i>Explore Status Not Set</i>",
@@ -314,6 +315,7 @@ class Visualizer(DataFrameExplorer):
 					self._two_way[key]._on_change_selection_choose(payload={
 						'new':self.active_selection_name(),
 					})
+				self._update_sploms()
 		finally:
 			del self._active_selection_changing_
 
@@ -590,7 +592,58 @@ class Visualizer(DataFrameExplorer):
 		_try_set_value(self._two_way[key].y_axis_choose, y, 'the y axis dimension')
 		return self._two_way[key]
 
+	def splom(
+			self,
+			key=None,
+			reset=False,
+			*,
+			cols='M',
+			rows='L',
+			use_gl=True,
+	):
+		if key is None and (cols is not None or rows is not None):
+			key = (cols,rows)
 
+		if key in self._splom and not reset:
+			return self._splom[key]
+
+		box = None
+		if self.active_selection_deftype() == 'box':
+			name = self.active_selection_name()
+			box = self._selection_defs[name]
+
+		self._splom[key] = new_splom_figure(
+			self.scope,
+			self.data,
+			rows=rows,
+			cols=cols,
+			use_gl=use_gl,
+			mass=1000,
+			row_titles='side',
+			size=150,
+			selection=self.active_selection(),
+			box=box,
+			refpoint=self._reference_point,
+			figure_class=go.FigureWidget,
+		)
+
+		return self._splom[key]
+
+	def _update_sploms(self):
+		box = None
+		if self.active_selection_deftype() == 'box':
+			name = self.active_selection_name()
+			box = self._selection_defs[name]
+		for fig in self._splom.values():
+			with fig.batch_update():
+				update_splom_figure(
+					self.scope,
+					self.data,
+					fig,
+					self.active_selection(),
+					box,
+					mass=1000,
+				)
 
 	def __setitem__(self, key, value):
 		if not isinstance(key, str):
