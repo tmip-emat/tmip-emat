@@ -301,6 +301,7 @@ def new_splom(
 		row_titles='top',
 		size=150,
 		selection=None,
+		box=None,
 ):
 	from plotly.subplots import make_subplots
 	import plotly.graph_objects as go
@@ -376,9 +377,10 @@ def new_splom(
 	if data.index.name:
 		experiment_name = data.index.name
 
+	n = 0
 	for rownum, row in enumerate(rows, start=1):
 		for colnum, col in enumerate(cols, start=1):
-
+			n += 1
 			if selection is None:
 				color = _pick_color(scope, row, col)
 			else:
@@ -424,6 +426,15 @@ def new_splom(
 				),
 				row=rownum, col=colnum,
 			)
+
+			if box is not None:
+				shapes = _splom_part_boxes(
+					box, n,
+					x, col, x_tickvals, x_ticktext, x_range,
+					y, row, y_tickvals, y_ticktext, y_range,
+				)
+				for s in shapes: fig.add_shape(s)
+
 			if colnum == 1:
 				if not row_titles_top:
 					fig.update_yaxes(
@@ -475,3 +486,112 @@ def new_splom(
 		l=10, r=10, t=30 if row_titles_top else 10, b=10,
 	))
 	return fig
+
+
+
+
+from ...scope.box import Bounds
+
+def _splom_part_boxes(
+		box, ax_num,
+		x, x_label, x_tickvals, x_ticktext, x_range,
+		y, y_label, y_tickvals, y_ticktext, y_range,
+):
+	background_shapes, foreground_shapes = [], []
+
+
+	if x_label in box.thresholds or y_label in box.thresholds:
+		x_lo, x_hi = None, None
+		thresh = box.thresholds.get(x_label)
+		if isinstance(thresh, Bounds):
+			x_lo, x_hi = thresh
+		if isinstance(thresh, set):
+			x_lo, x_hi = [], []
+			for tickval, ticktext in zip(x_tickvals, x_ticktext):
+				if ticktext in thresh:
+					x_lo.append(tickval -0.33)
+					x_hi.append(tickval +0.33)
+		if x_range is None:
+			x_range = [x.min(), x.max()]
+			x_data_width = x_range[1] - x_range[0]
+		else:
+			x_data_width = 0
+		if x_lo is None:
+			x_lo = x_range[0] - x_data_width * 0.02
+		if x_hi is None:
+			x_hi = x_range[1] + x_data_width * 0.02
+		if not isinstance(x_lo, list):
+			x_lo = [x_lo]
+		if not isinstance(x_hi, list):
+			x_hi = [x_hi]
+
+		y_lo, y_hi = None, None
+		thresh = box.thresholds.get(y_label)
+		if isinstance(thresh, Bounds):
+			y_lo, y_hi = thresh
+		if isinstance(thresh, set):
+			y_lo, y_hi = [], []
+			for tickval, ticktext in zip(y_tickvals, y_ticktext):
+				if ticktext in thresh:
+					y_lo.append(tickval -0.33)
+					y_hi.append(tickval +0.33)
+		if y_range is None:
+			y_range = [y.min(), y.max()]
+			y_data_width = y_range[1] - y_range[0]
+		else:
+			y_data_width = 0
+		if y_lo is None:
+			y_lo = y_range[0] - y_data_width * 0.02
+		if y_hi is None:
+			y_hi = y_range[1] + y_data_width * 0.02
+		if not isinstance(y_lo, list):
+			y_lo = [y_lo]
+		if not isinstance(y_hi, list):
+			y_hi = [y_hi]
+
+		x_pairs = list(zip(x_lo, x_hi))
+		y_pairs = list(zip(y_lo, y_hi))
+
+		background_shapes += [
+			# Rectangle background color
+			go.layout.Shape(
+				type="rect",
+				xref=f"x{ax_num}",
+				yref=f"y{ax_num}",
+				x0=x_pair[0],
+				y0=y_pair[0],
+				x1=x_pair[1],
+				y1=y_pair[1],
+				line=dict(
+					width=0,
+				),
+				fillcolor=colors.DEFAULT_BOX_BG_COLOR,
+				opacity=0.2,
+				layer="below",
+			)
+			for x_pair in x_pairs
+			for y_pair in y_pairs
+		]
+
+		foreground_shapes += [
+			# Rectangle reference to the axes
+			go.layout.Shape(
+				type="rect",
+				xref=f"x{ax_num}",
+				yref=f"y{ax_num}",
+				x0=x_pair[0],
+				y0=y_pair[0],
+				x1=x_pair[1],
+				y1=y_pair[1],
+				line=dict(
+					width=2,
+					color=colors.DEFAULT_BOX_LINE_COLOR,
+				),
+				fillcolor='rgba(0,0,0,0)',
+				opacity=1.0,
+			)
+			for x_pair in x_pairs
+			for y_pair in y_pairs
+		]
+
+	return background_shapes + foreground_shapes
