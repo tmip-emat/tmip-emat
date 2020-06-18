@@ -140,7 +140,7 @@ class Visualizer(DataFrameExplorer):
 				selection, self.data[col], labels,
 				marker_line_width=marker_line_width,
 				on_deselect=lambda *a: self._on_deselect_from_histogram(*a, name=col),
-				on_select=lambda *a: self._on_select_from_histogram(*a, name=col),
+				on_select=lambda *a: self._on_select_from_freq(*a, name=col),
 			)
 			self._figures_freq[col] = fig
 			self._draw_boxes_on_figure(col)
