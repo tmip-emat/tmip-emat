@@ -78,6 +78,10 @@ except ImportError:
         def shouldTerminate(self, algorithm):
             pass
 
+    class Hypervolume(object):
+        def __call__(self, *args, **kwargs):
+            raise ImportError("platypus not installed")
+
     EpsNSGAII = None
     platypus = None
     Real = Integer = Subset = None

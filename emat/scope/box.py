@@ -14,8 +14,6 @@ from math import isclose
 from .scope import Scope, ScopeError
 from .parameter import IntegerParameter, CategoricalParameter, BooleanParameter
 from .. import styles
-import ipywidgets as widget
-import plotly.graph_objects as go
 from ..viz import colors
 
 Bounds = namedtuple('Bounds', ['lowerbound', 'upperbound'])

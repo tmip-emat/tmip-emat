@@ -216,12 +216,17 @@ class TimingLog:
 
 
 
-import ipywidgets as widgets
+try:
+    import ipywidgets as widgets
+except ImportError:
+    widgets = None
 
 class OutputWidgetHandler(logging.Handler):
     """ Custom logging handler sending logs to an output widget """
 
     def __init__(self, *args, **kwargs):
+        if widgets is None:
+            raise ModuleNotFoundError('ipywidgets')
         super(OutputWidgetHandler, self).__init__(*args, **kwargs)
         layout = {
             'width': '100%',
@@ -249,6 +254,8 @@ _widget_logger = None
 _widget_log_handler = None
 
 def get_widget_logger():
+    if widgets is None:
+        raise ModuleNotFoundError('ipywidgets')
     global _widget_logger, _widget_log_handler
     if _widget_logger is None:
         _widget_logger = logging.getLogger('EMAT.widget')

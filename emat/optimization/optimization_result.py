@@ -1,6 +1,5 @@
 
 import pandas
-from ..viz.parcoords import ParCoordsViewer
 from .nondominated import nondominated_solutions
 from ..util.constraints import batch_contraint_check
 
@@ -34,6 +33,7 @@ class OptimizationResult:
 		raise TypeError("policy is invalid")
 
 	def par_coords(self):
+		from ..viz.parcoords import ParCoordsViewer
 		return ParCoordsViewer(
 			self.result,
 			scope=self.scope,

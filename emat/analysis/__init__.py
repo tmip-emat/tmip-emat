@@ -1,6 +1,18 @@
 
+try:
+	from .visual_distribution import display_experiments, contrast_experiments
+except ImportError:
+	pass
 
-from .visual_distribution import display_experiments, contrast_experiments
 from .feature_scoring import feature_scores
-from .explore import Explore
-from .explore_2 import Visualizer
+
+try:
+	from .explore import Explore
+except ImportError:
+	pass
+
+
+try:
+	from .explore_2 import Visualizer
+except ImportError:
+	pass
