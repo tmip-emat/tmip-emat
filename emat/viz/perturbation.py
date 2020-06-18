@@ -42,7 +42,7 @@ def perturb_categorical(x, range_padding=0):
 	except TypeError:
 		is_bool = False
 	if is_bool:
-		x = x.astype('category')
+		x = x.astype(pandas.CategoricalDtype(categories=[False, True], ordered=False))
 	if isinstance(x.dtype, pandas.CategoricalDtype):
 		x_categories = x.cat.categories
 		codes = x.cat.codes
