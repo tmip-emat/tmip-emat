@@ -256,31 +256,52 @@ def update_frequencies_figure(
 		)
 	return fig
 
-def perturb_categorical(x):
-	x_ticktext = None
-	x_tickvals = None
-	if not isinstance(x, pandas.Series):
-		x = pandas.Series(x)
-	try:
-		if numpy.issubdtype(x.dtype, numpy.bool_):
-			x = x.astype('category')
-	except TypeError:
-		pass
-	if isinstance(x.dtype, pandas.CategoricalDtype):
-		x_categories = x.cat.categories
-		codes = x.cat.codes
-		x = codes.astype(float)
+from ...viz.perturbation import perturb_categorical
+
+def categorical_ticks(x, range_padding=0.0):
+	if hasattr(x, 'dtype'):
 		s_ = x.size * 0.01
 		s_ = s_ / (1 + s_)
 		epsilon = 0.05 + 0.20 * s_
-		x = x + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
-		x_ticktext = list(x_categories)
-		x_tickvals = list(range(len(x_ticktext)))
+		if isinstance(x.dtype, pandas.CategoricalDtype):
+			x_categories = x.cat.categories
+			x_ticktext = list(x_categories)
+			x_tickvals = list(range(len(x_ticktext)))
+			x_range = [-epsilon - range_padding, x_tickvals[-1] + epsilon + range_padding]
+			return x_ticktext, x_tickvals, x_range
+		if numpy.issubdtype(x.dtype, numpy.bool_):
+			x_range = [-epsilon - range_padding, 1 + epsilon + range_padding]
+			return ["False", "True"], [0,1], x_range
+	return None, None, None
 
-	return x, x_ticktext, x_tickvals
+def perturb_categorical_df(df, col=None):
+	if col is None:
+		cols = list(df.columns)
+	else:
+		cols = [col]
+	for i in cols:
+		if f"_{i}_perturb" in df.columns: continue
+		x, x_ticktext, x_tickvals, x_range, _ = perturb_categorical(df[i])
+		if x_ticktext is not None:
+			df[f"_{i}_perturb"] = x
+	if col is not None:
+		if f"_{col}_perturb" in df.columns:
+			return df[f"_{col}_perturb"]
+		else:
+			return df[col]
+	return df
 
-
-def new_splom(scope, data, rows="LX", cols="M", use_gl=True, mass=1000, row_titles='top', size=150):
+def new_splom(
+		scope,
+		data,
+		rows="LX",
+		cols="M",
+		use_gl=True,
+		mass=1000,
+		row_titles='top',
+		size=150,
+		selection=None,
+):
 	from plotly.subplots import make_subplots
 	import plotly.graph_objects as go
 	from ...viz import _pick_color
@@ -303,10 +324,6 @@ def new_splom(scope, data, rows="LX", cols="M", use_gl=True, mass=1000, row_titl
 	cols = _make_axis_list(cols)
 
 	row_titles_top = (row_titles=='top')
-
-	data_processed = {}
-	for i in set(rows)|set(cols):
-		data_processed[i] = perturb_categorical(data[i])
 
 	subplot_titles = []
 	specs = []
@@ -349,7 +366,12 @@ def new_splom(scope, data, rows="LX", cols="M", use_gl=True, mass=1000, row_titl
 		from ...viz import ScatterMass
 		mass = ScatterMass(mass)
 
-	marker_opacity = mass.get_opacity(data)
+	if selection is None:
+		marker_opacity = mass.get_opacity(data)
+	else:
+		mo = [mass.get_opacity(data[~selection]), mass.get_opacity(data[selection])]
+		marker_opacity = pandas.Series(data=mo[0], index=data.index)
+		marker_opacity[selection] = mo[1]
 	experiment_name = "Experiment"
 	if data.index.name:
 		experiment_name = data.index.name
@@ -357,14 +379,16 @@ def new_splom(scope, data, rows="LX", cols="M", use_gl=True, mass=1000, row_titl
 	for rownum, row in enumerate(rows, start=1):
 		for colnum, col in enumerate(cols, start=1):
 
-			color = _pick_color(scope, row, col)
+			if selection is None:
+				color = _pick_color(scope, row, col)
+			else:
+				color = pandas.Series(data=colors.DEFAULT_BASE_COLOR, index=data.index)
+				color[selection] = colors.DEFAULT_HIGHLIGHT_COLOR
 
-			x = data_processed[col][0]
-			y = data_processed[row][0]
-			x_ticktext = data_processed[col][1]
-			x_tickvals = data_processed[col][2]
-			y_ticktext = data_processed[row][1]
-			y_tickvals = data_processed[row][2]
+			x = perturb_categorical_df(data, col)
+			y = perturb_categorical_df(data, row)
+			x_ticktext, x_tickvals, x_range = categorical_ticks(data[col], range_padding=0.3)
+			y_ticktext, y_tickvals, y_range = categorical_ticks(data[row], range_padding=0.3)
 
 			if x_ticktext is not None or y_ticktext is not None:
 				hovertemplate = (
@@ -414,6 +438,7 @@ def new_splom(scope, data, rows="LX", cols="M", use_gl=True, mass=1000, row_titl
 						tickmode = 'array',
 						ticktext = y_ticktext,
 						tickvals = y_tickvals,
+						range = y_range,
 					)
 			# elif (colnum-1)%3==0 and len(cols)>4:
 			# 	fig.update_yaxes(
@@ -436,6 +461,7 @@ def new_splom(scope, data, rows="LX", cols="M", use_gl=True, mass=1000, row_titl
 						tickmode='array',
 						ticktext=x_ticktext,
 						tickvals=x_tickvals,
+						range=x_range,
 					)
 		# elif rownum%3==0:
 			# 	fig.update_xaxes(
