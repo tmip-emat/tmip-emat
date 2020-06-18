@@ -258,7 +258,7 @@ def update_frequencies_figure(
 
 from ...viz.perturbation import perturb_categorical
 
-def categorical_ticks(x, range_padding=0.0):
+def axis_info(x, range_padding=0.0):
 	if hasattr(x, 'dtype'):
 		s_ = x.size * 0.01
 		s_ = s_ / (1 + s_)
@@ -272,7 +272,11 @@ def categorical_ticks(x, range_padding=0.0):
 		if numpy.issubdtype(x.dtype, numpy.bool_):
 			x_range = [-epsilon - range_padding, 1 + epsilon + range_padding]
 			return ["False", "True"], [0,1], x_range
-	return None, None, None
+	x_range = [x.min(), x.max()]
+	x_span = x_range[1] - x_range[0]
+	if x_span <= 0: x_span = 1
+	x_range = [x_range[0] - x_span*0.07, x_range[1] + x_span*0.07]
+	return None, None, x_range
 
 def perturb_categorical_df(df, col=None):
 	if col is None:
@@ -302,6 +306,7 @@ def new_splom(
 		size=150,
 		selection=None,
 		box=None,
+		refpoint=None,
 ):
 	from plotly.subplots import make_subplots
 	import plotly.graph_objects as go
@@ -389,8 +394,8 @@ def new_splom(
 
 			x = perturb_categorical_df(data, col)
 			y = perturb_categorical_df(data, row)
-			x_ticktext, x_tickvals, x_range = categorical_ticks(data[col], range_padding=0.3)
-			y_ticktext, y_tickvals, y_range = categorical_ticks(data[row], range_padding=0.3)
+			x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.3)
+			y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.3)
 
 			if x_ticktext is not None or y_ticktext is not None:
 				hovertemplate = (
@@ -435,7 +440,20 @@ def new_splom(
 				)
 				for s in shapes: fig.add_shape(s)
 
+			if refpoint is not None:
+				shapes = _splom_part_ref_point(
+					n,
+					x, x_range, refpoint.get(col, None),
+					y, y_range, refpoint.get(row, None),
+				)
+				for s in shapes: fig.add_shape(s)
+
 			if colnum == 1:
+				fig.update_yaxes(
+					range=y_range,
+					row=rownum,
+					col=colnum,
+				)
 				if not row_titles_top:
 					fig.update_yaxes(
 						title_text=scope.shortname(row),
@@ -449,7 +467,6 @@ def new_splom(
 						tickmode = 'array',
 						ticktext = y_ticktext,
 						tickvals = y_tickvals,
-						range = y_range,
 					)
 			# elif (colnum-1)%3==0 and len(cols)>4:
 			# 	fig.update_yaxes(
@@ -464,6 +481,7 @@ def new_splom(
 					title_text=scope.shortname(col),
 					row=rownum,
 					col=colnum,
+					range=x_range,
 				)
 				if x_ticktext is not None:
 					fig.update_xaxes(
@@ -472,7 +490,6 @@ def new_splom(
 						tickmode='array',
 						ticktext=x_ticktext,
 						tickvals=x_tickvals,
-						range=x_range,
 					)
 		# elif rownum%3==0:
 			# 	fig.update_xaxes(
@@ -513,13 +530,13 @@ def _splom_part_boxes(
 					x_hi.append(tickval +0.33)
 		if x_range is None:
 			x_range = [x.min(), x.max()]
-			x_data_width = x_range[1] - x_range[0]
+			x_width_buffer = (x_range[1] - x_range[0]) * 0.02
 		else:
-			x_data_width = 0
+			x_width_buffer = -(x_range[1] - x_range[0]) * 0.02
 		if x_lo is None:
-			x_lo = x_range[0] - x_data_width * 0.02
+			x_lo = x_range[0] - x_width_buffer
 		if x_hi is None:
-			x_hi = x_range[1] + x_data_width * 0.02
+			x_hi = x_range[1] + x_width_buffer
 		if not isinstance(x_lo, list):
 			x_lo = [x_lo]
 		if not isinstance(x_hi, list):
@@ -537,13 +554,13 @@ def _splom_part_boxes(
 					y_hi.append(tickval +0.33)
 		if y_range is None:
 			y_range = [y.min(), y.max()]
-			y_data_width = y_range[1] - y_range[0]
+			y_width_buffer = (y_range[1] - y_range[0]) * 0.02
 		else:
-			y_data_width = 0
+			y_width_buffer = -(y_range[1] - y_range[0]) * 0.02
 		if y_lo is None:
-			y_lo = y_range[0] - y_data_width * 0.02
+			y_lo = y_range[0] - y_width_buffer
 		if y_hi is None:
-			y_hi = y_range[1] + y_data_width * 0.02
+			y_hi = y_range[1] + y_width_buffer
 		if not isinstance(y_lo, list):
 			y_lo = [y_lo]
 		if not isinstance(y_hi, list):
@@ -593,5 +610,55 @@ def _splom_part_boxes(
 			for x_pair in x_pairs
 			for y_pair in y_pairs
 		]
-
 	return background_shapes + foreground_shapes
+
+def _splom_part_ref_point(
+		ax_num,
+		x, x_range, x_refpoint,
+		y, y_range, y_refpoint,
+):
+	foreground_shapes = []
+
+	if x_refpoint is not None:
+		if y_range is None:
+			y_range = [y.min(), y.max()]
+			y_width_buffer = (y_range[1] - y_range[0]) * 0.02
+		else:
+			y_width_buffer = -(y_range[1] - y_range[0]) * 0.02
+		y_lo = y_range[0] - y_width_buffer
+		y_hi = y_range[1] + y_width_buffer
+		foreground_shapes.append(
+			go.layout.Shape(
+				type="line",
+				xref=f"x{ax_num}",
+				yref=f"y{ax_num}",
+				y0=y_lo,
+				x0=x_refpoint,
+				y1=y_hi,
+				x1=x_refpoint,
+				**colors.DEFAULT_REF_LINE_STYLE,
+			)
+		)
+
+	if y_refpoint is not None:
+		if x_range is None:
+			x_range = [x.min(), x.max()]
+			x_width_buffer = (x_range[1] - x_range[0]) * 0.02
+		else:
+			x_width_buffer = -(x_range[1] - x_range[0]) * 0.02
+		x_lo = x_range[0] - x_width_buffer
+		x_hi = x_range[1] + x_width_buffer
+		foreground_shapes.append(
+			go.layout.Shape(
+				type="line",
+				xref=f"x{ax_num}",
+				yref=f"y{ax_num}",
+				x0=x_lo,
+				y0=y_refpoint,
+				x1=x_hi,
+				y1=y_refpoint,
+				**colors.DEFAULT_REF_LINE_STYLE,
+			)
+		)
+
+	return foreground_shapes
