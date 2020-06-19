@@ -2,6 +2,7 @@
 
 
 from dask.distributed import Client, LocalCluster
+import functools
 
 _cluster = None
 _client = None
@@ -28,3 +29,30 @@ def print_worker_logs(client=None):
 		for i in messages:
 			print(i[1])
 	print("=" * 60)
+
+
+def send_module(module, client=None):
+	"""Send a Python module to workers."""
+
+	if client is None:
+		client = get_client()
+
+	fname = module.__file__
+	with open(fname, 'rb') as f:
+		data = f.read()
+
+	def _worker_upload(dask_worker, *, data, fname):
+		dask_worker.loop.add_callback(
+			callback=dask_worker.upload_file,
+			comm=None,  # not used
+			filename=fname,
+			data=data,
+			load=True,
+		)
+
+	client.register_worker_callbacks(
+		setup=functools.partial(
+			_worker_upload, data=data, fname=fname,
+		)
+	)
+
