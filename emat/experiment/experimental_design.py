@@ -109,6 +109,9 @@ def design_experiments(
                     (for boolean and categorical dtypes).  Note that designs for
                     univariate sensitivity testing are deterministic and the number
                     of samples given is ignored.
+                - 'ref': Reference point, which generates a design containing only
+                    a single experiment, with all parameters set at their default
+                    values.
         sample_from ('all', 'uncertainties', or 'levers'): Which scope components
             from which to sample.  Components not sampled are set at their default
             values in the design.
@@ -126,19 +129,6 @@ def design_experiments(
     """
     if db is False:
         db = None
-
-    if sampler == 'uni':
-        return design_sensitivity_tests(scope, db, design_name or 'uni')
-
-    if not isinstance(sampler, AbstractSampler):
-        if sampler not in samplers:
-            raise ValueError(f"unknown sampler {sampler}")
-        else:
-            sample_generator = samplers[sampler]()
-    else:
-        sample_generator = sampler
-
-    np.random.seed(random_seed)
 
     if db is not None and design_name is not None:
         if design_name in db.read_design_names(scope.name):
@@ -164,6 +154,9 @@ def design_experiments(
     
     if sampler == 'uni':
         return design_sensitivity_tests(scope, db, design_name or 'uni')
+
+    if sampler == 'ref':
+        return design_refpoint_test(scope, db, design_name or 'ref')
 
     if not isinstance(sampler, AbstractSampler):
         if sampler not in samplers:
@@ -292,6 +285,43 @@ def design_sensitivity_tests(
         design.index = experiment_ids
         design.index.name = 'experiment'
 
+    design = ExperimentalDesign(design)
+    design.name = design_name
+    design.sampler_name = 'uni'
+    design.scope = s
+    return design
+
+
+def design_refpoint_test(
+        s: Scope,
+        db: Database = None,
+        design_name: str = 'ref',
+):
+    """
+    Create a design containing a single reference point test based on a Scope.
+
+    Args:
+        scope (Scope): The exploratory scope to use for the design.
+        db (Database, optional): If provided, this design will be stored in the
+            database indicated.
+        design_name (str, optional): A name for this design, to identify it in the
+            database. If not given, a unique name will be generated based on the
+            selected sampler.  Has no effect if no `db` is given.
+
+    Returns:
+        pandas.DataFrame: The resulting design.
+    """
+    design = pd.DataFrame({p.name: p.default for p in s.get_parameters()}, index=[0])
+
+    if db is not None:
+        experiment_ids = db.write_experiment_parameters(s.name, design_name, design)
+        design.index = experiment_ids
+        design.index.name = 'experiment'
+
+    design = ExperimentalDesign(design)
+    design.name = design_name
+    design.sampler_name = 'ref'
+    design.scope = s
     return design
 
 
