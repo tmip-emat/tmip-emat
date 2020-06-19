@@ -217,11 +217,17 @@ class FilesCoreModel(AbstractCoreModel):
 				if err.stderr:
 					with open(os.path.join(archive_path, 'error.stderr.log'), 'ab') as stderr:
 						stderr.write(err.stderr)
+				with open(os.path.join(archive_path, 'error.log'), 'a') as errlog:
+					errlog.write(str(err))
 			measures_dictionary = {name:np.nan for name in m_names}
 			# Assign to outcomes_output, for ema_workbench compatibility
 			self.outcomes_output = measures_dictionary
 
-			if 'ignore_crash' not in self.config:
+			if self.config('ignore_crash', False):
+				# If the 'ignore_crash' is not set in the model config file,
+				# or if it is set to a False value, then abort now and skip
+				# any post-processing and other archiving steps, which will
+				# probably fail anyway.
 				return
 
 		_logger.debug(f"run_core_model post_process {experiment_id}")
