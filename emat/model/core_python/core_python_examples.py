@@ -174,7 +174,7 @@ def Road_Capacity_Investment(
     average_travel_time1 += (numpy.absolute(lane_width-10)*1000)**0.5
     travel_time_savings = average_travel_time0 - average_travel_time1
     value_of_time_savings = value_of_time * travel_time_savings * input_flow
-    present_cost_of_capacity_expansion = unit_cost_expansion * expand_capacity
+    present_cost_of_capacity_expansion = float(unit_cost_expansion * expand_capacity)
 
     if interest_rate_lock:
         interest_rate = 0.03
