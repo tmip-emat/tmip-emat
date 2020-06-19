@@ -309,6 +309,8 @@ def new_splom_figure(
 		box=None,
 		refpoint=None,
 		figure_class=None,
+		on_select=None,  # lambda *a: self._on_select_from_histogram(*a,name=col)
+		on_deselect=None,  # lambda *a: self._on_deselect_from_histogram(*a,name=col)
 ):
 
 	def _make_axis_list(j):
@@ -362,6 +364,9 @@ def new_splom_figure(
 			rowtitle['xanchor'] = 'left'
 	fig['layout']['height'] = size * len(rows) + 75
 	fig['layout']['width'] = size * len(cols) + 100
+
+	if figure_class is not None:
+		fig = figure_class(fig)
 
 	Scatter = go.Scattergl if use_gl else go.Scatter
 
@@ -429,6 +434,10 @@ def new_splom_figure(
 				),
 				row=rownum, col=colnum,
 			)
+			if on_select is not None:
+				fig.data[-1].on_selection(lambda *args: on_select(col, row, *args))
+			if on_deselect is not None:
+				fig.data[-1].on_deselect(lambda *args: on_deselect(col, row, *args))
 
 			if box is not None:
 				shapes = _splom_part_boxes(
@@ -504,8 +513,6 @@ def new_splom_figure(
 		rows=rows,
 		cols=cols,
 	))
-	if figure_class is not None:
-		return figure_class(fig)
 	return fig
 
 
@@ -691,7 +698,19 @@ def update_splom_figure(
 		selection,
 		box,
 		mass=1000,
+		rows=None,
+		cols=None,
 ):
+	existing_rows = fig['layout']['meta']['rows']
+	existing_cols = fig['layout']['meta']['cols']
+	if rows is None:
+		rows = existing_rows
+	else:
+		raise NotImplementedError("TODO: if rows change, remake figure")
+	if cols is None:
+		cols = existing_cols
+	else:
+		raise NotImplementedError("TODO: if cols change, remake figure")
 	existing_lines = [s for s in fig['layout']['shapes'] if s['type']=='line']
 	data_index = fig['data'][0]['meta']
 	marker_opacity = _splom_marker_opacity(
@@ -704,8 +723,6 @@ def update_splom_figure(
 	else:
 		marker_color = pandas.Series(data=colors.DEFAULT_BASE_COLOR, index=data_index)
 		marker_color[selection] = colors.DEFAULT_HIGHLIGHT_COLOR
-	rows = fig['layout']['meta']['rows']
-	cols = fig['layout']['meta']['cols']
 	n = 0
 	box_shapes = []
 	for rownum, row in enumerate(rows, start=1):

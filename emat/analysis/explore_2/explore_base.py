@@ -45,6 +45,8 @@ class DataFrameExplorerBase():
 		self._selection_defs = {}
 		self._colors = {}
 		self._update_state_ = set()
+		if isinstance(reference_point, pandas.DataFrame) and len(reference_point)==1:
+			reference_point = dict(reference_point.iloc[0])
 		self._reference_point = reference_point
 		if make_selections:
 			for k,v in make_selections.items():

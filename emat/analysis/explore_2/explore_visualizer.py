@@ -601,6 +601,11 @@ class Visualizer(DataFrameExplorer):
 			rows='L',
 			use_gl=True,
 	):
+		if not isinstance(rows, str):
+			rows = tuple(rows)
+		if not isinstance(cols, str):
+			cols = tuple(cols)
+
 		if key is None and (cols is not None or rows is not None):
 			key = (cols,rows)
 
