@@ -585,12 +585,50 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         for i in self.scope.get_constants():
             experiments_[i.name] = i.value
 
-        return self.ensure_dtypes(pd.concat([
+        result = self.ensure_dtypes(pd.concat([
             experiments_,
             outcomes
         ], axis=1, sort=False))
+        from ..experiment.experimental_design import ExperimentalDesign
+        result = ExperimentalDesign(result)
+        result.scope = self.scope
+        result.name = getattr(design, 'name', None)
+        result.sampler_name = getattr(design, 'sampler_name', None)
+        return result
 
+    def run_reference_experiment(
+            self,
+            evaluator=None,
+            *,
+            db=None,
+    ):
+        """
+        Runs a reference experiment using this model.
 
+        This single experiment includes a complete set of input values for
+        all exogenous uncertainties (a Scenario) and all policy levers
+        (a Policy). Each is set to the default value indicated by the scope.
+
+        Args:
+            evaluator (emat.workbench.Evaluator, optional): Optionally give an
+                evaluator instance.  If not given, a default SequentialEvaluator
+                will be instantiated.
+            db (Database, optional): The database to use for loading and saving experiments.
+                If none is given, the default database for this model is used.
+                If there is no default db, and none is given here,
+                the results are not stored in a database. Set to False to explicitly
+                not use the default database, even if it exists.
+
+        Returns:
+            pandas.DataFrame:
+                A DataFrame that contains all uncertainties, levers, and measures
+                for the experiments.
+
+        """
+        if db is None:
+            db = self.db
+        ref = self.design_experiments(sampler='ref', db=db)
+        return self.run_experiments(ref, evaluator=evaluator, db=db)
 
     def create_metamodel_from_data(
             self,
