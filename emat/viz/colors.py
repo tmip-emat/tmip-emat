@@ -2,6 +2,9 @@
 from ..util import webcolors
 import re
 
+DEFAULT_BASE_COLOR_RGB = (31, 119, 180)         # Blue
+DEFAULT_HIGHLIGHT_COLOR_RGB = (255, 127, 14)    # Orange
+
 DEFAULT_BASE_COLOR = 'rgb(31, 119, 180)'      # Blue
 DEFAULT_HIGHLIGHT_COLOR = 'rgb(255, 127, 14)' # Orange
 DEFAULT_LASSO_COLOR = 'rgb(255, 46, 241)'     # Hot Pink

@@ -56,6 +56,7 @@ class Visualizer(DataFrameExplorer):
 		self._freeze = False
 		self._two_way = {}
 		self._splom = {}
+		self._hmm = {}
 
 		self._status_txt = widget.HTML(
 			value="<i>Explore Status Not Set</i>",
@@ -623,7 +624,7 @@ class Visualizer(DataFrameExplorer):
 			rows=rows,
 			cols=cols,
 			use_gl=use_gl,
-			mass=1000,
+			mass=250,
 			row_titles='side',
 			size=150,
 			selection=self.active_selection(),
@@ -647,8 +648,48 @@ class Visualizer(DataFrameExplorer):
 					fig,
 					self.active_selection(),
 					box,
-					mass=1000,
+					mass=None,
+					selected_color=self.active_selection_color(),
 				)
+
+	def hmm(
+			self,
+			key=None,
+			reset=False,
+			*,
+			cols='M',
+			rows='L',
+	):
+		if not isinstance(rows, str):
+			rows = tuple(rows)
+		if not isinstance(cols, str):
+			cols = tuple(cols)
+
+		if key is None and (cols is not None or rows is not None):
+			key = (cols,rows)
+
+		if key in self._hmm and not reset:
+			return self._hmm[key]
+
+		box = None
+		if self.active_selection_deftype() == 'box':
+			name = self.active_selection_name()
+			box = self._selection_defs[name]
+
+		self._hmm[key] = new_hmm_figure(
+			self.scope,
+			self.data,
+			rows=rows,
+			cols=cols,
+			row_titles='side',
+			size=150,
+			selection=self.active_selection(),
+			box=box,
+			refpoint=self._reference_point,
+			figure_class=go.FigureWidget,
+		)
+
+		return self._hmm[key]
 
 	def __setitem__(self, key, value):
 		if not isinstance(key, str):
