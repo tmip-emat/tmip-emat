@@ -317,6 +317,7 @@ class Visualizer(DataFrameExplorer):
 						'new':self.active_selection_name(),
 					})
 				self._update_sploms()
+				self._update_hmms()
 		finally:
 			del self._active_selection_changing_
 
@@ -660,7 +661,7 @@ class Visualizer(DataFrameExplorer):
 			cols='M',
 			rows='L',
 			emph_selected=True,
-			show_points=50,
+			show_points=-1,
 	):
 		if not isinstance(rows, str):
 			rows = tuple(rows)
@@ -694,6 +695,22 @@ class Visualizer(DataFrameExplorer):
 		)
 
 		return self._hmm[key]
+
+	def _update_hmms(self):
+		box = None
+		if self.active_selection_deftype() == 'box':
+			name = self.active_selection_name()
+			box = self._selection_defs[name]
+		for fig in self._hmm.values():
+			with fig.batch_update():
+				update_hmm_figure(
+					self.scope,
+					self.data,
+					fig,
+					self.active_selection(),
+					box,
+				)
+
 
 	def __setitem__(self, key, value):
 		if not isinstance(key, str):
