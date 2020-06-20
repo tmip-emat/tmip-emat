@@ -827,7 +827,8 @@ def new_hmm_figure(
 		on_deselect=None,  # lambda *a: self._on_deselect_from_histogram(*a,name=col)
 		selected_color=None,
 		unselected_color=None,
-		emph_selected=False,
+		emph_selected=True,
+		show_points=50,
 ):
 	if unselected_color is None:
 		unselected_color = colors.DEFAULT_BASE_COLOR_RGB
@@ -893,6 +894,13 @@ def new_hmm_figure(
 	if data.index.name:
 		experiment_name = data.index.name
 
+	if selection is not None:
+		n_selected = numpy.sum(selection)
+		n_unselected = numpy.sum(~selection)
+	else:
+		n_selected = 0
+		n_unselected = len(data)
+
 	n = 0
 	for rownum, row in enumerate(rows, start=1):
 		for colnum, col in enumerate(cols, start=1):
@@ -900,8 +908,8 @@ def new_hmm_figure(
 
 			# x = perturb_categorical_df(data, col, suffix="numberize")
 			# y = perturb_categorical_df(data, row, suffix="numberize")
-			x = perturb_categorical_df(data, col)
-			y = perturb_categorical_df(data, row)
+			x_points = perturb_categorical_df(data, col)
+			y_points = perturb_categorical_df(data, row)
 			x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.25, epsilon=0.25)
 			y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.25, epsilon=0.25)
 
@@ -977,76 +985,118 @@ def new_hmm_figure(
 			x = agg0.coords[x_label]
 			y = agg0.coords[y_label]
 
-			fig.add_trace(
-				go.Image(
-					z=_hue_mix(agg1, agg0, selected_color, unselected_color),
-					x0=float(x[0]),
-					dx=float(x[1]-x[0]),
-					y0=float(y[0]),
-					dy=float(y[1]-y[0]),
-					# showlegend=False,
-					hovertemplate=hovertemplate,
-					meta=meta,
-					colormodel='rgba',
-				),
-				row=rownum, col=colnum,
+			if not emph_selected:
+				fig.add_trace(
+					go.Image(
+						z=_hue_mix(agg1, agg0, selected_color, unselected_color),
+						x0=float(x[0]),
+						dx=float(x[1]-x[0]),
+						y0=float(y[0]),
+						dy=float(y[1]-y[0]),
+						hovertemplate=hovertemplate,
+						meta=meta,
+						colormodel='rgba',
+					),
+					row=rownum, col=colnum,
+				)
+			else:
+				zmax = max(numpy.max(agg0_arr), numpy.max(agg1_arr))
+				agg0_arr = agg0_arr.astype(numpy.float64)
+				agg0_arr[agg0_arr==0] = numpy.nan
+				fig.add_trace(
+					go.Heatmap(
+						x=x,
+						y=y,
+						z=agg0_arr,
+						showlegend=False,
+						hovertemplate=hovertemplate,
+						meta=meta,
+						coloraxis=f"coloraxis{n*2}",
+						hoverongaps=False,
+						zmax=zmax,
+						zmin=0,
+					),
+					row=rownum, col=colnum,
+				)
 
-				# Display an image, i.e. data on a 2D regular raster. By default,
-				# when an image is displayed in a subplot, its y axis will be
-				# reversed (ie. `autorange: 'reversed'`), constrained to the
-				# domain (ie. `constrain: 'domain'`) and it will have the same
-				# scale as its x axis (ie. `scaleanchor: 'x,`) in order for
-				# pixels to be rendered as squares.
+				selected_color_str = ", ".join(str(int(i)) for i in selected_color)
+				unselected_color_str = ", ".join(str(int(i)) for i in unselected_color)
+				if n_selected <= show_points:
 
-			)
+					if x_ticktext is not None or y_ticktext is not None:
+						hovertemplate_s = (
+								f'<b>{scope.shortname(row)}</b>: %{{meta[1]}}<br>' +
+								f'<b>{scope.shortname(col)}</b>: %{{meta[2]}}' +
+								f'<extra>{experiment_name} %{{meta[0]}}</extra>'
+						)
+						meta_s = data[selection][[row, col]].reset_index().to_numpy()
+					else:
+						hovertemplate_s = (
+								f'<b>{scope.shortname(row)}</b>: %{{y}}<br>' +
+								f'<b>{scope.shortname(col)}</b>: %{{x}}' +
+								f'<extra>{experiment_name} %{{meta}}</extra>'
+						)
+						meta_s = data[selection].index
 
-			# fig.add_trace(
-			# 	go.Heatmap(
-			# 		x=x,
-			# 		y=y,
-			# 		z=numpy.asanyarray(agg0),
-			# 		showlegend=False,
-			# 		hovertemplate=hovertemplate,
-			# 		meta=meta,
-			# 		coloraxis=f"coloraxis{n*2}",
-			# 	),
-			# 	row=rownum, col=colnum,
-			# )
-			# fig.add_trace(
-			# 	go.Heatmap(
-			# 		x=x,
-			# 		y=y,
-			# 		z=numpy.asanyarray(agg1),
-			# 		showlegend=False,
-			# 		hovertemplate=hovertemplate,
-			# 		meta=meta,
-			# 		coloraxis=f"coloraxis{n*2-1}",
-			# 	),
-			# 	row=rownum, col=colnum,
-			# )
+					fig.add_trace(
+						go.Scatter(
+							x=x_points[selection],
+							y=y_points[selection],
+							mode='markers',
+							marker=dict(
+								color=f'rgba({selected_color_str}, 0.5)',
+							),
+							showlegend=False,
+							hovertemplate=hovertemplate_s,
+							meta=meta_s,
+						),
+						row=rownum, col=colnum,
+					)
+				else:
+					agg1_arr = agg1_arr.astype(numpy.float64)
+					agg1_arr[agg1_arr==0] = numpy.nan
+					fig.add_trace(
+						go.Heatmap(
+							x=x,
+							y=y,
+							z=agg1_arr,
+							showlegend=False,
+							hovertemplate=hovertemplate,
+							meta=meta,
+							coloraxis=f"coloraxis{n*2-1}",
+							hoverongaps=False,
+							zmax=zmax,
+							zmin=0,
+						),
+						row=rownum, col=colnum,
+					)
+				fig.update_layout({
+					f"coloraxis{n*2-1}": {
+						'showscale': False,
+						'colorscale': [
+							[0.0, f'rgba({selected_color_str}, 0.0)'],
+							[0.5, f'rgba({selected_color_str}, 0.6)'],
+							[1.0, f'rgba({selected_color_str}, 1.0)'],
+						],
+						'cmax':zmax,
+						'cmin':0,
+					},
+					f"coloraxis{n*2}": {
+						'showscale': False,
+						'colorscale': [
+							[0.0, f'rgba({unselected_color_str}, 0.0)'],
+							[0.5, f'rgba({unselected_color_str}, 0.6)'],
+							[1.0, f'rgba({unselected_color_str}, 1.0)'],
+						],
+						'cmax': zmax,
+						'cmin': 0,
+					},
+				})
 			if on_select is not None:
 				fig.data[-1].on_selection(lambda *args: on_select(col, row, *args))
 			if on_deselect is not None:
 				fig.data[-1].on_deselect(lambda *args: on_deselect(col, row, *args))
 
-			fig.update_layout({
-				f"coloraxis{n*2-1}": {
-					'showscale': False,
-					'colorscale': [
-						[0.0, 'rgba(255, 127, 14, 0.0)'],
-						[0.5, 'rgba(255, 127, 14, 0.7)'],
-						[1.0, 'rgba(255, 127, 14, 1.0)'],
-					],
-				},
-				f"coloraxis{n*2}": {
-					'showscale': False,
-					'colorscale': [
-						[0.0, 'rgba(31, 119, 180, 0.0)'],
-						[0.5, 'rgba(31, 119, 180, 0.7)'],
-						[1.0, 'rgba(31, 119, 180, 1.0)'],
-					],
-				},
-			})
 
 			if box is not None:
 				shapes = _splom_part_boxes(
@@ -1121,16 +1171,6 @@ def new_hmm_figure(
 	fig.update_layout(margin=dict(
 		l=10, r=10, t=30 if row_titles_top else 10, b=10,
 	))
-
-	fig.update_layout({
-		f"coloraxis1": {
-			'showscale': True,
-			'colorscale': [
-				[0.0, 'rgba(255, 127, 14, 1.0)'],
-				[1.0, 'rgba(31, 119, 180, 1.0)'],
-			],
-		},
-	})
 
 	metadata = dict(
 		rows=rows,

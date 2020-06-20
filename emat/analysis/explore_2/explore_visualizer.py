@@ -659,6 +659,8 @@ class Visualizer(DataFrameExplorer):
 			*,
 			cols='M',
 			rows='L',
+			emph_selected=True,
+			show_points=50,
 	):
 		if not isinstance(rows, str):
 			rows = tuple(rows)
@@ -687,6 +689,8 @@ class Visualizer(DataFrameExplorer):
 			box=box,
 			refpoint=self._reference_point,
 			figure_class=go.FigureWidget,
+			emph_selected=emph_selected,
+			show_points=show_points,
 		)
 
 		return self._hmm[key]
