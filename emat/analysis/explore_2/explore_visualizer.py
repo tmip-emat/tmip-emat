@@ -662,6 +662,7 @@ class Visualizer(DataFrameExplorer):
 			rows='L',
 			emph_selected=True,
 			show_points=-1,
+			size=150,
 	):
 		if not isinstance(rows, str):
 			rows = tuple(rows)
@@ -685,7 +686,7 @@ class Visualizer(DataFrameExplorer):
 			rows=rows,
 			cols=cols,
 			row_titles='side',
-			size=150,
+			size=size,
 			selection=self.active_selection(),
 			box=box,
 			refpoint=self._reference_point,
