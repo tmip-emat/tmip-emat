@@ -812,6 +812,29 @@ def _hue_mix(selected_array, unselected_array, selected_rgb, unselected_rgb):
 	hue_array[...,-1] = selection_total
 	return hue_array
 
+
+def _get_bins_and_range(ticktext, label, in_range, scope):
+	bins = 20
+	range_ = in_range
+	if ticktext is not None:
+		bins = len(ticktext) * 2 + 1
+		range_ = (in_range[0] - 0.25, in_range[1] + 0.25)
+	else:
+		param = scope[label]
+		try:
+			range_ = (param.min, param.max)
+		except AttributeError:
+			pass
+		try:
+			this_type = scope.get_dtype(label)
+		except:
+			this_type = 'float'
+		if this_type == 'int':
+			if param.max - param.min + 1 <= bins * 4:
+				bins = param.max - param.min + 1
+			range_ = (param.min-0.5, param.max+0.5)
+	return bins, range_
+
 def new_hmm_figure(
 		scope,
 		data,
@@ -914,18 +937,8 @@ def new_hmm_figure(
 			x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.25, epsilon=0.25)
 			y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.25, epsilon=0.25)
 
-			x_bins = 30
-			if x_ticktext is not None:
-				x_bins = len(x_ticktext)*2+1
-				x_range_ = (x_range[0]-0.25, x_range[1]+0.25)
-			else:
-				x_range_ = x_range
-			y_bins = 30
-			if y_ticktext is not None:
-				y_bins = len(y_ticktext)*2+1
-				y_range_ = (y_range[0]-0.25, y_range[1]+0.25)
-			else:
-				y_range_ = y_range
+			x_bins, x_range_ = _get_bins_and_range(x_ticktext, col, x_range, scope)
+			y_bins, y_range_ = _get_bins_and_range(y_ticktext, row, y_range, scope)
 
 			saved_bins[(rownum, colnum)] = (x_bins, x_range_, y_bins, y_range_)
 			cvs = ds.Canvas(plot_width=x_bins, plot_height=y_bins, x_range=x_range_, y_range=y_range_)
@@ -1000,7 +1013,7 @@ def new_hmm_figure(
 					row=rownum, col=colnum,
 				)
 			else:
-				zmax = max(numpy.max(agg0_arr), numpy.max(agg1_arr))
+				zmax = max(numpy.percentile(agg0_arr, 98), numpy.percentile(agg1_arr, 98))
 				agg0_arr = agg0_arr.astype(numpy.float64)
 				agg0_arr[agg0_arr==0] = numpy.nan
 				fig.add_trace(
@@ -1305,7 +1318,7 @@ def update_hmm_figure(
 					row=rownum, col=colnum,
 				)
 			else:
-				zmax = max(numpy.max(agg0_arr), numpy.max(agg1_arr))
+				zmax = max(numpy.percentile(agg0_arr, 98), numpy.percentile(agg1_arr, 98))
 				agg0_arr = agg0_arr.astype(numpy.float64)
 				agg0_arr[agg0_arr==0] = numpy.nan
 				fig['data'][trace_n]['z'] = agg0_arr
