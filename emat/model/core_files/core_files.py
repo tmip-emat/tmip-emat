@@ -8,6 +8,8 @@ import glob
 import numpy as np
 import pandas as pd
 import subprocess
+import warnings
+from pathlib import Path
 from ...model.core_model import AbstractCoreModel
 from ...scope.scope import Scope
 from ...database.database import Database
@@ -73,6 +75,12 @@ class FilesCoreModel(AbstractCoreModel):
 			A name for this model, given as an alphanumeric string.
 			The name is required by ema_workbench operations.
 			If not given, "FilesCoreModel" is used.
+		local_directory:
+			Optionally explicitly give this local_directory to use,
+			overriding any directory set in the config file. If not
+			given either here or in the config file, then Python's
+			cwd is used.
+
 
 	"""
 
@@ -82,6 +90,7 @@ class FilesCoreModel(AbstractCoreModel):
 				 safe: bool = True,
 				 db: Database = None,
 				 name: str = 'FilesCoreModel',
+				 local_directory: Path = None,
 				 ):
 		super().__init__(
 			configuration=configuration,
@@ -92,8 +101,11 @@ class FilesCoreModel(AbstractCoreModel):
 			metamodel_id=0,
 		)
 
+		self.local_directory = local_directory or self.config.get("local_directory") or os.getcwd()
+		"""Path: The current local working directory for this model."""
+
 		self.model_path = self.config['model_path']
-		"""Path: The directory of the 'live' model instance."""
+		"""Path: The directory of the 'live' model instance, relative to the local_directory."""
 
 		self.rel_output_path = self.config.get('rel_output_path', 'Outputs')
 		"""Path: The path to 'live' model outputs, relative to `model_path`."""
@@ -104,7 +116,28 @@ class FilesCoreModel(AbstractCoreModel):
 		self.allow_short_circuit = self.config.get('allow_short_circuit', True)
 		"""Bool: Allow model runs to be skipped if measures already appear in the database."""
 
+		self.ignore_crash = self.config.get('ignore_crash', False)
+		"""Bool: Allow model runs to continue to `post_process` and `archive` even after an apparent crash in `run`."""
+
 		self._parsers = []
+
+	@property
+	def resolved_archive_path(self):
+		"""
+		The archive path to use.
+
+		If `archive_path` is set to an absolute path, then that path is returned,
+		otherwise the `archive_path` is joined onto the `local_directory`.
+
+		Returns:
+			str
+		"""
+		if self.archive_path is None:
+			raise MissingArchivePathError('no archive set for this core model')
+		if os.path.isabs(self.archive_path):
+			return self.archive_path
+		else:
+			return os.path.join(self.local_directory, self.archive_path)
 
 	def add_parser(self, parser):
 		"""
@@ -207,28 +240,30 @@ class FilesCoreModel(AbstractCoreModel):
 		except subprocess.CalledProcessError as err:
 			_logger.error(f"ERROR in run_core_model run {experiment_id}: {str(err)}")
 			try:
-				archive_path = self.get_experiment_archive_path(experiment_id, makedirs=True)
+				ex_archive_path = self.get_experiment_archive_path(experiment_id, makedirs=True)
 			except MissingArchivePathError:
 				pass
 			else:
 				if err.stdout:
-					with open(os.path.join(archive_path, 'error.stdout.log'), 'ab') as stdout:
+					with open(os.path.join(ex_archive_path, 'error.stdout.log'), 'ab') as stdout:
 						stdout.write(err.stdout)
 				if err.stderr:
-					with open(os.path.join(archive_path, 'error.stderr.log'), 'ab') as stderr:
+					with open(os.path.join(ex_archive_path, 'error.stderr.log'), 'ab') as stderr:
 						stderr.write(err.stderr)
-				with open(os.path.join(archive_path, 'error.log'), 'a') as errlog:
+				with open(os.path.join(ex_archive_path, 'error.log'), 'a') as errlog:
 					errlog.write(str(err))
 			measures_dictionary = {name:np.nan for name in m_names}
 			# Assign to outcomes_output, for ema_workbench compatibility
 			self.outcomes_output = measures_dictionary
 
-			if self.config('ignore_crash', False):
-				# If the 'ignore_crash' is not set in the model config file,
-				# or if it is set to a False value, then abort now and skip
+			if not self.ignore_crash:
+				# If 'ignore_crash' is False (the default), then abort now and skip
 				# any post-processing and other archiving steps, which will
 				# probably fail anyway.
+				_logger.error(f"run_core_model ABORT {experiment_id}")
 				return
+			else:
+				_logger.error(f"run_core_model CONTINUE AFTER ERROR {experiment_id}")
 
 		_logger.debug(f"run_core_model post_process {experiment_id}")
 		self.post_process(xl, m_names)
@@ -245,19 +280,25 @@ class FilesCoreModel(AbstractCoreModel):
 			self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df)
 
 		try:
-			archive_path = self.get_experiment_archive_path(experiment_id)
+			ex_archive_path = self.get_experiment_archive_path(experiment_id)
 		except MissingArchivePathError:
 			pass
 		else:
 			_logger.debug(f"run_core_model archive {experiment_id}")
-			self.archive(xl, archive_path, experiment_id)
+			self.archive(xl, ex_archive_path, experiment_id)
 
 	@copydoc(AbstractCoreModel.get_experiment_archive_path)
-	def get_experiment_archive_path(self, experiment_id: int, makedirs:bool=False) -> str:
-		if self.archive_path is None:
-			raise MissingArchivePathError('no archive set for this core model')
+	def get_experiment_archive_path(self, experiment_id=None, makedirs=False, parameters=None):
+		if experiment_id is None:
+			if parameters is None:
+				raise ValueError("must give `experiment_id` or `parameters`")
+			db = getattr(self, 'db', None)
+			if db is not None:
+				with warnings.catch_warnings():
+					warnings.simplefilter("ignore", category=MissingIdWarning)
+					experiment_id = db.get_experiment_id(self.scope.name, None, parameters)
 		mod_results_path = os.path.join(
-			self.archive_path,
+			self.resolved_archive_path,
 			f"scp_{self.scope.name}",
 			f"exp_{experiment_id}"
 		)
@@ -266,13 +307,15 @@ class FilesCoreModel(AbstractCoreModel):
 		return mod_results_path
 
 	def setup(self, params: dict):
-		# TODO: Make directory structure.  Subclass will fill it.
-		raise NotImplementedError()
+		scope_param_names = set(self.scope.get_parameter_names())
+		for key in params.keys():
+			if key not in scope_param_names:
+				raise KeyError(f"'{key}' not found in scope parameters")
 
 	@copydoc(AbstractCoreModel.load_measures)
 	def load_measures(
 			self,
-			measure_names: List[str],
+			measure_names: List[str]=None,
 			*,
 			rel_output_path=None,
 			abs_output_path=None,
@@ -281,9 +324,9 @@ class FilesCoreModel(AbstractCoreModel):
 		if rel_output_path is not None and abs_output_path is not None:
 			raise ValueError("cannot give both `rel_output_path` and `abs_output_path`")
 		elif rel_output_path is None and abs_output_path is None:
-			output_path = os.path.join(self.model_path, self.rel_output_path)
+			output_path = os.path.join(self.local_directory, self.model_path, self.rel_output_path)
 		elif rel_output_path is not None:
-			output_path = os.path.join(self.model_path, rel_output_path)
+			output_path = os.path.join(self.local_directory, self.model_path, rel_output_path)
 		else: # abs_output_path is not None
 			output_path = abs_output_path
 
@@ -303,12 +346,10 @@ class FilesCoreModel(AbstractCoreModel):
 				try:
 					measures = parser.read(output_path)
 				except FileNotFoundError as err:
-					import warnings
 					for name in parser.measure_names:
 						if is_requested(name):
 							warnings.warn(f'{name} unavailable, {err} not found')
 				except Exception as err:
-					import warnings
 					for name in parser.measure_names:
 						if is_requested(name):
 							warnings.warn(f'{name} unavailable, {err!r}')

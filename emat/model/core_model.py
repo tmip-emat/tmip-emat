@@ -131,7 +131,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         """     
  
     @abc.abstractmethod
-    def get_experiment_archive_path(self, experiment_id: int, makedirs:bool=False) -> str:
+    def get_experiment_archive_path(self, experiment_id=None, makedirs=False, parameters=None):
         """
         Returns a file system location to store model run outputs.
 
@@ -145,12 +145,18 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         
         Args:
             experiment_id (int):
-                experiment id integer (row id of experiment in database)
+                The experiment id, which is also the row id of the
+                experiment in the database. If this is omitted, an
+                experiment id is read or created using the parameters.
             makedirs (bool, default False):
                 If this archive directory does not yet exist, create it.
+            parameters (dict, optional):
+                The parameters for this experiment, used to create or
+                lookup an experiment id. The parameters are ignored
+                if `experiment_id` is given.
                 
         Returns:
-            str: model result path (no trailing backslashes)
+            str: Experiment archive path (no trailing backslashes).
         """     
     
     @abc.abstractmethod
@@ -227,7 +233,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
     @abc.abstractmethod
     def load_measures(
             self,
-            measure_names: Collection[str],
+            measure_names: Collection[str]=None,
             *,
             rel_output_path=None,
             abs_output_path=None,

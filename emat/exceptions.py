@@ -25,3 +25,7 @@ class DistributionTypeError(TypeError):
 
 class DistributionFreezeError(Exception):
 	"""An error is thrown when creating an rv_frozen object."""
+
+
+class MissingIdWarning(Warning):
+	"""An experiment id is not found in the database."""

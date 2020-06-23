@@ -344,7 +344,8 @@ class SQLiteDB(Database):
         return ex_ids
 
     def read_experiment_id(self, scope_name, design_name: str, *args, **kwargs):
-        """Read the experiment id previously defined in the database
+        """
+        Read the experiment id previously defined in the database
 
         Args:
             scope_name (str): scope name, used to identify experiments,
@@ -374,6 +375,42 @@ class SQLiteDB(Database):
         xl_df = pd.DataFrame(parameters, index=[0])
         result = self.read_experiment_ids(scope_name, design_name, xl_df)
         return result[0]
+
+    def get_experiment_id(self, scope_name=None, design_name=None, *args, **kwargs):
+        """
+        Read or create an experiment id in the database.
+
+        Args:
+            scope_name (str): scope name, used to identify experiments,
+                performance measures, and results associated with this run
+            design_name (str or None): experiment design name.  Set to None
+                to find experiments across all designs. If the experiment is
+                not found and no design_name is given, it will be assigned to
+                a design named 'ad_hoc'.
+            parameters (dict): keys are experiment parameters, values are the
+                experimental values to look up.  Subsequent positional or keyword
+                arguments are used to update parameters.
+
+        Returns:
+            int: the experiment id of the identified experiment
+
+        Raises:
+            ValueError: If scope name does not exist
+            ValueError: If multiple experiments match an experiment definition.
+                This can happen, for example, if the definition is incomplete.
+        """
+        scope_name = self._validate_scope(scope_name, 'design_name')
+        ex_id = self.read_experiment_id(scope_name, design_name, *args, **kwargs)
+        if ex_id is None:
+            if design_name is None:
+                design_name = 'ad_hoc'
+            parameters = self.read_scope(scope_name).get_parameter_defaults()
+            for a in args:
+                parameters.update(a)
+            parameters.update(kwargs)
+            df = pd.DataFrame(parameters, index=[0])
+            ex_id = self.write_experiment_parameters(scope_name, design_name, df)[0]
+        return ex_id
 
     @copydoc(Database.read_experiment_ids)
     def read_experiment_ids(self, scope_name, design_name: str, xl_df: pd.DataFrame):
@@ -424,7 +461,8 @@ class SQLiteDB(Database):
 
         if missing_ids:
             import warnings
-            warnings.warn(f'missing {missing_ids} ids')
+            from ...exceptions import MissingIdWarning
+            warnings.warn(f'missing {missing_ids} ids', category=MissingIdWarning)
         return ex_ids
 
     def read_all_experiment_ids(self, scope_name:str, design_name:str=None):

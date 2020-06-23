@@ -122,8 +122,14 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
         self.xl_di = params
     
     @copydoc(AbstractCoreModel.get_experiment_archive_path)
-    def get_experiment_archive_path(self, experiment_id, makedirs=False):
+    def get_experiment_archive_path(self, experiment_id=None, makedirs=False, parameters=None):
         ''' Path is defined with scope name and experiment id '''
+        if experiment_id is None:
+            if parameters is None:
+                raise ValueError("must give `experiment_id` or `parameters`")
+            db = getattr(self, 'db', None)
+            if db is not None:
+                experiment_id = db.get_experiment_id(self.scope.name, None, parameters)
         mod_results_path = os.path.join(
             self.archive_path,
             f"scp_{self.scope.name}",
@@ -144,13 +150,16 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
     @copydoc(AbstractCoreModel.load_measures)
     def load_measures(
             self,
-            measure_names: Collection[str],
+            measure_names: Collection[str]=None,
             *,
             rel_output_path=None,
             abs_output_path=None,
     ):
 
         result = self.function(**self.xl_di)
+
+        if measure_names is None:
+            return result.copy()
 
         pm_dict = {}
         for pm in measure_names:
