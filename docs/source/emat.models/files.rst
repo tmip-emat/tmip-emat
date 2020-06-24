@@ -43,4 +43,5 @@ reference for the methods defined for the :class:`FilesCoreModel` class.
 
     interface-walkthrough
     table_parse_example
+    mapping_parse_example
     files-api
