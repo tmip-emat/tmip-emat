@@ -151,6 +151,18 @@ class FilesCoreModel(AbstractCoreModel):
 			raise TypeError("parser must be an instance of FileParser")
 		self._parsers.append(parser)
 
+	def get_parser(self, idx):
+		"""
+		Access a FileParser, used to extract performance measures.
+
+		Args:
+			idx (int): The position of the parser to get.
+
+		Returns:
+			FileParser
+		"""
+		return self._parsers[idx]
+
 	def model_init(self, policy):
 		super().model_init(policy)
 

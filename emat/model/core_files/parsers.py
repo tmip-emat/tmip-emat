@@ -53,6 +53,8 @@ class FileParser(abc.ABC):
 		"""
 		pass
 
+	def __repr__(self):
+		return f'<emat.model.core_files.{self.__class__.__name__} for "{self.filename}">'
 
 class TableParser(FileParser):
 	"""

@@ -248,6 +248,15 @@ def _Road_Capacity_Investment_CmdLine():
     if levers['mandatory_unused_lever'] != 42:
         raise ValueError("incorrect value for 'mandatory_unused_lever', must be 42")
 
+    if 'unit_cost_expansion' in uncs:
+        raise ValueError("cannot give 'unit_cost_expansion', use 'labor_unit_cost_expansion' and 'materials_unit_cost_expansion'")
+    if uncs.get('labor_unit_cost_expansion', 0) <= uncs.get('materials_unit_cost_expansion', 0):
+        raise ValueError("'labor_unit_cost_expansion' cannot be less than or equal 'materials_unit_cost_expansion'")
+    if uncs.get('labor_unit_cost_expansion', 0) > uncs.get('materials_unit_cost_expansion', 0)*2:
+        raise ValueError("'labor_unit_cost_expansion' cannot be more than double 'materials_unit_cost_expansion'")
+    unit_cost_expansion = uncs.pop('labor_unit_cost_expansion', 0) + uncs.pop('materials_unit_cost_expansion', 0)
+    uncs['unit_cost_expansion'] = unit_cost_expansion
+
     # (pseudo)random crash
     if not args.no_random_crashes:
         if 'expand_capacity' in levers and levers['expand_capacity'] > 90 and not os.path.exists('prevent_random_crash.txt'):

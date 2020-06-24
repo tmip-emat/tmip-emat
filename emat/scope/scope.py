@@ -16,6 +16,9 @@ from .measure import Measure
 from ..util.docstrings import copydoc
 from ..util import rv_frozen_as_dict
 
+from ..util.loggers import get_module_logger
+_logger = get_module_logger(__name__)
+
 from ..exceptions import *
 
 def _name_or_dict(x):
@@ -155,7 +158,24 @@ class Scope:
             if getattr(self,k) != getattr(other,k):
                 return False
         return True
-    
+
+    def _assert_equal(self, other):
+        if type(other) != type(self):
+            raise AssertionError(f"not same type: {type(other)} != {type(self)}")
+        for k in ('_x_list', '_l_list', '_c_list', ):
+            if len(getattr(self,k)) != len(getattr(other,k)):
+                raise AssertionError(f"mismatch length {k}: {len(getattr(self,k))} != {len(getattr(other,k))}")
+            for i,j in zip(getattr(self,k), getattr(other,k)):
+                if isinstance(i, rv_frozen):
+                    if rv_frozen_as_dict(i) != rv_frozen_as_dict(j):
+                        raise AssertionError(f"mismatch rv_frozen: {rv_frozen_as_dict(i)} != {rv_frozen_as_dict(j)}")
+                else:
+                    if i != j:
+                        raise AssertionError(f"mismatch item: {i} != {j}")
+        for k in ('_m_list', 'name', 'desc'):
+            if getattr(self,k) != getattr(other,k):
+                raise AssertionError(f"mismatch {k}: {getattr(self,k)} != {getattr(other,k)}")
+
 
     def store_scope(self, db: Database):
         ''' writes variables and scope definition to database 
@@ -247,9 +267,7 @@ class Scope:
         try:
             return type(self)(self.scope_file, scope_def=y)
         except:
-            print("~"*20)
-            print(y)
-            print("~"*20)
+            _logger.error(f"scope dump\n{str(y)}")
             raise
 
     def dump(
@@ -319,6 +337,7 @@ class Scope:
         measure_keys = {
             # 'shortname': lambda x: x or None,  # processed separately
             'kind':  lambda x: {-1:'minimize', 0:'info', 1:'maximize'}.get(x,x),
+            'desc': lambda x: x,
             'transform': lambda x: x,
             'metamodeltype': lambda x: 'linear' if x is None else x,
         }
@@ -538,6 +557,24 @@ class Scope:
             raise KeyError(name)
         return correct_dtypes[name]
 
+    def get_ptype(self, name):
+        """
+        Get the ptype for a parameter or measure.
+
+        Args:
+            name (str):
+                The name of the parameter or measure
+
+        Returns:
+            str:
+                {'X', 'L', 'C', 'M'}
+        """
+        if name in self.get_measure_names(): return 'M'
+        if name in self.get_uncertainty_names(): return 'X'
+        if name in self.get_lever_names(): return 'L'
+        if name in self.get_constant_names(): return 'C'
+        raise KeyError(name)
+
     def get_cat_values(self, name):
         """
         Get the category values for a parameter or measure.
@@ -649,6 +686,26 @@ class Scope:
                 return x.shortname
             except:
                 return name
+
+    def tagged_shortname(self, name):
+        """
+        Get a label, for any named parameter or measure.
+
+        The label is the shortname, if available, and a circled letter
+        symbol indicating the ptype of the parameter or measure.
+
+        Args:
+            name: str
+        Returns:
+            str
+        """
+        tags = dict(
+            L="Ⓛ ",
+            X="Ⓧ ",
+            M="Ⓜ ",
+            C="Ⓒ ",
+        )
+        return tags.get(self.get_ptype(name),"")+self.shortname(name)
 
     def get_description(self, name):
         """

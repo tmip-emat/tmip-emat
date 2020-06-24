@@ -706,11 +706,11 @@ class Explore(GenericBox):
 	def complete(self, measure_style='hist'):
 		return widget.VBox([
 			self.status(),
-			widget.HTML("<h3>Policy Levers</h3>"),
+			widget.HTML("<h3>Ⓛ Policy Levers</h3>"),
 			self.selectors(*self.scope.get_lever_names()),
-			widget.HTML("<h3>Exogenous Uncertainties</h3>"),
+			widget.HTML("<h3>Ⓧ Exogenous Uncertainties</h3>"),
 			self.selectors(*self.scope.get_uncertainty_names()),
-			widget.HTML("<h3>Performance Measures</h3>"),
+			widget.HTML("<h3>Ⓜ Performance Measures</h3>"),
 			self._measure_notes(style=measure_style),
 			self.measure_selectors(style=measure_style),
 		])

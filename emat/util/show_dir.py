@@ -81,6 +81,8 @@ def show_dir(basedir):
 		print(path.displayable())
 
 def show_file_contents(*filepath, mode='rt'):
+	if os.path.splitext(os.path.join(*filepath))[1]=='.gz' and 'z' not in mode:
+		mode = f"{mode}z"
 	if 'z' in mode:
 		mode = mode.replace('z','')
 		import gzip
