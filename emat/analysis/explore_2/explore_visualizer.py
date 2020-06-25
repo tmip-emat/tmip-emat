@@ -674,7 +674,7 @@ class Visualizer(DataFrameExplorer):
 			cols='M',
 			rows='L',
 			emph_selected=True,
-			show_points=-1,
+			show_points=30,
 			size=150,
 	):
 		if not isinstance(rows, str):
@@ -794,8 +794,10 @@ class Visualizer(DataFrameExplorer):
 			name = self.active_selection_name()
 		if self.selection_deftype(name) == 'box':
 			box = self._selection_defs[self.active_selection_name()]
-			box.clear()
-			self[name] = box
+			if box.thresholds:
+				box.clear()
+				self[name] = box
+				self._active_selection_changed()
 
 	def new_box(self, name, **kwargs):
 		from ...scope.box import Box

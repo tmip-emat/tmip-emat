@@ -14,6 +14,12 @@ import ipywidgets as widget
 import logging
 _logger = logging.getLogger('EMAT.widget')
 
+def is_dtype(v, dtype):
+	try:
+		return numpy.issubdtype(v, dtype)
+	except TypeError as err:
+		return False
+
 
 class DataFrameExplorerBase():
 
@@ -47,6 +53,12 @@ class DataFrameExplorerBase():
 		self._update_state_ = set()
 		if isinstance(reference_point, pandas.DataFrame) and len(reference_point)==1:
 			reference_point = dict(reference_point.iloc[0])
+
+		for k in reference_point.keys():
+			# convert from numpy.bool_ to bool for json compatibility
+			if is_dtype(reference_point[k], numpy.bool_):
+				reference_point[k] = bool(reference_point[k])
+
 		self._reference_point = reference_point
 		if make_selections:
 			for k,v in make_selections.items():
@@ -82,8 +94,7 @@ class DataFrameExplorerBase():
 		if color is not None:
 			self._colors[name] = color
 		if activate:
-			self._active_selection_name = name
-			self._active_selection_changed()
+			self.set_active_selection_name(name, force_update=True)
 
 	def active_selection(self):
 		return self._selections[self._active_selection_name]
@@ -94,10 +105,10 @@ class DataFrameExplorerBase():
 	def active_selection_deftype(self):
 		return self.selection_deftype(self.active_selection_name())
 
-	def set_active_selection_name(self, activate_name):
+	def set_active_selection_name(self, activate_name, *, force_update=False):
 		if activate_name not in self.selection_names():
 			raise KeyError(f"activate_name '{activate_name}' not found")
-		if self._active_selection_name != activate_name:
+		if self._active_selection_name != activate_name or force_update:
 			self._active_selection_name = activate_name
 			self._active_selection_changed()
 
@@ -174,13 +185,13 @@ class DataFrameExplorer(DataFrameExplorerBase):
 		)
 		self._active_selection_chooser.observe(self.set_active_selection_name, names='value')
 
-	def set_active_selection_name(self, activate_name):
+	def set_active_selection_name(self, activate_name, *, force_update=False):
 		if isinstance(activate_name, dict):
 			if activate_name.get('type') == 'change':
 				activate_name = activate_name.get('new')
 			else: return
 		if activate_name is None: return
-		super().set_active_selection_name(activate_name)
+		super().set_active_selection_name(activate_name, force_update=force_update)
 		self._active_selection_chooser.options = self.selection_names()
 		self._active_selection_chooser.value = activate_name
 		self.set_active_selection_color(self.active_selection_color())

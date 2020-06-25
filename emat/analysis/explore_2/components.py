@@ -1110,6 +1110,7 @@ def new_hmm_figure(
 		unselected_color=None,
 		emph_selected=True,
 		show_points=50,
+		marker_size=5,
 ):
 	if unselected_color is None:
 		unselected_color = colors.DEFAULT_BASE_COLOR_RGB
@@ -1290,57 +1291,63 @@ def new_hmm_figure(
 					row=rownum, col=colnum,
 				)
 
+				agg1_arr = agg1_arr.astype(numpy.float64)
+				agg1_arr[agg1_arr == 0] = numpy.nan
+				fig.add_trace(
+					go.Heatmap(
+						x=x,
+						y=y,
+						z=agg1_arr,
+						showlegend=False,
+						hovertemplate=hovertemplate,
+						meta=meta,
+						coloraxis=f"coloraxis{n * 2 - 1}",
+						hoverongaps=False,
+						zmax=zmax,
+						zmin=0,
+					),
+					row=rownum, col=colnum,
+				)
+
 				selected_color_str = ", ".join(str(int(i)) for i in selected_color)
 				unselected_color_str = ", ".join(str(int(i)) for i in unselected_color)
 				if n_selected <= show_points:
-
-					if x_ticktext is not None or y_ticktext is not None:
-						hovertemplate_s = (
-								f'<b>{scope.shortname(row)}</b>: %{{meta[1]}}<br>' +
-								f'<b>{scope.shortname(col)}</b>: %{{meta[2]}}' +
-								f'<extra>{experiment_name} %{{meta[0]}}</extra>'
-						)
-						meta_s = data[selection][[row, col]].reset_index().to_numpy()
-					else:
-						hovertemplate_s = (
-								f'<b>{scope.shortname(row)}</b>: %{{y}}<br>' +
-								f'<b>{scope.shortname(col)}</b>: %{{x}}' +
-								f'<extra>{experiment_name} %{{meta}}</extra>'
-						)
-						meta_s = data[selection].index
-
-					fig.add_trace(
-						go.Scatter(
-							x=x_points[selection],
-							y=y_points[selection],
-							mode='markers',
-							marker=dict(
-								color=f'rgba({selected_color_str}, 0.5)',
-							),
-							showlegend=False,
-							hovertemplate=hovertemplate_s,
-							meta=meta_s,
-						),
-						row=rownum, col=colnum,
-					)
+					_x_points_selected = x_points[selection]
+					_y_points_selected = y_points[selection]
 				else:
-					agg1_arr = agg1_arr.astype(numpy.float64)
-					agg1_arr[agg1_arr==0] = numpy.nan
-					fig.add_trace(
-						go.Heatmap(
-							x=x,
-							y=y,
-							z=agg1_arr,
-							showlegend=False,
-							hovertemplate=hovertemplate,
-							meta=meta,
-							coloraxis=f"coloraxis{n*2-1}",
-							hoverongaps=False,
-							zmax=zmax,
-							zmin=0,
-						),
-						row=rownum, col=colnum,
+					_x_points_selected = [None]
+					_y_points_selected = [None]
+
+				if x_ticktext is not None or y_ticktext is not None:
+					hovertemplate_s = (
+							f'<b>{scope.shortname(row)}</b>: %{{meta[1]}}<br>' +
+							f'<b>{scope.shortname(col)}</b>: %{{meta[2]}}' +
+							f'<extra>{experiment_name} %{{meta[0]}}</extra>'
 					)
+					meta_s = data[selection][[row, col]].reset_index().to_numpy()
+				else:
+					hovertemplate_s = (
+							f'<b>{scope.shortname(row)}</b>: %{{y}}<br>' +
+							f'<b>{scope.shortname(col)}</b>: %{{x}}' +
+							f'<extra>{experiment_name} %{{meta}}</extra>'
+					)
+					meta_s = data[selection].index
+
+				fig.add_trace(
+					go.Scatter(
+						x=_x_points_selected,
+						y=_y_points_selected,
+						mode='markers',
+						marker=dict(
+							color=f'rgb({selected_color_str})',
+							size=marker_size,
+						),
+						showlegend=False,
+						hovertemplate=hovertemplate_s,
+						meta=meta_s,
+					),
+					row=rownum, col=colnum,
+				)
 				fig.update_layout({
 					f"coloraxis{n*2-1}": {
 						'showscale': False,
@@ -1451,6 +1458,10 @@ def new_hmm_figure(
 		emph_selected=emph_selected,
 		show_points=show_points,
 		saved_bins=saved_bins,
+		marker_size=marker_size,
+		row_titles=row_titles,
+		size=size,
+		refpoint=refpoint,
 	)
 	fig.update_layout(meta=metadata)
 	return fig
@@ -1470,10 +1481,6 @@ def update_hmm_figure(
 	existing_emph_selected = fig['layout']['meta']['emph_selected']
 	existing_show_points = fig['layout']['meta']['show_points']
 	saved_bins = fig['layout']['meta']['saved_bins']
-	if existing_show_points >= 0:
-		return fig # NotImplementedError('TODO: update with showpoints')
-	if not existing_emph_selected:
-		return fig # NotImplementedError('TODO: update with not emph_selected')
 
 	existing_rows = fig['layout']['meta']['rows']
 	existing_cols = fig['layout']['meta']['cols']
@@ -1481,177 +1488,41 @@ def update_hmm_figure(
 		selected_color = fig['layout']['meta'].get('selected_color', colors.DEFAULT_HIGHLIGHT_COLOR_RGB)
 	if unselected_color is None:
 		unselected_color = fig['layout']['meta'].get('unselected_color', colors.DEFAULT_BASE_COLOR_RGB)
-	if mass is None:
-		mass = fig['layout']['meta'].get('mass', 250)
 	if rows is None:
 		rows = existing_rows
-	else:
-		raise NotImplementedError("TODO: if rows change, remake figure")
 	if cols is None:
 		cols = existing_cols
-	else:
-		raise NotImplementedError("TODO: if cols change, remake figure")
-	existing_lines = fig_existing_lines(fig)
 
-	trace_n = 0
-	ax_num = 0
-	box_shapes = []
-	for rownum, row in enumerate(rows, start=1):
-		for colnum, col in enumerate(cols, start=1):
-			ax_num += 1
-			x = perturb_categorical_df(data, col)
-			y = perturb_categorical_df(data, row)
-			x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.3)
-			y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.3)
+	replacement = new_hmm_figure(
+		scope,
+		data,
+		rows=rows,
+		cols=cols,
+		row_titles=fig['layout']['meta']['row_titles'],
+		size=fig['layout']['meta']['size'],
+		selection=selection,
+		box=box,
+		refpoint=fig['layout']['meta']['refpoint'],
+		figure_class=None,
+		on_select=None,
+		on_deselect=None,
+		selected_color=selected_color,
+		unselected_color=unselected_color,
+		emph_selected=existing_emph_selected,
+		show_points=existing_show_points,
+		marker_size=fig['layout']['meta']['marker_size'],
+	)
 
-			x_bins, x_range_, y_bins, y_range_ = saved_bins[(rownum, colnum)]
-			cvs = ds.Canvas(plot_width=x_bins, plot_height=y_bins, x_range=x_range_, y_range=y_range_)
-			_col = f"_{col}_perturb" if f"_{col}_perturb" in data.columns else col
-			_row = f"_{row}_perturb" if f"_{row}_perturb" in data.columns else row
+	copy_features = {
+		'Heatmap': ('name', 'x','y','z','showlegend','hovertemplate','meta','coloraxis','hoverongaps','zmax','zmin'),
+		'Scatter': ('name', 'x','y','mode','marker','showlegend','hovertemplate','meta'),
+	}
 
-			agg1 = cvs.points(data[selection], _col, _row)
-			agg0 = cvs.points(data[~selection], _col, _row)
+	for old_trace, new_trace in zip(fig['data'], replacement['data']):
+		classname = old_trace.__class__.__name__
+		for attr in copy_features[classname]:
+			setattr(old_trace, attr, getattr(new_trace, attr))
 
-			if x_ticktext is not None:
-				x_arr = data[col].to_numpy().astype('U')
-				x_hovertag = "%{meta[2]}"
-			else:
-				x_arr = None
-				x_hovertag = "%{x:.3s}"
+	fig['layout'] = replacement['layout']
 
-			if y_ticktext is not None:
-				y_arr = data[row].to_numpy().astype('U')
-				y_hovertag = "%{meta[3]}" if x_hovertag=="%{meta[2]}" else "%{meta[2]}"
-			else:
-				y_arr = None
-				y_hovertag = "%{y:.3s}"
-			hovertemplate = (
-				f"<b>{scope.shortname(col)}</b>: {x_hovertag}<br>" +
-				f"<b>{scope.shortname(row)}</b>: {y_hovertag}" +
-				"<extra>%{meta[0]} selected<br>%{meta[1]} unselected</extra>"
-			)
-			agg0_arr = numpy.asanyarray(agg0)
-			agg1_arr = numpy.asanyarray(agg1)
-			wtype_def = [
-				('ns', agg1_arr.dtype),
-				('nu', agg0_arr.dtype),
-			]
-			if x_arr is not None:
-				wtype_def.append(
-					('x', x_arr.dtype)
-				)
-			if y_arr is not None:
-				wtype_def.append(
-					('y', y_arr.dtype)
-				)
-			wtype = numpy.dtype(wtype_def)
-			meta = numpy.empty(agg0_arr.shape, dtype=wtype)
-			meta['ns'] = agg1_arr
-			meta['nu'] = agg0_arr
-			if x_ticktext is not None:
-				meta[:,1::2]['x']=x_ticktext
-			if y_ticktext is not None:
-				meta[1::2,:]['y']=numpy.asarray(y_ticktext)[:,None]
-
-			y_label, x_label = agg0.dims[0], agg0.dims[1]
-			# np.datetime64 is not handled correctly by go.Heatmap
-			for ax in [x_label, y_label]:
-				if numpy.issubdtype(agg0.coords[ax].dtype, numpy.datetime64):
-					agg0.coords[ax] = agg0.coords[ax].astype(str)
-			x = agg0.coords[x_label]
-			y = agg0.coords[y_label]
-
-			if False:
-				fig.add_trace(
-					go.Image(
-						z=_hue_mix(agg1, agg0, selected_color, unselected_color),
-						x0=float(x[0]),
-						dx=float(x[1]-x[0]),
-						y0=float(y[0]),
-						dy=float(y[1]-y[0]),
-						hovertemplate=hovertemplate,
-						meta=meta,
-						colormodel='rgba',
-					),
-					row=rownum, col=colnum,
-				)
-			else:
-				zmax = max(numpy.percentile(agg0_arr, 98), numpy.percentile(agg1_arr, 98))
-				agg0_arr = agg0_arr.astype(numpy.float64)
-				agg0_arr[agg0_arr==0] = numpy.nan
-				fig['data'][trace_n]['z'] = agg0_arr
-				fig['data'][trace_n]['meta'] = meta
-
-				trace_n += 1
-
-				selected_color_str = ", ".join(str(int(i)) for i in selected_color)
-				unselected_color_str = ", ".join(str(int(i)) for i in unselected_color)
-				if False : #n_selected <= show_points:
-
-					if x_ticktext is not None or y_ticktext is not None:
-						hovertemplate_s = (
-								f'<b>{scope.shortname(row)}</b>: %{{meta[1]}}<br>' +
-								f'<b>{scope.shortname(col)}</b>: %{{meta[2]}}' +
-								f'<extra>{experiment_name} %{{meta[0]}}</extra>'
-						)
-						meta_s = data[selection][[row, col]].reset_index().to_numpy()
-					else:
-						hovertemplate_s = (
-								f'<b>{scope.shortname(row)}</b>: %{{y}}<br>' +
-								f'<b>{scope.shortname(col)}</b>: %{{x}}' +
-								f'<extra>{experiment_name} %{{meta}}</extra>'
-						)
-						meta_s = data[selection].index
-
-					# fig.add_trace(
-					# 	go.Scatter(
-					# 		x=x_points[selection],
-					# 		y=y_points[selection],
-					# 		mode='markers',
-					# 		marker=dict(
-					# 			color=f'rgba({selected_color_str}, 0.5)',
-					# 		),
-					# 		showlegend=False,
-					# 		hovertemplate=hovertemplate_s,
-					# 		meta=meta_s,
-					# 	),
-					# 	row=rownum, col=colnum,
-					# )
-				else:
-					agg1_arr = agg1_arr.astype(numpy.float64)
-					agg1_arr[agg1_arr==0] = numpy.nan
-					fig['data'][trace_n]['z'] = agg1_arr
-					fig['data'][trace_n]['meta'] = meta
-					trace_n += 1
-				fig.update_layout({
-					f"coloraxis{trace_n-1}": {
-						'showscale': False,
-						'colorscale': [
-							[0.0, f'rgba({selected_color_str}, 0.0)'],
-							[0.5, f'rgba({selected_color_str}, 0.6)'],
-							[1.0, f'rgba({selected_color_str}, 1.0)'],
-						],
-						'cmax':zmax,
-						'cmin':0,
-					},
-					f"coloraxis{trace_n}": {
-						'showscale': False,
-						'colorscale': [
-							[0.0, f'rgba({unselected_color_str}, 0.0)'],
-							[0.5, f'rgba({unselected_color_str}, 0.6)'],
-							[1.0, f'rgba({unselected_color_str}, 1.0)'],
-						],
-						'cmax': zmax,
-						'cmin': 0,
-					},
-				})
-
-
-			box_shapes.extend(_splom_part_boxes(
-				box, ax_num,
-				x, col, x_tickvals, x_ticktext, x_range,
-				y, row, y_tickvals, y_ticktext, y_range,
-				background_opacity=0.05,
-			))
-	fig['layout']['shapes'] = box_shapes + existing_lines
 	return fig
