@@ -26,6 +26,8 @@ def fig_existing_lines(fig):
 
 
 def embolden(text, bold=True):
+	if text is None:
+		return None
 	if bold:
 		if "<b>" in text:
 			return text
@@ -459,12 +461,13 @@ def add_boxes_to_figure(box, col, fig, ref_point=None, existing_shapes=None):
 			)
 		)
 
-	if box_shapes:
-		fig['layout']['title']['font']['color'] = colors.DEFAULT_BOX_LINE_COLOR
-		fig['layout']['title']['text'] = embolden(fig['layout']['title']['text'], True)
-	else:
-		fig['layout']['title']['font']['color'] = None
-		fig['layout']['title']['text'] = embolden(fig['layout']['title']['text'], False)
+	if 'title' in fig['layout']:
+		if box_shapes:
+			fig['layout']['title']['font']['color'] = colors.DEFAULT_BOX_LINE_COLOR
+			fig['layout']['title']['text'] = embolden(fig['layout']['title']['text'], True)
+		else:
+			fig['layout']['title']['font']['color'] = None
+			fig['layout']['title']['text'] = embolden(fig['layout']['title']['text'], False)
 
 	fig['layout']['shapes'] = existing_shapes + ref_shapes + box_shapes
 	return fig
@@ -1175,6 +1178,9 @@ def new_hmm_figure(
 	experiment_name = "Experiment"
 	if data.index.name:
 		experiment_name = data.index.name
+
+	if selection is None:
+		selection = pandas.Series(True, index=data.index)
 
 	if selection is not None:
 		n_selected = numpy.sum(selection)

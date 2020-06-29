@@ -58,6 +58,7 @@ class Visualizer(DataFrameExplorer):
 		self._two_way = {}
 		self._splom = {}
 		self._hmm = {}
+		self._selection_feature_score_fig = None
 
 		self._status_txt = widget.HTML(
 			value="<i>Explore Status Not Set</i>",
@@ -307,6 +308,7 @@ class Visualizer(DataFrameExplorer):
 			self._active_selection_changing_ = True
 			with self._status_pie.batch_update():
 				super()._active_selection_changed()
+				self._pre_update_selection_feature_score_figure()
 				self._update_status()
 				for col in self._figures_hist:
 					self._update_histogram_figure(col)
@@ -319,6 +321,7 @@ class Visualizer(DataFrameExplorer):
 					})
 				self._update_sploms()
 				self._update_hmms()
+				self._update_selection_feature_score_figure()
 		finally:
 			del self._active_selection_changing_
 
@@ -793,7 +796,7 @@ class Visualizer(DataFrameExplorer):
 		if name is None:
 			name = self.active_selection_name()
 		if self.selection_deftype(name) == 'box':
-			box = self._selection_defs[self.active_selection_name()]
+			box = self._selection_defs[name]
 			if box.thresholds:
 				box.clear()
 				self[name] = box
@@ -809,3 +812,91 @@ class Visualizer(DataFrameExplorer):
 			color=colors.DEFAULT_HIGHLIGHT_COLOR,
 			activate=activate,
 		)
+
+	def selection_feature_scores(self, name=None):
+		if name is None:
+			name = self.active_selection_name()
+		if self.selection_deftype(name) == 'box':
+			box = self._selection_defs[name]
+			from ..feature_scoring import box_feature_scores
+			try:
+				return box_feature_scores(
+					self.scope,
+					box,
+					self.data,
+					return_type='styled',
+					db=None,
+					random_state=None,
+					cmap='viridis',
+					exclude_measures=True,
+				)
+			except ValueError:
+				return pandas.DataFrame(
+					index=['target'],
+					columns=[],
+					data=None,
+				)
+		else:
+			from ..feature_scoring import target_feature_scores
+			target = self._selections[name]
+			return target_feature_scores(
+				self.scope,
+				target,
+				self.data,
+				return_type='styled',
+				db=None,
+				random_state=None,
+				cmap='viridis',
+				exclude_measures=True,
+			)
+
+
+	def selection_feature_score_figure(self):
+		try:
+			scores = self.selection_feature_scores().data.iloc[0]
+		except:
+			scores = {}
+		y = self.scope.get_parameter_names(False)
+		x = [scores.get(yi, numpy.nan) for yi in y]
+		fmt = lambda x: x if isinstance(x, str) else "{:.3f}".format(x)
+		t = [fmt(scores.get(yi, "N/A")) for yi in y]
+		fig = go.FigureWidget(
+			go.Bar(
+				x=x,
+				y=y,
+				text=t,
+				orientation='h',
+				textposition='outside',
+				texttemplate='%{text}',
+				marker_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+			),
+			layout=dict(
+				margin=dict(t=0, b=0, l=0, r=0),
+				height = len(x) * 22,
+			)
+		)
+		self._selection_feature_score_fig = fig
+		return fig
+
+	def _pre_update_selection_feature_score_figure(self):
+		if self._selection_feature_score_fig is None:
+			return
+		fig = self._selection_feature_score_fig
+		fig.data[0].marker.color = 'yellow'
+
+	def _update_selection_feature_score_figure(self):
+		if self._selection_feature_score_fig is None:
+			return
+		fig = self._selection_feature_score_fig
+		try:
+			scores = self.selection_feature_scores().data.iloc[0]
+		except:
+			scores = {}
+		y = self.scope.get_parameter_names(False)
+		x = [scores.get(yi, numpy.nan) for yi in y]
+		fmt = lambda x: x if isinstance(x, str) else "{:.3f}".format(x)
+		t = [fmt(scores.get(yi, "N/A")) for yi in y]
+		with fig.batch_update():
+			fig.data[0].x = x
+			fig.data[0].text = t
+			fig.data[0].marker.color = colors.DEFAULT_HIGHLIGHT_COLOR

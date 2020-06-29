@@ -452,9 +452,19 @@ class Scope:
         """Get a list of model constant names."""
         return [i.name for i in self._c_list]
 
-    def get_parameter_names(self):
-        """Get a list of model parameter (uncertainty+lever+constant) names."""
-        return self.get_constant_names()+self.get_uncertainty_names()+self.get_lever_names()
+    def get_parameter_names(self, include_constants=True):
+        """
+        Get a list of model parameter (uncertainty+lever+constant) names.
+
+        Args:
+            include_constants (bool, default True): Include constants.
+
+        Returns:
+            list
+        """
+        if include_constants:
+            return self.get_constant_names()+self.get_uncertainty_names()+self.get_lever_names()
+        return self.get_uncertainty_names() + self.get_lever_names()
 
     def get_all_names(self):
         """Get a list of all (uncertainty+lever+constant+measure) model names."""
