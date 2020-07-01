@@ -4,7 +4,7 @@ try:
 except ImportError:
 	pass
 
-from .feature_scoring import feature_scores
+from .feature_scoring import feature_scores, threshold_feature_scores
 
 try:
 	from .explore import Explore

@@ -873,6 +873,7 @@ class Visualizer(DataFrameExplorer):
 			layout=dict(
 				margin=dict(t=0, b=0, l=0, r=0),
 				height = len(x) * 22,
+				yaxis_autorange="reversed",
 			)
 		)
 		self._selection_feature_score_fig = fig

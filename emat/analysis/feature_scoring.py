@@ -319,10 +319,12 @@ def threshold_feature_scores(
 		measure_name,
 		design,
 		return_type='styled',
+		*,
 		db=None,
 		random_state=None,
 		cmap='viridis',
-		*,
+		z_min=0,
+		z_max=1,
 		min_tail=5,
 		max_breaks=20,
 		break_spacing='linear',
@@ -370,7 +372,7 @@ def threshold_feature_scores(
 	if return_type.lower() == 'styled':
 		return result.style.background_gradient(cmap=cmap, axis=0, text_color_threshold=0.5)
 
-	if return_type.lower() == 'figure':
+	if 'figure' in return_type.lower():
 		import plotly.graph_objects as go
 		# import plotly.colors
 		# colorscheme = getattr(
@@ -404,56 +406,69 @@ def threshold_feature_scores(
 
 		traces = []
 		max_base_score = base_score.max().max()
-		gap = numpy.percentile(result.values.flatten(), 95) * 2
 		tick_values = []
 		tick_labels = []
 		colormap = getattr(cm, cmap, cm.viridis)
+
+
+		if 'ridge' in return_type.lower():
+			ridge = True
+			gap = numpy.percentile(result.values.flatten(), 95)
+			linewidth = 3
+			area_alpha = 1.0
+		else:
+			ridge = False
+			gap = numpy.percentile(result.values.flatten(), 95) * 2
+			linewidth = 2
+			area_alpha = 1.0
 
 		for n_reversed in range(len(result)):
 			n = len(result) - n_reversed - 1
 			bs = base_score.loc[measure_name, result.index[n]] / max_base_score
 			if numpy.isnan(bs):
 				bs = 0
-			# bs = (bs) / 2 + 0.5
+			bs = bs * (z_max-z_min) + z_min
 			color = colormap(bs, bytes=True)
-			color_ = ", ".join(str(i) for i in color[:3])
-			linecolor = _max_luminosity_color(numpy.asarray(color)/255)
-			linecolor_ = ", ".join(str(i) for i in linecolor[:3])
+			dark_color, light_color = _darker_and_lighter_color(numpy.asarray(color)/255)
+			linecolor_ = ", ".join(str(i) for i in dark_color[:3])
+			areacolor_ = ", ".join(str(i) for i in light_color[:3])
+			traces.append(
+				go.Scatter(
+					y=(numpy.zeros(len(result.columns)) if ridge else -result.iloc[n]) + n * gap,
+					x=result.columns,
+					fillcolor='rgba(0,0,0,0)',
+					visible=True,
+					showlegend=False,
+					line=dict(color=f'rgba({linecolor_}, 1.0)', width=0 if ridge else linewidth),
+					name=result.index[n],
+					hovertemplate='%{meta}<br>Rel Import: %{customdata:.3f}<extra>'+measure_name+': %{x:.3s}</extra>',
+					meta=[result.index[n]],
+					customdata=result.iloc[n],
+				)
+			)
 			traces.append(
 				go.Scatter(
 					y=result.iloc[n] + n * gap,
 					x=result.columns,
 					fill='tonexty',
 					name=result.index[n],
-					fillcolor=f'rgba({color_}, 0.5)',
-					line=dict(color=f'rgba({linecolor_}, 0.9)', width=1),
+					fillcolor=f'rgba({areacolor_}, {area_alpha})',
+					line=dict(color=f'rgba({linecolor_}, 1.0)', width=linewidth),
 					hovertemplate='%{meta}<br>Rel Import: %{customdata:.3f}<extra>'+measure_name+': %{x:.3s}</extra>',
 					meta=[result.index[n]],
 					customdata=result.iloc[n],
 				)
 			)
-			traces.append(
-				go.Scatter(
-					y=-result.iloc[n] + n * gap,
-					x=result.columns,
-					fillcolor='rgba(0,0,0,0)',
-					visible=True,
-					showlegend=False,
-					line=dict(color=f'rgba({linecolor_}, 0.9)', width=1),
-					name=result.index[n],
-					hovertemplate='%{meta}<br>Rel Import: %{customdata:.3f}<extra>'+measure_name+': %{x:.3s}</extra>',
-					meta=[result.index[n]],
-					customdata=result.iloc[n],
-				)
-			)
-			tick_values.append(n * gap)
+			tick_values.append(n * gap + (gap/3 if ridge else 0))
 			tick_labels.append(result.index[n])
 
 		fig = go.Figure()
-		fig.add_traces(traces[::-1])
+		fig.add_traces(traces)
 
 		fig.update_layout(
 			xaxis_title_text=scope.shortname(measure_name),
+			yaxis_showgrid=False,
+			yaxis_zeroline=False,
 			yaxis_tickvals=tick_values,
 			yaxis_ticktext=tick_labels,
 			yaxis_tickmode='array',
@@ -480,3 +495,21 @@ def _max_luminosity_color(color, max_lum=0.333, bytes=False):
 		return tuple(lev(i) for i in new_c)
 	else:
 		return new_c
+
+def _darker_and_lighter_color(color, lum_diff=0.3, bytes=False):
+	import matplotlib.colors as mc
+	import colorsys
+	try:
+		c = mc.cnames[color]
+	except:
+		c = color
+	hls = colorsys.rgb_to_hls(*mc.to_rgb(c))
+	dark = hls[1] * (1-lum_diff)
+	light = dark + lum_diff
+	new_dark_c = colorsys.hls_to_rgb(hls[0], dark, hls[2])
+	new_light_c = colorsys.hls_to_rgb(hls[0], light, hls[2])
+	if bytes:
+		lev = lambda x: max(0,min(255,int(numpy.round(x*255))))
+		return tuple(lev(i) for i in new_dark_c), tuple(lev(i) for i in new_light_c)
+	else:
+		return new_dark_c, new_light_c
