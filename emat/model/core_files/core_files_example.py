@@ -182,7 +182,7 @@ class RoadTestFileModel(FilesCoreModel):
 			index_col=0,
 		)
 		repair = pd.isna(df.loc['plain'])
-		df.loc['plain', repair] = np.log(df.loc['exp', repair])
+		df.loc['plain', repair] = np.log(df.loc['exp', repair])*1000
 		# Write edited output.csv.gz to Outputs directory.
 		df.to_csv(
 			os.path.join(self.model_path, self.rel_output_path, 'output_1.csv.gz')

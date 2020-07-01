@@ -277,9 +277,9 @@ def _Road_Capacity_Investment_CmdLine():
 
         result1 = {str(k):float(result[k]) for k in ['no_build_travel_time','build_travel_time','time_savings']}
         result2 = pandas.DataFrame({
-            'value_of_time_savings': [numpy.exp(result['value_of_time_savings']), numpy.nan],
+            'value_of_time_savings': [numpy.exp(result['value_of_time_savings']/1000), numpy.nan],
             'present_cost_expansion': [numpy.nan, result['present_cost_expansion']],
-            'cost_of_capacity_expansion': [numpy.exp(result['cost_of_capacity_expansion']), numpy.nan],
+            'cost_of_capacity_expansion': [numpy.exp(result['cost_of_capacity_expansion']/1000), numpy.nan],
             'net_benefits': [numpy.nan,result['net_benefits']],
         }, index=['exp','plain'])
 
