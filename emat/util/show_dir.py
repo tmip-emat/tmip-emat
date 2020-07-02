@@ -31,6 +31,8 @@ class DisplayablePath(object):
 		root = Path(str(root))
 		criteria = criteria or cls._default_criteria
 
+		if os.path.basename(os.path.normpath(root)) == '.git': return
+
 		displayable_root = cls(root, parent, is_last)
 		yield displayable_root
 
@@ -77,7 +79,7 @@ class DisplayablePath(object):
 def show_dir(basedir):
 	paths = DisplayablePath.make_tree(Path(basedir))
 	for path in paths:
-		if path.displayname == ".DS_Store": continue
+		if path.displayname in (".DS_Store", ): continue
 		print(path.displayable())
 
 def show_file_contents(*filepath, mode='rt'):
