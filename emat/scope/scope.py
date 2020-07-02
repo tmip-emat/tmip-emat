@@ -129,7 +129,7 @@ class Scope:
                 try:
                     p = make_parameter(x_name, **x_attr)
                 except Exception as err:
-                    raise ScopeFormatError(str(err))
+                    raise ScopeFormatError(f"in making parameter '{x_name}': {str(err)}")
                 else:
                     if x_attr_type == 'uncertainty':
                         self._x_list.append(p)
