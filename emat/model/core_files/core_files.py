@@ -122,6 +122,24 @@ class FilesCoreModel(AbstractCoreModel):
 		self._parsers = []
 
 	@property
+	def resolved_model_path(self):
+		"""
+		The model path to use.
+
+		If `model_path` is set to an absolute path, then that path is returned,
+		otherwise the `model_path` is joined onto the `local_directory`.
+
+		Returns:
+			str
+		"""
+		if self.model_path is None:
+			raise MissingModelPathError('no archive set for this core model')
+		if os.path.isabs(self.model_path):
+			return self.model_path
+		else:
+			return os.path.join(self.local_directory, self.model_path)
+
+	@property
 	def resolved_archive_path(self):
 		"""
 		The archive path to use.
@@ -336,9 +354,9 @@ class FilesCoreModel(AbstractCoreModel):
 		if rel_output_path is not None and abs_output_path is not None:
 			raise ValueError("cannot give both `rel_output_path` and `abs_output_path`")
 		elif rel_output_path is None and abs_output_path is None:
-			output_path = os.path.join(self.local_directory, self.model_path, self.rel_output_path)
+			output_path = os.path.join(self.resolved_model_path, self.rel_output_path)
 		elif rel_output_path is not None:
-			output_path = os.path.join(self.local_directory, self.model_path, rel_output_path)
+			output_path = os.path.join(self.resolved_model_path, rel_output_path)
 		else: # abs_output_path is not None
 			output_path = abs_output_path
 

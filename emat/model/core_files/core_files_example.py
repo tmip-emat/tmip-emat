@@ -128,7 +128,7 @@ class RoadTestFileModel(FilesCoreModel):
 		]
 
 		# load the text of the LEVERS yaml file
-		with open(os.path.join(self.model_path, 'levers.yml'), 'rt') as f:
+		with open(os.path.join(self.resolved_model_path, 'levers.yml'), 'rt') as f:
 			y = f.read()
 
 		# use regex to manipulate the content, inserting the defined
@@ -141,11 +141,11 @@ class RoadTestFileModel(FilesCoreModel):
 				y = ReplacementOfString(s).sub(params[s], y)
 
 		# write the manipulated text back out to the LEVER file
-		with open(os.path.join(self.model_path, 'levers.yml'), 'wt') as f:
+		with open(os.path.join(self.resolved_model_path, 'levers.yml'), 'wt') as f:
 			f.write(y)
 
 		# load the text of the UNCERTAINTIES yaml file
-		with open(os.path.join(self.model_path, 'uncertainties.yml'), 'rt') as f:
+		with open(os.path.join(self.resolved_model_path, 'uncertainties.yml'), 'rt') as f:
 			y = f.read()
 
 		# use regex to manipulate the content, inserting the defined
@@ -155,7 +155,7 @@ class RoadTestFileModel(FilesCoreModel):
 				y = ReplacementOfNumber(n).sub(params[n], y)
 
 		# write the manipulated text back out to the UNCERTAINTIES file
-		with open(os.path.join(self.model_path, 'uncertainties.yml'), 'wt') as f:
+		with open(os.path.join(self.resolved_model_path, 'uncertainties.yml'), 'wt') as f:
 			f.write(y)
 
 		_logger.info("RoadTestFileModel SETUP complete")
@@ -164,7 +164,7 @@ class RoadTestFileModel(FilesCoreModel):
 	def run(self):
 		_logger.info("RoadTestFileModel RUN ...")
 		import subprocess
-		subprocess.run(['emat-road-test-demo', '--uncs', 'uncertainties.yml'], cwd=self.model_path)
+		subprocess.run(['emat-road-test-demo', '--uncs', 'uncertainties.yml'], cwd=self.resolved_model_path)
 		_logger.info("RoadTestFileModel RUN complete")
 
 	def post_process(self, params, measure_names, output_path=None):
@@ -172,26 +172,26 @@ class RoadTestFileModel(FilesCoreModel):
 
 		# Create Outputs directory as needed.
 		os.makedirs(
-			os.path.join(self.model_path, self.rel_output_path),
+			os.path.join(self.resolved_model_path, self.rel_output_path),
 			exist_ok=True,
 		)
 
 		# Do some processing to recover values from output.csv.gz
 		df = pd.read_csv(
-			os.path.join(self.model_path, 'output.csv.gz'),
+			os.path.join(self.resolved_model_path, 'output.csv.gz'),
 			index_col=0,
 		)
 		repair = pd.isna(df.loc['plain'])
 		df.loc['plain', repair] = np.log(df.loc['exp', repair])*1000
 		# Write edited output.csv.gz to Outputs directory.
 		df.to_csv(
-			os.path.join(self.model_path, self.rel_output_path, 'output_1.csv.gz')
+			os.path.join(self.resolved_model_path, self.rel_output_path, 'output_1.csv.gz')
 		)
 
 		# Copy output.yaml to Outputs directory, no editing needed.
 		shutil.copy2(
-			os.path.join(self.model_path, 'output.yaml'),
-			os.path.join(self.model_path, self.rel_output_path, 'output.yaml'),
+			os.path.join(self.resolved_model_path, 'output.yaml'),
+			os.path.join(self.resolved_model_path, self.rel_output_path, 'output.yaml'),
 		)
 
 		# Log the names of all the files in the master directory

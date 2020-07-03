@@ -11,6 +11,10 @@ class PendingExperimentsError(ValueError):
 	pass
 
 
+class MissingModelPathError(FileNotFoundError):
+	pass
+
+
 class MissingArchivePathError(FileNotFoundError):
 	pass
 
