@@ -61,7 +61,6 @@ class SQLiteDB(Database):
         else:
             self.conn = sqlite3.connect(database_path)
         self.conn.execute("PRAGMA foreign_keys = ON")
-        self.cur = self.conn.cursor()
         atexit.register(self.conn.close)
 
 
@@ -134,18 +133,23 @@ class SQLiteDB(Database):
 
     @copydoc(Database.init_xlm)
     def init_xlm(self, parameter_list: List[tuple], measure_list: List[tuple]):
+
+        cur = self.conn.cursor()
+
         # experiment variables - description and type (risk or strategy)
         for xl in parameter_list:
-            self.cur.execute(sq.CONDITIONAL_INSERT_XL, xl)
+            cur.execute(sq.CONDITIONAL_INSERT_XL, xl)
             
         # performance measures - description
         for m in measure_list:
-            self.cur.execute(sq.CONDITIONAL_INSERT_M, m)
+            cur.execute(sq.CONDITIONAL_INSERT_M, m)
             
         self.conn.commit()
 
     @copydoc(Database.write_scope)
     def write_scope(self, scope_name, sheet, scp_xl, scp_m, content=None):
+
+        cur = self.conn.cursor()
 
         if content is not None:
             import gzip, cloudpickle
@@ -154,19 +158,19 @@ class SQLiteDB(Database):
             blob = None
 
         try:
-            self.cur.execute(sq.INSERT_SCOPE, [scope_name, sheet, blob])
+            cur.execute(sq.INSERT_SCOPE, [scope_name, sheet, blob])
         except sqlite3.IntegrityError:
             raise KeyError(f'scope named "{scope_name}" already exists')
         
         for xl in scp_xl:
-            self.cur.execute(sq.INSERT_SCOPE_XL, [scope_name, xl])
-            if self.cur.rowcount < 1: 
+            cur.execute(sq.INSERT_SCOPE_XL, [scope_name, xl])
+            if cur.rowcount < 1:
                 raise KeyError('Experiment Variable {0} not present in database'
                                .format(xl))
             
         for m in scp_m:
-            self.cur.execute(sq.INSERT_SCOPE_M, [scope_name, m])    
-            if self.cur.rowcount < 1: 
+            cur.execute(sq.INSERT_SCOPE_M, [scope_name, m])
+            if cur.rowcount < 1:
                 raise KeyError('Performance measure {0} not present in database'
                                .format(m))
     
@@ -178,6 +182,9 @@ class SQLiteDB(Database):
 
     @copydoc(Database.read_scope)
     def read_scope(self, scope_name=None):
+
+        cur = self.conn.cursor()
+
         if scope_name is None:
             scope_names = self.read_scope_names()
             if len(scope_names) > 1:
@@ -187,7 +194,7 @@ class SQLiteDB(Database):
             else:
                 scope_name = scope_names[0]
         try:
-            blob = self.cur.execute(sq.GET_SCOPE, [scope_name]).fetchall()[0][0]
+            blob = cur.execute(sq.GET_SCOPE, [scope_name]).fetchall()[0][0]
         except IndexError:
             raise KeyError(f"scope '{scope_name}' not found")
         if blob is None:
@@ -227,7 +234,8 @@ class SQLiteDB(Database):
             blob = gzip.compress(cloudpickle.dumps(metamodel))
 
         try:
-            self.cur.execute(sq.INSERT_METAMODEL_PICKLE,
+            cur = self.conn.cursor()
+            cur.execute(sq.INSERT_METAMODEL_PICKLE,
                          [scope_name, metamodel_id, metamodel_name, blob])
         except sqlite3.IntegrityError:
             raise KeyError(f'metamodel_id {metamodel_id} for scope "{scope_name}" already exists')
@@ -248,7 +256,8 @@ class SQLiteDB(Database):
             else:
                 raise ValueError(f'{len(candidate_ids)} metamodels for scope "{scope_name}" are stored')
 
-        query_result = self.cur.execute(
+        cur = self.conn.cursor()
+        query_result = cur.execute(
             sq.GET_METAMODEL_PICKLE,
             [scope_name, metamodel_id]
         ).fetchall()
@@ -275,32 +284,35 @@ class SQLiteDB(Database):
 
     @copydoc(Database.read_metamodel_ids)
     def read_metamodel_ids(self, scope_name):
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
-        metamodel_ids = [i[0] for i in self.cur.execute(sq.GET_METAMODEL_IDS,
+        metamodel_ids = [i[0] for i in cur.execute(sq.GET_METAMODEL_IDS,
                                                          [scope_name] ).fetchall()]
         return metamodel_ids
 
     @copydoc(Database.get_new_metamodel_id)
     def get_new_metamodel_id(self, scope_name):
         scope_name = self._validate_scope(scope_name, None)
-        metamodel_id = [i[0] for i in self.cur.execute(sq.GET_NEW_METAMODEL_ID,).fetchall()][0]
+        cur = self.conn.cursor()
+        metamodel_id = [i[0] for i in cur.execute(sq.GET_NEW_METAMODEL_ID,).fetchall()][0]
         self.write_metamodel(scope_name, None, metamodel_id)
         return metamodel_id
 
 
     @copydoc(Database.add_scope_meas)
     def add_scope_meas(self, scope_name, scp_m):
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
 
         # test that scope exists
-        saved_m = self.cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
+        saved_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
         if len(saved_m) == 0: 
             raise KeyError('named scope does not exist')
             
         for m in scp_m:
             if m not in saved_m:
-                self.cur.execute(sq.INSERT_SCOPE_M, [scope_name, m])    
-                if self.cur.rowcount < 1: 
+                cur.execute(sq.INSERT_SCOPE_M, [scope_name, m])
+                if cur.rowcount < 1:
                     raise KeyError('Performance measure {0} not present in database'
                                    .format(m))
     
@@ -308,7 +320,9 @@ class SQLiteDB(Database):
         
     @copydoc(Database.delete_scope) 
     def delete_scope(self, scope_name):
-        self.cur.execute(sq.DELETE_SCOPE, [scope_name])
+        cur = self.conn.cursor()
+        cur.execute(sq.DELETE_SCOPE, [scope_name])
+        self.conn.commit()
 
     @copydoc(Database.write_experiment_parameters)
     def write_experiment_parameters(self, scope_name, design_name: str, xl_df: pd.DataFrame):
@@ -481,14 +495,14 @@ class SQLiteDB(Database):
             ValueError: If scope name does not exist
 
         """
-        
-        
+
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, 'design_name')
         if design_name is None:
-            experiment_ids = [i[0] for i in self.cur.execute(sq.GET_EXPERIMENT_IDS_ALL,
+            experiment_ids = [i[0] for i in cur.execute(sq.GET_EXPERIMENT_IDS_ALL,
                                                              [scope_name] ).fetchall()]
         else:
-            experiment_ids = [i[0] for i in self.cur.execute(sq.GET_EXPERIMENT_IDS_IN_DESIGN,
+            experiment_ids = [i[0] for i in cur.execute(sq.GET_EXPERIMENT_IDS_IN_DESIGN,
                                                              [scope_name, design_name] ).fetchall()]
         return experiment_ids
 
@@ -539,6 +553,7 @@ class SQLiteDB(Database):
                 raise ValueError("cannot give both `design_name` and `design`")
 
         scope_name = self._validate_scope(scope_name, 'design_name')
+        cur = self.conn.cursor()
 
         if experiment_ids is not None:
             query = sq.GET_EX_XL_IDS_IN
@@ -546,20 +561,20 @@ class SQLiteDB(Database):
                 experiment_ids = [experiment_ids]
             subquery = ",".join(f"?{n+2}" for n in range(len(experiment_ids)))
             query = query.replace("???", subquery)
-            xl_df = pd.DataFrame(self.cur.execute(query, [scope_name, *experiment_ids]).fetchall())
+            xl_df = pd.DataFrame(cur.execute(query, [scope_name, *experiment_ids]).fetchall())
         elif only_pending:
             if design_name is None:
-                xl_df = pd.DataFrame(self.cur.execute(
+                xl_df = pd.DataFrame(cur.execute(
                     sq.GET_EX_XL_ALL_PENDING, [scope_name, ]).fetchall())
             else:
-                xl_df = pd.DataFrame(self.cur.execute(
+                xl_df = pd.DataFrame(cur.execute(
                     sq.GET_EX_XL_PENDING, [scope_name, design_name]).fetchall())
         else:
             if design_name is None:
-                xl_df = pd.DataFrame(self.cur.execute(
+                xl_df = pd.DataFrame(cur.execute(
                         sq.GET_EX_XL_ALL, [scope_name, ]).fetchall())
             else:
-                xl_df = pd.DataFrame(self.cur.execute(
+                xl_df = pd.DataFrame(cur.execute(
                         sq.GET_EX_XL, [scope_name, design_name]).fetchall())
         if xl_df.empty is False:
             xl_df = xl_df.pivot(index=0, columns=1, values=2)
@@ -582,8 +597,9 @@ class SQLiteDB(Database):
                    scope_name,
                    source: int,
                    m_df: pd.DataFrame):
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
-        scp_m = self.cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
+        scp_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
         
         if len(scp_m) == 0:
             raise UserWarning('named scope {0} not found - experiments will \
@@ -594,7 +610,7 @@ class SQLiteDB(Database):
                 for ex_id, value in m_df[m[0]].iteritems():
                     # index is experiment id
                     try:
-                        self.cur.execute(
+                        cur.execute(
                                 sq.INSERT_EX_M,
                                 [ex_id, value, source, m[0]])
                     except:
@@ -627,7 +643,8 @@ class SQLiteDB(Database):
             UserWarning: If scope name does not exist
         """
         scope_name = self._validate_scope(scope_name, None)
-        scp_m = self.cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
+        cur = self.conn.cursor()
+        scp_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
 
         if len(scp_m) == 0:
             raise UserWarning('named scope {0} not found - experiments will \
@@ -636,13 +653,13 @@ class SQLiteDB(Database):
         for m in scp_m:
             if m[0] == m_name:
                 try:
-                    self.cur.execute(
+                    cur.execute(
                         sq.INSERT_EX_M,
                         [ex_id, m_value, source, m[0]])
                 except:
                     _logger.error(f"Error saving {m_value} to m {m[0]} for ex {ex_id}")
                     raise
-
+        self.conn.commit()
 
     @copydoc(Database.read_experiment_all)
     def read_experiment_all(
@@ -655,32 +672,33 @@ class SQLiteDB(Database):
             ensure_dtypes=False,
     ) ->pd.DataFrame:
         scope_name = self._validate_scope(scope_name, 'design_name')
+        cur = self.conn.cursor()
         if design_name is None:
             if source is None:
-                ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_ALL,
+                ex_xlm = pd.DataFrame(cur.execute(sq.GET_EX_XLM_ALL,
                                                        [scope_name,]).fetchall())
             else:
-                ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_ALL_BYSOURCE,
+                ex_xlm = pd.DataFrame(cur.execute(sq.GET_EX_XLM_ALL_BYSOURCE,
                                                        [scope_name,source]).fetchall())
         elif isinstance(design_name, str):
             if source is None:
-                ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM,
+                ex_xlm = pd.DataFrame(cur.execute(sq.GET_EX_XLM,
                                                        [scope_name,
                                                         design_name]).fetchall())
             else:
-                ex_xlm = pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_BYSOURCE,
+                ex_xlm = pd.DataFrame(cur.execute(sq.GET_EX_XLM_BYSOURCE,
                                                        [scope_name,
                                                         design_name,
                                                         source]).fetchall())
         else:
             if source is None:
                 ex_xlm = pd.concat([
-                    pd.DataFrame(self.cur.execute(sq.GET_EX_XLM, [scope_name, dn]).fetchall())
+                    pd.DataFrame(cur.execute(sq.GET_EX_XLM, [scope_name, dn]).fetchall())
                     for dn in design_name
                 ])
             else:
                 ex_xlm = pd.concat([
-                    pd.DataFrame(self.cur.execute(sq.GET_EX_XLM_BYSOURCE, [scope_name, dn, source]).fetchall())
+                    pd.DataFrame(cur.execute(sq.GET_EX_XLM_BYSOURCE, [scope_name, dn, source]).fetchall())
                     for dn in design_name
                 ])
         if ex_xlm.empty is False:
@@ -766,7 +784,8 @@ class SQLiteDB(Database):
                 if source is not None:
                     sql += ' AND ema_experiment_measure.measure_source =?4'
                     arg.append(source)
-        ex_m = pd.DataFrame(self.cur.execute(sql, arg).fetchall())
+        cur = self.conn.cursor()
+        ex_m = pd.DataFrame(cur.execute(sql, arg).fetchall())
         if ex_m.empty is False:
             ex_m = ex_m.pivot(index=0, columns=1, values=2)
         ex_m.index.name = 'experiment'
@@ -789,7 +808,8 @@ class SQLiteDB(Database):
             elif design != design_name:
                 raise ValueError("cannot give both `design_name` and `design`")
         scope_name = self._validate_scope(scope_name, 'design_name')
-        self.cur.execute(sq.DELETE_EX, [scope_name, design_name])
+        cur = self.conn.cursor()
+        cur.execute(sq.DELETE_EX, [scope_name, design_name])
         self.conn.commit()
         
     @copydoc(Database.write_experiment_all)
@@ -831,7 +851,7 @@ class SQLiteDB(Database):
             for m in scp_m:
                 if m[0] in xlm_df.columns:
                     m_value = row[m[0]]
-                    self.cur.execute(
+                    fcur.execute(
                         sq.INSERT_EX_M, [ex_id, m_value, source, m[0]])
         
         fcur.close()
@@ -841,45 +861,52 @@ class SQLiteDB(Database):
         
     @copydoc(Database.read_scope_names)
     def read_scope_names(self, design_name=None) -> list:
+        cur = self.conn.cursor()
         if design_name is None:
-            scopes = [i[0] for i in self.cur.execute(sq.GET_SCOPE_NAMES ).fetchall()]
+            scopes = [i[0] for i in cur.execute(sq.GET_SCOPE_NAMES ).fetchall()]
         else:
-            scopes = [i[0] for i in self.cur.execute(sq.GET_SCOPES_CONTAINING_DESIGN_NAME,
+            scopes = [i[0] for i in cur.execute(sq.GET_SCOPES_CONTAINING_DESIGN_NAME,
                                                      [design_name] ).fetchall()]
         return scopes
 
     @copydoc(Database.read_design_names)
     def read_design_names(self, scope_name:str) -> list:
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
-        designs = [i[0] for i in self.cur.execute(sq.GET_DESIGN_NAMES, [scope_name] ).fetchall()]
+        designs = [i[0] for i in cur.execute(sq.GET_DESIGN_NAMES, [scope_name] ).fetchall()]
         return designs
 
     @copydoc(Database.read_uncertainties)
     def read_uncertainties(self, scope_name:str) -> list:
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
-        scp_x = self.cur.execute(sq.GET_SCOPE_X, [scope_name]).fetchall()
+        scp_x = cur.execute(sq.GET_SCOPE_X, [scope_name]).fetchall()
         return [i[0] for i in scp_x]
 
     @copydoc(Database.read_levers)
     def read_levers(self, scope_name:str) -> list:
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
-        scp_l = self.cur.execute(sq.GET_SCOPE_L, [scope_name]).fetchall()
+        scp_l = cur.execute(sq.GET_SCOPE_L, [scope_name]).fetchall()
         return [i[0] for i in scp_l]
 
     @copydoc(Database.read_constants)
     def read_constants(self, scope_name:str) -> list:
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
-        scp_c = self.cur.execute(sq.GET_SCOPE_C, [scope_name]).fetchall()
+        scp_c = cur.execute(sq.GET_SCOPE_C, [scope_name]).fetchall()
         return [i[0] for i in scp_c]
 
     @copydoc(Database.read_measures)
     def read_measures(self, scope_name: str) -> list:
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
-        scp_m = self.cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
+        scp_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
         return [i[0] for i in scp_m]
 
     @copydoc(Database.read_box)
     def read_box(self, scope_name: str, box_name: str, scope=None):
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
 
         from ...scope.box import Box
@@ -887,7 +914,7 @@ class SQLiteDB(Database):
         box = Box(name=box_name, scope=scope,
                   parent=parent)
 
-        for row in self.cur.execute(sq.GET_BOX_THRESHOLDS, [scope_name, box_name]):
+        for row in cur.execute(sq.GET_BOX_THRESHOLDS, [scope_name, box_name]):
             par_name, t_value, t_type = row
             if t_type == -2:
                 box.set_lower_bound(par_name, t_value)
@@ -902,22 +929,25 @@ class SQLiteDB(Database):
 
     @copydoc(Database.read_box_names)
     def read_box_names(self, scope_name: str):
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
-        names = self.cur.execute(sq.GET_BOX_NAMES, [scope_name]).fetchall()
+        names = cur.execute(sq.GET_BOX_NAMES, [scope_name]).fetchall()
         return [i[0] for i in names]
 
     @copydoc(Database.read_box_parent_name)
     def read_box_parent_name(self, scope_name: str, box_name:str):
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
         try:
-            return self.cur.execute(sq.GET_BOX_PARENT_NAME, [scope_name, box_name]).fetchall()[0][0]
+            return cur.execute(sq.GET_BOX_PARENT_NAME, [scope_name, box_name]).fetchall()[0][0]
         except IndexError:
             return None
 
     @copydoc(Database.read_box_parent_names)
     def read_box_parent_names(self, scope_name: str):
+        cur = self.conn.cursor()
         scope_name = self._validate_scope(scope_name, None)
-        names = self.cur.execute(sq.GET_BOX_PARENT_NAMES, [scope_name]).fetchall()
+        names = cur.execute(sq.GET_BOX_PARENT_NAMES, [scope_name]).fetchall()
         return {i[0]:i[1] for i in names}
 
     @copydoc(Database.read_boxes)
@@ -946,14 +976,15 @@ class SQLiteDB(Database):
             raise ValueError("scope_name mismatch")
         scope_name = scope_name_
         scope_name = self._validate_scope(scope_name, None)
+        cur = self.conn.cursor()
 
         p_ = set(self.read_uncertainties(scope_name) + self.read_levers(scope_name))
         m_ = set(self.read_measures(scope_name))
 
         if box.parent_box_name is None:
-            self.cur.execute(sq.INSERT_BOX, [scope_name, box.name])
+            cur.execute(sq.INSERT_BOX, [scope_name, box.name])
         else:
-            self.cur.execute(sq.INSERT_SUBBOX, [scope_name, box.name,
+            cur.execute(sq.INSERT_SUBBOX, [scope_name, box.name,
                                                 box.parent_box_name])
 
         for t_name, t_vals in box._thresholds.items():
@@ -969,16 +1000,16 @@ class SQLiteDB(Database):
                 warnings.warn(f"{t_name} not identifiable as parameter or measure")
                 continue
 
-            self.cur.execute(sql_cl, [scope_name, box.name, t_name])
+            cur.execute(sql_cl, [scope_name, box.name, t_name])
 
             if isinstance(t_vals, Bounds):
                 if t_vals.lowerbound is not None:
-                    self.cur.execute(sql_in, [scope_name, box.name, t_name, t_vals.lowerbound, -2])
+                    cur.execute(sql_in, [scope_name, box.name, t_name, t_vals.lowerbound, -2])
                 if t_vals.upperbound is not None:
-                    self.cur.execute(sql_in, [scope_name, box.name, t_name, t_vals.upperbound, -1])
+                    cur.execute(sql_in, [scope_name, box.name, t_name, t_vals.upperbound, -1])
             elif isinstance(t_vals, AbstractSet):
                 for n, t_val in enumerate(t_vals, start=1):
-                    self.cur.execute(sql_in, [scope_name, box.name, t_name, t_val, n])
+                    cur.execute(sql_in, [scope_name, box.name, t_name, t_val, n])
             else:
                 raise NotImplementedError(str(type(t_vals)))
 
@@ -995,8 +1026,8 @@ class SQLiteDB(Database):
                 warnings.warn(f"{t_name} not identifiable as parameter or measure")
                 continue
 
-            self.cur.execute(sql_cl, [scope_name, box.name, t_name])
-            self.cur.execute(sql_in, [scope_name, box.name, t_name, None, 0])
+            cur.execute(sql_cl, [scope_name, box.name, t_name])
+            cur.execute(sql_in, [scope_name, box.name, t_name, None, 0])
 
 
     @copydoc(Database.write_boxes)
