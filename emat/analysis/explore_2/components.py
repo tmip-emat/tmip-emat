@@ -557,6 +557,8 @@ def new_splom_figure(
 		return j
 	rows = _make_axis_list(rows)
 	cols = _make_axis_list(cols)
+	rows = [i for i in rows if i in data.columns]
+	cols = [i for i in cols if i in data.columns]
 
 	row_titles_top = (row_titles=='top')
 
@@ -1531,4 +1533,178 @@ def update_hmm_figure(
 
 	fig['layout'] = replacement['layout']
 
+	return fig
+
+
+import textwrap
+def _wrap_with_br(text, width=70, **kwargs):
+	return "<br>   ".join(textwrap.wrap(text, width=width, **kwargs))
+
+def new_parcoords_figure(
+		scope,
+		data,
+		coords=(),
+		flip_dims=(),
+		robustness_functions=None,
+		color_dim=None,
+		color_data=None,
+		colorscale=None,
+		show_colorscale_bar=None,
+		title=None,
+		selection=None,
+		unselected_color=None,
+		selected_color=None,
+		figure_class=None,
+):
+	"""Generate a parallel coordinates figure.
+
+	Parameters
+	----------
+	df : pandas.DataFrame
+		The data to plot.
+	scope : emat.Scope
+		Categorical levers and uncertainties are extracted from the scope.
+	"""
+
+	def _make_axis_list(j):
+		if isinstance(j, str):
+			if set('XLM').issuperset(j.upper()):
+				use = []
+				for i in j.upper():
+					if i=='X':
+						use += scope.get_uncertainty_names()
+					elif i=='L':
+						use += scope.get_lever_names()
+					if i=='M':
+						use += scope.get_measure_names()
+				return use
+			return [j]
+		return j
+	coords = _make_axis_list(coords)
+	coords = [i for i in coords if i in data.columns]
+
+	if unselected_color is None:
+		unselected_color = colors.DEFAULT_BASE_COLOR
+	if selected_color is None:
+		selected_color = colors.DEFAULT_HIGHLIGHT_COLOR
+
+	if show_colorscale_bar is None and colorscale is None:
+		colorscale = [[0, unselected_color], [1, selected_color]]
+		show_colorscale_bar = False
+
+	# Change the range from plain min/max to something else
+	column_ranges = {}
+	tickvals = {}
+	ticktext = {}
+
+	df = data[coords].copy()
+	flips = set(flip_dims)
+
+	from ...viz.parcoords import _prefix_symbols
+	prefix_chars = _prefix_symbols(scope, robustness_functions)
+
+	for colnum, col in enumerate(coords, start=1):
+		df[col] = perturb_categorical_df(data, col)
+		x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.3)
+		col_range = column_ranges[col] = x_range
+		if x_tickvals is not None:
+			tickvals[col] = [col_range[0]] + list(x_tickvals) + [col_range[1]]
+			ticktext[col] = [""] + [str(i) for i in x_ticktext] + [""]
+
+	from ...workbench.em_framework.outcomes import ScalarOutcome
+
+	# flip all MINIMIZE outcomes (or unflip them if previously marked as flip)
+	if robustness_functions is not None:
+		for k in robustness_functions:
+			if k.kind == ScalarOutcome.MINIMIZE:
+				if k.name in flips:
+					flips.remove(k.name)
+				else:
+					flips.add(k.name)
+	if scope is not None:
+		for k in scope.get_measures():
+			if k.kind == ScalarOutcome.MINIMIZE:
+				if k.name in flips:
+					flips.remove(k.name)
+				else:
+					flips.add(k.name)
+
+	parallel_dims = [
+		dict(
+			range=column_ranges.get(
+				col, [
+					df[col].min(),
+					df[col].max(),
+				] if col not in flips else [
+					df[col].max(),
+					df[col].min(),
+				]
+			),
+			label=_wrap_with_br(prefix_chars.get(col, '') + (col if scope is None else scope.shortname(col)),
+								width=24),
+			values=df[col],
+			tickvals=tickvals.get(col, None),
+			ticktext=ticktext.get(col, None),
+			name=col,
+		)
+		for col in df.columns if col not in scope.get_constant_names()
+	]
+
+	## Line coloring dimension
+	if isinstance(color_dim, int):
+		color_dim = df.columns[color_dim]
+
+	color_data_min = None
+	color_data_max = None
+	if color_data is None and selection is not None:
+		color_data = selection.astype(float)
+		color_data_min = 0
+		color_data_max = 1
+
+	if color_dim is not None:
+		if color_dim in df.columns:
+			color_data = df[color_dim]
+
+	if color_data is None:
+		parallel_line = dict(
+			showscale=False,
+		)
+	elif isinstance(color_data, list):
+		parallel_line = dict(
+			color=color_data,
+			showscale=False,
+		)
+	else:
+		parallel_line = dict(
+			color=color_data,
+			colorscale=colorscale,
+			showscale=show_colorscale_bar,
+			reversescale=False,
+			cmin=color_data_min if color_data_min is not None else color_data.min(),
+			cmax=color_data_max if color_data_max is not None else color_data.max(),
+			colorbar_title_text=getattr(color_data, 'name', ''),
+			colorbar_title_side='right',
+		)
+
+	pc = go.Parcoords(
+		line=parallel_line,
+		dimensions=parallel_dims,
+		labelfont=dict(
+			color="#AA0000",
+		),
+		labelangle=-90,
+		domain=dict(
+			y=[0, 0.7],
+		)
+	)
+
+	fig = go.Figure(
+		[pc],
+		layout=dict(
+			title=title,
+		)
+	)
+
+	if figure_class is not None:
+		fig = figure_class(fig)
 	return fig

@@ -58,6 +58,7 @@ class Visualizer(DataFrameExplorer):
 		self._two_way = {}
 		self._splom = {}
 		self._hmm = {}
+		self._parcoords = {}
 		self._selection_feature_score_fig = None
 
 		self._status_txt = widget.HTML(
@@ -728,6 +729,34 @@ class Visualizer(DataFrameExplorer):
 					box,
 				)
 
+	def parcoords(
+			self,
+			key=None,
+			reset=False,
+			*,
+			coords='XLM',
+	):
+		if not isinstance(coords, str):
+			coords = tuple(coords)
+
+		if key is None and coords is not None:
+			key = coords
+
+		if key in self._parcoords and not reset:
+			return self._parcoords[key]
+
+		self._parcoords[key] = new_parcoords_figure(
+			self.scope,
+			self.data,
+			coords=coords,
+			selection=self.active_selection(),
+			figure_class=go.FigureWidget,
+			selected_color=self.active_selection_color(),
+			# on_select=functools.partial(self._on_select_from_splom, name=key),
+		)
+
+		return self._parcoords[key]
+
 
 	def __setitem__(self, key, value):
 		if not isinstance(key, str):
@@ -901,3 +930,14 @@ class Visualizer(DataFrameExplorer):
 			fig.data[0].x = x
 			fig.data[0].text = t
 			fig.data[0].marker.color = colors.DEFAULT_HIGHLIGHT_COLOR
+
+	def subvisualize(self, query):
+		kwargs = dict(
+			reference_point=self._reference_point,
+			scope=self.scope,
+		)
+		if isinstance(query, str):
+			kwargs['data'] = self.data.query(query)
+		else:
+			kwargs['data'] = self.data[query]
+		return type(self)(**kwargs)

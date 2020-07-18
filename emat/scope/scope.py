@@ -577,13 +577,13 @@ class Scope:
 
         Returns:
             str:
-                {'X', 'L', 'C', 'M'}
+                {'X', 'L', 'C', 'M', ''}
         """
         if name in self.get_measure_names(): return 'M'
         if name in self.get_uncertainty_names(): return 'X'
         if name in self.get_lever_names(): return 'L'
         if name in self.get_constant_names(): return 'C'
-        raise KeyError(name)
+        return ''
 
     def get_cat_values(self, name):
         """

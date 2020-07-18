@@ -38,13 +38,14 @@ results = model.run_experiments(design)
 # One feature of the visualizer is the ability to display not only a number of results,
 # but also to contrast those results against a given "reference" model that represents
 # a more traditional single-point forecast of inputs and results.  We'll prepare a
-# reference point here using the input parameter defaults (as defined in the scope),
-# and the `io_experiment` method of our model, which returns both inputs and outputs 
-# in a single dictionary, suitable for use as the reference point marker in our
+# reference point here using the `run_reference_experiment` method of the `CoreModel`
+# class, which reads the input parameter defaults (as defined in the scope),
+# and returns both inputs and outputs in a DataFrame (essentially, an experimental
+# design with only a single experiment), suitable for use as the reference point marker in our
 # visualizations.
 
 # %%
-refpoint = model.io_experiment(scope.get_parameter_defaults())
+refpoint = model.run_reference_experiment()
 
 # %% [markdown]
 # The interactive visualizer class can be imported from the `emat.analysis` package.
@@ -56,16 +57,6 @@ from emat.analysis import Visualizer
 
 # %%
 viz = Visualizer(scope=scope, data=results, reference_point=refpoint)
-
-# %% [markdown]
-# <span style="color:red; font-size:80%;">
-# Note: The interactivity of the figures displayed directly on the
-# TMIP-EMAT website is not enabled.  This interactivity requires
-# a live running Python kernel to support the calculations to
-# update the figures.
-# You can try to open a live interactive version in
-# <a href="https://mybinder.org/v2/gh/tmip-emat/tmip-emat/ab5ea96371751d7d3ddd95dd5599b384d781f92e?filepath=docs%2Fsource%2Femat.analysis%2Finteractive-explorer.ipynb">Binder</a>
-# but it may take a bit of time to load.</span>
 
 # %% [markdown]
 # ## Single Dimension Figures
@@ -125,6 +116,30 @@ viz['Profitable'] = box
 # %%
 viz.two_way(x='expand_capacity', y='time_savings')
 
+# %%
+viz.splom(
+    rows=('time_savings','net_benefits'), 
+    cols='L'
+)
+
+# %%
+viz.hmm(
+    rows=('time_savings','net_benefits'), 
+    cols='L',
+    show_points=50,
+    reset=True,
+)
+
+# %% [markdown]
+# ## Dynamic Feature Scoring
+#
+# EMAT can score the relative importance of inputs for an experiment being within the selection, either for a typical rectangular selection based on thresholds, or for any arbitrary selection. These scores are recomputed and updated in near-real-time as the thresholds are adjusted.
+#
+# When the selection includes rectangular thresholds set on both inputs and outputs, the thresholded inputs are automatically excluded from the scoring algorithm.
+
+# %%
+viz.selection_feature_score_figure()
+
 # %% [markdown]
 # ## Using PRIM with the Interactive Explorer
 #
@@ -137,8 +152,19 @@ prim = viz.prim(target="Profitable")
 # %% [markdown]
 # The tradeoff selector is directly integrated into the explorer.  In addition
 # to the information visible by hovering over any point in the tradeoff selector
-# figure, clicking on that point will set all of the interactive constraints 
+# figure, clicking on that point will create a new selection in the explorer, and
+# set all of the interactive constraints 
 # to the bounds given by that particular point.
 
 # %%
 prim.tradeoff_selector()
+
+# %% [markdown]
+# We can also use PRIM to explore solutions based only on manipulating the
+# policy levers, and not the combination of all inputs (levers & uncertainties).
+
+# %%
+prim_levers = viz.prim('levers', target="Profitable")
+
+# %%
+prim_levers.tradeoff_selector()

@@ -17,6 +17,7 @@ class OptimizationResult:
 		self.robustness_functions = robustness_functions
 		self.scenarios = scenarios
 		self.policies = policies
+		self.__visualizer = None
 
 	@property
 	def scenario(self):
@@ -31,6 +32,17 @@ class OptimizationResult:
 		if isinstance(self.policies, Policy) or self.policies is None:
 			return self.policies
 		raise TypeError("policy is invalid")
+
+	@property
+	def visualizer(self):
+		try:
+			self.__visualizer
+		except AttributeError:
+			self.__visualizer = None
+		if self.__visualizer is None:
+			from ..analysis import Visualizer
+			self.__visualizer = Visualizer(scope=self.scope, data=self.result)
+		return self.__visualizer
 
 	def par_coords(self):
 		from ..viz.parcoords import ParCoordsViewer

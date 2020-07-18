@@ -53,7 +53,8 @@ class DataFrameExplorerBase():
 		self._update_state_ = set()
 		if isinstance(reference_point, pandas.DataFrame) and len(reference_point)==1:
 			reference_point = dict(reference_point.iloc[0])
-
+		if reference_point is None:
+			reference_point = dict()
 		for k in reference_point.keys():
 			# convert from numpy.bool_ to bool for json compatibility
 			if is_dtype(reference_point[k], numpy.bool_):
