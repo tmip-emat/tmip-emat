@@ -438,7 +438,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 be used, if one is set.
             design_name (str, optional): A name for this design, to identify it in the
                 database. If not given, a unique name will be generated based on the
-                selected sampler.  Has no effect if no `db` is given.
+                selected sampler.
             sampler (str or AbstractSampler, default 'lhs'): The sampler to use for this
                 design.  Available pre-defined samplers include:
                     - 'lhs': Latin Hypercube sampling
@@ -459,7 +459,11 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 and levers in a single design, or, if False, to generate separate samples
                 for levers and uncertainties, and then combine the two in a full-factorial
                 manner.  This argument has no effect unless `sample_from` is 'all'.
-                Note that jointly may produce a very large design;
+                Note that setting `jointly` to False may produce a very large design,
+                as the total number of experiments will be the product of the number of
+                experiments for the levers and the number of experiments for the
+                uncertainties, which are set separately (i.e. if `n_samples` is given,
+                the total number of experiments is the square of that value).
 
         Returns:
             pandas.DataFrame: The resulting design.

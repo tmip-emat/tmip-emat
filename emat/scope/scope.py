@@ -644,7 +644,11 @@ class Scope:
                 and levers in a single design, or, if False, to generate separate samples
                 for levers and uncertainties, and then combine the two in a full-factorial
                 manner.  This argument has no effect unless `sample_from` is 'all'.
-                Note that jointly may produce a very large design;
+                Note that setting `jointly` to False may produce a very large design,
+                as the total number of experiments will be the product of the number of
+                experiments for the levers and the number of experiments for the
+                uncertainties, which are set separately (i.e. if `n_samples` is given,
+                the total number of experiments is the square of that value).
 
         Returns:
             pandas.DataFrame: The resulting design.
