@@ -223,7 +223,7 @@ class SumOfGetter(Getter):
 
 class _Loc(SingleGetter):
 	def __call__(self, x):
-		return x.loc[self._item]
+		return float(x.loc[self._item])
 
 class _Loc_Sum(SingleGetter):
 	def __call__(self, x):
@@ -254,7 +254,7 @@ loc_mean = __LocMeanMaker()
 
 class _Iloc(SingleGetter):
 	def __call__(self, x):
-		return x.iloc[self._item]
+		return float(x.iloc[self._item])
 
 class _Iloc_Sum(SingleGetter):
 	def __call__(self, x):
@@ -395,7 +395,7 @@ class MappingParser(TableParser):
 
 class _Key(SingleGetter):
 	def __call__(self, x):
-		return x[self._item[0]]
+		return float(x[self._item[0]])
 
 class __KeyMaker:
 	def __getitem__(self, item):

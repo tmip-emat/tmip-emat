@@ -142,6 +142,18 @@ def new_histogram_figure(
 		fig.data[0].x[-1] + (fig.data[0].width[-1] / 2),
 	)
 	x_width = x_range[1] - x_range[0]
+
+	# When ref_point is outside the range, expand the
+	# range to include it.
+	if ref_point is not None:
+		if ref_point < x_range[0]:
+			x_range = (ref_point, x_range[1])
+		elif ref_point > x_range[1]:
+			x_range = (x_range[0], ref_point)
+
+	# Set the plotted range slightly wider than the
+	# actual range of the data, to accommodate drawing
+	# a box just beyond the range if needed.
 	fig.layout.xaxis.range = (
 		x_range[0] - x_width * X_FIGURE_BUFFER,
 		x_range[1] + x_width * X_FIGURE_BUFFER,
@@ -478,7 +490,7 @@ def add_boxes_to_figure(box, col, fig, ref_point=None, existing_shapes=None):
 
 from ...viz.perturbation import perturb_categorical
 
-def axis_info(x, range_padding=0.0, epsilon=None):
+def axis_info(x, range_padding=0.0, epsilon=None, refpoint=None):
 	if hasattr(x, 'dtype'):
 		if epsilon is None:
 			s_ = x.size * 0.01
@@ -494,6 +506,11 @@ def axis_info(x, range_padding=0.0, epsilon=None):
 			x_range = [-epsilon - range_padding, 1 + epsilon + range_padding]
 			return ["False", "True"], [0,1], x_range
 	x_range = [x.min(), x.max()]
+	if refpoint is not None:
+		if refpoint < x_range[0]:
+			x_range[0] = refpoint
+		if refpoint > x_range[1]:
+			x_range[1] = refpoint
 	x_span = x_range[1] - x_range[0]
 	if x_span <= 0: x_span = 1
 	x_range = [x_range[0] - x_span*0.07, x_range[1] + x_span*0.07]
@@ -516,6 +533,11 @@ def perturb_categorical_df(df, col=None, suffix="perturb"):
 		else:
 			return df[col]
 	return df
+
+def _get_or_none(mapping, key):
+	if mapping is None:
+		return None
+	return mapping.get(key, None)
 
 def new_splom_figure(
 		scope,
@@ -628,8 +650,10 @@ def new_splom_figure(
 
 				x = perturb_categorical_df(data, col)
 				y = perturb_categorical_df(data, row)
-				x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.3)
-				y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.3)
+				x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.3,
+															refpoint=_get_or_none(refpoint,col))
+				y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.3,
+															refpoint=_get_or_none(refpoint,row))
 
 				if x_ticktext is not None or y_ticktext is not None:
 					hovertemplate = (
@@ -695,7 +719,7 @@ def new_splom_figure(
 					)
 					if not row_titles_top:
 						fig.update_yaxes(
-							title_text=scope.tagged_shortname(row),
+							title_text=scope.tagged_shortname(row, wrap_width=18),
 							row=rownum,
 							col=colnum,
 						)
@@ -709,7 +733,7 @@ def new_splom_figure(
 						)
 				# elif (colnum-1)%3==0 and len(cols)>4:
 				# 	fig.update_yaxes(
-				# 		title_text=scope.shortname(row),
+				# 		title_text=scope.tagged_shortname(row, wrap_width=18),
 				# 		title_font_size=7,
 				# 		title_standoff=0,
 				# 		row=rownum,
@@ -717,7 +741,7 @@ def new_splom_figure(
 				# 	)
 				if rownum == len(rows):
 					fig.update_xaxes(
-						title_text=scope.tagged_shortname(col),
+						title_text=scope.tagged_shortname(col, wrap_width=18),
 						row=rownum,
 						col=colnum,
 						range=x_range,
@@ -732,7 +756,7 @@ def new_splom_figure(
 						)
 			# elif rownum%3==0:
 				# 	fig.update_xaxes(
-				# 		title_text=scope.shortname(col),
+				# 		title_text=scope.tagged_shortname(col),
 				# 		title_font_size=7,
 				# 		title_standoff=2,
 				# 		row=rownum,
@@ -905,6 +929,11 @@ def _splom_part_ref_point(
 					break
 		if y_range is None:
 			y_range = [y.min(), y.max()]
+			if y_refpoint is not None:
+				if y_refpoint < y_range[0]:
+					y_range[0] = y_refpoint
+				if y_refpoint > y_range[1]:
+					y_range[1] = y_refpoint
 			y_width_buffer = (y_range[1] - y_range[0]) * 0.02
 		else:
 			y_width_buffer = -(y_range[1] - y_range[0]) * 0.02
@@ -933,6 +962,11 @@ def _splom_part_ref_point(
 					break
 		if x_range is None:
 			x_range = [x.min(), x.max()]
+			if x_refpoint is not None:
+				if x_refpoint < x_range[0]:
+					x_range[0] = x_refpoint
+				if x_refpoint > x_range[1]:
+					x_range[1] = x_refpoint
 			x_width_buffer = (x_range[1] - x_range[0]) * 0.02
 		else:
 			x_width_buffer = -(x_range[1] - x_range[0]) * 0.02
@@ -1154,7 +1188,7 @@ def new_hmm_figure(
 				# 'b':0.03,
 			})
 			if colnum == 1 and row_titles_top:
-				subplot_titles.append(scope.shortname(row))
+				subplot_titles.append(scope.tagged_shortname(row, wrap_width=18))
 			else:
 				subplot_titles.append(None)
 
@@ -1411,7 +1445,7 @@ def new_hmm_figure(
 				)
 				if not row_titles_top:
 					fig.update_yaxes(
-						title_text=scope.shortname(row),
+						title_text=scope.tagged_shortname(row, wrap_width=18),
 						row=rownum,
 						col=colnum,
 					)
@@ -1425,7 +1459,7 @@ def new_hmm_figure(
 					)
 			# elif (colnum-1)%3==0 and len(cols)>4:
 			# 	fig.update_yaxes(
-			# 		title_text=scope.shortname(row),
+			# 		title_text=scope.tagged_shortname(row, wrap_width=18),
 			# 		title_font_size=7,
 			# 		title_standoff=0,
 			# 		row=rownum,
@@ -1433,7 +1467,7 @@ def new_hmm_figure(
 			# 	)
 			if rownum == len(rows):
 				fig.update_xaxes(
-					title_text=scope.shortname(col),
+					title_text=scope.tagged_shortname(col, wrap_width=18),
 					row=rownum,
 					col=colnum,
 					range=x_range,
@@ -1448,7 +1482,7 @@ def new_hmm_figure(
 					)
 		# elif rownum%3==0:
 			# 	fig.update_xaxes(
-			# 		title_text=scope.shortname(col),
+			# 		title_text=scope.tagged_shortname(col, wrap_width=18),
 			# 		title_font_size=7,
 			# 		title_standoff=2,
 			# 		row=rownum,

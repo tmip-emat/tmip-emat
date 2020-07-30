@@ -104,13 +104,13 @@ class FilesCoreModel(AbstractCoreModel):
 		self.local_directory = local_directory or self.config.get("local_directory") or os.getcwd()
 		"""Path: The current local working directory for this model."""
 
-		self.model_path = self.config['model_path']
+		self.model_path = os.path.expanduser(self.config['model_path'])
 		"""Path: The directory of the 'live' model instance, relative to the local_directory."""
 
 		self.rel_output_path = self.config.get('rel_output_path', 'Outputs')
 		"""Path: The path to 'live' model outputs, relative to `model_path`."""
 
-		self.archive_path = self.config['model_archive']
+		self.archive_path = os.path.expanduser(self.config['model_archive'])
 		"""Path: The directory where archived models are stored."""
 
 		self.allow_short_circuit = self.config.get('allow_short_circuit', True)

@@ -4,6 +4,7 @@ import warnings
 import functools
 from ...viz import colors
 from ...scope.box import GenericBox
+from ...database import Database
 from traitlets import TraitError
 
 from plotly import graph_objs as go
@@ -36,7 +37,50 @@ class Visualizer(DataFrameExplorer):
 			scope=None,
 			active_selection_name=None,
 			reference_point=None,
+			*,
+			db=None,
 	):
+		"""
+		A data visualization framework.
+
+		Args:
+			data (pandas.DataFrame or str):
+				The base data to visualize.  Give the data directly as a
+				DataFrame, or give the name of a design that can be loaded
+				from the `db` Database.
+			selections (Mapping or pandas.DataFrame, optional):
+				Any pre-existing selections. Each selection should be a
+				boolean pandas.Series indexed the same as the data.
+			scope (emat.Scope, optional):
+				The scope that describes the data.
+			active_selection_name (str, optional):
+				The name of the selection to activate.
+			reference_point (Mapping or pandas.DataFrame):
+				An optional reference point to visualize.  Give as a simple
+				mapping, or as a one-row DataFrame with the same columns as
+				`data`, or give the name of a one-row design that can be loaded
+				from the `db` Database.
+			db (emat.Database, optional): A database from which to read content.
+		"""
+
+		if db is not None:
+			if scope is None:
+				scope = db.read_scope()
+			elif isinstance(scope, str):
+				scope = db.read_scope(scope)
+			if isinstance(data, str):
+				data = db.read_experiment_all(
+					scope_name=scope.name,
+					design_name=data,
+					ensure_dtypes=True,
+				)
+			if isinstance(reference_point, str):
+				reference_point = db.read_experiment_all(
+					scope_name=scope.name,
+					design_name=reference_point,
+					ensure_dtypes=True,
+				)
+
 		if selections is None:
 			from ...scope.box import Box
 			selections = {'Explore': Box(name='Explore', scope=scope)}
@@ -160,6 +204,7 @@ class Visualizer(DataFrameExplorer):
 				box=box,
 				title_text=self.scope.shortname(col),
 				ref_point=self.reference_point(col),
+				label_name_map=self.scope[col].abbrev,
 			)
 			self._figures_freq[col] = fig
 

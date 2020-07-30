@@ -137,10 +137,10 @@ def scatter_graphs(
 
 	if render:
 		if render == 'png':
-			render = dict(format='png', width=1400, height=270, scale=2)
+			render = dict(format='png', width=200*len(contrast_cols), height=270, scale=2)
 
 		if render == 'svg':
-			render = dict(format='svg', width=1400, height=270)
+			render = dict(format='svg', width=200*len(contrast_cols), height=270)
 
 		import plotly.io as pio
 		try:
