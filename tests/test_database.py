@@ -245,6 +245,50 @@ class TestDatabaseGZ():
         m = emat.PythonCoreModel(Road_Capacity_Investment, scope=s, db=db)
         assert m.metamodel_id == None
 
+def test_multiple_connections():
+    import tempfile
+    with tempfile.TemporaryDirectory() as tempdir:
+        tempdbfile = os.path.join(tempdir, "test_db_file.db")
+        db_test = SQLiteDB(tempdbfile, initialize=True)
+
+        road_test_scope_file = emat.package_file('model', 'tests', 'road_test.yaml')
+        s = emat.Scope(road_test_scope_file)
+        db_test.store_scope(s)
+
+        assert db_test.read_scope_names() == ['EMAT Road Test']
+
+        db_test2 = SQLiteDB(tempdbfile, initialize=False)
+        with pytest.raises(KeyError):
+            db_test2.store_scope(s)
+
+        # Neither database is in a transaction
+        assert not db_test.conn.in_transaction
+        assert not db_test2.conn.in_transaction
+
+        from emat.model.core_python import Road_Capacity_Investment
+        m1 = emat.PythonCoreModel(Road_Capacity_Investment, scope=s, db=db_test)
+        m2 = emat.PythonCoreModel(Road_Capacity_Investment, scope=s, db=db_test2)
+        d1 = m1.design_experiments(n_samples=3, random_seed=1, design_name='d1')
+        d2 = m2.design_experiments(n_samples=3, random_seed=2, design_name='d2')
+        r1 = m1.run_experiments(design_name='d1')
+        r2 = m2.run_experiments(design_name='d2')
+
+        # Check each model can load the other's results
+        pd.testing.assert_frame_equal(
+            r1,
+            m2.db.read_experiment_all(
+                scope_name=s.name,
+                design_name='d1',
+                ensure_dtypes=True)[r1.columns],
+        )
+        pd.testing.assert_frame_equal(
+            r2,
+            m1.db.read_experiment_all(
+                scope_name=s.name,
+                design_name='d2',
+                ensure_dtypes=True)[r2.columns],
+        )
+
 
 
 emat.package_file('model', 'tests', 'road_test.yaml')
