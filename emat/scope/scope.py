@@ -178,27 +178,32 @@ class Scope:
 
 
     def store_scope(self, db: Database):
-        ''' writes variables and scope definition to database 
-        
-            Required prior to running experiment design
-            
-            Not necessary if scope has already been run
-            
-            Args:
-                db (Database): database object
         '''
-                
-        # load experiment variables and performance measures        
-        db.init_xlm([(xl, self.xl_di[xl]['ptype']) for xl in self.xl_di],
-                    [(m.name, m.transform) for m in self._m_list])
+        Write variables and scope definition to database.
         
-        # load scope definitions
-        db.write_scope(self.name,
-                      self.scope_file,
-                      [xl for xl in self.xl_di],
-                      [m.name for m in self._m_list],
-                       content=self)
-        
+        Writing the scope to the database is required
+        prior to running a experiments that will be
+        stored.
+
+        Args:
+            db (Database): database object
+        '''
+
+        # write experiment variables and performance measures
+        db.init_xlm(
+            [(xl, self.xl_di[xl]['ptype']) for xl in self.xl_di],
+            [(m.name, m.transform) for m in self._m_list],
+        )
+
+        # write scope definitions
+        db.write_scope(
+            self.name,
+            self.scope_file,
+            [xl for xl in self.xl_di],
+            [m.name for m in self._m_list],
+            content=self,
+        )
+
     def delete_scope(self, db: Database):
         '''Deletes scope from database.
 

@@ -134,47 +134,47 @@ class SQLiteDB(Database):
     @copydoc(Database.init_xlm)
     def init_xlm(self, parameter_list: List[tuple], measure_list: List[tuple]):
 
-        cur = self.conn.cursor()
+        with self.conn:
+            cur = self.conn.cursor()
 
-        # experiment variables - description and type (risk or strategy)
-        for xl in parameter_list:
-            cur.execute(sq.CONDITIONAL_INSERT_XL, xl)
-            
-        # performance measures - description
-        for m in measure_list:
-            cur.execute(sq.CONDITIONAL_INSERT_M, m)
-            
-        self.conn.commit()
+            # experiment variables - description and type (risk or strategy)
+            for xl in parameter_list:
+                cur.execute(sq.CONDITIONAL_INSERT_XL, xl)
+
+            # performance measures - description
+            for m in measure_list:
+                cur.execute(sq.CONDITIONAL_INSERT_M, m)
+
 
     @copydoc(Database.write_scope)
     def write_scope(self, scope_name, sheet, scp_xl, scp_m, content=None):
 
-        cur = self.conn.cursor()
+        with self.conn:
+            cur = self.conn.cursor()
 
-        if content is not None:
-            import gzip, cloudpickle
-            blob = gzip.compress(cloudpickle.dumps(content))
-        else:
-            blob = None
+            if content is not None:
+                import gzip, cloudpickle
+                blob = gzip.compress(cloudpickle.dumps(content))
+            else:
+                blob = None
 
-        try:
-            cur.execute(sq.INSERT_SCOPE, [scope_name, sheet, blob])
-        except sqlite3.IntegrityError:
-            raise KeyError(f'scope named "{scope_name}" already exists')
-        
-        for xl in scp_xl:
-            cur.execute(sq.INSERT_SCOPE_XL, [scope_name, xl])
-            if cur.rowcount < 1:
-                raise KeyError('Experiment Variable {0} not present in database'
-                               .format(xl))
-            
-        for m in scp_m:
-            cur.execute(sq.INSERT_SCOPE_M, [scope_name, m])
-            if cur.rowcount < 1:
-                raise KeyError('Performance measure {0} not present in database'
-                               .format(m))
-    
-        self.conn.commit()
+            try:
+                cur.execute(sq.INSERT_SCOPE, [scope_name, sheet, blob])
+            except sqlite3.IntegrityError:
+                raise KeyError(f'scope named "{scope_name}" already exists')
+
+            for xl in scp_xl:
+                cur.execute(sq.INSERT_SCOPE_XL, [scope_name, xl])
+                if cur.rowcount < 1:
+                    raise KeyError('Experiment Variable {0} not present in database'
+                                   .format(xl))
+
+            for m in scp_m:
+                cur.execute(sq.INSERT_SCOPE_M, [scope_name, m])
+                if cur.rowcount < 1:
+                    raise KeyError('Performance measure {0} not present in database'
+                                   .format(m))
+
 
     @copydoc(Database.store_scope)
     def store_scope(self, scope):
@@ -205,42 +205,41 @@ class SQLiteDB(Database):
     @copydoc(Database.write_metamodel)
     def write_metamodel(self, scope_name, metamodel=None, metamodel_id=None, metamodel_name=''):
 
-        if metamodel is None and hasattr(scope_name, 'scope'):
-            # The metamodel was the one and only argument,
-            # and it embeds the Scope.
-            metamodel = scope_name
-            scope_name = metamodel.scope.name
+        with self.conn:
+            if metamodel is None and hasattr(scope_name, 'scope'):
+                # The metamodel was the one and only argument,
+                # and it embeds the Scope.
+                metamodel = scope_name
+                scope_name = metamodel.scope.name
 
-        scope_name = self._validate_scope(scope_name, None)
+            scope_name = self._validate_scope(scope_name, None)
 
-        # Do not store PythonCoreModel, store the metamodel it wraps
-        from ...model.core_python import PythonCoreModel
-        from ...model.meta_model import MetaModel
-        if isinstance(metamodel, PythonCoreModel) and isinstance(metamodel.function, MetaModel):
-            metamodel_name = metamodel_name or metamodel.name
+            # Do not store PythonCoreModel, store the metamodel it wraps
+            from ...model.core_python import PythonCoreModel
+            from ...model.meta_model import MetaModel
+            if isinstance(metamodel, PythonCoreModel) and isinstance(metamodel.function, MetaModel):
+                metamodel_name = metamodel_name or metamodel.name
+                if metamodel_id is None:
+                    metamodel_id = metamodel.metamodel_id
+                metamodel = metamodel.function
+
+            # Get a new id if needed
             if metamodel_id is None:
-                metamodel_id = metamodel.metamodel_id
-            metamodel = metamodel.function
+                metamodel_id = self.get_new_metamodel_id(scope_name)
 
-        # Get a new id if needed
-        if metamodel_id is None:
-            metamodel_id = self.get_new_metamodel_id(scope_name)
+            # Don't pickle-zip a null model
+            if metamodel is None:
+                blob = metamodel
+            else:
+                import gzip, cloudpickle
+                blob = gzip.compress(cloudpickle.dumps(metamodel))
 
-        # Don't pickle-zip a null model
-        if metamodel is None:
-            blob = metamodel
-        else:
-            import gzip, cloudpickle
-            blob = gzip.compress(cloudpickle.dumps(metamodel))
-
-        try:
-            cur = self.conn.cursor()
-            cur.execute(sq.INSERT_METAMODEL_PICKLE,
-                         [scope_name, metamodel_id, metamodel_name, blob])
-        except sqlite3.IntegrityError:
-            raise KeyError(f'metamodel_id {metamodel_id} for scope "{scope_name}" already exists')
-
-        self.conn.commit()
+            try:
+                cur = self.conn.cursor()
+                cur.execute(sq.INSERT_METAMODEL_PICKLE,
+                             [scope_name, metamodel_id, metamodel_name, blob])
+            except sqlite3.IntegrityError:
+                raise KeyError(f'metamodel_id {metamodel_id} for scope "{scope_name}" already exists')
 
 
     @copydoc(Database.read_metamodel)
@@ -292,70 +291,70 @@ class SQLiteDB(Database):
 
     @copydoc(Database.get_new_metamodel_id)
     def get_new_metamodel_id(self, scope_name):
-        scope_name = self._validate_scope(scope_name, None)
-        cur = self.conn.cursor()
-        metamodel_id = [i[0] for i in cur.execute(sq.GET_NEW_METAMODEL_ID,).fetchall()][0]
-        self.write_metamodel(scope_name, None, metamodel_id)
-        return metamodel_id
+        with self.conn:
+            scope_name = self._validate_scope(scope_name, None)
+            cur = self.conn.cursor()
+            metamodel_id = [i[0] for i in cur.execute(sq.GET_NEW_METAMODEL_ID,).fetchall()][0]
+            self.write_metamodel(scope_name, None, metamodel_id)
+            return metamodel_id
 
 
     @copydoc(Database.add_scope_meas)
     def add_scope_meas(self, scope_name, scp_m):
-        cur = self.conn.cursor()
-        scope_name = self._validate_scope(scope_name, None)
+        with self.conn:
+            cur = self.conn.cursor()
+            scope_name = self._validate_scope(scope_name, None)
 
-        # test that scope exists
-        saved_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
-        if len(saved_m) == 0: 
-            raise KeyError('named scope does not exist')
-            
-        for m in scp_m:
-            if m not in saved_m:
-                cur.execute(sq.INSERT_SCOPE_M, [scope_name, m])
-                if cur.rowcount < 1:
-                    raise KeyError('Performance measure {0} not present in database'
-                                   .format(m))
-    
-        self.conn.commit()
-        
+            # test that scope exists
+            saved_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
+            if len(saved_m) == 0:
+                raise KeyError('named scope does not exist')
+
+            for m in scp_m:
+                if m not in saved_m:
+                    cur.execute(sq.INSERT_SCOPE_M, [scope_name, m])
+                    if cur.rowcount < 1:
+                        raise KeyError('Performance measure {0} not present in database'
+                                       .format(m))
+
+
     @copydoc(Database.delete_scope) 
     def delete_scope(self, scope_name):
-        cur = self.conn.cursor()
-        cur.execute(sq.DELETE_SCOPE, [scope_name])
-        self.conn.commit()
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute(sq.DELETE_SCOPE, [scope_name])
 
     @copydoc(Database.write_experiment_parameters)
     def write_experiment_parameters(self, scope_name, design_name: str, xl_df: pd.DataFrame):
-        scope_name = self._validate_scope(scope_name, 'design_name')
-        # local cursor because we'll depend on lastrowid
-        fcur = self.conn.cursor()
-        
-        # get list of experiment variables - except "one"     
-        scp_xl = fcur.execute(sq.GET_SCOPE_XL, [scope_name]).fetchall()
-        if len(scp_xl) == 0:
-            raise UserWarning('named scope {0} not found - experiments will \
-                                  not be recorded'.format(scope_name))
+        with self.conn:
+            scope_name = self._validate_scope(scope_name, 'design_name')
+            # local cursor because we'll depend on lastrowid
+            fcur = self.conn.cursor()
 
-        ex_ids = []
+            # get list of experiment variables - except "one"
+            scp_xl = fcur.execute(sq.GET_SCOPE_XL, [scope_name]).fetchall()
+            if len(scp_xl) == 0:
+                raise UserWarning('named scope {0} not found - experiments will \
+                                      not be recorded'.format(scope_name))
 
-        for index, row in xl_df.iterrows():
-            # create new experiment and get id
-            fcur.execute(sq.INSERT_EX, [design_name, scope_name])
-            ex_id = fcur.lastrowid
-            ex_ids.append(ex_id)
-                
-            # set each from experiment defitinion 
-            for xl in scp_xl:
-                try:
-                    value = row[xl[0]]
-                    fcur.execute(sq.INSERT_EX_XL, [ex_id, value, xl[0]])
-                except TypeError:
-                    _logger.error(f'Experiment definition missing {xl[0]} variable')
-                    raise
+            ex_ids = []
 
-        self.conn.commit()
-        fcur.close()
-        return ex_ids
+            for index, row in xl_df.iterrows():
+                # create new experiment and get id
+                fcur.execute(sq.INSERT_EX, [design_name, scope_name])
+                ex_id = fcur.lastrowid
+                ex_ids.append(ex_id)
+
+                # set each from experiment defitinion
+                for xl in scp_xl:
+                    try:
+                        value = row[xl[0]]
+                        fcur.execute(sq.INSERT_EX_XL, [ex_id, value, xl[0]])
+                    except TypeError:
+                        _logger.error(f'Experiment definition missing {xl[0]} variable')
+                        raise
+
+            return ex_ids
 
     def read_experiment_id(self, scope_name, design_name: str, *args, **kwargs):
         """
@@ -597,27 +596,26 @@ class SQLiteDB(Database):
                    scope_name,
                    source: int,
                    m_df: pd.DataFrame):
-        cur = self.conn.cursor()
-        scope_name = self._validate_scope(scope_name, None)
-        scp_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
-        
-        if len(scp_m) == 0:
-            raise UserWarning('named scope {0} not found - experiments will \
-                                  not be recorded'.format(scope_name))        
+        with self.conn:
+            cur = self.conn.cursor()
+            scope_name = self._validate_scope(scope_name, None)
+            scp_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
 
-        for m in scp_m:
-            if m[0] in m_df.columns:
-                for ex_id, value in m_df[m[0]].iteritems():
-                    # index is experiment id
-                    try:
-                        cur.execute(
-                                sq.INSERT_EX_M,
-                                [ex_id, value, source, m[0]])
-                    except:
-                        _logger.error(f"Error saving {value} to m {m[0]} for ex {ex_id}")
-                        raise
+            if len(scp_m) == 0:
+                raise UserWarning('named scope {0} not found - experiments will \
+                                      not be recorded'.format(scope_name))
 
-        self.conn.commit()
+            for m in scp_m:
+                if m[0] in m_df.columns:
+                    for ex_id, value in m_df[m[0]].iteritems():
+                        # index is experiment id
+                        try:
+                            cur.execute(
+                                    sq.INSERT_EX_M,
+                                    [ex_id, value, source, m[0]])
+                        except:
+                            _logger.error(f"Error saving {value} to m {m[0]} for ex {ex_id}")
+                            raise
 
     def write_ex_m_1(self,
                      scope_name,
@@ -642,24 +640,24 @@ class SQLiteDB(Database):
         Raises:
             UserWarning: If scope name does not exist
         """
-        scope_name = self._validate_scope(scope_name, None)
-        cur = self.conn.cursor()
-        scp_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
+        with self.conn:
+            scope_name = self._validate_scope(scope_name, None)
+            cur = self.conn.cursor()
+            scp_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
 
-        if len(scp_m) == 0:
-            raise UserWarning('named scope {0} not found - experiments will \
-                                  not be recorded'.format(scope_name))
+            if len(scp_m) == 0:
+                raise UserWarning('named scope {0} not found - experiments will \
+                                      not be recorded'.format(scope_name))
 
-        for m in scp_m:
-            if m[0] == m_name:
-                try:
-                    cur.execute(
-                        sq.INSERT_EX_M,
-                        [ex_id, m_value, source, m[0]])
-                except:
-                    _logger.error(f"Error saving {m_value} to m {m[0]} for ex {ex_id}")
-                    raise
-        self.conn.commit()
+            for m in scp_m:
+                if m[0] == m_name:
+                    try:
+                        cur.execute(
+                            sq.INSERT_EX_M,
+                            [ex_id, m_value, source, m[0]])
+                    except:
+                        _logger.error(f"Error saving {m_value} to m {m[0]} for ex {ex_id}")
+                        raise
 
     @copydoc(Database.read_experiment_all)
     def read_experiment_all(
@@ -799,64 +797,61 @@ class SQLiteDB(Database):
 
     @copydoc(Database.delete_experiments)
     def delete_experiments(self, scope_name, design_name=None, design=None):
-        if design is not None:
-            if design_name is None:
-                design_name = design
-                import warnings
-                warnings.warn("the `design` argument is deprecated for "
-                              "read_experiment_parameters, use `design_name`", DeprecationWarning)
-            elif design != design_name:
-                raise ValueError("cannot give both `design_name` and `design`")
-        scope_name = self._validate_scope(scope_name, 'design_name')
-        cur = self.conn.cursor()
-        cur.execute(sq.DELETE_EX, [scope_name, design_name])
-        self.conn.commit()
-        
+        with self.conn:
+            if design is not None:
+                if design_name is None:
+                    design_name = design
+                    import warnings
+                    warnings.warn("the `design` argument is deprecated for "
+                                  "read_experiment_parameters, use `design_name`", DeprecationWarning)
+                elif design != design_name:
+                    raise ValueError("cannot give both `design_name` and `design`")
+            scope_name = self._validate_scope(scope_name, 'design_name')
+            cur = self.conn.cursor()
+            cur.execute(sq.DELETE_EX, [scope_name, design_name])
+
     @copydoc(Database.write_experiment_all)
     def write_experiment_all(self,
                      scope_name, 
                      design_name: str,
                      source: int,
                      xlm_df: pd.DataFrame):
-        scope_name = self._validate_scope(scope_name, 'design_name')
-        fcur = self.conn.cursor()
-        
-        exist = pd.DataFrame(fcur.execute(sq.GET_EX_XLM, 
-                                          [scope_name,
-                                          design_name]).fetchall())
-        if exist.empty is False:
-            raise UserWarning('scope {0} with design {1} found \
-                                  must be deleted before recording'
-                                  .format(scope_name, design_name))
-        
-        # get list of experiment variables     
-        scp_xl = fcur.execute(sq.GET_SCOPE_XL, [scope_name]).fetchall()
-        scp_m = fcur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
-        
-        for index, row in xlm_df.iterrows():
-            # create new experiment and get id
-            fcur.execute(sq.INSERT_EX, [design_name, scope_name])
-            ex_id = fcur.lastrowid
-        
-             # set each from experiment defitinion 
-            for xl in scp_xl:
-                try:
-                    xl_value = row[xl[0]]
-                    fcur.execute(sq.INSERT_EX_XL, 
-                                 [ex_id, xl_value, xl[0]])
-                except TypeError:
-                    _logger.error(f'Experiment definition missing {xl[0]} variable')
-                    raise
-              
-            for m in scp_m:
-                if m[0] in xlm_df.columns:
-                    m_value = row[m[0]]
-                    fcur.execute(
-                        sq.INSERT_EX_M, [ex_id, m_value, source, m[0]])
-        
-        fcur.close()
-        self.conn.commit()
+        with self.conn:
+            scope_name = self._validate_scope(scope_name, 'design_name')
+            fcur = self.conn.cursor()
 
+            exist = pd.DataFrame(fcur.execute(sq.GET_EX_XLM,
+                                              [scope_name,
+                                              design_name]).fetchall())
+            if exist.empty is False:
+                raise UserWarning('scope {0} with design {1} found \
+                                      must be deleted before recording'
+                                      .format(scope_name, design_name))
+
+            # get list of experiment variables
+            scp_xl = fcur.execute(sq.GET_SCOPE_XL, [scope_name]).fetchall()
+            scp_m = fcur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
+
+            for index, row in xlm_df.iterrows():
+                # create new experiment and get id
+                fcur.execute(sq.INSERT_EX, [design_name, scope_name])
+                ex_id = fcur.lastrowid
+
+                 # set each from experiment defitinion
+                for xl in scp_xl:
+                    try:
+                        xl_value = row[xl[0]]
+                        fcur.execute(sq.INSERT_EX_XL,
+                                     [ex_id, xl_value, xl[0]])
+                    except TypeError:
+                        _logger.error(f'Experiment definition missing {xl[0]} variable')
+                        raise
+
+                for m in scp_m:
+                    if m[0] in xlm_df.columns:
+                        m_value = row[m[0]]
+                        fcur.execute(
+                            sq.INSERT_EX_M, [ex_id, m_value, source, m[0]])
 
         
     @copydoc(Database.read_scope_names)
@@ -965,77 +960,78 @@ class SQLiteDB(Database):
 
     @copydoc(Database.write_box)
     def write_box(self, box, scope_name=None):
-        from ...scope.box import Box, Bounds
-        assert isinstance(box, Box)
+        with self.conn:
+            from ...scope.box import Box, Bounds
+            assert isinstance(box, Box)
 
-        try:
-            scope_name_ = box.scope.name
-        except AttributeError:
-            scope_name_ = scope_name
-        if scope_name is not None and scope_name != scope_name_:
-            raise ValueError("scope_name mismatch")
-        scope_name = scope_name_
-        scope_name = self._validate_scope(scope_name, None)
-        cur = self.conn.cursor()
+            try:
+                scope_name_ = box.scope.name
+            except AttributeError:
+                scope_name_ = scope_name
+            if scope_name is not None and scope_name != scope_name_:
+                raise ValueError("scope_name mismatch")
+            scope_name = scope_name_
+            scope_name = self._validate_scope(scope_name, None)
+            cur = self.conn.cursor()
 
-        p_ = set(self.read_uncertainties(scope_name) + self.read_levers(scope_name))
-        m_ = set(self.read_measures(scope_name))
+            p_ = set(self.read_uncertainties(scope_name) + self.read_levers(scope_name))
+            m_ = set(self.read_measures(scope_name))
 
-        if box.parent_box_name is None:
-            cur.execute(sq.INSERT_BOX, [scope_name, box.name])
-        else:
-            cur.execute(sq.INSERT_SUBBOX, [scope_name, box.name,
-                                                box.parent_box_name])
-
-        for t_name, t_vals in box._thresholds.items():
-
-            if t_name in p_:
-                sql_cl = sq.CLEAR_BOX_THRESHOLD_P
-                sql_in = sq.SET_BOX_THRESHOLD_P
-            elif t_name in m_:
-                sql_cl = sq.CLEAR_BOX_THRESHOLD_M
-                sql_in = sq.SET_BOX_THRESHOLD_M
+            if box.parent_box_name is None:
+                cur.execute(sq.INSERT_BOX, [scope_name, box.name])
             else:
-                import warnings
-                warnings.warn(f"{t_name} not identifiable as parameter or measure")
-                continue
+                cur.execute(sq.INSERT_SUBBOX, [scope_name, box.name,
+                                                    box.parent_box_name])
 
-            cur.execute(sql_cl, [scope_name, box.name, t_name])
+            for t_name, t_vals in box._thresholds.items():
 
-            if isinstance(t_vals, Bounds):
-                if t_vals.lowerbound is not None:
-                    cur.execute(sql_in, [scope_name, box.name, t_name, t_vals.lowerbound, -2])
-                if t_vals.upperbound is not None:
-                    cur.execute(sql_in, [scope_name, box.name, t_name, t_vals.upperbound, -1])
-            elif isinstance(t_vals, AbstractSet):
-                for n, t_val in enumerate(t_vals, start=1):
-                    cur.execute(sql_in, [scope_name, box.name, t_name, t_val, n])
-            else:
-                raise NotImplementedError(str(type(t_vals)))
+                if t_name in p_:
+                    sql_cl = sq.CLEAR_BOX_THRESHOLD_P
+                    sql_in = sq.SET_BOX_THRESHOLD_P
+                elif t_name in m_:
+                    sql_cl = sq.CLEAR_BOX_THRESHOLD_M
+                    sql_in = sq.SET_BOX_THRESHOLD_M
+                else:
+                    import warnings
+                    warnings.warn(f"{t_name} not identifiable as parameter or measure")
+                    continue
 
-        for t_name in box.relevant_features:
+                cur.execute(sql_cl, [scope_name, box.name, t_name])
 
-            if t_name in p_:
-                sql_cl = sq.CLEAR_BOX_THRESHOLD_P
-                sql_in = sq.SET_BOX_THRESHOLD_P
-            elif t_name in m_:
-                sql_cl = sq.CLEAR_BOX_THRESHOLD_M
-                sql_in = sq.SET_BOX_THRESHOLD_M
-            else:
-                import warnings
-                warnings.warn(f"{t_name} not identifiable as parameter or measure")
-                continue
+                if isinstance(t_vals, Bounds):
+                    if t_vals.lowerbound is not None:
+                        cur.execute(sql_in, [scope_name, box.name, t_name, t_vals.lowerbound, -2])
+                    if t_vals.upperbound is not None:
+                        cur.execute(sql_in, [scope_name, box.name, t_name, t_vals.upperbound, -1])
+                elif isinstance(t_vals, AbstractSet):
+                    for n, t_val in enumerate(t_vals, start=1):
+                        cur.execute(sql_in, [scope_name, box.name, t_name, t_val, n])
+                else:
+                    raise NotImplementedError(str(type(t_vals)))
 
-            cur.execute(sql_cl, [scope_name, box.name, t_name])
-            cur.execute(sql_in, [scope_name, box.name, t_name, None, 0])
+            for t_name in box.relevant_features:
+
+                if t_name in p_:
+                    sql_cl = sq.CLEAR_BOX_THRESHOLD_P
+                    sql_in = sq.SET_BOX_THRESHOLD_P
+                elif t_name in m_:
+                    sql_cl = sq.CLEAR_BOX_THRESHOLD_M
+                    sql_in = sq.SET_BOX_THRESHOLD_M
+                else:
+                    import warnings
+                    warnings.warn(f"{t_name} not identifiable as parameter or measure")
+                    continue
+
+                cur.execute(sql_cl, [scope_name, box.name, t_name])
+                cur.execute(sql_in, [scope_name, box.name, t_name, None, 0])
 
 
     @copydoc(Database.write_boxes)
     def write_boxes(self, boxes, scope_name=None):
-        if boxes.scope is not None:
-            if scope_name is not None and scope_name != boxes.scope.name:
-                raise ValueError('scope name mismatch')
-            scope_name = boxes.scope.name
-        for box in boxes.values():
-            self.write_box(box, scope_name)
-        self.conn.commit()
+        with self.conn:
+            if boxes.scope is not None:
+                if scope_name is not None and scope_name != boxes.scope.name:
+                    raise ValueError('scope name mismatch')
+                scope_name = boxes.scope.name
+            for box in boxes.values():
+                self.write_box(box, scope_name)
