@@ -59,7 +59,7 @@ class AbstractModel(NamedObject):
     @outcomes_output.setter
     def outcomes_output(self, outputs):
         for outcome in self.outcomes:
-            data = [outputs[var] for var in outcome.variable_name]
+            data = [outputs.get(var, None) for var in outcome.variable_name]
             self._outcomes_output[outcome.name] = outcome.process(data)
 
     @property
