@@ -110,7 +110,18 @@ class TestCoreFilesMethods(unittest.TestCase):
         assert set(correct_1.keys()).issubset(measures.keys())
         assert {k: measures[k] for k in correct_1.keys()} == approx(correct_1)
 
-
+def test_files_with_broken_scope():
+    try:
+        import core_files_demo
+    except:
+        import pytest
+        pytest.skip("core_files_demo not installed")
+    fx = core_files_demo.RoadTestFileModel(
+        scope_file=emat.package_file('model', 'tests', 'road_test_corrupt2.yaml')
+    )
+    design = fx.design_experiments(n_samples=2)
+    result = fx.run_experiments(design)
+    assert result['bogus_measure'].isna().all()
 
 if __name__ == '__main__':
     unittest.main()
