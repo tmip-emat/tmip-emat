@@ -407,9 +407,8 @@ class FilesCoreModel(AbstractCoreModel):
 		"""
 		experiment_archive_path = self.get_experiment_archive_path(experiment_id)
 		experiment_archive_zip = experiment_archive_path.rstrip("/\\")+".zip"
-		print(os.path.exists(experiment_archive_zip))
-		print(experiment_archive_zip)
 		if os.path.exists(experiment_archive_zip):
+			_logger.info(f"zipped archive found, loading from {experiment_archive_zip}")
 			import tempfile, zipfile
 			with tempfile.TemporaryDirectory() as tmpdir:
 				zipfile.ZipFile(experiment_archive_zip).extractall(tmpdir)
@@ -421,10 +420,11 @@ class FilesCoreModel(AbstractCoreModel):
 					)
 				)
 		else:
+			_logger.info(f"loading from {experiment_archive_path}")
 			return self.load_measures(
 				measure_names,
 				abs_output_path=os.path.join(
-					self.get_experiment_archive_path(experiment_id),
+					experiment_archive_path,
 					self.rel_output_path,
 				)
 			)
