@@ -1226,7 +1226,7 @@ def new_hmm_figure(
 		n_unselected = len(data)
 
 	n = 0
-	saved_bins = {}
+	# saved_bins = {}
 	for rownum, row in enumerate(rows, start=1):
 		for colnum, col in enumerate(cols, start=1):
 			n += 1
@@ -1241,7 +1241,7 @@ def new_hmm_figure(
 			x_bins, x_range_ = _get_bins_and_range(x_ticktext, col, x_range, scope)
 			y_bins, y_range_ = _get_bins_and_range(y_ticktext, row, y_range, scope)
 
-			saved_bins[(rownum, colnum)] = (x_bins, x_range_, y_bins, y_range_)
+			# saved_bins[(rownum, colnum)] = (x_bins, x_range_, y_bins, y_range_)
 			cvs = ds.Canvas(plot_width=x_bins, plot_height=y_bins, x_range=x_range_, y_range=y_range_)
 
 			_col = f"_{col}_perturb" if f"_{col}_perturb" in data.columns else col
@@ -1499,7 +1499,7 @@ def new_hmm_figure(
 		unselected_color=unselected_color,
 		emph_selected=emph_selected,
 		show_points=show_points,
-		saved_bins=saved_bins,
+		# saved_bins=saved_bins,
 		marker_size=marker_size,
 		row_titles=row_titles,
 		size=size,
@@ -1522,7 +1522,7 @@ def update_hmm_figure(
 ):
 	existing_emph_selected = fig['layout']['meta']['emph_selected']
 	existing_show_points = fig['layout']['meta']['show_points']
-	saved_bins = fig['layout']['meta']['saved_bins']
+	# saved_bins = fig['layout']['meta']['saved_bins']
 
 	existing_rows = fig['layout']['meta']['rows']
 	existing_cols = fig['layout']['meta']['cols']
@@ -1556,14 +1556,24 @@ def update_hmm_figure(
 	)
 
 	copy_features = {
-		'Heatmap': ('name', 'x','y','z','showlegend','hovertemplate','meta','coloraxis','hoverongaps','zmax','zmin'),
-		'Scatter': ('name', 'x','y','mode','marker','showlegend','hovertemplate','meta'),
+		'heatmap': ('name', 'x','y','z','showlegend','hovertemplate','meta','coloraxis','hoverongaps','zmax','zmin'),
+		'scatter': ('name', 'x','y','mode','marker','showlegend','hovertemplate','meta'),
 	}
 
 	for old_trace, new_trace in zip(fig['data'], replacement['data']):
 		classname = old_trace.__class__.__name__
-		for attr in copy_features[classname]:
-			setattr(old_trace, attr, getattr(new_trace, attr))
+		if classname == 'dict':
+			classname = old_trace.get('type', 'NO_TYPE')
+		for attr in copy_features[classname.lower()]:
+			try:
+				replace_attr = getattr(new_trace, attr)
+			except AttributeError:
+				pass
+			else:
+				if isinstance(old_trace, dict):
+					old_trace[attr] = replace_attr
+				else:
+					setattr(old_trace, attr, replace_attr)
 
 	fig['layout'] = replacement['layout']
 
