@@ -60,7 +60,7 @@ def display_experiments(
 		a string, the experiments are loaded from this database
 		using the scope name as well as the given string as the
 		design name.
-	render : str or dict or None, default 'png')
+	render : str or dict or None, default 'png'
 		If given, the graph[s]
 		will be rendered to a static image using `plotly.io.to_image`.
 		For default settings, pass 'png', or give a dictionary
@@ -142,57 +142,57 @@ def contrast_experiments(
 		mass=1000,
 		use_gl=True,
 		return_figures=False,
-		render_fallback=True,
 ):
 	"""
 	Render a visualization of two sets of experimental results.
 
-	This function will display the outputs in a jupyter notebook,
+	This function will display the outputs in a Jupyter notebook,
 	but does not actually return any values.
 
-	Parameters
-	----------
-	scope : emat.Scope
-		The scope to use in identifying parameters and performance
-		measures.
-	experiments_1, experiments_2 : str or pandas.DataFrame
-		The complete results from a set of experiments,
-		including parameter inputs and performance measure
-		outputs.  Give a string to name a design in the database.
-	db : emat.Database, optional
-		When either of the `experiments` arguments is given as
-		a string, the experiments are loaded from this database
-		using the scope name as well as the given string as the
-		design name.
-	render (str or dict or None, default 'png'): If given, the graph[s]
-		will be rendered to a static image using `plotly.io.to_image`.
-		For default settings, pass 'png', or give a dictionary
-		that specifies keyword arguments to that function. If no
-		rendering is done (by setting `render` to None), the raw
-		plotly figures are returned -- this may result in a very
-		large number of javascript figures and may slow down your
-		browser.
-	rows : {'measures', 'levers', 'uncertainties'} or Collection, default 'measures'
-		Give a named group to generate a row of figures for each
-		item in that group, or give a collection of individual
-		names to generate a row of figures for each named item.
-	columns : {'infer', 'measures', 'levers', 'uncertainties'} or Collection, default 'infer'
-		Give a named group to generate a column of plots for each
-		item in that group, or give a collection of individual
-		names to generate a column of plots for each named item.
-		The default 'infer' value will select all parameters when
-		the row is a measure, and all measures otherwise.
-	mass : int or emat.viz.ScatterMass, default 1000
-		The target number of rendered points in each figure. Setting
-		to a number less than the number of experiments will make
-		each scatter point partially transparent, which will help
-		visually convey relative density when there are a very large
-		number of points.
-	return_figures : bool, default False
-		Set this to True to return the FigureWidgets instead of
-		simply displaying them.
-	render_fallback (bool, default True): If rendering fails, return the
-		original FigureWidget instead of an error message.
+	Args:
+		scope (emat.Scope):
+			The scope to use in identifying parameters and
+			performance measures.
+		experiments_1, experiments_2 (str or pandas.DataFrame):
+			The complete results from a set of experiments,
+			including parameter inputs and performance measure
+			outputs.  Give a string to name a design in the
+			database instead of passing results explicitly as
+			a DataFrame.
+		db (emat.Database, optional):
+			When either of the `experiments` arguments is given as
+			a string, the experiments are loaded from this database
+			using the scope name as well as the given string as the
+			design name.
+		render (str or dict or None, default 'png'):
+			If given, the graph[s] will be rendered to a static
+			image using `plotly.io.to_image`. For default settings,
+			pass 'png', or give a dictionary that specifies keyword
+			arguments to that function. If no rendering is done (by
+			setting `render` to None), the raw plotly figures are
+			returned -- this may result in a very large number of
+			javascript figures and may slow down your browser.
+		rows (str or Collection, default 'measures'):
+			Give a named group {'measures', 'levers', 'uncertainties'}
+			to generate a row of figures for each item in that group,
+			or give a collection of individual names to generate a
+			row of figures for each named item.
+		columns (str or Collection, default 'infer'):
+			Give a named group {'infer', 'measures', 'levers',
+			'uncertainties'} to generate a column of plots for each
+			item in that group, or give a collection of individual
+			names to generate a column of plots for each named item.
+			The default 'infer' value will select all parameters when
+			the row is a measure, and all measures otherwise.
+		mass (int or emat.viz.ScatterMass, default 1000):
+			The target number of rendered points in each figure. Setting
+			to a number less than the number of experiments will make
+			each scatter point partially transparent, which will help
+			visually convey relative density when there are a very large
+			number of points.
+		return_figures (bool, default False):
+			Set this to True to return the figures instead of
+			simply displaying them within a Jupyter notebook.
 	"""
 
 	if isinstance(experiments_1, str):
@@ -239,7 +239,6 @@ def contrast_experiments(
 				use_gl=use_gl,
 				mass=mass,
 				contrast=columns,
-				render_fallback=render_fallback,
 			)
 			if return_figures:
 				figures[row] = fig

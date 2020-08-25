@@ -5,12 +5,12 @@
 #     text_representation:
 #       extension: .py
 #       format_name: percent
-#       format_version: '1.2'
-#       jupytext_version: 1.2.4
+#       format_version: '1.3'
+#       jupytext_version: 1.4.2
 #   kernelspec:
-#     display_name: EMAT
+#     display_name: Python 3
 #     language: python
-#     name: emat
+#     name: python3
 # ---
 
 # %%
@@ -63,7 +63,7 @@ results = model.run_experiments(design)
 
 # %%
 from emat.analysis import display_experiments
-display_experiments(scope, results)
+display_experiments(scope, results, render="png")
 
 # %% [markdown]
 # The unexpected non-monotonic response function in the second row

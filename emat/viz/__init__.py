@@ -43,38 +43,48 @@ def scatter_graphs(
 		mass=1000,
 		render=None,
 		use_gl=True,
-		render_fallback=True,
 ):
-	"""Generate a row of scatter plots comparing one column against others.
+	"""
+	Generate a row of scatter plots comparing one column against others.
 
 	Args:
-		column (str): The name of the principal parameter or measure to analyze.
-		data (pandas.DataFrame or str): The experimental results to plot. Can be given
-			as a DataFrame or as the name of a design (in which case the results are
-			loaded from the provided Database `db`).
+		column (str):
+			The name of the principal parameter or measure to analyze.
+		data (pandas.DataFrame or str): The experimental results to plot.
+			Can be given as a DataFrame or as the name of a design (in
+			which case the results are loaded from the provided `db`).
 		scope (Scope, optional): The exploratory scope.
-		db (Database, optional): The database containing the results.  Ignore unless
+		db (Database, optional):
+			The database containing the results. This is ignored unless
 			`data` is a string.
-		contrast (str or list): The contrast columns to plot the principal parameter or
-			measure against.  Can be given as a list of columns that appear in the
-			data, or one of {'uncertainties', 'levers', 'parameters', 'measures', 'infer'}.
-			If set to 'infer', the contrast will be 'measures' if `column` is a parameter,
+		contrast (str or list):
+			The contrast columns to plot the principal parameter or
+			measure against.  Can be given as a list of columns that
+			appear in the data, or one of {'uncertainties', 'levers',
+			'parameters', 'measures', 'infer'}. If set to 'infer', the
+			contrast will be 'measures' if `column` is a parameter,
 			and 'parameters' if `columns` is a measure.
-		marker_opacity (float, optional): The opacity to use for markers.  If the number
-			of markers is large, the figure may appear as a solid blob; by setting opacity
-			to less than 1.0, the figure can more readily show relative density in various
-			regions.  If not specified, marker_opacity is set based on `mass` instead.
-		mass : int or emat.viz.ScatterMass, default 1000
+		marker_opacity (float, optional):
+			The opacity to use for markers. If the number of markers is
+			large, the figure may appear as a solid blob; by setting opacity
+			to less than 1.0, the figure can more readily show relative
+			density in various regions.  If not specified, marker_opacity
+			is set based on `mass` instead.
+		mass (int or emat.viz.ScatterMass, default 1000):
 			The target number of rendered points in each figure. Setting
 			to a number less than the number of experiments will make
 			each scatter point partially transparent, which will help
 			visually convey relative density when there are a very large
 			number of points.
-		render (str or dict, optional): If given, the graph[s] will be rendered to a
-			static image using `plotly.io.to_image`.  For default settings, pass
-			'png', or give a dictionary that specifies keyword arguments to that function.
-		render_fallback (bool, default True): If rendering fails, return the
-			original FigureWidget instead of an error message.
+		render (str or dict, optional):
+			If given, the graph[s] will be rendered to a static image
+			using `plotly.io.to_image`.  For default settings, pass
+			'png', or give a dictionary that specifies keyword arguments
+			to that function.  See `emat.util.rendering.render_plotly`
+			for more details.
+		use_gl (bool, default True):
+			Use Plotly's `Scattergl` instead of `Scatter`, which may
+			provide some performance benefit for large data sets.
 
 	Returns:
 		FigureWidget or xmle.Elem
@@ -142,16 +152,8 @@ def scatter_graphs(
 		if render == 'svg':
 			render = dict(format='svg', width=200*len(contrast_cols), height=270)
 
-		import plotly.io as pio
-		try:
-			img_bytes = pio.to_image(fig, **render)
-		except:
-			if render_fallback:
-				return fig
-			else:
-				import traceback
-				return traceback.format_exc()
-		return xmle.Elem.from_any(img_bytes)
+		from ..util.rendering import render_plotly
+		return render_plotly(fig, render)
 
 	return fig
 
@@ -166,40 +168,51 @@ def scatter_graphs_2(
 		colors=None,
 		use_gl=True,
 		mass=1000,
-		render_fallback=True,
 ):
-	"""Generate a row of scatter plots comparing one column against others.
+	"""
+	Generate a row of scatter plots comparing multiple datasets.
+
+	This function is similar to `scatter_graphs`, but accepts
+	multiple data sets and plots them using different colors.
 
 	Args:
-		column (str): The name of the principal parameter or measure to analyze.
-		datas (Collection[pandas.DataFrame or str]): The experimental results to plot. Can be given
-			as a DataFrame or as the name of a design (in which case the results are
+		column (str):
+			The name of the principal parameter or measure to analyze.
+		datas (Collection[pandas.DataFrame or str]):
+			The experimental results to plot. Can be given as a DataFrame
+			or as the name of a design (in which case the results are
 			loaded from the provided Database `db`).
 		scope (Scope, optional): The exploratory scope.
-		db (Database, optional): The database containing the results.  Ignore unless
-			`data` is a string.
-		contrast (str or list): The contrast columns to plot the principal parameter or
-			measure against.  Can be given as a list of columns that appear in the
-			data, or one of {'uncertainties', 'levers', 'parameters', 'measures', 'infer'}.
-			If set to 'infer', the contrast will be 'measures' if `column` is a parameter,
+		db (Database, optional):
+			The database containing the results.  Ignored unless `data`
+			is a string.
+		contrast (str or list):
+			The contrast columns to plot the principal parameter or
+			measure against.  Can be given as a list of columns that
+			appear in the data, or one of {'uncertainties', 'levers',
+			'parameters', 'measures', 'infer'}. If set to 'infer',
+			the contrast will be 'measures' if `column` is a parameter,
 			and 'parameters' if `columns` is a measure.
-		render (str or dict, optional): If given, the graph[s] will be rendered to a
-			static image using `plotly.io.to_image`.  For default settings, pass
-			'png', or give a dictionary that specifies keyword arguments to that function.
-		mass : int or emat.viz.ScatterMass, default 1000
+		render (str or dict, optional):
+			If given, the graph[s] will be rendered to a static image
+			using `plotly.io.to_image`.  For default settings, pass
+			'png', or give a dictionary that specifies keyword arguments
+			to that function.  See `emat.util.rendering.render_plotly`
+			for more details.
+		mass (int or emat.viz.ScatterMass, default 1000):
 			The target number of rendered points in each figure. Setting
 			to a number less than the number of experiments will make
 			each scatter point partially transparent, which will help
 			visually convey relative density when there are a very large
 			number of points.
-		render_fallback (bool, default True): If rendering fails, return the
-			original FigureWidget instead of an error message.
 
 	Returns:
-		FigureWidget or xmle.Elem
+		plotly.FigureWidget or xmle.Elem:
+			The latter is returned if a `render` argument is used.
 
 	Raises:
-		ValueError: If `contrast` is 'infer' but `column` is neither a parameter
+		ValueError:
+			If `contrast` is 'infer' but `column` is neither a parameter
 			nor a measure.
 	"""
 
@@ -271,16 +284,8 @@ def scatter_graphs_2(
 		if render == 'svg':
 			render = dict(format='svg', width=1400, height=270)
 
-		import plotly.io as pio
-		try:
-			img_bytes = pio.to_image(fig, **render)
-		except:
-			if render_fallback:
-				return fig
-			else:
-				import traceback
-				return traceback.format_exc()
-		return xmle.Elem.from_any(img_bytes)
+		from ..util.rendering import render_plotly
+		return render_plotly(fig, render)
 
 	return fig
 

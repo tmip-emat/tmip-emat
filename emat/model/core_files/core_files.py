@@ -13,10 +13,10 @@ from pathlib import Path
 from ...model.core_model import AbstractCoreModel
 from ...scope.scope import Scope
 from ...database.database import Database
-from ...util.loggers import get_module_logger
 from ...util.docstrings import copydoc
 from ...exceptions import *
 from .parsers import *
+from ...util.loggers import get_module_logger
 
 _logger = get_module_logger(__name__)
 
@@ -190,20 +190,38 @@ class FilesCoreModel(AbstractCoreModel):
 
 		This method overloads the `run_model` method given in
 		the EMA Workbench, and provides the correct execution
-		of the GBNRTC model within that framework.
+		of a core model within the workbench framework.  This
+		function assembles and executes the steps laid out in
+		other methods of this class, adding some useful logic
+		to optimize the process (e.g. optionally short-
+		circuiting runs that already have results stored
+		in the database).
 
 		For each experiment, the core model is called to:
 
-			1. set experiment variables
-			2. run the experiment
-			3. run post-processors associated with specified
-			   performance measures
-			4. (optionally) archive model outputs
-			5. record performance measures to database
+			1.  `setup` experiment variables, copy files
+			    as needed, and otherwise prepare to run the
+			    core model for a particular experiment,
+			2.  `run` the experiment,
+			3.  `post_process` the result if needed to
+			    produce all relevant performance measures,
+			4.  `archive` model outputs from this experiment
+			    (optional), and
+			5.  `load_measures` from the experiment and
+			    store those measures in the associated database.
 
 		Note that this method does *not* return any outcomes.
 		Outcomes are instead written into self.outcomes_output,
-		and can be retrieved from there.
+		and can be retrieved from there, or from the database at
+		a later time.
+
+		In general, it should not be necessary to overload this
+		method in derived classes built for particular core models.
+		Instead, write overloaded methods for `setup`, `run`,
+		`post_process` , `archive`, and `load_measures`.  Moreover,
+		in typical usage a modeler will generally not want to rely
+		on this method directly, but instead use `run_experiments`
+		to automatically run multiple experiments with one command.
 
 		Args:
 			scenario (Scenario): A dict-like object that

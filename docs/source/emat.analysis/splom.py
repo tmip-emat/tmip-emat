@@ -5,12 +5,12 @@
 #     text_representation:
 #       extension: .py
 #       format_name: percent
-#       format_version: '1.2'
-#       jupytext_version: 1.2.4
+#       format_version: '1.3'
+#       jupytext_version: 1.4.2
 #   kernelspec:
-#     display_name: EMAT-DEV
+#     display_name: Python 3
 #     language: python
-#     name: emat-dev
+#     name: python3
 # ---
 
 # %%
@@ -113,3 +113,6 @@ mm_results = mm.run_experiments(mm_design)
 # %%
 from emat.analysis import contrast_experiments
 contrast_experiments(scope, mm_results, results)
+
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. include:: splom-api.irst

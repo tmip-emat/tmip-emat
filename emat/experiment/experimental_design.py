@@ -58,6 +58,11 @@ class ExperimentalDesign(pd.DataFrame):
             return self.scope.name
 
     @property
+    def design_name_(self):
+        if hasattr(self, 'design_name'):
+            return self.design_name
+
+    @property
     def _constructor(self):
         return ExperimentalDesign
 

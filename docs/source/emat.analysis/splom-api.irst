@@ -1,0 +1,11 @@
+
+Scatter Plot Matrix API
+-----------------------
+
+.. py:currentmodule:: emat.analysis
+.. autofunction:: display_experiments
+.. autofunction:: contrast_experiments
+
+.. py:currentmodule:: emat.viz
+.. autofunction:: scatter_graphs
+.. autofunction:: scatter_graphs_2

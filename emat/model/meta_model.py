@@ -667,11 +667,11 @@ class MetaModel:
                 A subset of rows from `possible_experiments`
 
         References:
-            Johnson, M.E., Moore, L.M., and Ylvisaker, D., 1990. "Minimax and maximin
-                distance designs." Journal of Statistical Planning and Inference 26, 131–148.
-            Loeppky, J., Moore, L., and Williams, B.J., 2010. "Batch sequential designs
-                for computer experiments." Journal of Statistical Planning and Inference 140,
-                1452–1464.
+            - Johnson, M.E., Moore, L.M., and Ylvisaker, D., 1990. "Minimax and maximin
+              distance designs." Journal of Statistical Planning and Inference 26, 131–148.
+            - Loeppky, J., Moore, L., and Williams, B.J., 2010. "Batch sequential designs
+              for computer experiments." Journal of Statistical Planning and Inference 140,
+              1452–1464.
 
         """
 

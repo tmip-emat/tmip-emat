@@ -862,21 +862,31 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             return_type='styled',
             random_state=None,
             cmap='viridis',
+            measures=None,
     ):
         """
         Calculate feature scores based on a design of experiments.
 
+        This method is provided as a convenient pass-through to the
+        `feature_scores` function in the `analysis` sub-package, using
+        the scope and database attached to this model.
+
         Args:
-            design (str or pandas.DataFrame): The name of the design of experiments
-                to use for feature scoring, or a single pandas.DataFrame containing the
-                experimental design and results.
+            design (str or pandas.DataFrame): The name of the design
+                of experiments to use for feature scoring, or a single
+                pandas.DataFrame containing the experimental design and
+                results.
             return_type ({'styled', 'figure', 'dataframe'}):
-                The format to return, either a heatmap figure as an SVG render in and
-                xmle.Elem, or a plain pandas.DataFrame, or a styled dataframe.
+                The format to return, either a heatmap figure as an SVG
+                render in and xmle.Elem, or a plain pandas.DataFrame,
+                or a styled dataframe.
             random_state (int or numpy.RandomState, optional):
                 Random state to use.
-            cmap (string or colormap, default 'viridis'): matplotlib colormap
-                to use for rendering.
+            cmap (string or colormap, default 'viridis'): matplotlib
+                colormap to use for rendering.
+            measures (Collection, optional): The performance measures
+                on which feature scores are to be generated.  By default,
+                all measures are included.
 
         Returns:
             xmle.Elem or pandas.DataFrame:
@@ -894,9 +904,15 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db=self.db,
             random_state=random_state,
             cmap=cmap,
+            measures=measures,
         )
 
-    get_feature_scores = feature_scores # for compatability with prior versions of TMIP-EMAT
+    def get_feature_scores(self, *args, **kwargs):
+        """
+        Deprecated, use `Model.feature_scores`.
+        """
+        # for compatability with prior versions of TMIP-EMAT
+        return self.feature_scores(*args, **kwargs)
 
     def _common_optimization_setup(
             self,
