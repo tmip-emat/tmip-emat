@@ -289,9 +289,11 @@ def heatmap_table(
 		data, cmap='viridis', fmt='.3f', linewidths=0.7, figsize=(12,3),
 		xlabel=None, ylabel=None, title=None,
 		attach_metadata=True,
+		scale_color_by_row=True,
 		**kwargs
 ):
-	"""Generate a SVG heatmap from data.
+	"""
+	Generate a SVG heatmap from data.
 
 	Args:
 		data (pandas.DataFrame): source data for the heatmap table.
@@ -302,6 +304,8 @@ def heatmap_table(
 		xlabel, ylabel, title (str, optional): Captions for each.
 		attach_metadata (bool, default True): Attach `data` to the
 			resulting figure as metadata.
+		scale_color_by_row (bool, default True):
+			Color rows independently.
 
 	Returns:
 		xmle.Elem: The xml data for a svg rendering.
@@ -309,7 +313,15 @@ def heatmap_table(
 	import seaborn as sns
 	from matplotlib import pyplot as plt
 	fig, ax = plt.subplots(figsize=figsize)
-	axes = sns.heatmap(data, ax=ax, cmap=cmap, annot=True, fmt=fmt, linewidths=linewidths, **kwargs)
+	if scale_color_by_row:
+		coloring = data.div(data.max(1), 0)
+	else:
+		coloring = data
+	axes = sns.heatmap(
+		coloring, ax=ax, cmap=cmap, annot=data,
+		fmt=fmt, linewidths=linewidths,
+		cbar=not scale_color_by_row, **kwargs,
+	)
 	if xlabel:
 		ax.set_xlabel(xlabel, fontweight='bold')
 	if ylabel is not None:

@@ -242,7 +242,7 @@ class Elem(Element):
 		fig.savefig(imgbuffer, dpi=None, facecolor='w', edgecolor='w',
 						   orientation='portrait', papertype=None, format=format,
 						   transparent=transparent, bbox_inches=bbox_inches, pad_inches=0.1,
-						   frameon=None)
+						   )
 		x = cls("div", {'class': classname})
 		try:
 			x << cls.from_any(imgbuffer.getvalue())
