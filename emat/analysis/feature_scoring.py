@@ -5,6 +5,8 @@ import numpy
 from ..workbench.analysis import feature_scoring
 from ..viz import heatmap_table
 from ..scope.box import Box
+from ..util.arg_processing import design_check
+
 
 def feature_scores(
 		scope,
@@ -20,56 +22,52 @@ def feature_scores(
 
 	Args:
 		scope (emat.Scope): The scope that defines this analysis.
-		design (str or pandas.DataFrame): The name of the design of experiments
-			to use for feature scoring, or a single pandas.DataFrame containing the
-			experimental design and results.
+		design (str or pandas.DataFrame): The name of the design
+			of experiments to use for feature scoring, or a single
+			pandas.DataFrame containing the experimental design and
+			results.
 		return_type ({'styled', 'figure', 'dataframe'}):
-			The format to return, either a heatmap figure as an SVG render in and
-			xmle.Elem, or a plain pandas.DataFrame, or a styled dataframe.
-		db (emat.Database): If `design` is given as a string, extract the experiments
-			from this database.
+			The format to return, either a heatmap figure as an SVG
+			render in and xmle.Elem, or a plain pandas.DataFrame,
+			or a styled dataframe.
+		db (emat.Database): If `design` is given as a string,
+			extract the experiments from this database.
 		random_state (int or numpy.RandomState, optional):
 			Random state to use.
-		cmap (string or colormap, default 'viridis'): matplotlib colormap
-			to use for rendering.
-		measures (Collection, optional): The performance measures on which
-			feature scores are to be generated.  By default, all measures are
-			included.
+		cmap (string or colormap, default 'viridis'): matplotlib
+			colormap to use for rendering.
+		measures (Collection, optional): The performance measures
+			on which feature scores are to be generated.  By default,
+			all measures are included.
 
 	Returns:
 		xmle.Elem or pandas.DataFrame:
 			Returns a rendered SVG as xml, or a DataFrame,
 			depending on the `return_type` argument.
 
-	This function internally uses feature_scoring from the EMA Workbench, which in turn
-	scores features using the "extra trees" regression approach.
+	This function internally uses feature_scoring from the EMA Workbench,
+	which in turn scores features using the "extra trees" regression
+	approach.
 	"""
 
-	if isinstance(design, str):
-		if db is None:
-			raise ValueError('must give db to use design name')
-		design_name = design
-		inputs = db.read_experiment_parameters(scope.name, design)
-		outcomes = db.read_experiment_measures(scope.name, design)
-	elif isinstance(design, pandas.DataFrame):
-		design_name = None
-		inputs = design[[c for c in design.columns if c in scope.get_parameter_names()]]
-		outcomes = design[[c for c in design.columns if c in scope.get_measure_names()]]
-	else:
-		raise TypeError('must name design or give DataFrame')
+	design = design_check(design, scope, db)
 
-	# remove input columns with NaN's
+	# Split design into inputs and outcomes
+	inputs = design[[c for c in design.columns if c in scope.get_parameter_names()]]
+	outcomes = design[[c for c in design.columns if c in scope.get_measure_names()]]
+
+	# prepare to remove input columns with NaN's
 	drop_inputs = list(inputs.columns[pandas.isna(inputs).sum()>0])
 
-	# remove constant inputs
+	# prepare to remove constant inputs
 	for c in scope.get_constant_names():
 		if c in inputs.columns and c not in drop_inputs:
 			drop_inputs.append(c)
 
-	# remove outcome columns with NaN's,
+	# prepare to remove outcome columns with NaN's,
 	drop_outcomes = list(outcomes.columns[pandas.isna(outcomes).sum()>0])
 
-	# remove outcomes that have been removed from the scope
+	# prepare to remove outcomes that have been removed from the scope
 	scope_measures = set(scope.get_measure_names())
 	for c in outcomes.columns:
 		if c not in scope_measures and c not in drop_outcomes:
@@ -77,31 +75,35 @@ def feature_scores(
 		if measures is not None and c not in measures and c not in drop_outcomes:
 			drop_outcomes.append(c)
 
+	# execute removals
 	outcomes_ = outcomes.drop(columns=drop_outcomes)
 	inputs_ = inputs.drop(columns=drop_inputs)
 
+	# use workbench to compute feature scores
 	fs = feature_scoring.get_feature_scores_all(inputs_, outcomes_, random_state=random_state)
 
 	# restore original row/col ordering
 	orig_col_order = [c for c in outcomes.columns if c in scope_measures]
 	fs = fs.reindex(index=inputs.columns, columns=orig_col_order)
 
-	# remove all NA columns and rows
+	# remove columns and rows that are entirely NA
 	drop_c = list(fs.columns[(~pandas.isna(fs)).sum() == 0])
 	drop_r = list(fs.index[(~pandas.isna(fs)).sum(axis=1) == 0])
 	fs = fs.drop(index=drop_r, columns=drop_c)
 
-	if return_type.lower() in ('figure','styled'):
+	# convert colormap to a light color palette for rendered outputs
+	if 'figure' in return_type.lower() or 'styled' in return_type.lower():
 		try:
 			cmap = sns.light_palette(cmap, as_cmap=True)
 		except ValueError:
 			pass
 
-	if return_type.lower() == 'figure':
+	# create output based on `return_type`
+	if 'figure' in return_type.lower():
 		return heatmap_table(
 			fs.T,
 			xlabel='Model Parameters', ylabel='Performance Measures',
-			title='Feature Scoring' + (f' [{design_name}]' if design_name else ''),
+			title='Feature Scoring' + (f' [{design.design_name_}]' if design.design_name_ else ''),
 			cmap=cmap,
 		)
 	elif return_type.lower() == 'styled':
@@ -147,15 +149,7 @@ def box_feature_scores(
 	This function internally uses feature_scoring from the EMA Workbench, which in turn
 	scores features using the "extra trees" classification approach.
 	"""
-	if isinstance(design, str):
-		if db is None:
-			raise ValueError('must give db to use design name')
-		design_name = design
-		design = db.read_experiment_all(scope.name, design)
-	elif isinstance(design, pandas.DataFrame):
-		design_name = None
-	else:
-		raise TypeError('must name design or give DataFrame')
+	design = design_check(design, scope, db)
 
 	if exclude_measures:
 		if not set(box.thresholds.keys()).intersection(scope.get_measure_names()):
@@ -329,15 +323,60 @@ def threshold_feature_scores(
 		max_breaks=20,
 		break_spacing='linear',
 ):
-	if isinstance(design, str):
-		if db is None:
-			raise ValueError('must give db to use design name')
-		design_name = design
-		design = db.read_experiment_all(scope.name, design)
-	elif isinstance(design, pandas.DataFrame):
-		design_name = None
-	else:
-		raise TypeError('must name design or give DataFrame')
+	"""
+	Compute and display thresold feature scores for a performance measure.
+
+	This function is useful to detect and understand non-linear relationships
+	between performance measures and various input parameters.
+
+	Args:
+		scope (emat.Scope): The scope that defines this analysis.
+		measure_name (str): The name of an individual performance
+			measure to analyze.
+		design (str or pandas.DataFrame): The name of the design
+			of experiments to use for feature scoring, or a single
+			pandas.DataFrame containing the experimental design and
+			results.
+		return_type (str):
+			The format to return:
+				- 'dataframe' gives a plain pandas.DataFrame,
+				- 'styled' gives a colorized pandas.DataFrame,
+				- 'figure' gives a plotly violin plot,
+				- 'ridge figure' gives a plotly ridgeline figure.
+			Either plotly result can optionally have ".svg"
+			or ".png" added to render a static image in those
+			formats.
+		db (emat.Database): If `design` is given as a string,
+			extract the experiments from this database.
+		random_state (int or numpy.RandomState, optional):
+			Random state to use.
+		cmap (string or colormap, default 'viridis'): matplotlib
+			colormap to use for rendering. Ignored if `return_type`
+			is 'dataframe'.
+		z_min, z_max (float, optional): Trim the bottom and top of
+			the colormap range, respectively.  Defaults to (0,1) which
+			will make the most relevant overall feature colored at the
+			top of the colorscale and the least relevant feature at
+			the bottom.
+		min_tail (int, default 5): The minimum number of observations
+			on each side of any threshold point. If this value is too
+			small, the endpoint feature scoring results are highly
+			unstable, but if it is too large then important nonlinearities
+			near the extreme points may not be detected.  This is also
+			used as the minimum average number of observations between
+			threshold points.
+		max_breaks (int, default 20): The maximum number of distinct
+			threshold points to use.  Setting this value higher improves
+			resolution but also requires more computational time.
+		break_spacing ({'linear', 'percentile'}): How to distribute
+			threshold breakpoints to test within the min-max range.
+
+	Returns:
+		plotly.graph_objs.Figure or DataFrame or styled DataFrame
+
+	"""
+
+	design = design_check(design, scope, db)
 
 	tracking = {}
 
@@ -374,25 +413,6 @@ def threshold_feature_scores(
 
 	if 'figure' in return_type.lower():
 		import plotly.graph_objects as go
-		# import plotly.colors
-		# colorscheme = getattr(
-		# 	plotly.colors.qualitative,
-		# 	cmap,
-		# 	plotly.colors.qualitative.Light24
-		# )
-		# fig = go.Figure()
-		# for n, i in enumerate(result.index):
-		# 	fig.add_trace(go.Scatter(
-		# 		x=result.columns, y=result.loc[i],
-		# 		mode='lines',
-		# 		fillcolor=colorscheme[n % len(colorscheme)],
-		# 		line=dict(width=0, color=colorscheme[n % len(colorscheme)]),
-		# 		stackgroup='one',  # define stack group
-		# 		name=i,
-		# 		hovertemplate="%{y:.3f}",
-		# 	))
-		# fig.update_layout(hovermode="x unified", yaxis_range=(0, 1))
-		# return fig
 		from matplotlib import cm
 
 		base_score = feature_scores(
@@ -475,7 +495,8 @@ def threshold_feature_scores(
 			showlegend=False,
 			margin=dict(t=0,b=0,l=0,r=0),
 		)
-		return fig
+		from ..util.rendering import render_plotly
+		return render_plotly(fig, return_type)
 
 	return result
 
