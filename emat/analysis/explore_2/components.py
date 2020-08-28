@@ -457,7 +457,8 @@ def add_boxes_to_figure(box, col, fig, ref_point=None, existing_shapes=None):
 			pass
 		else:
 			for x_val, x_txt in zip(label_values, label_text):
-				if ref_point == x_val:
+				ref_point_ = str(ref_point).lower()
+				if ref_point == x_val or ref_point_ == str(x_val).lower() or ref_point_ == str(x_txt).lower():
 					ref_point = x_txt
 					break
 		ref_shapes.append(
@@ -562,6 +563,8 @@ def new_splom_figure(
 		unselected_color = colors.DEFAULT_BASE_COLOR
 	if selected_color is None:
 		selected_color = colors.DEFAULT_HIGHLIGHT_COLOR
+	selected_color_str = ", ".join(str(int(i)) for i in colors.interpret_color(selected_color))
+	unselected_color_str = ", ".join(str(int(i)) for i in colors.interpret_color(unselected_color))
 
 	def _make_axis_list(j):
 		if isinstance(j, str):
@@ -640,76 +643,135 @@ def new_splom_figure(
 			experiment_name = data.index.name
 
 		n = 0
+		extra_y_ax = len(rows) * len(cols)
+
 		for rownum, row in enumerate(rows, start=1):
 			for colnum, col in enumerate(cols, start=1):
 				n += 1
-				if marker_color is None:
-					color = _pick_color(scope, row, col)
-				else:
-					color = marker_color
 
 				x = perturb_categorical_df(data, col)
 				y = perturb_categorical_df(data, row)
 				x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.3,
-															refpoint=_get_or_none(refpoint,col))
+				                                            refpoint=_get_or_none(refpoint, col))
 				y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.3,
-															refpoint=_get_or_none(refpoint,row))
+				                                            refpoint=_get_or_none(refpoint, row))
 
-				if x_ticktext is not None or y_ticktext is not None:
-					hovertemplate = (
-						f'<b>{scope.shortname(row)}</b>: %{{meta[1]}}<br>' +
-						f'<b>{scope.shortname(col)}</b>: %{{meta[2]}}' +
-						f'<extra>{experiment_name} %{{meta[0]}}</extra>'
-					)
-					meta = data[[row,col]].reset_index().to_numpy()
-				else:
-					hovertemplate = (
-						f'<b>{scope.shortname(row)}</b>: %{{y}}<br>' +
-						f'<b>{scope.shortname(col)}</b>: %{{x}}' +
-						f'<extra>{experiment_name} %{{meta}}</extra>'
-					)
-					meta = data.index
+				if row == col:
+					extra_y_ax += 1
+					import scipy.stats
+					try:
+						kde0 = scipy.stats.gaussian_kde(data[~selection][row])
+						kde1 = scipy.stats.gaussian_kde(data[selection][row])
+					except TypeError:
+						kde0 = scipy.stats.gaussian_kde(data[~selection][row].cat.codes)
+						kde1 = scipy.stats.gaussian_kde(data[selection][row].cat.codes)
+					x_fill = numpy.linspace(*x_range, 200)
+					y_0 = kde0(x_fill)
+					y_1 = kde1(x_fill)
+					topline = max(y_0.max(), y_1.max())
+					y_range_kde = (-0.07 * topline, 1.07 * topline)
 
-				fig.add_trace(
-					Scatter(
-						x=x,
-						y=y,
-						mode='markers',
-						marker=dict(
-							size=marker_size,
-							# sizemode=sizemode,
-							# sizeref=sizeref,
-							# sizemin=sizemin,
-							opacity=marker_opacity,
-							color=color,
+					layout_updates = {}
+					layout_updates[f'yaxis{extra_y_ax}'] = dict(
+						domain=fig['layout'][f'yaxis{n}']['domain'],
+						anchor=f'free',
+						showticklabels=False,
+						range=y_range_kde,
+					)
+					fig.update_layout(**layout_updates)
+
+					fig.add_trace(
+						go.Scatter(
+							x=[],
+							y=[],
+							mode='markers',
+							showlegend=False,
 						),
-						showlegend=False,
-						hovertemplate=hovertemplate,
-						meta=meta,
-					),
-					row=rownum, col=colnum,
-				)
-				if on_select is not None:
-					fig.data[-1].on_selection(functools.partial(on_select, col, row))
-				if on_deselect is not None:
-					fig.data[-1].on_deselect(functools.partial(on_deselect, col, row))
-
-				if box is not None:
-					shapes = _splom_part_boxes(
-						box, n,
-						x, col, x_tickvals, x_ticktext, x_range,
-						y, row, y_tickvals, y_ticktext, y_range,
+						row=rownum, col=colnum,
 					)
-					for s in shapes:
-						fig.add_shape(s)
 
-				if refpoint is not None:
-					shapes = _splom_part_ref_point(
-						n,
-						x, x_range, x_tickvals, x_ticktext, refpoint.get(col, None),
-						y, y_range, y_tickvals, y_ticktext, refpoint.get(row, None),
+					fig.add_trace(
+						go.Scatter(
+							x=x_fill,
+							y=y_0,
+							yaxis=f"y{extra_y_ax}",
+							xaxis=f"x{n}",
+							showlegend=False,
+							line_color=f'rgb({unselected_color_str})',
+							fill='tozeroy',
+						)
 					)
-					for s in shapes: fig.add_shape(s)
+					fig.add_trace(
+						go.Scatter(
+							x=x_fill,
+							y=y_1,
+							yaxis=f"y{extra_y_ax}",
+							xaxis=f"x{n}",
+							showlegend=False,
+							line_color=f'rgb({selected_color_str})',
+							fill='tozeroy',
+						)
+					)
+				else:
+
+					if marker_color is None:
+						color = _pick_color(scope, row, col)
+					else:
+						color = marker_color
+
+					if x_ticktext is not None or y_ticktext is not None:
+						hovertemplate = (
+							f'<b>{scope.shortname(row)}</b>: %{{meta[1]}}<br>' +
+							f'<b>{scope.shortname(col)}</b>: %{{meta[2]}}' +
+							f'<extra>{experiment_name} %{{meta[0]}}</extra>'
+						)
+						meta = data[[row,col]].reset_index().to_numpy()
+					else:
+						hovertemplate = (
+							f'<b>{scope.shortname(row)}</b>: %{{y}}<br>' +
+							f'<b>{scope.shortname(col)}</b>: %{{x}}' +
+							f'<extra>{experiment_name} %{{meta}}</extra>'
+						)
+						meta = data.index
+
+					fig.add_trace(
+						Scatter(
+							x=x,
+							y=y,
+							mode='markers',
+							marker=dict(
+								size=marker_size,
+								opacity=marker_opacity,
+								color=color,
+							),
+							showlegend=False,
+							hovertemplate=hovertemplate,
+							meta=meta,
+						),
+						row=rownum, col=colnum,
+					)
+					if on_select is not None:
+						fig.data[-1].on_selection(functools.partial(on_select, col, row))
+					if on_deselect is not None:
+						fig.data[-1].on_deselect(functools.partial(on_deselect, col, row))
+
+					if box is not None:
+						shapes = _splom_part_boxes(
+							box, n,
+							x, col, x_tickvals, x_ticktext, x_range,
+							y, row, y_tickvals, y_ticktext, y_range,
+							background_opacity=0.05,
+						)
+						for s in shapes:
+							fig.add_shape(s)
+
+					if refpoint is not None:
+						shapes = _splom_part_ref_point(
+							n,
+							x, x_range, x_tickvals, x_ticktext, refpoint.get(col, None),
+							y, y_range, y_tickvals, y_ticktext, refpoint.get(row, None),
+						)
+						for s in shapes: fig.add_shape(s)
 
 				if colnum == 1:
 					fig.update_yaxes(
@@ -731,14 +793,6 @@ def new_splom_figure(
 							ticktext = y_ticktext,
 							tickvals = y_tickvals,
 						)
-				# elif (colnum-1)%3==0 and len(cols)>4:
-				# 	fig.update_yaxes(
-				# 		title_text=scope.tagged_shortname(row, wrap_width=18),
-				# 		title_font_size=7,
-				# 		title_standoff=0,
-				# 		row=rownum,
-				# 		col=colnum,
-				# 	)
 				if rownum == len(rows):
 					fig.update_xaxes(
 						title_text=scope.tagged_shortname(col, wrap_width=18),
@@ -754,14 +808,6 @@ def new_splom_figure(
 							ticktext=x_ticktext,
 							tickvals=x_tickvals,
 						)
-			# elif rownum%3==0:
-				# 	fig.update_xaxes(
-				# 		title_text=scope.tagged_shortname(col),
-				# 		title_font_size=7,
-				# 		title_standoff=2,
-				# 		row=rownum,
-				# 		col=colnum,
-				# 	)
 	fig.update_layout(margin=dict(
 		l=10, r=10, t=30 if row_titles_top else 10, b=10,
 	))
@@ -1056,9 +1102,15 @@ def update_splom_figure(
 		marker_color = pandas.Series(data=unselected_color, index=data.index)
 		marker_color[selection] = selected_color
 	n = 0
+	trace_n = 0
 	box_shapes = []
 	for rownum, row in enumerate(rows, start=1):
 		for colnum, col in enumerate(cols, start=1):
+			if row == col:
+				n += 1
+				trace_n += 3
+				continue
+
 			if marker_color is None:
 				color = _pick_color(scope, row, col)
 			else:
@@ -1067,15 +1119,17 @@ def update_splom_figure(
 			y = perturb_categorical_df(data, row)
 			x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.3)
 			y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.3)
-			fig['data'][n]['x'] = x
-			fig['data'][n]['y'] = y
-			fig['data'][n]['marker']['color'] = color
-			fig['data'][n]['marker']['opacity'] = marker_opacity
+			fig['data'][trace_n]['x'] = x
+			fig['data'][trace_n]['y'] = y
+			fig['data'][trace_n]['marker']['color'] = color
+			fig['data'][trace_n]['marker']['opacity'] = marker_opacity
 			n += 1
+			trace_n += 1
 			box_shapes.extend(_splom_part_boxes(
 				box, n,
 				x, col, x_tickvals, x_ticktext, x_range,
 				y, row, y_tickvals, y_ticktext, y_range,
+				background_opacity=0.05,
 			))
 	fig['layout']['shapes'] = box_shapes + existing_lines
 	return fig
@@ -1251,8 +1305,12 @@ def new_hmm_figure(
 				extra_y_ax += 1
 
 				import scipy.stats
-				kde0 = scipy.stats.gaussian_kde(data[~selection][row])
-				kde1 = scipy.stats.gaussian_kde(data[ selection][row])
+				try:
+					kde0 = scipy.stats.gaussian_kde(data[~selection][row])
+					kde1 = scipy.stats.gaussian_kde(data[selection][row])
+				except TypeError:
+					kde0 = scipy.stats.gaussian_kde(data[~selection][row].cat.codes)
+					kde1 = scipy.stats.gaussian_kde(data[selection][row].cat.codes)
 				x_fill = numpy.linspace(*x_range, 200)
 				y_0 = kde0(x_fill)
 				y_1 = kde1(x_fill)
@@ -1273,13 +1331,7 @@ def new_hmm_figure(
 						x=[],
 						y=[],
 						mode='markers',
-						# marker=dict(
-						# 	color=f'rgb({selected_color_str})',
-						# 	size=marker_size,
-						# ),
 						showlegend=False,
-						# hovertemplate=hovertemplate_s,
-						# meta=meta_s,
 					),
 					row=rownum, col=colnum,
 				)

@@ -83,7 +83,7 @@ class DataFrameExplorerBase():
 		assert isinstance(name, str)
 		if isinstance(values, PrimBox):
 			proposal = pandas.Series(
-				data=numpy.asarray(values.prim.y),
+				data=numpy.asarray(values.prim.y)[values.yi_initial],
 				index=self.data.index,
 			)
 			self._selection_defs[name] = values

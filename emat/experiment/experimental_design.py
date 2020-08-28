@@ -52,6 +52,12 @@ class ExperimentalDesign(pd.DataFrame):
     # normal properties
     _metadata = ['design_name', 'sampler_name', 'scope']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.design_name = None
+        self.sampler_name = None
+        self.scope = None
+
     @property
     def scope_name(self):
         if hasattr(self.scope, 'name'):
@@ -70,6 +76,18 @@ class ExperimentalDesign(pd.DataFrame):
     def _constructor_sliced(self):
         return ExperimentalDesignSeries
 
+    def prim(self, data='parameters', target=None, threshold=0.2, **kwargs):
+        if self.scope is None:
+            raise ValueError("missing scope")
+        from ..analysis.explore_2.explore_visualizer import Visualizer
+        if isinstance(target, str):
+            target_name = target
+            target = self.eval(target)
+        else:
+            target_name = getattr(target, 'name', "PRIM Target")
+        viz = Visualizer(data=self, scope=self.scope)
+        viz.new_selection(target, name=target_name)
+        return viz.prim(data=data, target=target_name, threshold=threshold, **kwargs)
 
 def design_experiments(
         scope: Scope,

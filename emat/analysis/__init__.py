@@ -16,3 +16,5 @@ try:
 	from .explore_2 import Visualizer
 except ImportError:
 	pass
+
+from .prim import Prim, PrimBox

@@ -575,6 +575,9 @@ class Visualizer(DataFrameExplorer):
 
 		return widget.Box(viz_widgets, layout=widget.Layout(flex_flow='row wrap'))
 
+	def selectors(self, names):
+		return self._get_widgets(*names)
+
 	def uncertainty_selectors(self, style='hist'):
 		return self._get_widgets(*self.scope.get_uncertainty_names())
 
@@ -998,13 +1001,17 @@ class Visualizer(DataFrameExplorer):
 			fig.data[0].text = t
 			fig.data[0].marker.color = colors.DEFAULT_HIGHLIGHT_COLOR
 
-	def subvisualize(self, query):
+	def subvisualize(self, query=None, iloc=None, copy=True):
 		kwargs = dict(
 			reference_point=self._reference_point,
 			scope=self.scope,
 		)
 		if isinstance(query, str):
 			kwargs['data'] = self.data.query(query)
+		elif iloc is not None:
+			kwargs['data'] = self.data.iloc[query]
 		else:
 			kwargs['data'] = self.data[query]
+		if copy:
+			kwargs['data'] = kwargs['data'].copy()
 		return type(self)(**kwargs)

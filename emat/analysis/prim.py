@@ -14,7 +14,7 @@ from .discovery import ScenarioDiscoveryMixin
 from plotly import graph_objects as go
 
 class Prim(prim.Prim, ScenarioDiscoveryMixin):
-	'''
+	"""
 	Patient rule induction method
 
 	This implementation of Prim is derived from
@@ -68,22 +68,34 @@ class Prim(prim.Prim, ScenarioDiscoveryMixin):
 			valid in binary mode.
 
 
-	'''
+	"""
 
 	def find_box(self):
 		"""
 		Execute one iteration of the PRIM algorithm.
 
 		This method will find one box, starting from the
-		current state of Prim.
+		current state of Prim (i.e., over all observations
+		that are not already within a previously selected
+		PrimBox).  All existing boxes will be "frozen" by
+		this command, so that those prior boxes can no
+		longer be modified by their `select` methods or
+		from within their `tradeoff_selector`.
 
 		Returns:
-			emat.analysis.prim.PrimBox
+			emat.analysis.PrimBox
 		"""
 		result = super().find_box()
 		result.__class__ = PrimBox
-		result._explorer = getattr(self, '_explorer', None)
+		prim_explorer = getattr(self, '_explorer', None)
+		if prim_explorer is not None:
+			from .explore_2.explore_visualizer import Visualizer
+			result._explorer = Visualizer(
+				prim_explorer.data.iloc[result.yi_initial].copy(),
+				scope=prim_explorer.scope,
+			)
 		result._target_name = getattr(self, '_target_name', None)
+		result.select(result._cur_box)
 		return result
 
 	def tradeoff_selector(self, n=-1, colorscale='viridis'):
@@ -91,7 +103,24 @@ class Prim(prim.Prim, ScenarioDiscoveryMixin):
 		Visualize the trade off between coverage and density.
 
 		This visualization plots all of the points along
-		the peeling trajectory for a particular `PrimBox`.
+		the peeling trajectory for the selected `PrimBox`,
+		plotting coverage along the x axis, density along the
+		y axis, and showing the number of restricted dimensions
+		by color.
+
+		Coverage is percentage of the cases of interest that
+		are in the box (i.e., number of cases of interest in
+		the box divided by total number of cases of interest).
+		The starting point of the PRIM algorithm is the
+		unrestricted full set of cases, which includes all
+		outcomes of interest, and therefore, the coverage starts
+		at 1.0 and drops as the algorithm progresses.
+
+		Density is the share of cases in the box that are case
+		of interest (i.e., number of cases of interest in the
+		box divided by the total number of cases in the box).
+		As the box is reduced, the density will increase (as
+		that is the objective of the PRIM algorithm).
 
 		Args:
 			n (int, optional):
@@ -116,9 +145,18 @@ class Prim(prim.Prim, ScenarioDiscoveryMixin):
 				raise
 		return box.tradeoff_selector(colorscale=colorscale)
 
-	def __init__(self, x, y, threshold, *args, **kwargs):
-		self._target_name = getattr(y, 'name', None)
+	def __init__(self, x, y, threshold, *args, scope=None, explorer=None, **kwargs):
 		super().__init__(x, y, threshold, *args, **kwargs)
+		self._target_name = getattr(y, 'name', None)
+		if explorer is not None:
+			self._explorer = explorer
+		else:
+			self._explorer = None
+			if hasattr(x, 'scope') and scope is None:
+				scope = x.scope
+			if scope is not None:
+				from .explore_2.explore_visualizer import Visualizer
+				self._explorer = Visualizer(x, scope=scope)
 
 def _discrete_color_scale(name='viridis', n=8):
 	import seaborn as sns
@@ -274,8 +312,27 @@ class PrimBox(prim.PrimBox):
 
 	def tradeoff_selector(self, colorscale='viridis'):
 		'''
-		Visualize the trade off between coverage and density. Color
-		is used to denote the number of restricted dimensions.
+		Visualize the trade off between coverage and density.
+
+		This visualization plots all of the points along
+		the peeling trajectory for this `PrimBox`,
+		plotting coverage along the x axis, density along the
+		y axis, and showing the number of restricted dimensions
+		by color.
+
+		Coverage is percentage of the cases of interest that
+		are in the box (i.e., number of cases of interest in
+		the box divided by total number of cases of interest).
+		The starting point of the PRIM algorithm is the
+		unrestricted full set of cases, which includes all
+		outcomes of interest, and therefore, the coverage starts
+		at 1.0 and drops as the algorithm progresses.
+
+		Density is the share of cases in the box that are case
+		of interest (i.e., number of cases of interest in the
+		box divided by the total number of cases in the box).
+		As the box is reduced, the density will increase (as
+		that is the objective of the PRIM algorithm).
 
 		Parameters
 		----------
@@ -325,15 +382,19 @@ class PrimBox(prim.PrimBox):
 			from .explore_2.explore_visualizer import Visualizer
 			if data is None:
 				data = self.prim.x
+			if scope is None:
+				scope = getattr(data, 'scope', None)
+			if scope is None:
+				raise ValueError("failed to initialize visualizer, cannot find scope")
 			self._explorer = Visualizer(scope=scope, data=data)
 			self._explorer["PRIM Target"] = self.to_emat_box()
 		return self._explorer
 
 	def splom(self, rows=None, cols=None):
 		if rows is None:
-			rows = self.to_emat_box().demanded_features
+			rows = sorted(self.to_emat_box().demanded_features)
 		if cols is None:
-			cols = self.to_emat_box().demanded_features
+			cols = sorted(self.to_emat_box().demanded_features)
 		fig = self.explore().splom(
 			f"{rows}|{cols}",
 			rows=rows,
@@ -343,9 +404,9 @@ class PrimBox(prim.PrimBox):
 
 	def hmm(self, rows=None, cols=None):
 		if rows is None:
-			rows = self.to_emat_box().demanded_features
+			rows = sorted(self.to_emat_box().demanded_features)
 		if cols is None:
-			cols = self.to_emat_box().demanded_features
+			cols = sorted(self.to_emat_box().demanded_features)
 		fig = self.explore().hmm(
 			f"{rows}|{cols}",
 			rows=rows,
