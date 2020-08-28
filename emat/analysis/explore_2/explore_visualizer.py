@@ -16,7 +16,7 @@ import logging
 _logger = logging.getLogger('EMAT.widget')
 
 from .explore_base import DataFrameExplorer
-
+from ..prim import PrimBox
 
 def _deselect_all_points(trace):
 	trace.selectedpoints = None
@@ -166,15 +166,21 @@ class Visualizer(DataFrameExplorer):
 		self._create_frequencies_figure(col, labels=labels)
 		return self._figures_freq[col]
 
+	def __get_plain_box(self):
+		if self.active_selection_deftype() == 'box':
+			box = self._selection_defs[self.active_selection_name()]
+		elif self.active_selection_deftype() == 'primbox':
+			box = self._selection_defs[self.active_selection_name()].to_emat_box()
+		else:
+			box = None
+		return box
+
 	def _create_histogram_figure(self, col, bins=20, *, marker_line_width=None):
 		if col in self._figures_hist:
 			self._update_histogram_figure(col)
 		else:
 			selection = self.active_selection()
-			if self.active_selection_deftype() == 'box':
-				box = self._selection_defs[self.active_selection_name()]
-			else:
-				box = None
+			box = self.__get_plain_box()
 			fig = new_histogram_figure(
 				selection, self.data[col], bins,
 				marker_line_width=marker_line_width,
@@ -183,6 +189,7 @@ class Visualizer(DataFrameExplorer):
 				box=box,
 				title_text=self.scope.shortname(col),
 				ref_point=self.reference_point(col),
+				selected_color=self.active_selection_color(),
 			)
 			self._figures_hist[col] = fig
 
@@ -191,10 +198,7 @@ class Visualizer(DataFrameExplorer):
 			self._update_frequencies_figure(col)
 		else:
 			selection = self.active_selection()
-			if self.active_selection_deftype() == 'box':
-				box = self._selection_defs[self.active_selection_name()]
-			else:
-				box = None
+			box = self.__get_plain_box()
 			fig = new_frequencies_figure(
 				selection, self.data[col], labels,
 				marker_line_width=marker_line_width,
@@ -205,16 +209,14 @@ class Visualizer(DataFrameExplorer):
 				title_text=self.scope.shortname(col),
 				ref_point=self.reference_point(col),
 				label_name_map=self.scope[col].abbrev,
+				selected_color=self.active_selection_color(),
 			)
 			self._figures_freq[col] = fig
 
 	def _update_histogram_figure(self, col):
 		if col in self._figures_hist:
 			fig = self._figures_hist[col]
-			if self.active_selection_deftype() == 'box':
-				box = self._selection_defs[self.active_selection_name()]
-			else:
-				box = None
+			box = self.__get_plain_box()
 			with fig.batch_update():
 				update_histogram_figure(
 					fig,
@@ -227,10 +229,12 @@ class Visualizer(DataFrameExplorer):
 	def _update_frequencies_figure(self, col):
 		if col in self._figures_freq:
 			fig = self._figures_freq[col]
-			if self.active_selection_deftype() == 'box':
-				box = self._selection_defs[self.active_selection_name()]
-			else:
-				box = None
+			box = self.__get_plain_box()
+			#
+			# if self.active_selection_deftype() == 'box':
+			# 	box = self._selection_defs[self.active_selection_name()]
+			# else:
+			# 	box = None
 			with fig.batch_update():
 				update_frequencies_figure(
 					fig,
@@ -668,6 +672,9 @@ class Visualizer(DataFrameExplorer):
 		if self.active_selection_deftype() == 'box':
 			name = self.active_selection_name()
 			box = self._selection_defs[name]
+		elif self.active_selection_deftype() == 'primbox':
+			name = self.active_selection_name()
+			box = self._selection_defs[name].to_emat_box()
 
 		self._splom[key] = new_splom_figure(
 			self.scope,
@@ -683,6 +690,7 @@ class Visualizer(DataFrameExplorer):
 			refpoint=self._reference_point,
 			figure_class=go.FigureWidget,
 			on_select=functools.partial(self._on_select_from_splom, name=key),
+			selected_color=self.active_selection_color(),
 		)
 
 		return self._splom[key]
@@ -703,6 +711,9 @@ class Visualizer(DataFrameExplorer):
 		if self.active_selection_deftype() == 'box':
 			name = self.active_selection_name()
 			box = self._selection_defs[name]
+		elif self.active_selection_deftype() == 'primbox':
+			name = self.active_selection_name()
+			box = self._selection_defs[name].to_emat_box()
 		for fig in self._splom.values():
 			with fig.batch_update():
 				update_splom_figure(
@@ -741,6 +752,9 @@ class Visualizer(DataFrameExplorer):
 		if self.active_selection_deftype() == 'box':
 			name = self.active_selection_name()
 			box = self._selection_defs[name]
+		elif self.active_selection_deftype() == 'primbox':
+			name = self.active_selection_name()
+			box = self._selection_defs[name].to_emat_box()
 
 		self._hmm[key] = new_hmm_figure(
 			self.scope,
@@ -755,6 +769,7 @@ class Visualizer(DataFrameExplorer):
 			figure_class=go.FigureWidget,
 			emph_selected=emph_selected,
 			show_points=show_points,
+			selected_color=self.active_selection_color(),
 		)
 
 		return self._hmm[key]
@@ -764,6 +779,9 @@ class Visualizer(DataFrameExplorer):
 		if self.active_selection_deftype() == 'box':
 			name = self.active_selection_name()
 			box = self._selection_defs[name]
+		elif self.active_selection_deftype() == 'primbox':
+			name = self.active_selection_name()
+			box = self._selection_defs[name].to_emat_box()
 		for fig in self._hmm.values():
 			with fig.batch_update():
 				update_hmm_figure(
@@ -772,6 +790,7 @@ class Visualizer(DataFrameExplorer):
 					fig,
 					self.active_selection(),
 					box,
+					selected_color=self.active_selection_color(),
 				)
 
 	def parcoords(
@@ -816,6 +835,8 @@ class Visualizer(DataFrameExplorer):
 			color = colors.DEFAULT_EXPRESSION_COLOR
 		elif isinstance(value, pandas.Series):
 			color = colors.DEFAULT_LASSO_COLOR
+		elif isinstance(value, PrimBox):
+			color = colors.DEFAULT_PRIMTARGET_COLOR
 		self.new_selection(value, name=key, color=color)
 
 	def __getitem__(self, item):
@@ -825,14 +846,15 @@ class Visualizer(DataFrameExplorer):
 
 	def prim(self, data='parameters', target=None, threshold=0.2, **kwargs):
 
-		from .prim import Prim
+		from ..prim import Prim
 
 		if target is None:
 			of_interest = self.active_selection()
 		elif isinstance(target, str):
 			of_interest = self._selections[target]
 		else:
-			raise ValueError("must give a target")
+			self.new_selection(target, name="PRIM Target")
+			of_interest = self.active_selection()
 
 		if data == 'parameters':
 			data_ = self.data[self.scope.get_parameter_names()]

@@ -5,6 +5,7 @@ import warnings
 from emat.viz import colors
 from emat.scope.box import GenericBox
 from emat import styles
+from ..prim import PrimBox
 
 from plotly import graph_objs as go
 
@@ -80,11 +81,18 @@ class DataFrameExplorerBase():
 		if name is None:
 			name = self._active_selection_name
 		assert isinstance(name, str)
-		if isinstance(values, GenericBox):
+		if isinstance(values, PrimBox):
+			proposal = pandas.Series(
+				data=numpy.asarray(values.prim.y),
+				index=self.data.index,
+			)
+			self._selection_defs[name] = values
+			values = proposal
+		elif isinstance(values, GenericBox):
 			proposal = values.inside(self.data)
 			self._selection_defs[name] = values
 			values = proposal
-		if isinstance(values, str):
+		elif isinstance(values, str):
 			proposal = self.data.eval(values).fillna(0).astype(bool)
 			self._selection_defs[name] = values
 			values = proposal
@@ -149,6 +157,8 @@ class DataFrameExplorerBase():
 			raise KeyError(name)
 		if name not in self._selection_defs:
 			return 'explicit'
+		if isinstance(self._selection_defs[name], PrimBox):
+			return 'primbox'
 		if isinstance(self._selection_defs[name], GenericBox):
 			return 'box'
 		if isinstance(self._selection_defs[name], str):

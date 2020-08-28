@@ -584,10 +584,14 @@ class TwoWayFigure(HBox):
 		y_label = self.y_axis_choose.value
 		background_shapes, foreground_shapes = [], []
 
+		box = None
+
 		if self._dfv.active_selection_deftype() == 'box':
-
 			box = self._dfv._selection_defs[self._dfv.active_selection_name()]
+		elif self._dfv.active_selection_deftype() == 'primbox':
+			box = self._dfv._selection_defs[self._dfv.active_selection_name()].to_emat_box()
 
+		if box is not None:
 			if x_label in box.thresholds or y_label in box.thresholds:
 				x_lo, x_hi = None, None
 				thresh = box.thresholds.get(x_label)

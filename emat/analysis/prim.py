@@ -4,39 +4,109 @@ import pandas
 import operator
 
 from ..workbench.analysis import prim
+from ..workbench.analysis.scenario_discovery_util import RuleInductionType
+from ..workbench.analysis.prim_util import PrimException
 from ..scope.box import Box, Bounds, Boxes
 from ..scope.scope import Scope
 from .discovery import ScenarioDiscoveryMixin
 
+
 from plotly import graph_objects as go
 
 class Prim(prim.Prim, ScenarioDiscoveryMixin):
+	'''
+	Patient rule induction method
+
+	This implementation of Prim is derived from
+	the EMA workbench, and is enhanced to work
+	interactively within the TMIP-EMAT framework.
+
+	Args:
+		x (pandas.DataFrame):
+			The independent variables, generally the
+			scoped input parameters (uncertainties
+			and/or policy levers) from a design of
+			experiments.
+		y (array-like):
+			The dependent variable, generally a
+			pandas.Series or other one dimensional
+			array with size equal to the number of
+			rows in `x`.
+		threshold (float):
+			The density threshold that a box must meet.
+		obj_function ({LENIENT1, LENIENT2, ORIGINAL}):
+			The objective function used by PRIM. This
+			defaults to a lenient objective function
+			based on the gain of mean divided by the
+			loss of mass.
+		peel_alpha (float, default 0.05):
+			The parameter controlling the peeling stage.
+		paste_alpha (float, default 0.05):
+			The parameter controlling the pasting stage.
+		mass_min (float, default 0.05):
+			The minimum mass of a box.
+		threshold_type ({ABOVE, BELOW}):
+			Whether to look above or below the threshold
+			value.
+		mode (RuleInductionType):
+			This PRIM implementation defaults to binary
+			classification, but this argument can be used
+			to switch to regression mode.  In binary mode,
+			the `y` array should only have binary values,
+			while in regression mode it can contain other
+			floating point values.
+		update_function ({'default', 'guivarch'}):
+			The default behavior for this algorithm
+			after finding the first box is to
+			remove all points in the first box,
+			so that subsequent boxes do not include
+			them.  An alternate procedure suggested by
+			Guivarch et al (2016)
+			doi:10.1016/j.envsoft.2016.03.006 is to simply
+			set all points in the first box to be no longer
+			of interest. This alternate procedure is only
+			valid in binary mode.
+
+
+	'''
 
 	def find_box(self):
+		"""
+		Execute one iteration of the PRIM algorithm.
+
+		This method will find one box, starting from the
+		current state of Prim.
+
+		Returns:
+			emat.analysis.prim.PrimBox
+		"""
 		result = super().find_box()
 		result.__class__ = PrimBox
 		result._explorer = getattr(self, '_explorer', None)
+		result._target_name = getattr(self, '_target_name', None)
 		return result
 
 	def tradeoff_selector(self, n=-1, colorscale='viridis'):
-		'''
-		Visualize the trade off between coverage and density, for
-		a particular PrimBox.
+		"""
+		Visualize the trade off between coverage and density.
 
-		Parameters
-		----------
-		n : int, optional
-			The index number of the PrimBox to use.  If not given,
-			the last found box is used.  If no boxes have been found
-			yet, giving any value other than -1 will raise an error.
-		colorscale : str, default 'viridis'
-			A valid color scale name, as compatible with the
-			color_palette method in seaborn.
+		This visualization plots all of the points along
+		the peeling trajectory for a particular `PrimBox`.
 
-		Returns
-		-------
-		FigureWidget
-		'''
+		Args:
+			n (int, optional):
+				The index number of the PrimBox to use.  If not
+				given, the last found box is used.  If no boxes
+				have been found yet, an initial box is found
+				using the `find_box` method, and in this case
+				giving any value other than -1 will raise an error.
+			colorscale (str, default 'viridis'):
+				A valid color scale name, as compatible with the
+				color_palette method in seaborn.
+
+		Returns:
+			plotly.FigureWidget
+		"""
 		try:
 			box = self._boxes[n]
 		except IndexError:
@@ -45,6 +115,10 @@ class Prim(prim.Prim, ScenarioDiscoveryMixin):
 			else:
 				raise
 		return box.tradeoff_selector(colorscale=colorscale)
+
+	def __init__(self, x, y, threshold, *args, **kwargs):
+		self._target_name = getattr(y, 'name', None)
+		super().__init__(x, y, threshold, *args, **kwargs)
 
 def _discrete_color_scale(name='viridis', n=8):
 	import seaborn as sns
@@ -59,13 +133,28 @@ def _discrete_color_scale(name='viridis', n=8):
 
 
 class PrimBox(prim.PrimBox):
+	"""
+	Information for a specific Prim box.
 
-	def to_emat_box(self, i=None, name=None):
+	By default, the currently selected box
+	is the last box on the peeling trajectory,
+	unless this is changed via :meth:`PrimBox.select`.
+	"""
+
+	def box_number(self):
+		for n, b in enumerate(self.prim._boxes, start=1):
+			if b is self:
+				return n
+		return -1
+
+	def to_emat_box(self, i=None, name=None, src_name=None):
 		if i is None:
 			i = self._cur_box
 
 		if name is None:
-			name = f'prim box {i}'
+			name = f'PRIM Box {self.box_number()} Peel {i}'
+			if src_name is not None:
+				name = name + f" [{src_name}]"
 
 		limits = self.box_lims[i]
 
@@ -138,6 +227,11 @@ class PrimBox(prim.PrimBox):
 		colortickvals = numpy.arange(0.5, n_colors, 1) * (n_colors-1)/n_colors
 		colorticktext = [str(i) for i in range(n_colors)]
 
+		symbols = numpy.zeros(len(peeling_trajectory), dtype=int)
+		symbols[self._cur_box] = 4 # cross
+		sizes = numpy.full(len(peeling_trajectory), 6, dtype=int)
+		sizes[self._cur_box] = 9
+
 		scatter = fig.add_scatter(
 			x=peeling_trajectory['coverage'],
 			y=peeling_trajectory['density'],
@@ -154,6 +248,8 @@ class PrimBox(prim.PrimBox):
 					ticktext=colorticktext,
 					ticks="outside",
 				),
+				symbol=symbols,
+				size=sizes,
 			),
 			text=hovertext,
 			hoverinfo="text",
@@ -171,9 +267,6 @@ class PrimBox(prim.PrimBox):
 		def select_point(trace, points, selector):
 			for i in points.point_inds:
 				self.select(i)
-				explorer = getattr(self, '_explorer', None)
-				if explorer is not None:
-					explorer.set_box(self.to_emat_box())
 
 		scatter.on_click(select_point)
 
@@ -198,9 +291,64 @@ class PrimBox(prim.PrimBox):
 			self._tradeoff_widget = self._make_tradeoff_selector(colorscale=colorscale)
 		return self._tradeoff_widget
 
+	def select(self, i):
+		"""
+		Select an entry from the peeling and pasting trajectory.
+
+		This will update the PRIM box to this selected box, as
+		well as update the `tradeoff_selector` and `explorer`,
+		if either is attached to this PrimBox.
+
+		Args:
+			i (int):
+				The index of the box to select.
+		"""
+		try:
+			super(PrimBox, self).select(i)
+		except PrimException:
+			pass
+		else:
+			widget = getattr(self, '_tradeoff_widget', None)
+			if widget is not None:
+				symbols = numpy.zeros(len(self.peeling_trajectory), dtype=int)
+				symbols[i] = 4  # cross
+				sizes = numpy.full(len(self.peeling_trajectory), 6, dtype=int)
+				sizes[i] = 9
+				widget['data'][0]['marker']['symbol'] = symbols
+				widget['data'][0]['marker']['size'] = sizes
+			explorer = getattr(self, '_explorer', None)
+			if explorer is not None:
+				explorer[f"PRIM Box {self.box_number()} [{self._target_name}]"] = self
+
 	def explore(self, scope=None, data=None):
 		if getattr(self, '_explorer', None) is None:
-			from .explore import Explore
-			self._explorer = Explore(scope=scope, data=data, box=self.to_emat_box())
+			from .explore_2.explore_visualizer import Visualizer
+			if data is None:
+				data = self.prim.x
+			self._explorer = Visualizer(scope=scope, data=data)
+			self._explorer["PRIM Target"] = self.to_emat_box()
 		return self._explorer
 
+	def splom(self, rows=None, cols=None):
+		if rows is None:
+			rows = self.to_emat_box().demanded_features
+		if cols is None:
+			cols = self.to_emat_box().demanded_features
+		fig = self.explore().splom(
+			f"{rows}|{cols}",
+			rows=rows,
+			cols=cols,
+		)
+		return fig
+
+	def hmm(self, rows=None, cols=None):
+		if rows is None:
+			rows = self.to_emat_box().demanded_features
+		if cols is None:
+			cols = self.to_emat_box().demanded_features
+		fig = self.explore().hmm(
+			f"{rows}|{cols}",
+			rows=rows,
+			cols=cols,
+		)
+		return fig

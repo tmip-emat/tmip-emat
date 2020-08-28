@@ -1153,8 +1153,15 @@ def new_hmm_figure(
 ):
 	if unselected_color is None:
 		unselected_color = colors.DEFAULT_BASE_COLOR_RGB
+	else:
+		unselected_color = colors.interpret_color(unselected_color)
 	if selected_color is None:
 		selected_color = colors.DEFAULT_HIGHLIGHT_COLOR_RGB
+	else:
+		selected_color = colors.interpret_color(selected_color)
+
+	selected_color_str = ", ".join(str(int(i)) for i in selected_color)
+	unselected_color_str = ", ".join(str(int(i)) for i in unselected_color)
 
 	def _make_axis_list(j):
 		if isinstance(j, str):
@@ -1226,6 +1233,8 @@ def new_hmm_figure(
 		n_unselected = len(data)
 
 	n = 0
+	extra_y_ax = len(rows) * len(cols)
+
 	# saved_bins = {}
 	for rownum, row in enumerate(rows, start=1):
 		for colnum, col in enumerate(cols, start=1):
@@ -1238,204 +1247,264 @@ def new_hmm_figure(
 			x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.25, epsilon=0.25)
 			y_ticktext, y_tickvals, y_range = axis_info(data[row], range_padding=0.25, epsilon=0.25)
 
-			x_bins, x_range_ = _get_bins_and_range(x_ticktext, col, x_range, scope)
-			y_bins, y_range_ = _get_bins_and_range(y_ticktext, row, y_range, scope)
+			if row == col:
+				extra_y_ax += 1
 
-			# saved_bins[(rownum, colnum)] = (x_bins, x_range_, y_bins, y_range_)
-			cvs = ds.Canvas(plot_width=x_bins, plot_height=y_bins, x_range=x_range_, y_range=y_range_)
+				import scipy.stats
+				kde0 = scipy.stats.gaussian_kde(data[~selection][row])
+				kde1 = scipy.stats.gaussian_kde(data[ selection][row])
+				x_fill = numpy.linspace(*x_range, 200)
+				y_0 = kde0(x_fill)
+				y_1 = kde1(x_fill)
+				topline = max(y_0.max(), y_1.max())
+				y_range_kde = (-0.07*topline, 1.07*topline)
 
-			_col = f"_{col}_perturb" if f"_{col}_perturb" in data.columns else col
-			_row = f"_{row}_perturb" if f"_{row}_perturb" in data.columns else row
-
-			agg1 = cvs.points(data[selection], _col, _row)
-			agg0 = cvs.points(data[~selection], _col, _row)
-
-			if x_ticktext is not None:
-				x_arr = data[col].to_numpy().astype('U')
-				x_hovertag = "%{meta[2]}"
-			else:
-				x_arr = None
-				x_hovertag = "%{x:.3s}"
-
-			if y_ticktext is not None:
-				y_arr = data[row].to_numpy().astype('U')
-				y_hovertag = "%{meta[3]}" if x_hovertag=="%{meta[2]}" else "%{meta[2]}"
-			else:
-				y_arr = None
-				y_hovertag = "%{y:.3s}"
-			hovertemplate = (
-				f"<b>{scope.shortname(col)}</b>: {x_hovertag}<br>" +
-				f"<b>{scope.shortname(row)}</b>: {y_hovertag}" +
-				"<extra>%{meta[0]} selected<br>%{meta[1]} unselected</extra>"
-			)
-			agg0_arr = numpy.asanyarray(agg0)
-			agg1_arr = numpy.asanyarray(agg1)
-			wtype_def = [
-				('ns', agg1_arr.dtype),
-				('nu', agg0_arr.dtype),
-			]
-			if x_arr is not None:
-				wtype_def.append(
-					('x', x_arr.dtype)
+				layout_updates = {}
+				layout_updates[f'yaxis{extra_y_ax}'] = dict(
+					domain=fig['layout'][f'yaxis{n}']['domain'],
+					anchor=f'free',
+					showticklabels=False,
+					range=y_range_kde,
 				)
-			if y_arr is not None:
-				wtype_def.append(
-					('y', y_arr.dtype)
-				)
-			wtype = numpy.dtype(wtype_def)
-			meta = numpy.empty(agg0_arr.shape, dtype=wtype)
-			meta['ns'] = agg1_arr
-			meta['nu'] = agg0_arr
-			if x_ticktext is not None:
-				meta[:,1::2]['x']=x_ticktext
-			if y_ticktext is not None:
-				meta[1::2,:]['y']=numpy.asarray(y_ticktext)[:,None]
-
-			y_label, x_label = agg0.dims[0], agg0.dims[1]
-			# np.datetime64 is not handled correctly by go.Heatmap
-			for ax in [x_label, y_label]:
-				if numpy.issubdtype(agg0.coords[ax].dtype, numpy.datetime64):
-					agg0.coords[ax] = agg0.coords[ax].astype(str)
-			x = agg0.coords[x_label]
-			y = agg0.coords[y_label]
-
-			if not emph_selected:
-				fig.add_trace(
-					go.Image(
-						z=_hue_mix(agg1, agg0, selected_color, unselected_color),
-						x0=float(x[0]),
-						dx=float(x[1]-x[0]),
-						y0=float(y[0]),
-						dy=float(y[1]-y[0]),
-						hovertemplate=hovertemplate,
-						meta=meta,
-						colormodel='rgba',
-					),
-					row=rownum, col=colnum,
-				)
-			else:
-				zmax = max(numpy.percentile(agg0_arr, 98), numpy.percentile(agg1_arr, 98))
-				agg0_arr = agg0_arr.astype(numpy.float64)
-				agg0_arr[agg0_arr==0] = numpy.nan
-				fig.add_trace(
-					go.Heatmap(
-						x=x,
-						y=y,
-						z=agg0_arr,
-						showlegend=False,
-						hovertemplate=hovertemplate,
-						meta=meta,
-						coloraxis=f"coloraxis{n*2}",
-						hoverongaps=False,
-						zmax=zmax,
-						zmin=0,
-					),
-					row=rownum, col=colnum,
-				)
-
-				agg1_arr = agg1_arr.astype(numpy.float64)
-				agg1_arr[agg1_arr == 0] = numpy.nan
-				fig.add_trace(
-					go.Heatmap(
-						x=x,
-						y=y,
-						z=agg1_arr,
-						showlegend=False,
-						hovertemplate=hovertemplate,
-						meta=meta,
-						coloraxis=f"coloraxis{n * 2 - 1}",
-						hoverongaps=False,
-						zmax=zmax,
-						zmin=0,
-					),
-					row=rownum, col=colnum,
-				)
-
-				selected_color_str = ", ".join(str(int(i)) for i in selected_color)
-				unselected_color_str = ", ".join(str(int(i)) for i in unselected_color)
-				if n_selected <= show_points:
-					_x_points_selected = x_points[selection]
-					_y_points_selected = y_points[selection]
-				else:
-					_x_points_selected = [None]
-					_y_points_selected = [None]
-
-				if x_ticktext is not None or y_ticktext is not None:
-					hovertemplate_s = (
-							f'<b>{scope.shortname(row)}</b>: %{{meta[1]}}<br>' +
-							f'<b>{scope.shortname(col)}</b>: %{{meta[2]}}' +
-							f'<extra>{experiment_name} %{{meta[0]}}</extra>'
-					)
-					meta_s = data[selection][[row, col]].reset_index().to_numpy()
-				else:
-					hovertemplate_s = (
-							f'<b>{scope.shortname(row)}</b>: %{{y}}<br>' +
-							f'<b>{scope.shortname(col)}</b>: %{{x}}' +
-							f'<extra>{experiment_name} %{{meta}}</extra>'
-					)
-					meta_s = data[selection].index
+				fig.update_layout(**layout_updates)
 
 				fig.add_trace(
 					go.Scatter(
-						x=_x_points_selected,
-						y=_y_points_selected,
+						x=[],
+						y=[],
 						mode='markers',
-						marker=dict(
-							color=f'rgb({selected_color_str})',
-							size=marker_size,
-						),
+						# marker=dict(
+						# 	color=f'rgb({selected_color_str})',
+						# 	size=marker_size,
+						# ),
 						showlegend=False,
-						hovertemplate=hovertemplate_s,
-						meta=meta_s,
+						# hovertemplate=hovertemplate_s,
+						# meta=meta_s,
 					),
 					row=rownum, col=colnum,
 				)
-				fig.update_layout({
-					f"coloraxis{n*2-1}": {
-						'showscale': False,
-						'colorscale': [
-							[0.0, f'rgba({selected_color_str}, 0.0)'],
-							[0.5, f'rgba({selected_color_str}, 0.6)'],
-							[1.0, f'rgba({selected_color_str}, 1.0)'],
-						],
-						'cmax':zmax,
-						'cmin':0,
-					},
-					f"coloraxis{n*2}": {
-						'showscale': False,
-						'colorscale': [
-							[0.0, f'rgba({unselected_color_str}, 0.0)'],
-							[0.5, f'rgba({unselected_color_str}, 0.6)'],
-							[1.0, f'rgba({unselected_color_str}, 1.0)'],
-						],
-						'cmax': zmax,
-						'cmin': 0,
-					},
-				})
-			if on_select is not None:
-				fig.data[-1].on_selection(lambda *args: on_select(col, row, *args))
-			if on_deselect is not None:
-				fig.data[-1].on_deselect(lambda *args: on_deselect(col, row, *args))
 
-
-			if box is not None:
-				shapes = _splom_part_boxes(
-					box, n,
-					x, col, x_tickvals, x_ticktext, x_range,
-					y, row, y_tickvals, y_ticktext, y_range,
-					background_opacity=0.05,
+				fig.add_trace(
+					go.Scatter(
+						x=x_fill,
+						y=y_0,
+						yaxis=f"y{extra_y_ax}",
+						xaxis=f"x{n}",
+						showlegend=False,
+						line_color=f'rgb({unselected_color_str})',
+						fill='tozeroy',
+					)
 				)
-				for s in shapes:
-					fig.add_shape(s)
-
-			if refpoint is not None:
-				shapes = _splom_part_ref_point(
-					n,
-					x, x_range, x_tickvals, x_ticktext, refpoint.get(col, None),
-					y, y_range, y_tickvals, y_ticktext, refpoint.get(row, None),
+				fig.add_trace(
+					go.Scatter(
+						x=x_fill,
+						y=y_1,
+						yaxis=f"y{extra_y_ax}",
+						xaxis=f"x{n}",
+						showlegend=False,
+						line_color=f'rgb({selected_color_str})',
+						fill='tozeroy',
+					)
 				)
-				for s in shapes:
-					fig.add_shape(s)
+
+			else:
+
+				x_bins, x_range_ = _get_bins_and_range(x_ticktext, col, x_range, scope)
+				y_bins, y_range_ = _get_bins_and_range(y_ticktext, row, y_range, scope)
+
+				# saved_bins[(rownum, colnum)] = (x_bins, x_range_, y_bins, y_range_)
+				cvs = ds.Canvas(plot_width=x_bins, plot_height=y_bins, x_range=x_range_, y_range=y_range_)
+
+				_col = f"_{col}_perturb" if f"_{col}_perturb" in data.columns else col
+				_row = f"_{row}_perturb" if f"_{row}_perturb" in data.columns else row
+
+				agg1 = cvs.points(data[selection], _col, _row)
+				agg0 = cvs.points(data[~selection], _col, _row)
+
+				if x_ticktext is not None:
+					x_arr = data[col].to_numpy().astype('U')
+					x_hovertag = "%{meta[2]}"
+				else:
+					x_arr = None
+					x_hovertag = "%{x:.3s}"
+
+				if y_ticktext is not None:
+					y_arr = data[row].to_numpy().astype('U')
+					y_hovertag = "%{meta[3]}" if x_hovertag=="%{meta[2]}" else "%{meta[2]}"
+				else:
+					y_arr = None
+					y_hovertag = "%{y:.3s}"
+				hovertemplate = (
+					f"<b>{scope.shortname(col)}</b>: {x_hovertag}<br>" +
+					f"<b>{scope.shortname(row)}</b>: {y_hovertag}" +
+					"<extra>%{meta[0]} selected<br>%{meta[1]} unselected</extra>"
+				)
+				agg0_arr = numpy.asanyarray(agg0)
+				agg1_arr = numpy.asanyarray(agg1)
+				wtype_def = [
+					('ns', agg1_arr.dtype),
+					('nu', agg0_arr.dtype),
+				]
+				if x_arr is not None:
+					wtype_def.append(
+						('x', x_arr.dtype)
+					)
+				if y_arr is not None:
+					wtype_def.append(
+						('y', y_arr.dtype)
+					)
+				wtype = numpy.dtype(wtype_def)
+				meta = numpy.empty(agg0_arr.shape, dtype=wtype)
+				meta['ns'] = agg1_arr
+				meta['nu'] = agg0_arr
+				if x_ticktext is not None:
+					meta[:,1::2]['x']=x_ticktext
+				if y_ticktext is not None:
+					meta[1::2,:]['y']=numpy.asarray(y_ticktext)[:,None]
+
+				y_label, x_label = agg0.dims[0], agg0.dims[1]
+				# np.datetime64 is not handled correctly by go.Heatmap
+				for ax in [x_label, y_label]:
+					if numpy.issubdtype(agg0.coords[ax].dtype, numpy.datetime64):
+						agg0.coords[ax] = agg0.coords[ax].astype(str)
+				x = agg0.coords[x_label]
+				y = agg0.coords[y_label]
+
+				if not emph_selected:
+					fig.add_trace(
+						go.Image(
+							z=_hue_mix(agg1, agg0, selected_color, unselected_color),
+							x0=float(x[0]),
+							dx=float(x[1]-x[0]),
+							y0=float(y[0]),
+							dy=float(y[1]-y[0]),
+							hovertemplate=hovertemplate,
+							meta=meta,
+							colormodel='rgba',
+						),
+						row=rownum, col=colnum,
+					)
+				else:
+					zmax = max(numpy.percentile(agg0_arr, 98), numpy.percentile(agg1_arr, 98))
+					agg0_arr = agg0_arr.astype(numpy.float64)
+					agg0_arr[agg0_arr==0] = numpy.nan
+					fig.add_trace(
+						go.Heatmap(
+							x=x,
+							y=y,
+							z=agg0_arr,
+							showlegend=False,
+							hovertemplate=hovertemplate,
+							meta=meta,
+							coloraxis=f"coloraxis{n*2}",
+							hoverongaps=False,
+							zmax=zmax,
+							zmin=0,
+						),
+						row=rownum, col=colnum,
+					)
+
+					agg1_arr = agg1_arr.astype(numpy.float64)
+					agg1_arr[agg1_arr == 0] = numpy.nan
+					fig.add_trace(
+						go.Heatmap(
+							x=x,
+							y=y,
+							z=agg1_arr,
+							showlegend=False,
+							hovertemplate=hovertemplate,
+							meta=meta,
+							coloraxis=f"coloraxis{n * 2 - 1}",
+							hoverongaps=False,
+							zmax=zmax,
+							zmin=0,
+						),
+						row=rownum, col=colnum,
+					)
+
+					if n_selected <= show_points:
+						_x_points_selected = x_points[selection]
+						_y_points_selected = y_points[selection]
+					else:
+						_x_points_selected = [None]
+						_y_points_selected = [None]
+
+					if x_ticktext is not None or y_ticktext is not None:
+						hovertemplate_s = (
+								f'<b>{scope.shortname(row)}</b>: %{{meta[1]}}<br>' +
+								f'<b>{scope.shortname(col)}</b>: %{{meta[2]}}' +
+								f'<extra>{experiment_name} %{{meta[0]}}</extra>'
+						)
+						meta_s = data[selection][[row, col]].reset_index().to_numpy()
+					else:
+						hovertemplate_s = (
+								f'<b>{scope.shortname(row)}</b>: %{{y}}<br>' +
+								f'<b>{scope.shortname(col)}</b>: %{{x}}' +
+								f'<extra>{experiment_name} %{{meta}}</extra>'
+						)
+						meta_s = data[selection].index
+
+					fig.add_trace(
+						go.Scatter(
+							x=_x_points_selected,
+							y=_y_points_selected,
+							mode='markers',
+							marker=dict(
+								color=f'rgb({selected_color_str})',
+								size=marker_size,
+							),
+							showlegend=False,
+							hovertemplate=hovertemplate_s,
+							meta=meta_s,
+						),
+						row=rownum, col=colnum,
+					)
+					fig.update_layout({
+						f"coloraxis{n*2-1}": {
+							'showscale': False,
+							'colorscale': [
+								[0.0, f'rgba({selected_color_str}, 0.0)'],
+								[0.5, f'rgba({selected_color_str}, 0.6)'],
+								[1.0, f'rgba({selected_color_str}, 1.0)'],
+							],
+							'cmax':zmax,
+							'cmin':0,
+						},
+						f"coloraxis{n*2}": {
+							'showscale': False,
+							'colorscale': [
+								[0.0, f'rgba({unselected_color_str}, 0.0)'],
+								[0.5, f'rgba({unselected_color_str}, 0.6)'],
+								[1.0, f'rgba({unselected_color_str}, 1.0)'],
+							],
+							'cmax': zmax,
+							'cmin': 0,
+						},
+					})
+				if on_select is not None:
+					fig.data[-1].on_selection(lambda *args: on_select(col, row, *args))
+				if on_deselect is not None:
+					fig.data[-1].on_deselect(lambda *args: on_deselect(col, row, *args))
+
+
+				if box is not None:
+					shapes = _splom_part_boxes(
+						box, n,
+						x, col, x_tickvals, x_ticktext, x_range,
+						y, row, y_tickvals, y_ticktext, y_range,
+						background_opacity=0.05,
+					)
+					for s in shapes:
+						fig.add_shape(s)
+
+				if refpoint is not None:
+					shapes = _splom_part_ref_point(
+						n,
+						x, x_range, x_tickvals, x_ticktext, refpoint.get(col, None),
+						y, y_range, y_tickvals, y_ticktext, refpoint.get(row, None),
+					)
+					for s in shapes:
+						fig.add_shape(s)
 
 			if colnum == 1:
 				fig.update_yaxes(
