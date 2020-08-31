@@ -1721,7 +1721,8 @@ def new_parcoords_figure(
 		selected_color=None,
 		figure_class=None,
 ):
-	"""Generate a parallel coordinates figure.
+	"""
+	Generate a parallel coordinates figure.
 
 	Parameters
 	----------

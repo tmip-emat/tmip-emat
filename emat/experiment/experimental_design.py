@@ -76,7 +76,27 @@ class ExperimentalDesign(pd.DataFrame):
     def _constructor_sliced(self):
         return ExperimentalDesignSeries
 
-    def prim(self, data='parameters', target=None, threshold=0.2, **kwargs):
+    def prim(self, data='parameters', target=None, **kwargs):
+        """
+        Create a new Prim search for this experimental design.
+
+        Args:
+            data ({'parameters', 'levers', 'uncertainties', 'measures', 'all'}):
+                Limit the restricted dimensions to only be drawn
+                from this subset of possible dimensions from the scope.
+                Defaults to 'parameters` (i.e. levers and uncertainties).
+            target (str, optional):
+                If not given, the current active selection is used as the
+                target for Prim.  Otherwise, give the name of an existing
+                selection, or an expression to be evaluated on the visualizer
+                data to create a new target.
+            **kwargs:
+                All other keyword arguments are forwarded to the
+                `emat.analysis.Prim` constructor.
+
+        Returns:
+            emat.analysis.Prim
+        """
         if self.scope is None:
             raise ValueError("missing scope")
         from ..analysis.explore_2.explore_visualizer import Visualizer
@@ -87,7 +107,7 @@ class ExperimentalDesign(pd.DataFrame):
             target_name = getattr(target, 'name', "PRIM Target")
         viz = Visualizer(data=self, scope=self.scope)
         viz.new_selection(target, name=target_name)
-        return viz.prim(data=data, target=target_name, threshold=threshold, **kwargs)
+        return viz.prim(data=data, target=target_name, **kwargs)
 
 def design_experiments(
         scope: Scope,

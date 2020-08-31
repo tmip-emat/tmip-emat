@@ -85,18 +85,25 @@ class Prim(prim.Prim, ScenarioDiscoveryMixin):
 		Returns:
 			emat.analysis.PrimBox
 		"""
-		result = super().find_box()
-		result.__class__ = PrimBox
+		primbox = super().find_box()
+		if primbox is None:
+			return None
+		primbox.__class__ = PrimBox
 		prim_explorer = getattr(self, '_explorer', None)
 		if prim_explorer is not None:
 			from .explore_2.explore_visualizer import Visualizer
-			result._explorer = Visualizer(
-				prim_explorer.data.iloc[result.yi_initial].copy(),
-				scope=prim_explorer.scope,
-			)
-		result._target_name = getattr(self, '_target_name', None)
-		result.select(result._cur_box)
-		return result
+			subdata = prim_explorer.data.iloc[primbox.yi_initial]
+			if len(subdata) != len(prim_explorer.data):
+				# Generally, second and later boxes get new subvisualizers
+				primbox._explorer = Visualizer(
+					subdata.copy(),
+					scope=prim_explorer.scope,
+				)
+			else:
+				primbox._explorer = prim_explorer
+		primbox._target_name = getattr(self, '_target_name', None)
+		primbox.select(primbox._cur_box)
+		return primbox
 
 	def tradeoff_selector(self, n=-1, colorscale='viridis'):
 		"""
@@ -375,7 +382,25 @@ class PrimBox(prim.PrimBox):
 				widget['data'][0]['marker']['size'] = sizes
 			explorer = getattr(self, '_explorer', None)
 			if explorer is not None:
-				explorer[f"PRIM Box {self.box_number()} [{self._target_name}]"] = self
+				name_t = f"PRIM Box {self.box_number()} Target [{self._target_name}]"
+				name_s = f"PRIM Box {self.box_number()} Solution [{self._target_name}]"
+				explorer.new_selection(
+					self,
+					name=name_t,
+					activate=False,
+				)
+				explorer.new_selection(
+					self.to_emat_box(),
+					name=name_s,
+					activate=False,
+				)
+				if explorer.active_selection_name() not in (name_t, name_s):
+					explorer.set_active_selection_name(name_t)
+				else:
+					explorer.set_active_selection_name(
+						explorer.active_selection_name(),
+						force_update=True,
+					)
 
 	def explore(self, scope=None, data=None):
 		if getattr(self, '_explorer', None) is None:

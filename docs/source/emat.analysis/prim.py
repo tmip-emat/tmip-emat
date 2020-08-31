@@ -2,16 +2,17 @@
 # ---
 # jupyter:
 #   jupytext:
+#     cell_metadata_json: true
 #     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
-#       format_version: '1.2'
-#       jupytext_version: 1.2.4
+#       format_version: '1.3'
+#       jupytext_version: 1.4.2
 #   kernelspec:
-#     display_name: EMAT
+#     display_name: Python 3
 #     language: python
-#     name: emat
+#     name: python3
 # ---
 
 # %%
@@ -57,7 +58,7 @@ emat.versions()
 # - The data in the selected candidate box replaces 
 #   the starting data and the process is repeated.
 #
-# The process ends based on a stopping criteria.  
+# The process ends based on a stopping criteria.
 # For more details on the algorithm, 
 # see [Friedman and Fisher (1999)](http://statweb.stanford.edu/~jhf/ftp/prim.pdf) 
 # or [Kwakkel and Jaxa-Rozen (2016)](https://www.sciencedirect.com/science/article/pii/S1364815215301092).
@@ -105,10 +106,11 @@ results = model.run_experiments(design_name='mc')
 # - Cases where the average speed of tolled lanes (a performance measure) is less 
 #   than free-flow speed but greater than 85% of free-flow speed (i.e., bounded both
 #   from above and from below).
+# - Cases that meet all of the above criteria simultaneously.
 #
-# The salient features of a definitions for "of interest" is that
-# it can be calculated for each case independently if given the set 
-# of inputs and outputs, and that the result is a True or False value.
+# The salient features of a definition for "of interest" is that
+# (a) it can be calculated for each case if given the set 
+# of inputs and outputs, and (b) that the result is a True or False value.
 #
 # For this example, we will define "of interest" as cases from the 
 # Road Test example that have positive net benefits.
@@ -128,7 +130,8 @@ from emat.analysis.prim import Prim
 discovery = Prim(
     model.read_experiment_parameters(design_name='mc'), 
     of_interest, 
-    threshold=0.2,
+    threshold=0.02,
+    scope=scope
 )
 
 # %%
@@ -179,48 +182,45 @@ box1
 # that point, including which dimensions are restricted, and what the restrictions
 # are.  A selection of the preferred tradeoff can be made by clicking on any point.[<sup>†</sup>](#_blank "This website does not include a live Python kernel to 
 # execute commands, so some interactive functionality is not available.")
+# The currently selected preferred tradeoff is marked with an "X" instead 
+# of a dot.
 
 # %%
 box1.tradeoff_selector()
 
 # %% [markdown]
-# The analyst can choose to manually override 
+# In addition to the point-and-click interface, the analyst can also manually set 
 # the selection programmatically using Python code, selecting 
 # a preferred box (by index) that trades off density and coverage.
 
 # %%
-box1.select(50)
+box1.select(30)
 box1
 
 # %% [markdown]
-# One of the features of the `ema_workbench` implementation of PRIM
-# is the ability to generate a plot of the resulting box,
-# overlaid on a 'pairs' scatter plot of the various restricted 
+# To help visualize these restricted dimensions better, we can 
+# generate a plot of the resulting box,
+# overlaid on a 'pairs' scatter plot matrix (`splom`) of the various restricted 
 # dimensions.
 #
-# In the figure below, each of the five restricted dimensions represents
-# both a row and a column of figures.  The off-diagonal charts show 
-# bi-dimensional distribution of the data across two of the five actively
-# restricted dimensions.  These charts are overlaid with a red rectangle
+# In the figure below, each of the three restricted dimensions represents
+# both a row and a column of figures.  Each of the off-diagonal charts show 
+# bi-dimensional distribution of the data across two of the actively
+# restricted dimensions.  These charts are overlaid with a green rectangle
 # denoting the selected box.  The on-diagonal charts show the relative
 # distribution of cases that are and are not of interest (unconditional
 # on the selected box).
 
 # %%
-box1.show_pairs_scatter();
+box1.splom()
 
-# %% [raw] {"raw_mimetype": "text/restructuredtext"}
-# .. note:
-#
-#     In the current version of EMAT, a `PrimBox` does not
-#     inherit from `Box` as used in manual scenario discovery, as 
-#     it is created and used in a slightly different way by the
-#     `Prim` algorithm defined in the EMA workbench, but there is a
-#     conversion method.  Future version of EMAT may unify these
-#     tools in a common object type.
+# %% [markdown]
+# Depending on the number of experiments in the data and the number 
+# and distribution of the cases of interest, it may be clearer to
+# view these figures as a heat map matrix (`hmm`) intead of a splom. 
 
 # %%
-box1.to_emat_box()
+box1.hmm()
 
 # %% [markdown]
 # ## Non-Rectangular Boxes
@@ -259,6 +259,15 @@ box2.show_tradeoff();
 
 # %% [markdown]
 # We can also make a similar scatter plot for this second box.
+# There are 8 restricted dimensions in the currently selected
+# solution, which can result in an unwieldy large scatter plot 
+# matrix.  To help, the `splom` command allows you to override
+# the selection of dimensions to display in the rows and/or
+# columns of the resulting figure, by explicitly giving a set
+# of dimensions to display. These don't necessarily need to be
+# restricted dimensions, they can be any dimensions available in
+# the original PRIM analysis.
+#
 # Because this is the second box, the method will only plot the 
 # points that remain (i.e. the ones not included in the first
 # box).  This results in a "blotchy" appearance for may of the 
@@ -266,4 +275,9 @@ box2.show_tradeoff();
 # captured previously.
 
 # %%
-box2.show_pairs_scatter();
+box2.splom(
+    cols=['beta','input_flow','value_of_time','debt_type','yield_curve']
+)
+
+# %% [raw] {"raw_mimetype": "text/restructuredtext"}
+# .. include:: prim-api.irst

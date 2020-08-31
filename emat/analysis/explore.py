@@ -765,7 +765,27 @@ class Explore(GenericBox):
 		return self._two_way[key]
 
 
-	def prim(self, data='parameters', target=None, threshold=0.2, **kwargs):
+	def prim(self, data='parameters', target=None, **kwargs):
+		"""
+		Create a new Prim search for this Visualizer.
+
+		Args:
+			data ({'parameters', 'levers', 'uncertainties', 'measures', 'all'}):
+				Limit the restricted dimensions to only be drawn
+				from this subset of possible dimensions from the scope.
+				Defaults to 'parameters` (i.e. levers and uncertainties).
+			target (str, optional):
+				If not given, the current active selection is used as the
+				target for Prim.  Otherwise, give the name of an existing
+				selection, or an expression to be evaluated on the visualizer
+				data to create a new target.
+			**kwargs:
+				All other keyword arguments are forwarded to the
+				`emat.analysis.Prim` constructor.
+
+		Returns:
+			emat.analysis.Prim
+		"""
 
 		from .prim import Prim
 
@@ -802,7 +822,6 @@ class Explore(GenericBox):
 		result = Prim(
 			data_,
 			of_interest,
-			threshold=threshold,
 			**kwargs,
 		)
 		result._explorer = self

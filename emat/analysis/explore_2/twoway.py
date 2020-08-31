@@ -17,6 +17,35 @@ _logger = logging.getLogger('EMAT.widget')
 
 
 class TwoWayFigure(HBox):
+	"""
+	The two-way visualizer widget.
+
+	This class encapsulates a TMIP-EMAT interactive widget
+	that displays a configurable two dimensional scatter
+	plot of Visualizer data.  Dropdown menus allow the user
+	to change the data dimensions displayed on the x and
+	y axes, as well as create and manipulate new selection
+	sets directly from the interactive widget.
+
+	Args:
+		viz (emat.Visualizer):
+			The visualizer object to link for this two-way.
+		target_marker_opacity (numeric, default 1000):
+			The number of scatter point markers to display
+			fully opaque.  If the number of markers displayed
+			exceeds this value, each marker is rendered
+			partially transparent, such that the total marker
+			weight (opacity * number of markers) is loosely
+			approximate to this total value.
+		minimum_marker_opacity (float, default 0.25):
+			This is the minimum marker opacity used,
+			notwithstanding any transparency level implied
+			by `target_marker_opacity`.
+		use_gl (bool, default True):
+			Use Plotly's `Scattergl` instead of `Scatter`, which
+			may provide some performance benefit for large data
+			sets.
+	"""
 
 	@property
 	def scope(self):
@@ -24,13 +53,13 @@ class TwoWayFigure(HBox):
 
 	def __init__(
 			self,
-			dfv,
+			viz,
 			target_marker_opacity=1000,
 			minimum_marker_opacity=0.25,
 			use_gl=True,
 	):
-		assert isinstance(dfv, Visualizer)
-		self._dfv = dfv
+		assert isinstance(viz, Visualizer)
+		self._dfv = viz
 
 		self._alt_selections = {}
 

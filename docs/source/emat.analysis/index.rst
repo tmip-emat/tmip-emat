@@ -17,7 +17,7 @@ in transportation models.
 
     splom
     corruption
-    interactive-explorer
+    interactive-explorer-v2
 
 
 Scenario Discovery

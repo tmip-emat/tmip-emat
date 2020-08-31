@@ -13,7 +13,7 @@ except ImportError:
 
 
 try:
-	from .explore_2 import Visualizer
+	from .explore_2 import Visualizer, TwoWayFigure
 except ImportError:
 	pass
 

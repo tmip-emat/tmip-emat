@@ -29,6 +29,28 @@ def _deselect_all_points(trace):
 from .components import *
 
 class Visualizer(DataFrameExplorer):
+	"""
+	A data visualization framework.
+
+	Args:
+		data (pandas.DataFrame or str):
+			The base data to visualize.  Give the data directly as a
+			DataFrame, or give the name of a design that can be loaded
+			from the `db` Database.
+		selections (Mapping or pandas.DataFrame, optional):
+			Any pre-existing selections. Each selection should be a
+			boolean pandas.Series indexed the same as the data.
+		scope (emat.Scope, optional):
+			The scope that describes the data.
+		active_selection_name (str, optional):
+			The name of the selection to activate.
+		reference_point (Mapping or pandas.DataFrame):
+			An optional reference point to visualize.  Give as a simple
+			mapping, or as a one-row DataFrame with the same columns as
+			`data`, or give the name of a one-row design that can be loaded
+			from the `db` Database.
+		db (emat.Database, optional): A database from which to read content.
+	"""
 
 	def __init__(
 			self,
@@ -40,29 +62,6 @@ class Visualizer(DataFrameExplorer):
 			*,
 			db=None,
 	):
-		"""
-		A data visualization framework.
-
-		Args:
-			data (pandas.DataFrame or str):
-				The base data to visualize.  Give the data directly as a
-				DataFrame, or give the name of a design that can be loaded
-				from the `db` Database.
-			selections (Mapping or pandas.DataFrame, optional):
-				Any pre-existing selections. Each selection should be a
-				boolean pandas.Series indexed the same as the data.
-			scope (emat.Scope, optional):
-				The scope that describes the data.
-			active_selection_name (str, optional):
-				The name of the selection to activate.
-			reference_point (Mapping or pandas.DataFrame):
-				An optional reference point to visualize.  Give as a simple
-				mapping, or as a one-row DataFrame with the same columns as
-				`data`, or give the name of a one-row design that can be loaded
-				from the `db` Database.
-			db (emat.Database, optional): A database from which to read content.
-		"""
-
 		if db is not None:
 			if scope is None:
 				scope = db.read_scope()
@@ -376,6 +375,7 @@ class Visualizer(DataFrameExplorer):
 			del self._active_selection_changing_
 
 	def status(self):
+		"""Display the status widget."""
 		return self._status
 
 	def _update_status(self):
@@ -576,18 +576,59 @@ class Visualizer(DataFrameExplorer):
 		return widget.Box(viz_widgets, layout=widget.Layout(flex_flow='row wrap'))
 
 	def selectors(self, names):
+		"""
+		Display selector widgets for certain dimensions.
+
+		This method returns an ipywidgets Box containing
+		the selector widgets.
+
+		Args:
+			names (Collection[str]):
+				These names will included in this set of
+				widgets.  If the name is not found in the
+				scope or this visualizer's data, a warning
+				is issued but the remaining valid widgets
+				are still returned.
+
+		Returns:
+			ipywidgets.Box
+		"""
 		return self._get_widgets(*names)
 
-	def uncertainty_selectors(self, style='hist'):
+	def uncertainty_selectors(self):
+		"""
+		Display selector widgets for all uncertainties.
+
+		Returns:
+			ipywidgets.Box
+		"""
 		return self._get_widgets(*self.scope.get_uncertainty_names())
 
-	def lever_selectors(self, style='hist'):
+	def lever_selectors(self):
+		"""
+		Display selector widgets for all policy levers.
+
+		Returns:
+			ipywidgets.Box
+		"""
 		return self._get_widgets(*self.scope.get_lever_names())
 
-	def measure_selectors(self, style='hist'):
+	def measure_selectors(self):
+		"""
+		Display selector widgets for all performance measures.
+
+		Returns:
+			ipywidgets.Box
+		"""
 		return self._get_widgets(*self.scope.get_measure_names())
 
-	def complete(self, measure_style='hist'):
+	def complete(self):
+		"""
+		Display status and selector widgets for all dimensions.
+
+		Returns:
+			ipywidgets.Box
+		"""
 		return widget.VBox([
 			self.status(),
 			widget.HTML("<h3>Policy Levers</h3>"),
@@ -595,7 +636,6 @@ class Visualizer(DataFrameExplorer):
 			widget.HTML("<h3>Exogenous Uncertainties</h3>"),
 			self.uncertainty_selectors(),
 			widget.HTML("<h3>Performance Measures</h3>"),
-			#self._measure_notes(style=measure_style),
 			self.measure_selectors(),
 		])
 
@@ -630,6 +670,33 @@ class Visualizer(DataFrameExplorer):
 			y=None,
 			use_gl=True,
 	):
+		"""
+		Create or display a two-way widget.
+
+		Args:
+			key (hashable, optional):
+				A hashable key value (e.g. `str`) to identify
+				this two_way widget.  Subsequent calls to
+				this command with he same key will return
+				references to the same widget, instead of
+				creating new widgets.
+			reset (bool, default False):
+				Whether to reset the two_way widget for the
+				given key.  Doing so will create a new two_way
+				widget, and will break any other existing references
+				to the same keyed widget (they will no longer live
+				update with this visualizer).
+			x, y (str, optional):
+				The names of the initial x- and y-axis dimensions to
+				display.  Because the resulting figure widget is
+				interactive, these dimensions may be changed later.
+			use_gl (bool, default True):
+				Use Plotly's `Scattergl` instead of `Scatter`, which may
+				provide some performance benefit for large data sets.
+
+		Returns:
+			TwoWayFigure
+		"""
 		if key is None and (x is not None or y is not None):
 			key = (x,y)
 
@@ -660,6 +727,36 @@ class Visualizer(DataFrameExplorer):
 			rows='L',
 			use_gl=True,
 	):
+		"""
+		Create or display a scatter plot matrix widget.
+
+		Args:
+			key (hashable, optional):
+				A hashable key value (e.g. `str`) to identify
+				this splom widget.  Subsequent calls to
+				this command with he same key will return
+				references to the same widget, instead of
+				creating new widgets.
+			reset (bool, default False):
+				Whether to reset the two_way widget for the
+				given key.  Doing so will create a new splom
+				widget, and will break any other existing references
+				to the same keyed widget (they will no longer live
+				update with this visualizer).
+			cols, rows (str or Collection[str]):
+				The dimensions to display across each of the
+				columns (rows) of the scatter plot matrix.
+				Can be given as a list of dimension names, or
+				a single string that is some subset of 'XLM' to
+				include all uncertainties, policy levers, and/or
+				performance measures respectively.
+			use_gl (bool, default True):
+				Use Plotly's `Scattergl` instead of `Scatter`, which may
+				provide some performance benefit for large data sets.
+
+		Returns:
+			plotly.FigureWidget
+		"""
 		if not isinstance(rows, str):
 			rows = tuple(rows)
 		if not isinstance(cols, str):
@@ -740,6 +837,47 @@ class Visualizer(DataFrameExplorer):
 			show_points=30,
 			size=150,
 	):
+		"""
+		Create or display a heat map matrix widget.
+
+		Args:
+			key (hashable, optional):
+				A hashable key value (e.g. `str`) to identify
+				this hmm widget.  Subsequent calls to
+				this command with he same key will return
+				references to the same widget, instead of
+				creating new widgets.
+			reset (bool, default False):
+				Whether to reset the two_way widget for the
+				given key.  Doing so will create a new hmm
+				widget, and will break any other existing references
+				to the same keyed widget (they will no longer live
+				update with this visualizer).
+			cols, rows (str or Collection[str]):
+				The dimensions to display across each of the
+				columns (rows) of the heat map matrix.
+				Can be given as a list of dimension names, or
+				a single string that is some subset of 'XLM' to
+				include all uncertainties, policy levers, and/or
+				performance measures respectively.
+			emph_selected (bool, default True):
+				Emphasize selected points, using a variety of
+				techniques to ensure that small sized selections
+				remain visible.  If disabled, when small sized
+				selections are shown from large visualization
+				datasets, the selected points will typically
+				become washed out and undetectable.
+			show_points (int, default 30):
+				If `emph_selected` is true and the number of
+				selected points is less than this threshold,
+				the selection will be overlaid on the heatmap
+				as a scatter plot instead of a heatmap colorization.
+			size (int, default 150):
+				The plot size for each heatmap.
+
+		Returns:
+			plotly.FigureWidget
+		"""
 		if not isinstance(rows, str):
 			rows = tuple(rows)
 		if not isinstance(cols, str):
@@ -803,6 +941,32 @@ class Visualizer(DataFrameExplorer):
 			*,
 			coords='XLM',
 	):
+		"""
+
+		Args:
+			key (hashable, optional):
+				A hashable key value (e.g. `str`) to identify
+				this parcoords widget.  Subsequent calls to
+				this command with he same key will return
+				references to the same widget, instead of
+				creating new widgets.
+			reset (bool, default False):
+				Whether to reset the parcoords widget for the
+				given key.  Doing so will create a new parcoords
+				widget, and will break any other existing references
+				to the same keyed widget (they will no longer live
+				update with this visualizer).
+			coords (str or Collection[str]):
+				Names of the visualizer dimensions to display
+				in this parcoords widget.  Give a list-like set
+				of named dimensions, or a string that is some
+				subset of 'XLM' to include all uncertainties,
+				policy levers, and/or performance measures
+				respectively.
+
+		Returns:
+			plotly.FigureWidget: A parallel coordinates plot.
+		"""
 		if not isinstance(coords, str):
 			coords = tuple(coords)
 
@@ -824,14 +988,45 @@ class Visualizer(DataFrameExplorer):
 
 		return self._parcoords[key]
 
+	def new_selection(self, value, name=None, color=None, activate=True):
+		"""
+		Add a new selection set to the Visualizer.
 
-	def __setitem__(self, key, value):
-		if not isinstance(key, str):
-			raise TypeError(f'selection names must be str not {type(key)}')
+		Args:
+			value (Box, PrimBox, str, or array-like):
+				The new selection.  If given as an `emat.Box`,
+				the selection is defined entirely by the boundaries of the
+				box, as applied to the visualizer data.
+				If given as a `PrimBox`, the box boundaries are defined
+				by the selected point on the peeling trajectory (and
+				are immutable within the Visualizer interface), but the
+				selection is taken from the Prim target.
+				If given as a `str`, a new immutable selection array is created
+				by evaluating the string in the context of the visualizer data.
+				If given as an array-like, the array is used to explicitly
+				define an immutable selection.
+			name (str, optional):
+				A name for this selection.  If not given, the name is inferred
+				from the `name` attribute of the `value` argument, if possible.
+			color (str, optional):
+				A color to use for this selection, in "rgb(n,n,n)" format.
+				If not provided, a default color is selected based on the
+				type of `value`.
+			activate (bool, default True):
+				Whether to immediately make this new selection as the "active"
+				selection for this visualizer.
+
+		Raises:
+			TypeError: If `name` is not a string or cannot be inferred.
+		"""
+		if name is None and hasattr(value, 'name'):
+			name = value.name
+		if not isinstance(name, str):
+			raise TypeError(f'selection names must be str not {type(name)}')
 		color = None
 		if value is None:
 			from ...scope.box import Box
-			value = Box(name=key, scope=self.scope)
+			value = Box(name=name, scope=self.scope)
 		if isinstance(value, GenericBox):
 			color = colors.DEFAULT_HIGHLIGHT_COLOR
 		elif isinstance(value, str):
@@ -840,21 +1035,47 @@ class Visualizer(DataFrameExplorer):
 			color = colors.DEFAULT_LASSO_COLOR
 		elif isinstance(value, PrimBox):
 			color = colors.DEFAULT_PRIMTARGET_COLOR
-		self.new_selection(value, name=key, color=color)
+		super().new_selection(value, name=name, color=color, activate=activate)
+
+	def __setitem__(self, key, value):
+		self.new_selection(value, name=key)
 
 	def __getitem__(self, item):
 		if item not in self.selection_names():
 			return KeyError(item)
 		return self._selection_defs.get(item, None)
 
-	def prim(self, data='parameters', target=None, threshold=0.2, **kwargs):
+	def prim(self, data='parameters', target=None, **kwargs):
+		"""
+		Create a new Prim search for this Visualizer.
 
+		Args:
+			data ({'parameters', 'levers', 'uncertainties', 'measures', 'all'}):
+				Limit the restricted dimensions to only be drawn
+				from this subset of possible dimensions from the scope.
+				Defaults to 'parameters` (i.e. levers and uncertainties).
+			target (str, optional):
+				If not given, the current active selection is used as the
+				target for Prim.  Otherwise, give the name of an existing
+				selection, or an expression to be evaluated on the visualizer
+				data to create a new target.
+			**kwargs:
+				All other keyword arguments are forwarded to the
+				`emat.analysis.Prim` constructor.
+
+		Returns:
+			emat.analysis.Prim
+		"""
 		from ..prim import Prim
 
 		if target is None:
 			of_interest = self.active_selection()
 		elif isinstance(target, str):
-			of_interest = self._selections[target]
+			try:
+				of_interest = self._selections[target]
+			except KeyError:
+				self.new_selection(target, name=f"PRIM Target: {target}")
+				of_interest = self.active_selection()
 		else:
 			self.new_selection(target, name="PRIM Target")
 			of_interest = self.active_selection()
@@ -882,7 +1103,6 @@ class Visualizer(DataFrameExplorer):
 		result = Prim(
 			data_,
 			of_interest,
-			threshold=threshold,
 			**kwargs,
 		)
 
@@ -892,6 +1112,19 @@ class Visualizer(DataFrameExplorer):
 
 
 	def clear_box(self, name=None):
+		"""
+		Clear the contents of an editable selection box.
+
+		If the selection to be cleared is not editable
+		(i.e. if it is not based on an :class:`emat.Box`)
+		this method does nothing.
+
+		Args:
+			name (str, optional):
+				The name of the box to clear. If not
+				specified, the currently active selection
+				is cleared.
+		"""
 		if name is None:
 			name = self.active_selection_name()
 		if self.selection_deftype(name) == 'box':
@@ -902,6 +1135,25 @@ class Visualizer(DataFrameExplorer):
 				self._active_selection_changed()
 
 	def new_box(self, name, **kwargs):
+		"""
+		Create a new Box and add it to this Visualizer.
+
+		Args:
+			name (str):
+				The name of the selection box to add.
+				If this name already exists in this
+				Visualizer, it will be overwritten.
+			activate (bool, default True):
+				Immediately make this new box the active
+				selection in this Visualizer.
+			**kwargs:
+				All other keyword arguments are
+				forwarded to the :class:`emat.Box`
+				constructor.
+
+		Returns:
+			emat.Box: The newly created box.
+		"""
 		from ...scope.box import Box
 		scope = kwargs.pop('scope', self.scope)
 		activate = kwargs.pop('activate', True)
@@ -909,6 +1161,20 @@ class Visualizer(DataFrameExplorer):
 			Box(name, scope=scope, **kwargs),
 			name=name,
 			color=colors.DEFAULT_HIGHLIGHT_COLOR,
+			activate=activate,
+		)
+		return self[name]
+
+	def add_box(self, box, activate=True):
+		"""
+		Add an existing Box to this Visualizer.
+
+		Args:
+			box (emat.Box): The box to add.
+		"""
+		self.new_selection(
+			box,
+			name=box.name,
 			activate=activate,
 		)
 
