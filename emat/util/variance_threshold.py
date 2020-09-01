@@ -70,6 +70,7 @@ class VarianceThreshold(_VarianceThreshold):
 					self.invariant_values,
 					X.iloc[0].loc[~mask],
 					check_names=False,
+					check_series_type=False, # Allow when checking Series vs ExperimentalDesignSeries
 				)
 			except AssertionError:
 				raise ValueError(

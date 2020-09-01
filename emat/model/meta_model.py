@@ -18,8 +18,8 @@ _logger = get_module_logger(__name__)
 
 def create_metamodel(
         scope,
-        experiments: pandas.DataFrame = None,
-        metamodel_id: int = None,
+        experiments=None,
+        metamodel_id=None,
         db=None,
         include_measures=None,
         exclude_measures=None,
