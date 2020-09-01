@@ -152,7 +152,7 @@ class Prim(prim.Prim, ScenarioDiscoveryMixin):
 				raise
 		return box.tradeoff_selector(colorscale=colorscale)
 
-	def __init__(self, x, y, threshold, *args, scope=None, explorer=None, **kwargs):
+	def __init__(self, x, y, threshold=0.05, *args, scope=None, explorer=None, **kwargs):
 		super().__init__(x, y, threshold, *args, **kwargs)
 		self._target_name = getattr(y, 'name', None)
 		if explorer is not None:

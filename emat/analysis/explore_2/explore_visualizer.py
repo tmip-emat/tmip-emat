@@ -1178,7 +1178,7 @@ class Visualizer(DataFrameExplorer):
 			activate=activate,
 		)
 
-	def selection_feature_scores(self, name=None):
+	def _compute_selection_feature_scores(self, name=None):
 		if name is None:
 			name = self.active_selection_name()
 		if self.selection_deftype(name) == 'box':
@@ -1216,9 +1216,9 @@ class Visualizer(DataFrameExplorer):
 			)
 
 
-	def selection_feature_score_figure(self):
+	def selection_feature_scores(self):
 		try:
-			scores = self.selection_feature_scores().data.iloc[0]
+			scores = self._compute_selection_feature_scores().data.iloc[0]
 		except:
 			scores = {}
 		y = self.scope.get_parameter_names(False)
@@ -1255,7 +1255,7 @@ class Visualizer(DataFrameExplorer):
 			return
 		fig = self._selection_feature_score_fig
 		try:
-			scores = self.selection_feature_scores().data.iloc[0]
+			scores = self._compute_selection_feature_scores().data.iloc[0]
 		except:
 			scores = {}
 		y = self.scope.get_parameter_names(False)
