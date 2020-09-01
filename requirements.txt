@@ -7,3 +7,4 @@ scipy
 seaborn
 pyyaml
 cloudpickle
+datashader
