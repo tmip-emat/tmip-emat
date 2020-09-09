@@ -169,6 +169,8 @@ def update_histogram_figure(
 		rerange_y=False,
 		box=None,
 		ref_point=None,
+		selected_color=None,
+		unselected_color=None,
 ):
 	"""
 	Update an existing figure used in the visualizer.
@@ -195,7 +197,11 @@ def update_histogram_figure(
 		)
 	existing_lines = fig_existing_lines(fig) if ref_point is None else []
 	col = getattr(data_column, 'name', None)
-	add_boxes_to_figure(box, col, fig, ref_point=ref_point, existing_shapes=existing_lines)
+	fig = add_boxes_to_figure(box, col, fig, ref_point=ref_point, existing_shapes=existing_lines)
+	if unselected_color is not None:
+		fig['data'][1]['marker']['color'] = unselected_color
+	if selected_color is not None:
+		fig['data'][0]['marker']['color'] = selected_color
 	return fig
 
 
@@ -317,7 +323,7 @@ def new_frequencies_figure(
 		x_range[1] + x_width * X_FIGURE_BUFFER,
 	)
 	col = getattr(data_column, 'name', None)
-	add_boxes_to_figure(box, col, fig, ref_point=ref_point)
+	fig = add_boxes_to_figure(box, col, fig, ref_point=ref_point)
 	return fig
 
 def update_frequencies_figure(
@@ -327,6 +333,8 @@ def update_frequencies_figure(
 		rerange_y=False,
 		box=None,
 		ref_point=None,
+		selected_color=None,
+		unselected_color=None,
 ):
 	labels = list(fig['layout']['meta']['x_tick_values'])
 	v = data_column.astype(
@@ -344,7 +352,11 @@ def update_frequencies_figure(
 		)
 	existing_lines = fig_existing_lines(fig) if ref_point is None else []
 	col = getattr(data_column, 'name', None)
-	add_boxes_to_figure(box, col, fig, ref_point=ref_point, existing_shapes=existing_lines)
+	fig = add_boxes_to_figure(box, col, fig, ref_point=ref_point, existing_shapes=existing_lines)
+	if unselected_color is not None:
+		fig['data'][1]['marker']['color'] = unselected_color
+	if selected_color is not None:
+		fig['data'][0]['marker']['color'] = selected_color
 	return fig
 
 
