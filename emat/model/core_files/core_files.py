@@ -119,6 +119,11 @@ class FilesCoreModel(AbstractCoreModel):
 		self.ignore_crash = self.config.get('ignore_crash', False)
 		"""Bool: Allow model runs to continue to `post_process` and `archive` even after an apparent crash in `run`."""
 
+		self.success_indicator = self.config.get('success_indicator', None)
+		"""str: optional, The name of a file that indicates the model has run successfully.  
+		
+		This file is deleted automatically when the model `run` is initiated."""
+
 		self._parsers = []
 
 	@property
@@ -282,6 +287,13 @@ class FilesCoreModel(AbstractCoreModel):
 		_logger.debug(f"run_core_model setup {experiment_id}")
 		self.setup(xl)
 
+		if self.success_indicator is not None:
+			success_indicator = os.path.join(self.resolved_model_path, self.success_indicator)
+			if os.path.exists(success_indicator):
+				os.remove(success_indicator)
+		else:
+			success_indicator = None
+
 		_logger.debug(f"run_core_model run {experiment_id}")
 		try:
 			self.run()
@@ -314,6 +326,12 @@ class FilesCoreModel(AbstractCoreModel):
 				_logger.error(f"run_core_model CONTINUE AFTER ERROR {experiment_id}")
 
 		try:
+			if success_indicator and not os.path.exists(success_indicator):
+				# The absence of the `success_indicator` file means that the model
+				# did not actually terminate correctly, so we do not want to
+				# post-process or store these results in the database.
+				raise ValueError(f"success_indicator missing: {success_indicator}")
+
 			_logger.debug(f"run_core_model post_process {experiment_id}")
 			self.post_process(xl, m_names)
 
