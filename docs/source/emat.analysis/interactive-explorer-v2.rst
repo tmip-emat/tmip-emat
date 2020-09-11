@@ -240,7 +240,7 @@ thresholded inputs are automatically excluded from the scoring algorithm.
 
 .. code-block:: python
 
-    viz.selection_feature_score_figure()
+    viz.selection_feature_scores()
 
 .. image:: interactive-gifs/dyn-feature-scoring-.gif
     :alt: dynamic feature scoring
@@ -331,3 +331,4 @@ Analytical Tools
 ~~~~~~~~~~~~~~~~
 
 .. automethod:: Visualizer.prim
+.. automethod:: Visualizer.selection_feature_scores

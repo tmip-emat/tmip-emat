@@ -1,6 +1,7 @@
 
 import pandas
 import numpy
+import asyncio
 import scipy.stats
 import ipywidgets as widget
 from plotly import graph_objects as go
@@ -8,6 +9,38 @@ from ..scope.scope import Scope
 from ..model import AbstractCoreModel
 from ..viz import colors
 from .. import styles
+
+
+
+class Timer:
+	def __init__(self, timeout, callback):
+		self._timeout = timeout
+		self._callback = callback
+		self._task = asyncio.ensure_future(self._job())
+
+	async def _job(self):
+		await asyncio.sleep(self._timeout)
+		self._callback()
+
+	def cancel(self):
+		self._task.cancel()
+
+def debounce(wait):
+	""" Decorator that will postpone a function's
+		execution until after `wait` seconds
+		have elapsed since the last time it was invoked. """
+	def decorator(fn):
+		timer = None
+		def debounced(*args, **kwargs):
+			nonlocal timer
+			def call_it():
+				fn(*args, **kwargs)
+			if timer is not None:
+				timer.cancel()
+			timer = Timer(wait, call_it)
+		return debounced
+	return decorator
+
 
 class AB_Contrast():
 	"""
@@ -183,9 +216,15 @@ def create_violin(
 		x_a, x_b,
 		label=None,
 		points='suspectedoutliers',
+		points_diff=False,
 		a_name=None,
 		b_name=None,
 		showlegend=False,
+		orientation='h',
+		orientation_raw='v',
+		orientation_diff='v',
+		width=300,
+		height=400,
 ):
 	"""
 
@@ -206,119 +245,171 @@ def create_violin(
 	if a_name is None: a_name='A'
 	if b_name is None: b_name='B'
 
-	fig = make_subplots(rows=2, cols=1, vertical_spacing=0.03, row_heights=[0.65, 0.35])
+	if orientation == 'h':
+		fig = make_subplots(rows=2, cols=1, vertical_spacing=0.03, row_heights=[0.65, 0.35])
+	elif orientation == 'v':
+		fig = make_subplots(rows=1, cols=2, horizontal_spacing=0.03, column_widths=[0.65, 0.35])
+	else:
+		raise ValueError("orientation must be 'h' or ''")
+
+	if orientation_raw is None:
+		orientation_raw=orientation
+
+	if orientation_diff is None:
+		orientation_diff=orientation
+
+
+	kwargs_common = dict(
+		legendgroup='Raw',
+		scalegroup='Raw',
+		orientation=orientation_raw,
+		box_visible=True,
+		meanline_visible=True,
+		hoveron='points',
+	)
+	if orientation_raw == 'h':
+		kwargs_common['y0'] = 0
+		kwargs_common['xaxis'] = 'x1'
+	elif orientation_raw == 'v':
+		kwargs_common['x0'] = 0
+		kwargs_common['yaxis'] = 'y1'
+
+	kwargs_a = dict(
+		name=a_name,
+		side='positive',
+		line_color=colors.DEFAULT_BASE_COLOR,
+		pointpos=0.5,
+		**kwargs_common,
+	)
+
+	kwargs_b = dict(
+		name=b_name,
+		side='negative',
+		line_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+		pointpos=-0.5,
+		**kwargs_common,
+	)
+
+	if orientation_raw == 'h':
+		kwargs_a['x'] = x_a
+		kwargs_b['x'] = x_b
+	elif orientation_raw == 'v':
+		kwargs_a['y'] = x_a
+		kwargs_b['y'] = x_b
+
 
 	fig.add_trace(
-		go.Violin(
-			y0=0,
-			x=x_a,
-			legendgroup='Raw',
-			scalegroup='Raw',
-			name=a_name,
-			side='positive',
-			line_color=colors.DEFAULT_BASE_COLOR,
-			box_visible=True,
-			meanline_visible=True,
-			pointpos=0.5,
-			hoveron='points',
-			xaxis='x1',
-			orientation='h',
-		),
+		go.Violin(**kwargs_a),
 		row=1, col=1,
 	)
 	fig.add_trace(
-		go.Violin(
-			y0=0,
-			x=x_b,
-			legendgroup='Raw',
-			scalegroup='Raw',
-			name=b_name,
-			side='negative',
-			line_color=colors.DEFAULT_HIGHLIGHT_COLOR,
-			box_visible=True,
-			meanline_visible=True,
-			pointpos=-0.5,
-			hoveron='points',
-			xaxis='x1',
-			orientation='h',
-		),
+		go.Violin(**kwargs_b),
 		row=1, col=1,
 	)
 
-	fig.add_trace(
-		go.Violin(
-			# x=numpy.ones_like(x_b),
-			y0=1,
-			x=x_a-x_b,
-			legendgroup='Diff',
-			scalegroup='Diff',
-			name='Difference',
-			line_color='red',
-			box_visible=True,
-			meanline_visible=True,
-			pointpos=0.5,
-			hoveron='points',
-			xaxis='x2',
-			orientation='h',
-			side='positive',
-		),
-		row=2, col=1,
+	kwargs_diff = dict(
+		legendgroup='Diff',
+		scalegroup='Diff',
+		name='Difference',
+		line_color='red',
+		box_visible=True,
+		meanline_visible=True,
+		pointpos=0.5,
+		hoveron='points',
+		side='positive',
+		orientation=orientation_diff,
 	)
+	if orientation_diff == 'h':
+		kwargs_diff['x'] = x_a - x_b
+		kwargs_diff['y0'] = 1
+		kwargs_diff['xaxis'] = 'x2'
+	elif orientation_diff == 'v':
+		kwargs_diff['y'] = x_a - x_b
+		kwargs_diff['x0'] = 1
+		kwargs_diff['yaxis'] = 'y2'
 
+	if orientation == 'h':
+		fig.add_trace(
+			go.Violin(**kwargs_diff),
+			row=2, col=1,
+		)
+	elif orientation == 'v':
+		fig.add_trace(
+			go.Violin(**kwargs_diff),
+			row=1, col=2,
+		)
 
 
 	fig.update_traces(meanline_visible=True,
-					  points=points,  # 'all', 'outliers', 'none'
 					  jitter=0.5,  # add some jitter on points for better visibility
 					  scalemode='count')  # scale violin plot area with total count
+	fig.data[0].points = points
+	fig.data[1].points = points
+	fig.data[2].points = points_diff
+
 	fig.update_layout(
 		violingap=0,
 		violinmode='overlay',
-		xaxis1=dict(
-			title=label,
-			side="top",
-		),
-		xaxis2=dict(
-			title="Differences",
-			side="bottom",
-		),
-		yaxis1=dict(
-			visible=False,
-		),
-		yaxis2=dict(
-			visible=False,
-		),
 		showlegend=showlegend,
 		margin=styles.figure_margins,
-		width=400,
-		height=300,
+		width=width,
+		height=height,
+		title={
+			'text': label,
+			# 'y': 0.9,
+			'x': 0.5,
+			'xanchor': 'center',
+			'yanchor': 'top',
+		}
 	)
+
+	if orientation == 'h':
+		fig.update_layout(
+			xaxis1=dict(
+				# title=label,
+				# side="top",
+				visible=(orientation_raw == 'h'),
+			),
+			xaxis2=dict(
+				title="Differences",
+				side="bottom",
+			),
+			yaxis1=dict(
+				visible=(orientation_raw == 'v'),
+			),
+			yaxis2=dict(
+				visible=False,
+			),
+		)
+	elif orientation == 'v':
+		fig.update_layout(
+			yaxis1=dict(
+			# 	title=label,
+			# 	side="left",
+				visible=(orientation_raw == 'v'),
+			),
+			yaxis2=dict(
+				title="Differences",
+				side="right",
+			),
+			xaxis1=dict(
+				visible=(orientation_raw == 'h'),
+			),
+			xaxis2=dict(
+				visible=False,
+			),
+		)
 
 	return fig
 
 
-
-	# def VBox(*pargs, **kwargs):
-	# 	"""Displays multiple widgets vertically using the flexible box model."""
-	# 	box = Box(*pargs, **kwargs)
-	# 	box.layout.display = 'flex'
-	# 	box.layout.flex_flow = 'column'
-	# 	box.layout.align_items = 'stretch'
-	# 	return box
-	#
-	# def HBox(*pargs, **kwargs):
-	# 	"""Displays multiple widgets horizontally using the flexible box model."""
-	# 	box = Box(*pargs, **kwargs)
-	# 	box.layout.display = 'flex'
-	# 	box.layout.align_items = 'stretch'
-	# 	return box
 
 
 
 
 class _ChooserRow(widget.Box):
 
-	def __init__(self, tag, a_widget, b_widget, orientation='horizontal'):
+	def __init__(self, tag, a_widget, b_widget, orientation='h'):
 		self.tag = tag
 		self.description = widget.Label(tag, layout=widget.Layout(
 			width="135px"
@@ -334,7 +425,7 @@ class _ChooserRow(widget.Box):
 			button_style='',  # 'success', 'info', 'warning', 'danger' or ''
 			tooltip='Activate Parameter',
 			icon='toggle-on',  # (FontAwesome names without the `fa-` prefix)
-			layout = widget.Layout(width="30px"),
+			layout = widget.Layout(width="40px"),
 		)
 		self.link_status_box = widget.ToggleButton(
 			value=True,
@@ -343,7 +434,7 @@ class _ChooserRow(widget.Box):
 			button_style='',  # 'success', 'info', 'warning', 'danger' or ''
 			tooltip='Link Values',
 			icon='link',  # (FontAwesome names without the `fa-` prefix)
-			layout = widget.Layout(width="30px"),
+			layout = widget.Layout(width="40px"),
 		)
 		self.toggle_link()
 		super().__init__(children=(
@@ -355,7 +446,7 @@ class _ChooserRow(widget.Box):
 		))
 		self.layout.display = 'flex'
 		self.layout.align_items = 'stretch'
-		if orientation == 'vertical':
+		if orientation == 'v':
 			self.layout.flex_flow = 'column'
 		self.active_status_box.observe(self.toggle_active)
 		self.link_status_box.observe(self.toggle_link)
@@ -396,11 +487,16 @@ class _ChooserRow(widget.Box):
 				self.link_status_box.layout.visibility = 'hidden'
 				self.active_status_box.icon = 'toggle-off'
 
+_ox = {
+	'h': 'horizontal',
+	'v': 'vertical',
+}
+
 class AB_Chooser(widget.Box):
 
-	def __init__(self, scope, orientation='horizontal'):
+	def __init__(self, scope, orientation='h'):
 
-		assert orientation in ('vertical', 'horizontal')
+		assert orientation in ('v', 'h')
 		self.orientation = orientation
 		a_slides = []
 		b_slides = []
@@ -414,13 +510,13 @@ class AB_Chooser(widget.Box):
 					value=param.default,
 					options=param.values,
 					continuous_update=False,
-					orientation=orientation,
+					orientation=_ox.get(orientation),
 				)
 				b = widget.SelectionSlider(
 					value=param.default,
 					options=param.values,
 					continuous_update=False,
-					orientation=orientation,
+					orientation=_ox.get(orientation),
 				)
 			elif param.dtype == 'int':
 				a = widget.IntSlider(
@@ -428,14 +524,14 @@ class AB_Chooser(widget.Box):
 					min=param.min,
 					max=param.max,
 					continuous_update=False,
-					orientation=orientation,
+					orientation=_ox.get(orientation),
 				)
 				b = widget.IntSlider(
 					value=param.default,
 					min=param.min,
 					max=param.max,
 					continuous_update=False,
-					orientation=orientation,
+					orientation=_ox.get(orientation),
 				)
 
 			else:
@@ -445,7 +541,7 @@ class AB_Chooser(widget.Box):
 					max=param.max,
 					step=(param.max - param.min)/20,
 					continuous_update=False,
-					orientation=orientation,
+					orientation=_ox.get(orientation),
 				)
 				b = widget.FloatSlider(
 					value=param.default,
@@ -453,7 +549,7 @@ class AB_Chooser(widget.Box):
 					max=param.max,
 					step=(param.max - param.min) / 20,
 					continuous_update=False,
-					orientation=orientation,
+					orientation=_ox.get(orientation),
 				)
 			a_slides.append(a)
 			b_slides.append(b)
@@ -469,7 +565,7 @@ class AB_Chooser(widget.Box):
 		super().__init__(children=rows)
 		self.layout.display = 'flex'
 		self.layout.align_items = 'stretch'
-		if orientation == 'horizontal': # intentionally backwards
+		if orientation == 'h': # intentionally backwards
 			self.layout.flex_flow = 'column'
 
 	def get_ab(self):
@@ -480,39 +576,57 @@ class AB_Chooser(widget.Box):
 				b[row.tag] = row.b_widget.value
 		return a, b
 
+def _AB_Viewer_compute(self, payload=None):
+	a, b = self.chooser.get_ab()
+	ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
+	if self._ab == ab: return
+	self._ab = ab
+	background = getattr(self.contrast, 'background', 500)
+	self.contrast = AB_Contrast(self.model, a, b, background=background)
+	for measure in self._figures.keys():
+		self.get_figure(measure, **self.figure_kwargs)
 
 
 class AB_Viewer():
 
-	def __init__(self, model):
+	def __init__(
+			self,
+			model,
+			figure_kwargs=None,
+	):
 		self.model = model
 		self.chooser = AB_Chooser(model.scope)
-		self.contrast = None
+		a, b = self.chooser.get_ab()
+		ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
+		self._ab = ab
+		self.contrast = AB_Contrast(self.model, a, b, background=500)
 		self._figures = {}
 		self._ab = None
+		self.figure_kwargs = figure_kwargs or {}
+		self.figure_kwargs.setdefault('orientation', 'h')
+		self.figure_kwargs.setdefault('orientation_raw', 'v')
+		self.figure_kwargs.setdefault('orientation_diff', 'h')
 		for row in self.chooser.children:
 			row.a_widget.observe(self.compute)
 			row.b_widget.observe(self.compute)
 
 	def compute(self, payload=None):
-		a, b = self.chooser.get_ab()
-		ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
-		if self._ab == ab: return
-		self._ab = ab
-		self.contrast = AB_Contrast(self.model, a, b, background=500)
-		for measure in self._figures.keys():
-			self.get_figure(measure)
+		return _AB_Viewer_compute(self, payload)
 
 	def get_figure(self, measure, **kwargs):
 		if self.contrast is None:
 			self.compute()
+		kwargs.update(self.figure_kwargs)
 		fig = self.contrast.get_figure(measure, **kwargs)
 		if measure not in self._figures:
 			self._figures[measure] = go.FigureWidget(fig)
 		else:
 			with self._figures[measure].batch_update():
 				for i in range(len(fig.data)):
-					self._figures[measure].data[i].x = fig.data[i]['x']
+					if self._figures[measure].data[i].orientation == 'h':
+						self._figures[measure].data[i].x = fig.data[i]['x']
+					else:
+						self._figures[measure].data[i].y = fig.data[i]['y']
 				self._figures[measure].layout = fig.layout
 		return self._figures[measure]
 

@@ -216,7 +216,7 @@ viz.new_selection(
 # When the selection includes rectangular thresholds set on both inputs and outputs, the thresholded inputs are automatically excluded from the scoring algorithm.
 
 # %%
-viz.selection_feature_score_figure()
+viz.selection_feature_scores()
 
 # %% [markdown]
 # ## Using PRIM with the Interactive Explorer
