@@ -28,7 +28,7 @@ requirements:
     - appdirs
     - matplotlib
     - graphviz
-    - plotly-orca  # Plotly Static Image Export
+    - plotly::python-kaleido  # Plotly Static Image Export
     - ipywidgets
     - joblib
     - dask
