@@ -116,6 +116,8 @@ def display_experiments(
 			fig = scatter_graphs(row, experiment_results, scope=scope, render=render, use_gl=use_gl, mass=mass, contrast=columns)
 			try:
 				fig.update_layout(height=250)
+			except KeyboardInterrupt:
+				raise
 			except:
 				pass
 			if return_figures:

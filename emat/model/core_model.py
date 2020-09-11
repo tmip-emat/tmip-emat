@@ -1142,6 +1142,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             for c in convergence:
                 try:
                     c.rebuild(x.convergence)
+                except KeyboardInterrupt:
+                    raise
                 except:
                     pass
 
@@ -1279,6 +1281,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             for c in convergence:
                 try:
                     c.rebuild(result.convergence)
+                except KeyboardInterrupt:
+                    raise
                 except:
                     pass
 
@@ -1344,6 +1348,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     from ..util.filez import load
                     robust_results = load(cache_file)
                     cache_file = None
+            except KeyboardInterrupt:
+                raise
             except:
                 import warnings, traceback
                 warnings.warn('unable to manage cache')

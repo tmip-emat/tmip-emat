@@ -341,6 +341,9 @@ class FilesCoreModel(AbstractCoreModel):
 
 			# Assign to outcomes_output instead of returning them, for ema_workbench compatibility
 			self.outcomes_output = measures_dictionary
+		except KeyboardInterrupt:
+			_logger.exception(f"KeyboardInterrupt in post_process, load_measures or outcome processing {experiment_id}")
+			raise
 		except:
 			_logger.exception(f"error in post_process, load_measures or outcome processing {experiment_id}")
 			_logger.error(f"proceeding directly to archive attempt {experiment_id}")
