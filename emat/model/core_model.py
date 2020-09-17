@@ -286,6 +286,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             design_name,
             db=None,
             only_pending=False,
+            only_complete=False,
     ):
         """
         Reads results from a design of experiments from the database.
@@ -297,6 +298,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             only_pending (bool, default False): If True, only pending
                 experiments (which have no performance measure results
                 stored in the database) are returned.
+            only_complete (bool, default False): If True, only complete
+                experiments (which have no performance measure
+                results missing in the database) are returned.
 
         Returns:
             pandas.DataFrame:
@@ -312,7 +316,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             raise ValueError('no database to read from')
 
         return self.ensure_dtypes(
-            db.read_experiment_all(self.scope.name, design_name, only_pending=only_pending)
+            db.read_experiment_all(
+                self.scope.name,
+                design_name,
+                only_pending=only_pending,
+                only_complete=only_complete,
+            )
         )
 
     def read_experiment_parameters(
