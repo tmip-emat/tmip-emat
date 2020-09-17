@@ -486,6 +486,89 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         from ..experiment import experimental_design
         return experimental_design.design_experiments(self.scope, *args, **kwargs)
 
+    def async_experiments(
+            self,
+            design:pd.DataFrame=None,
+            db=None,
+            *,
+            design_name=None,
+            evaluator=None,
+            max_n_workers=None,
+    ):
+        """
+        Asynchronously runs a design of combined experiments using this model.
+
+        A combined experiment includes a complete set of input values for
+        all exogenous uncertainties (a Scenario) and all policy levers
+        (a Policy). Unlike the perform_experiments function in the EMA Workbench,
+        this method pairs each Scenario and Policy in sequence, instead
+        of running all possible combinations of Scenario and Policy.
+        This change ensures compatibility with the EMAT database modules, which
+        preserve the complete set of input information (both uncertainties
+        and levers) for each experiment.  To conduct a full cross-factorial set
+        of experiments similar to the default settings for EMA Workbench,
+        use a factorial design, by setting the `jointly` argument for the
+        `design_experiments` to False, or by designing experiments outside
+        of EMAT with your own approach.
+
+        Args:
+            design (pandas.DataFrame, optional): experiment definitions
+                given as a DataFrame, where each exogenous uncertainties and
+                policy levers is given as a column, and each row is an experiment.
+            db (Database, required): The database to use for loading and saving experiments.
+                If none is given, the default database for this model is used.
+                If there is no default db, and none is given here,
+                these experiments will be aborted, as there won't be any way
+                to access the results.
+            design_name (str, optional): The name of a design of experiments to
+                load from the database.  This design is only used if
+                `design` is None.
+            evaluator (emat.workbench.Evaluator, optional): Optionally give an
+                evaluator instance.  If not given, a default DistributedEvaluator
+                will be instantiated.  Passing any other kind of evaluator will
+                cause an error.
+            max_n_workers (int, optional):
+                The maximum number of workers that will be created for a default
+                dask.distributed LocalCluster.  If the number of cores available is
+                smaller than this number, fewer workers will be spawned.  This value
+                is only used if a default LocalCluster has not yet been created.
+
+        Raises:
+            ValueError:
+                If there are no experiments defined.  This includes
+                the situation where `design` is given but no database is
+                available.
+
+        """
+        # catch user gives only a design, not experiment_parameters
+        if isinstance(design, str) and design_name is None:
+            design_name, design = design, None
+
+        if design_name is None and design is None:
+            raise ValueError(f"must give design_name or design")
+
+        if db is None:
+            db = self.db
+
+        if design_name is not None and design is None:
+            if not db:
+                raise ValueError(f'cannot load design "{design_name}", there is no db')
+            design = db.read_experiment_parameters(self.scope.name, design_name)
+
+        if design.empty:
+            raise ValueError(f"no experiments available")
+
+        from .asynchronous import  asynchronous_experiments
+
+        if self.db is None:
+            if db is not None:
+                self.db = db
+            else:
+                raise ValueError("cannot run async_experiments without a `db` defined")
+
+        return asynchronous_experiments(self, design, evaluator=evaluator, max_n_workers=max_n_workers)
+
+
     def run_experiments(
             self,
             design:pd.DataFrame=None,
@@ -580,40 +663,55 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 design_name=design_name,
             )
 
-        with evaluator:
-            experiments, outcomes = perform_experiments(
-                self,
-                scenarios=scenarios,
-                policies=policies,
-                zip_over={'scenarios', 'policies'},
-                evaluator=evaluator,
-                callback=callback,
-            )
-        experiments.index = design.index
+        if getattr(evaluator, 'asynchronous', False):
+            # When the evaluator is in asynchronous mode, the core model runs will be
+            # dispatched here but the function will not block waiting on the result, and
+            # instead depend on the model execution process to write the results into
+            # the database when complete.
+            with evaluator:
+                perform_experiments(
+                    self,
+                    scenarios=scenarios,
+                    policies=policies,
+                    zip_over={'scenarios', 'policies'},
+                    evaluator=evaluator,
+                    callback=callback,
+                )
+            return
 
+        else:
+            with evaluator:
+                experiments, outcomes = perform_experiments(
+                    self,
+                    scenarios=scenarios,
+                    policies=policies,
+                    zip_over={'scenarios', 'policies'},
+                    evaluator=evaluator,
+                    callback=callback,
+                )
+            experiments.index = design.index
 
+            outcomes = pd.DataFrame.from_dict(outcomes)
+            outcomes.index = design.index
 
-        outcomes = pd.DataFrame.from_dict(outcomes)
-        outcomes.index = design.index
+            if db:
+                db.write_experiment_measures(self.scope.name, self.metamodel_id, outcomes)
 
-        if db:
-            db.write_experiment_measures(self.scope.name, self.metamodel_id, outcomes)
+            # Put constants back into experiments
+            experiments_ = experiments.drop(columns=['scenario', 'policy', 'model'])
+            for i in self.scope.get_constants():
+                experiments_[i.name] = i.value
 
-        # Put constants back into experiments
-        experiments_ = experiments.drop(columns=['scenario', 'policy', 'model'])
-        for i in self.scope.get_constants():
-            experiments_[i.name] = i.value
-
-        result = self.ensure_dtypes(pd.concat([
-            experiments_,
-            outcomes
-        ], axis=1, sort=False))
-        from ..experiment.experimental_design import ExperimentalDesign
-        result = ExperimentalDesign(result)
-        result.scope = self.scope
-        result.name = getattr(design, 'name', None)
-        result.sampler_name = getattr(design, 'sampler_name', None)
-        return result
+            result = self.ensure_dtypes(pd.concat([
+                experiments_,
+                outcomes
+            ], axis=1, sort=False))
+            from ..experiment.experimental_design import ExperimentalDesign
+            result = ExperimentalDesign(result)
+            result.scope = self.scope
+            result.name = getattr(design, 'name', None)
+            result.sampler_name = getattr(design, 'sampler_name', None)
+            return result
 
     def run_reference_experiment(
             self,

@@ -115,26 +115,34 @@ class ModelPlugin(WorkerPlugin):
 class DistributedEvaluator(BaseEvaluator):
 	"""Evaluator using dask.distributed
 
-    Parameters
-    ----------
-    msis : collection of models
-    client : distributed.Client (optional)
-             A client can be provided. If one is not provided, a default Client
-             will be created.
-    batch_size : int (optional)
-                 The number of experiment to batch together when pushing tasks to distributed workers.
-                 If not given, the first call to evaluate_experiments will make a reasonable guess that
-                 will allocate batches so that there are about 10 tasks per worker.  This may or may not
-                 be efficient.
+	Parameters
+	----------
+	msis : collection of models
+	client : distributed.Client (optional)
+		A client can be provided. If one is not provided, a default Client
+		will be created.
+	batch_size : int (optional)
+		The number of experiment to batch together when pushing tasks to distributed workers.
+		If not given, the first call to evaluate_experiments will make a reasonable guess that
+		will allocate batches so that there are about 10 tasks per worker.  This may or may not
+		be efficient.
 	max_n_workers : int (default 32)
-	                The maximum number of workers that will be created for a default Client.  If the number
-	                of cores available is smaller than this number, fewer workers will be spawned.
+		The maximum number of workers that will be created for a default Client.  If the number
+		of cores available is smaller than this number, fewer workers will be spawned.
 
 	"""
 
 	_default_client = None
 
-	def __init__(self, msis, *, client=None, batch_size=None, max_n_workers=32):
+	def __init__(
+			self,
+			msis,
+			*,
+			client=None,
+			batch_size=None,
+			max_n_workers=32,
+			asynchronous=False,
+	):
 		super().__init__(msis, )
 
 		# Initialize a default dask.distributed client if one is not given
@@ -145,17 +153,21 @@ class DistributedEvaluator(BaseEvaluator):
 				type(self)._default_client = Client(
 					n_workers=n_workers,
 					threads_per_worker=1,
+					asynchronous=asynchronous,
 				)
 			client = type(self)._default_client
 
 		self.client = client
 		self.batch_size = batch_size
+		self.asynchronous = asynchronous
 
 		# The worker plugin ensures that all models are copied
 		# to workers before model runs are conducted, even if a
 		# worker crashes and needs to be restarted.
 		self.plugin = ModelPlugin(self._msis)
-		self.client.register_worker_plugin(self.plugin)
+
+		if self.client and not asynchronous:
+			self.client.register_worker_plugin(self.plugin)
 
 	def initialize(self):
 		pass
@@ -190,23 +202,83 @@ class DistributedEvaluator(BaseEvaluator):
 		# Experiments are sent to workers in batches, as the task-scheduler overhead is high for quick-running models.
 		batches = grouper(experiments.values(), self.batch_size)
 
-		# Dask no longer supports mapping over Iterators or Queues.
-		# Using a normal for loop and Client.submit
-		outcomes = [self.client.submit(run_experiments_on_worker, b) for b in batches]
+		if self.asynchronous:
 
-		_logger.debug("receiving experiments asynchronously")
+			self.futures = []
 
-		for future, result_batch in as_completed(outcomes, with_results=True):
-			for (experiment_id, outcome) in result_batch:
-				experiment = experiments[experiment_id]
-				_logger.debug(
-					log_message,
-					experiment.scenario.name,
-					experiment.policy.name,
-					experiment.model_name,
-				)
-				callback(experiment, outcome)
+			async def f(_b):
+				future = self.client.submit(run_experiments_on_worker, _b)
+				result_batch = await self.client.gather(future, asynchronous=True)
+				for (experiment_id, outcome) in result_batch:
+					experiment = experiments[experiment_id]
+					_logger.debug(
+						log_message,
+						experiment.scenario.name,
+						experiment.policy.name,
+						experiment.model_name,
+					)
+					callback(experiment, outcome)
 
-		os.chdir(cwd)
+			for b in batches:
+				self.futures.append(f(b))
+			# for f_ in a_queue:
+			# 	self.client.sync(f_)
 
-		_logger.debug("completed evaluate_experiments")
+
+		else:
+			# Dask no longer supports mapping over Iterators or Queues.
+			# Using a normal for loop and Client.submit
+			outcomes = [self.client.submit(run_experiments_on_worker, b) for b in batches]
+			_logger.debug("waiting to receive experiment results")
+
+			for future, result_batch in as_completed(outcomes, with_results=True):
+				for (experiment_id, outcome) in result_batch:
+					experiment = experiments[experiment_id]
+					_logger.debug(
+						log_message,
+						experiment.scenario.name,
+						experiment.policy.name,
+						experiment.model_name,
+					)
+					callback(experiment, outcome)
+
+			os.chdir(cwd)
+
+			_logger.debug("completed evaluate_experiments")
+
+
+async def AsyncDistributedEvaluator(
+		msis,
+		*,
+		client=None,
+		batch_size=None,
+		max_n_workers=None,
+):
+	# Initialize a default dask.distributed client if one is not given
+	if client is None:
+		if DistributedEvaluator._default_client is None:
+			_logger.info("initializing default DistributedEvaluator.client")
+			import multiprocessing
+			if max_n_workers:
+				n_workers = min(multiprocessing.cpu_count(), max_n_workers)
+				_logger.info(f"  max_n_workers={max_n_workers}, actual n_workers={n_workers}")
+			else:
+				n_workers = multiprocessing.cpu_count()
+			_logger.info(f"  n_workers={n_workers}")
+			DistributedEvaluator._default_client = await Client(
+				n_workers=n_workers,
+				threads_per_worker=1,
+				asynchronous=True,
+			)
+		client = DistributedEvaluator._default_client
+
+	self = DistributedEvaluator(
+		msis,
+		client=client,
+		batch_size=batch_size,
+		max_n_workers=max_n_workers,
+		asynchronous=True,
+	)
+
+	await self.client.register_worker_plugin(self.plugin)
+	return self

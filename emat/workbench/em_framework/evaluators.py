@@ -537,13 +537,16 @@ def perform_experiments(models, scenarios=0, policies=0, evaluator=None,
 
     evaluator.evaluate_experiments(scenarios, policies, callback, zip_over=zip_over)
 
-    if callback.i != nr_of_exp:
+    if callback.i == 0 and getattr(evaluator, 'asynchronous', False):
+        _logger.log(log_level,"experiments in asynchronous evaluator")
+        return
+    elif callback.i != nr_of_exp:
         raise EMAError(('some fatal error has occurred while '
                         'running the experiments, not all runs have '
                         'completed. expected {}, got {}').format(nr_of_exp,
                                                                  callback.i))
-
-    _logger.log(log_level,"experiments finished")
+    else:
+        _logger.log(log_level,"experiments finished")
 
     if return_callback:
         return callback

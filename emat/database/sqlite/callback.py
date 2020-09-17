@@ -32,7 +32,7 @@ class SQLiteCallback(AbstractCallback):
     def __init__(self, uncs, levers, outcomes, nr_experiments,
                  reporting_interval=100, reporting_frequency=10,
                  scope_name=None, design_name=None, db=None,
-                 using_metamodel=False,
+                 using_metamodel=False, metamodel_id=12345,
                  ):
         '''
 
@@ -94,6 +94,7 @@ class SQLiteCallback(AbstractCallback):
         self.design_name = design_name
         self.db = db
         self.using_metamodel = using_metamodel
+        self.metamodel_id = metamodel_id
 
     def _store_case(self, experiment):
         scenario = experiment.scenario
@@ -115,7 +116,6 @@ class SQLiteCallback(AbstractCallback):
 
     def _store_outcomes(self, case_id, outcomes, ex_id):
         for outcome in self.outcomes:
-            _logger.debug("storing {}".format(outcome))
 
             try:
                 outcome_res = outcomes[outcome]
@@ -123,9 +123,11 @@ class SQLiteCallback(AbstractCallback):
                 message = "%s not specified as outcome in msi" % outcome
                 _logger.debug(message)
             else:
+                # outcome is found, store it
                 try:
                     self.results[outcome][case_id, ] = outcome_res
                 except KeyError:
+                    # outcome is non-scalar
                     shape = np.asarray(outcome_res).shape
 
                     if len(shape) > 2:
@@ -139,8 +141,10 @@ class SQLiteCallback(AbstractCallback):
                     self.results[outcome][:] = np.NAN
                     self.results[outcome][case_id, ] = outcome_res
 
+                _logger.debug("stored {} = {}".format(outcome, outcome_res))
+
                 self.db.write_ex_m_1(self.scope_name,
-                                     SOURCE_IS_CORE_MODEL if not self.using_metamodel else METAMODEL_ID,
+                                     SOURCE_IS_CORE_MODEL if not self.using_metamodel else self.metamodel_id,
                                      ex_id,
                                      outcome,
                                      outcome_res,)
