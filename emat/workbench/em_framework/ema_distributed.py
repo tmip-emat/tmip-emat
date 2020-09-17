@@ -13,7 +13,7 @@ from ..util.ema_exceptions import EMAError, CaseError
 from ..util import get_module_logger
 _logger = get_module_logger(__name__)
 
-from dask.distributed import Client, as_completed, get_worker
+from dask.distributed import Client, as_completed, get_worker, WorkerPlugin, Worker
 
 def store_model_on_worker(name, model):
 	worker = get_worker()
@@ -102,6 +102,14 @@ def grouper(iterable, n, fillvalue=None):
 	args = [iter(iterable)] * n
 	return zip_longest(*args, fillvalue=fillvalue)
 
+class ModelPlugin(WorkerPlugin):
+	def __init__(self, models):
+		self._msis = models
+	def setup(self, worker: Worker):
+		if not hasattr(worker, '_ema_models'):
+			worker._ema_models = {}
+		for msi in self._msis:
+			worker._ema_models[msi.name] = msi
 
 
 class DistributedEvaluator(BaseEvaluator):
@@ -143,8 +151,14 @@ class DistributedEvaluator(BaseEvaluator):
 		self.client = client
 		self.batch_size = batch_size
 
+		# The worker plugin ensures that all models are copied
+		# to workers before model runs are conducted, even if a
+		# worker crashes and needs to be restarted.
+		self.plugin = ModelPlugin(self._msis)
+		self.client.register_worker_plugin(self.plugin)
+
 	def initialize(self):
-		self.broadcast_models_to_workers()
+		pass
 
 	def finalize(self):
 		pass
