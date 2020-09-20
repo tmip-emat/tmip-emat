@@ -302,7 +302,7 @@ class Database(abc.ABC):
             source=None,
             only_pending=False,
             only_complete=False,
-            ensure_dtypes=False,
+            ensure_dtypes=True,
     ):
         """
         Read experiment definitions and results
@@ -328,7 +328,7 @@ class Database(abc.ABC):
             only_complete (bool, default False): If True, only complete
                 experiments (which have no missing performance measure
                 results stored in the database) are returned.
-            ensure_dtypes (bool, default False): If True, the scope
+            ensure_dtypes (bool, default True): If True, the scope
                 associated with these experiments is also read out
                 of the database, and that scope file is used to
                 format experimental data consistently (i.e., as
