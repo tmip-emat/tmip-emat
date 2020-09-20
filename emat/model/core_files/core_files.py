@@ -124,6 +124,11 @@ class FilesCoreModel(AbstractCoreModel):
 		
 		This file is deleted automatically when the model `run` is initiated."""
 
+		self.killed_indicator = self.config.get('killed_indicator', None)
+		"""str: optional, The name of a file that indicates the model was killed due to an unrecoverable error.  
+
+		This file is deleted automatically when the model `run` is initiated."""
+
 		self._parsers = []
 
 	@property
@@ -294,6 +299,13 @@ class FilesCoreModel(AbstractCoreModel):
 		else:
 			success_indicator = None
 
+		if self.killed_indicator is not None:
+			killed_indicator = os.path.join(self.resolved_model_path, self.killed_indicator)
+			if os.path.exists(killed_indicator):
+				os.remove(killed_indicator)
+		else:
+			killed_indicator = None
+
 		_logger.debug(f"run_core_model run {experiment_id}")
 		try:
 			self.run()
@@ -331,6 +343,9 @@ class FilesCoreModel(AbstractCoreModel):
 				# did not actually terminate correctly, so we do not want to
 				# post-process or store these results in the database.
 				raise ValueError(f"success_indicator missing: {success_indicator}")
+
+			if killed_indicator and os.path.exists(killed_indicator):
+				raise ValueError(f"killed_indicator present: {killed_indicator}")
 
 			_logger.debug(f"run_core_model post_process {experiment_id}")
 			self.post_process(xl, m_names)
