@@ -9,6 +9,7 @@ from typing import List
 import sqlite3
 import atexit
 import pandas as pd
+import warnings
 from typing import AbstractSet
 
 from . import sql_queries as sq
@@ -340,19 +341,34 @@ class SQLiteDB(Database):
             ex_ids = []
 
             for index, row in xl_df.iterrows():
-                # create new experiment and get id
-                fcur.execute(sq.INSERT_EX, [design_name, scope_name])
-                ex_id = fcur.lastrowid
-                ex_ids.append(ex_id)
 
-                # set each from experiment defitinion
-                for xl in scp_xl:
+                with warnings.catch_warnings():
+                    from ...exceptions import MissingIdWarning
+                    warnings.simplefilter("ignore", category=MissingIdWarning)
+                    existing_ex_id = self.read_experiment_id(scope_name, design_name=None, **row)
+                if existing_ex_id is None:
+                    # create new experiment and get id
+                    fcur.execute(sq.INSERT_EX, [design_name, scope_name])
+                    ex_id = fcur.lastrowid
+                    ex_ids.append(ex_id)
+
+                    # set each from experiment defitinion
+                    for xl in scp_xl:
+                        try:
+                            value = row[xl[0]]
+                            fcur.execute(sq.INSERT_EX_XL, [ex_id, value, xl[0]])
+                        except TypeError:
+                            _logger.error(f'Experiment definition missing {xl[0]} variable')
+                            raise
+                else:
+                    # This experiment exists, add it to the duplicates
                     try:
-                        value = row[xl[0]]
-                        fcur.execute(sq.INSERT_EX_XL, [ex_id, value, xl[0]])
-                    except TypeError:
-                        _logger.error(f'Experiment definition missing {xl[0]} variable')
+                        fcur.execute(sq.INSERT_EX_DUPLICATE, [design_name, scope_name, existing_ex_id])
+                    except:
+                        _logger.exception("FAILED TO CREATE DUPLICATE EXPERIMENT")
                         raise
+                    else:
+                        ex_ids.append(existing_ex_id)
 
             return ex_ids
 
@@ -473,7 +489,6 @@ class SQLiteDB(Database):
             fcur.close()
 
         if missing_ids:
-            import warnings
             from ...exceptions import MissingIdWarning
             warnings.warn(f'missing {missing_ids} ids', category=MissingIdWarning)
         return ex_ids
@@ -545,7 +560,6 @@ class SQLiteDB(Database):
         if design is not None:
             if design_name is None:
                 design_name = design
-                import warnings
                 warnings.warn("the `design` argument is deprecated for "
                               "read_experiment_parameters, use `design_name`", DeprecationWarning)
             elif design != design_name:
@@ -667,7 +681,7 @@ class SQLiteDB(Database):
             source=None,
             only_pending=False,
             only_complete=False,
-            ensure_dtypes=False,
+            ensure_dtypes=True,
     ) ->pd.DataFrame:
         scope_name = self._validate_scope(scope_name, 'design_name')
         cur = self.conn.cursor()
@@ -749,7 +763,6 @@ class SQLiteDB(Database):
         if design is not None:
             if design_name is None:
                 design_name = design
-                import warnings
                 warnings.warn("the `design` argument is deprecated for "
                               "read_experiment_parameters, use `design_name`", DeprecationWarning)
             elif design != design_name:
@@ -774,13 +787,13 @@ class SQLiteDB(Database):
                 sql = sq.GET_EX_M
                 arg = [scope_name, design_name]
                 if source is not None:
-                    sql += ' AND ema_experiment_measure.measure_source =?3'
+                    sql = sql.replace("/*source*/", ' AND ema_experiment_measure.measure_source =?3')
                     arg.append(source)
             else:
                 sql = sq.GET_EX_M_BY_ID
                 arg = [scope_name, design_name, experiment_id]
                 if source is not None:
-                    sql += ' AND ema_experiment_measure.measure_source =?4'
+                    sql = sql.replace("/*source*/", ' AND ema_experiment_measure.measure_source =?4')
                     arg.append(source)
         cur = self.conn.cursor()
         ex_m = pd.DataFrame(cur.execute(sql, arg).fetchall())
@@ -801,7 +814,6 @@ class SQLiteDB(Database):
             if design is not None:
                 if design_name is None:
                     design_name = design
-                    import warnings
                     warnings.warn("the `design` argument is deprecated for "
                                   "read_experiment_parameters, use `design_name`", DeprecationWarning)
                 elif design != design_name:
@@ -992,7 +1004,6 @@ class SQLiteDB(Database):
                     sql_cl = sq.CLEAR_BOX_THRESHOLD_M
                     sql_in = sq.SET_BOX_THRESHOLD_M
                 else:
-                    import warnings
                     warnings.warn(f"{t_name} not identifiable as parameter or measure")
                     continue
 
@@ -1018,7 +1029,6 @@ class SQLiteDB(Database):
                     sql_cl = sq.CLEAR_BOX_THRESHOLD_M
                     sql_in = sq.SET_BOX_THRESHOLD_M
                 else:
-                    import warnings
                     warnings.warn(f"{t_name} not identifiable as parameter or measure")
                     continue
 

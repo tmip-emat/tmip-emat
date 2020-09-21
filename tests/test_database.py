@@ -289,7 +289,24 @@ def test_multiple_connections():
                 ensure_dtypes=True)[r2.columns],
         )
 
-
+def test_duplicate_experiments():
+    import emat.examples
+    scope, db, model = emat.examples.road_test()
+    design = model.design_experiments(n_samples=5)
+    results = model.run_experiments(design)
+    db.read_design_names(scope.name)
+    design2 = model.design_experiments(n_samples=5)
+    assert design2.design_name == 'lhs_2'
+    assert design.design_name == 'lhs'
+    from pandas.testing import assert_frame_equal
+    assert_frame_equal(design, design2)
+    assert db.read_experiment_all(scope.name, 'lhs').design_name == 'lhs'
+    assert db.read_experiment_all(scope.name, 'lhs_2').design_name == 'lhs_2'
+    assert_frame_equal(
+        db.read_experiment_all(scope.name, 'lhs'),
+        db.read_experiment_all(scope.name, 'lhs_2')
+    )
+    assert len(db.read_experiment_all(None, None)) == 5
 
 emat.package_file('model', 'tests', 'road_test.yaml')
 

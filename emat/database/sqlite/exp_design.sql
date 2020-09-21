@@ -1,9 +1,4 @@
 -- Tables to hold designed experiments and the results
-DROP TABLE IF EXISTS ema_experiment;
-DROP TABLE IF EXISTS ema_experiment_parameter;
-DROP TABLE IF EXISTS ema_experiment_measure;
-DROP TABLE IF EXISTS ema_parameter;
-DROP TABLE IF EXISTS ema_measure;
 
 CREATE TABLE ema_parameter (
     rowid      INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,6 +20,16 @@ CREATE TABLE ema_experiment (
     
     FOREIGN KEY (scope_id) REFERENCES ema_scope(rowid)
     ON DELETE CASCADE
+);
+
+CREATE TABLE ema_duplicate_experiment (
+    rowid     INTEGER PRIMARY KEY AUTOINCREMENT,
+    scope_id  INT NOT NULL,
+    design    TEXT,
+    orig_id   INTEGER,
+
+    FOREIGN KEY (scope_id) REFERENCES ema_scope(rowid) ON DELETE CASCADE,
+    FOREIGN KEY (orig_id) REFERENCES ema_experiment(rowid) ON DELETE CASCADE
 );
 
 CREATE TABLE ema_experiment_parameter (
