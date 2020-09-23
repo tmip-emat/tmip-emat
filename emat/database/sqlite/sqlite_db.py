@@ -768,9 +768,11 @@ class SQLiteDB(Database):
                     for ex_id, value in m_df[m[0]].iteritems():
                         # index is experiment id
                         try:
-                            cur.execute(
+                            if not pd.isna(m[0]):
+                                cur.execute(
                                     sq.INSERT_EX_M,
-                                    [ex_id, value, source, m[0]])
+                                    [ex_id, value, source, m[0]],
+                                )
                         except:
                             _logger.error(f"Error saving {value} to m {m[0]} for ex {ex_id}")
                             raise
@@ -811,9 +813,11 @@ class SQLiteDB(Database):
             for m in scp_m:
                 if m[0] == m_name:
                     try:
-                        cur.execute(
-                            sq.INSERT_EX_M,
-                            [ex_id, m_value, source, m[0]])
+                        if not pd.isna(m[0]):
+                            cur.execute(
+                                sq.INSERT_EX_M,
+                                [ex_id, m_value, source, m[0]]
+                            )
                     except:
                         _logger.error(f"Error saving {m_value} to m {m[0]} for ex {ex_id}")
                         raise
