@@ -244,23 +244,22 @@ GET_EX_XL_ALL_PENDING = (
 
 
 GET_PENDING_EXPERIMENT_PARAMETERS = '''
-    SELECT eep.experiment_id, ema_parameter.name, parameter_value
+    SELECT eep.experiment_id, ep.name, eep.parameter_value
         FROM ema_experiment_parameter eep
-        JOIN ema_parameter ON eep.parameter_id = ema_parameter.rowid
-        JOIN ema_experiment ON eep.experiment_id = ema_experiment.rowid
-        JOIN ema_scope s ON ema_experiment.scope_id = s.rowid
-        JOIN ema_design_experiment ede ON ema_experiment.rowid = ede.experiment_id
-        JOIN ema_design ed ON (s.rowid = ed.scope_id AND ed.rowid = ede.design_id)
-        WHERE s.name =?1 AND ed.design = ?2
+        JOIN ema_parameter ep ON eep.parameter_id = ep.rowid
+        JOIN ema_experiment ee ON eep.experiment_id = ee.rowid
+        JOIN ema_scope es ON ee.scope_id = es.rowid
+        JOIN ema_design_experiment ede ON ee.rowid = ede.experiment_id
+        JOIN ema_design ed ON (es.rowid = ed.scope_id AND ed.rowid = ede.design_id)
+        WHERE es.name =?1 AND ed.design = ?2
         AND eep.experiment_id NOT IN (
-            SELECT ema_experiment_measure.experiment_id
-            FROM ema_experiment_measure 
-            JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
-            JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.rowid
-            JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-            JOIN ema_design_experiment ede ON ema_experiment.rowid = ede.experiment_id
-            JOIN ema_design ed ON (s.rowid = ed.scope_id AND ed.rowid = ede.design_id)
-            WHERE s.name =?1 AND ed.design = ?2
+            SELECT eem2.experiment_id
+            FROM ema_experiment_measure eem2
+            JOIN ema_experiment ee2 ON eem2.experiment_id = ee2.rowid
+            JOIN ema_scope es2 on ee2.scope_id = es2.rowid
+            JOIN ema_design_experiment ede2 ON ee2.rowid = ede2.experiment_id
+            JOIN ema_design ed2 ON (es2.rowid = ed2.scope_id AND ed2.rowid = ede2.design_id)
+            WHERE es2.name =?1 AND ed2.design = ?2 AND eem2.measure_value IS NOT NULL
         )
 '''
 
