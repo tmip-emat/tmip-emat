@@ -481,6 +481,28 @@ class Database(abc.ABC):
         """
 
     @abc.abstractmethod
+    def read_experiment_id(self, scope_name, *args, **kwargs):
+        """
+        Read the experiment id previously defined in the database
+
+        Args:
+            scope_name (str): scope name, used to identify experiments,
+                performance measures, and results associated with this run
+            parameters (dict): keys are experiment parameters, values are the
+                experimental values to look up.  Subsequent positional or keyword
+                arguments are used to update parameters.
+
+        Returns:
+            int: the experiment id of the identified experiment
+
+        Raises:
+            ValueError: If scope name does not exist
+            ValueError: If multiple experiments match an experiment definition.
+                This can happen, for example, if the definition is incomplete.
+        """
+
+
+    @abc.abstractmethod
     def read_experiment_ids(self, scope_name, xl_df):
         """
         Read the experiment ids previously defined in the database.
