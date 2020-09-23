@@ -89,6 +89,12 @@ class TestRoadTest(unittest.TestCase):
 		assert lhs_results.head()['net_benefits'].values == approx(
 			[ -22.29090499,  -16.84301382, -113.98841188,   11.53956058,        78.03661612])
 
+		assert lhs_results.tail()['present_cost_expansion'].values == approx(
+			[2720.51645703, 4000.91232689, 6887.83193063, 3739.47839941, 1582.52899124])
+
+		assert lhs_results.tail()['net_benefits'].values == approx(
+			[841.46278175, -146.71279267, -112.5681036, 25.48055303, 127.31154155])
+
 		with SequentialEvaluator(m) as eval_seq:
 			lhs_large_results = m.run_experiments(design_name='lhs_large', evaluator=eval_seq)
 		lhs_large_results.head()

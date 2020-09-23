@@ -287,6 +287,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db=None,
             only_pending=False,
             only_complete=False,
+            only_with_measures=False,
     ):
         """
         Reads results from a design of experiments from the database.
@@ -301,6 +302,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             only_complete (bool, default False): If True, only complete
                 experiments (which have no performance measure
                 results missing in the database) are returned.
+            only_with_measures (bool, default False): If True, only
+                experiments with at least one stored performance measure
+                are returned.
 
         Returns:
             pandas.DataFrame:
@@ -321,6 +325,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 design_name,
                 only_pending=only_pending,
                 only_complete=only_complete,
+                only_with_measures=only_with_measures,
             )
         )
 

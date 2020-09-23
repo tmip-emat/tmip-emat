@@ -308,6 +308,24 @@ def test_duplicate_experiments():
     )
     assert len(db.read_experiment_all(None, None)) == 5
 
+def test_deduplicate_indexes():
+    testing_df = pd.DataFrame(
+        data=np.random.random([10, 5]),
+        columns=['Aa', 'Bb', 'Cc', 'Dd', 'Ee'],
+        index=np.arange(50, 60),
+    )
+    testing_df['Ee'] = (testing_df['Ee'] * 100).astype('int64')
+    testing_df['Ff'] = testing_df['Ee'].astype(str)
+    testing_df['Ff'] = 'str' + testing_df['Ff']
+    testing_df.iloc[7:9, :] = testing_df.iloc[3:5, :].set_index(testing_df.index[7:9])
+    x = testing_df.index.to_numpy()
+    x[-5:] = -1
+    testing_df.index = x
+    from emat.util.deduplicate import reindex_duplicates
+    r_df = reindex_duplicates(testing_df)
+    assert all(r_df.index == [50, 51, 52, 53, 54, -1, -1, 53, 54, -1])
+    np.testing.assert_array_equal(r_df.to_numpy(), testing_df.to_numpy())
+
 emat.package_file('model', 'tests', 'road_test.yaml')
 
 if __name__ == '__main__':

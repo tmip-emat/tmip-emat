@@ -2,7 +2,7 @@
 DROP TABLE IF EXISTS meta_model;
 DROP TABLE IF EXISTS meta_model_param;
 
-CREATE TABLE meta_model ( 
+CREATE TABLE IF NOT EXISTS meta_model (
    scope_id     INT NOT NULL,
    measure_id       INT NOT NULL,
    lr_r2       NUMERIC,
@@ -14,7 +14,7 @@ CREATE TABLE meta_model (
    PRIMARY KEY (scope_id, measure_id)
 );
 
-CREATE TABLE meta_model_param ( 
+CREATE TABLE IF NOT EXISTS meta_model_param (
    scope_id     INT NOT NULL,
    measure_id       INT NOT NULL,
    parameter_id      INT NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE meta_model_param (
    PRIMARY KEY (scope_id, measure_id, parameter_id)
 );
 
-CREATE TABLE meta_model_pickles (
+CREATE TABLE IF NOT EXISTS meta_model_pickles (
    scope_id     INT NOT NULL,
    metamodel_id INT NOT NULL,
    name         TEXT,

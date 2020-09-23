@@ -298,10 +298,11 @@ class Database(abc.ABC):
     def read_experiment_all(
             self,
             scope_name,
-            design_name,
+            design_name=None,
             source=None,
             only_pending=False,
             only_complete=False,
+            only_with_measures=False,
             ensure_dtypes=True,
     ):
         """
@@ -315,8 +316,9 @@ class Database(abc.ABC):
                 A scope name, used to identify experiments,
                 performance measures, and results associated with this
                 exploratory analysis.
-            design_name (str or Collection[str]): experimental design name (a
-                single str) or a collection of design names to read.
+            design_name (str or Collection[str], optional):
+                The experimental design name (a single `str`) or
+                a collection of design names to read.
             source (int, optional): The source identifier of the
                 experimental outcomes to load.  If not given, but
                 there are only results from a single source in the
@@ -328,6 +330,9 @@ class Database(abc.ABC):
             only_complete (bool, default False): If True, only complete
                 experiments (which have no missing performance measure
                 results stored in the database) are returned.
+            only_with_measures (bool, default False): If True, only
+                experiments with at least one stored performance measure
+                are returned.
             ensure_dtypes (bool, default True): If True, the scope
                 associated with these experiments is also read out
                 of the database, and that scope file is used to
@@ -388,9 +393,13 @@ class Database(abc.ABC):
 
     @abc.abstractmethod
     def delete_experiments(self, scope_name, design_name=None, design=None):
-        """Delete experiment definitions and results
+        """
+        Delete experiment definitions and results.
         
-        Deletes all records from an experiment design
+        The method removes the linkage between experiments and the
+        identified experimental design.  Experiment parameters and results
+        are only removed if they are also not linked to any other experimental
+        design stored in the database.
         
         Args:
             scope_name (str): scope name, used to identify experiments,
@@ -462,7 +471,7 @@ class Database(abc.ABC):
         """
 
     @abc.abstractmethod
-    def read_experiment_ids(self, scope_name:str, design_name:str, xl_df) -> list:
+    def read_experiment_ids(self, scope_name, xl_df):
         """
         Read the experiment ids previously defined in the database.
 
@@ -473,8 +482,6 @@ class Database(abc.ABC):
         Args:
             scope_name (str): scope name, used to identify experiments,
                 performance measures, and results associated with this run
-            design_name (str or None): experiment design name.  Set to None
-                to find experiments across all designs.
             xl_df (pandas.DataFrame): columns are experiment parameters,
                 each row is a full experiment
 

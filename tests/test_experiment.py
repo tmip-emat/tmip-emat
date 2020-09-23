@@ -49,7 +49,8 @@ class TestExperimentMethods(unittest.TestCase):
             jointly=False,
             design_name='lhs_not_joint',
         )
-        assert len(exp_def) == len(self.scp.get_uncertainties())*5 * len(self.scp.get_levers())*5
+        # assert len(exp_def) == len(self.scp.get_uncertainties())*5 * len(self.scp.get_levers())*5
+        assert len(exp_def) == 80 # there are only 4 unique policies, times 2 scenarios
         assert (exp_def['TestRiskVar'] == 1.0).all()
         assert (exp_def['Land Use - CBD Focus']).mean() == approx(1.033, abs=1e-2)
         assert (exp_def['Freeway Capacity']).mean() == approx(1.5, abs=1e-2)

@@ -265,7 +265,7 @@ class FilesCoreModel(AbstractCoreModel):
 		if hasattr(self, 'db') and self.db is not None:
 
 			if experiment_id is None:
-				experiment_id = self.db.read_experiment_id(self.scope.name, None, scenario, policy)
+				experiment_id = self.db.read_experiment_id(self.scope.name, scenario, policy)
 
 			if experiment_id is not None and self.allow_short_circuit:
 				# opportunity to short-circuit run by loading pre-computed values.
@@ -385,7 +385,7 @@ class FilesCoreModel(AbstractCoreModel):
 			if db is not None:
 				with warnings.catch_warnings():
 					warnings.simplefilter("ignore", category=MissingIdWarning)
-					experiment_id = db.get_experiment_id(self.scope.name, None, parameters)
+					experiment_id = db.get_experiment_id(self.scope.name, parameters)
 		mod_results_path = os.path.join(
 			self.resolved_archive_path,
 			f"scp_{self.scope.name}",

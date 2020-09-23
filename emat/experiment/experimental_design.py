@@ -181,6 +181,7 @@ def design_experiments(
         if design_name in db.read_design_names(scope.name):
             raise ValueError(f'the design "{design_name}" already exists for scope "{scope.name}"')
 
+    existing_design_names = None
     # If using the default name, append the design_name with a number
     # until a new unused name is found.
     if db is not None and design_name is None:
@@ -256,6 +257,7 @@ def design_experiments(
             design[i.name] = i.default
 
     design = scope.ensure_dtypes(design)
+    design = design.drop_duplicates()
 
     if db is not None and sample_from is 'all':
         experiment_ids = db.write_experiment_parameters(scope.name, design_name, design)

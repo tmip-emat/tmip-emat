@@ -129,7 +129,7 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
                 raise ValueError("must give `experiment_id` or `parameters`")
             db = getattr(self, 'db', None)
             if db is not None:
-                experiment_id = db.get_experiment_id(self.scope.name, None, parameters)
+                experiment_id = db.get_experiment_id(self.scope.name, parameters)
         mod_results_path = os.path.join(
             self.archive_path,
             f"scp_{self.scope.name}",

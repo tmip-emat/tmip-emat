@@ -225,7 +225,7 @@ class DefaultCallback(AbstractCallback):
                 message = "%s not specified as outcome in msi" % outcome
                 _logger.debug(message)
             else:
-                _logger.debug("storing {} = {}".format(outcome, outcome_res))
+                _logger.debug("outcome {} = {}".format(outcome, outcome_res))
                 try:
                     self.results[outcome][case_id, ] = outcome_res
                 except KeyError:
