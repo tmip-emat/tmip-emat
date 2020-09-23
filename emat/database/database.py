@@ -300,7 +300,9 @@ class Database(abc.ABC):
             scope_name,
             design_name=None,
             source=None,
+            *,
             only_pending=False,
+            only_incomplete=False,
             only_complete=False,
             only_with_measures=False,
             ensure_dtypes=True,
@@ -326,7 +328,14 @@ class Database(abc.ABC):
                 results from multiple sources, an error is raised.
             only_pending (bool, default False): If True, only pending
                 experiments (which have no performance measure results
-                stored in the database) are returned.
+                stored in the database) are returned. Experiments that
+                have any results, even if only partial results, are
+                excluded.
+            only_incomplete (bool, default False): If True, only incomplete
+                experiments (which have at least one missing performance
+                measure result that is not stored in the database) are
+                returned.  Only complete experiments (that have every
+                performance measure populated) are excluded.
             only_complete (bool, default False): If True, only complete
                 experiments (which have no missing performance measure
                 results stored in the database) are returned.

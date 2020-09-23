@@ -823,7 +823,9 @@ class SQLiteDB(Database):
             scope_name,
             design_name=None,
             source=None,
+            *,
             only_pending=False,
+            only_incomplete=False,
             only_complete=False,
             only_with_measures=False,
             ensure_dtypes=True,
@@ -849,7 +851,14 @@ class SQLiteDB(Database):
                 results from multiple sources, an error is raised.
             only_pending (bool, default False): If True, only pending
                 experiments (which have no performance measure results
-                stored in the database) are returned.
+                stored in the database) are returned. Experiments that
+                have any results, even if only partial results, are
+                excluded.
+            only_incomplete (bool, default False): If True, only incomplete
+                experiments (which have at least one missing performance
+                measure result that is not stored in the database) are
+                returned.  Only complete experiments (that have every
+                performance measure populated) are excluded.
             only_complete (bool, default False): If True, only complete
                 experiments (which have no missing performance measure
                 results stored in the database) are returned.
@@ -915,7 +924,7 @@ class SQLiteDB(Database):
         ex_xlm.index.name = 'experiment'
         ex_xlm.columns.name = None
 
-        if only_pending:
+        if only_incomplete:
             import numpy, pandas
             retain = numpy.zeros(len(ex_xlm), dtype=bool)
             for meas_name in self.read_measures(scope_name):
@@ -936,10 +945,15 @@ class SQLiteDB(Database):
 
         if only_complete:
             result = result[~result.isna().any(axis=1)]
+        elif only_incomplete:
+            result = result[result.isna().any(axis=1)]
 
         if only_with_measures:
             result_measures = result[[i for i in self.read_measures(scope_name) if i in result.columns]]
             result = result[~result_measures.isna().all(axis=1)]
+        elif only_pending:
+            result_measures = result[[i for i in self.read_measures(scope_name) if i in result.columns]]
+            result = result[result_measures.isna().all(axis=1)]
 
         if ensure_dtypes:
             scope = self.read_scope(scope_name)
