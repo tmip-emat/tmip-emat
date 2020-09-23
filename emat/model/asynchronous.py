@@ -17,12 +17,14 @@ class AsyncExperimentalDesign:
 			evaluator,
 			max_n_workers=None,
 			stagger_start=0,
+			batch_size=None,
 	):
 		if evaluator is None:
 			evaluator = await AsyncDistributedEvaluator(
 				self.model,
 				max_n_workers=max_n_workers,
 				stagger_start=stagger_start,
+				batch_size=batch_size,
 			)
 		self._evaluator = evaluator
 		self._client = self.evaluator.client
@@ -58,6 +60,7 @@ def asynchronous_experiments(
 		evaluator=None,
 		max_n_workers=None,
 		stagger_start=0,
+		batch_size=None,
 ):
 	_logger.info(f"asynchronous_experiments(max_n_workers={max_n_workers})")
 	t = AsyncExperimentalDesign(
@@ -69,6 +72,7 @@ def asynchronous_experiments(
 			evaluator,
 			max_n_workers,
 			stagger_start=stagger_start,
+			batch_size=batch_size,
 		)
 	)
 	return t

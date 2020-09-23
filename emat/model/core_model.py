@@ -501,6 +501,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             evaluator=None,
             max_n_workers=None,
             stagger_start=None,
+            batch_size=None,
     ):
         """
         Asynchronously runs a design of combined experiments using this model.
@@ -544,6 +545,14 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 of experiments to the evaluator.  For models that do a lot of
                 file copying up front, this can prevent over-saturating the file
                 storage system.
+            batch_size (int, optional):
+                For fast-running core models, the overhead from multi-processing
+                can represent a big chunk of overall runtime.  Grouping experiments
+                into batches that are sent to workers as a group can mitigate this.
+                Setting batch_size to 1 will process every experiment separately.
+                If no batch size is given, a guess is made as to an efficient
+                batch_size based on the number of experiments and the number of
+                workers.
 
         Raises:
             ValueError:
@@ -584,6 +593,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             evaluator=evaluator,
             max_n_workers=max_n_workers,
             stagger_start=stagger_start,
+            batch_size=batch_size,
         )
 
 
