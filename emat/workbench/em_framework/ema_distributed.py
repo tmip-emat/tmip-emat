@@ -4,6 +4,7 @@ import sys
 import traceback
 import math
 from itertools import zip_longest
+import time
 
 from .evaluators import BaseEvaluator
 from ..util import ema_logging
@@ -142,6 +143,7 @@ class DistributedEvaluator(BaseEvaluator):
 			batch_size=None,
 			max_n_workers=32,
 			asynchronous=False,
+			stagger_start=0,
 	):
 		super().__init__(msis, )
 
@@ -160,6 +162,7 @@ class DistributedEvaluator(BaseEvaluator):
 		self.client = client
 		self.batch_size = batch_size
 		self.asynchronous = asynchronous
+		self.stagger_start = stagger_start
 
 		# The worker plugin ensures that all models are copied
 		# to workers before model runs are conducted, even if a
@@ -221,6 +224,8 @@ class DistributedEvaluator(BaseEvaluator):
 
 			for b in batches:
 				self.futures.append(f(b))
+				if self.stagger_start:
+					time.sleep(self.stagger_start)
 			# for f_ in a_queue:
 			# 	self.client.sync(f_)
 
@@ -253,6 +258,7 @@ async def AsyncDistributedEvaluator(
 		client=None,
 		batch_size=None,
 		max_n_workers=None,
+		stagger_start=None,
 ):
 	# Initialize a default dask.distributed client if one is not given
 	if client is None:
@@ -278,6 +284,7 @@ async def AsyncDistributedEvaluator(
 		batch_size=batch_size,
 		max_n_workers=max_n_workers,
 		asynchronous=True,
+		stagger_start=stagger_start,
 	)
 
 	await self.client.register_worker_plugin(self.plugin)

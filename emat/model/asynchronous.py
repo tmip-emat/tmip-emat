@@ -12,12 +12,24 @@ class AsyncExperimentalDesign:
 		self.results = design.copy()
 		self.params = design.columns
 
-	async def run(self, evaluator, max_n_workers=None):
+	async def run(
+			self,
+			evaluator,
+			max_n_workers=None,
+			stagger_start=None,
+	):
 		if evaluator is None:
-			evaluator = await AsyncDistributedEvaluator(self.model, max_n_workers=max_n_workers)
+			evaluator = await AsyncDistributedEvaluator(
+				self.model,
+				max_n_workers=max_n_workers,
+				stagger_start=stagger_start,
+			)
 		self._evaluator = evaluator
 		self._client = self.evaluator.client
-		self.model.run_experiments(design=self.results[self.params], evaluator=evaluator)
+		self.model.run_experiments(
+			design=self.results[self.params],
+			evaluator=evaluator,
+		)
 		# TODO: write results as available?
 		return asyncio.gather(*evaluator.futures)
 
@@ -36,11 +48,23 @@ class AsyncExperimentalDesign:
 			return
 
 
-def asynchronous_experiments(model, design, evaluator=None, max_n_workers=None):
+def asynchronous_experiments(
+		model,
+		design,
+		evaluator=None,
+		max_n_workers=None,
+		stagger_start=None,
+):
 	_logger.info(f"asynchronous_experiments(max_n_workers={max_n_workers})")
 	t = AsyncExperimentalDesign(
 		model,
 		design,
 	)
-	t.task = asyncio.create_task(t.run(evaluator, max_n_workers))
+	t.task = asyncio.create_task(
+		t.run(
+			evaluator,
+			max_n_workers,
+			stagger_start=stagger_start,
+		)
+	)
 	return t
