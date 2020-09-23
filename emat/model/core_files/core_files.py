@@ -296,15 +296,13 @@ class FilesCoreModel(AbstractCoreModel):
 		if not hasattr(self, 'db') and hasattr(self, '_db'):
 			self.db = self._db
 
-		if not hasattr(self, 'db') and hasattr(self, '_sqlitedb_path'):
-			from ...database.sqlite.sqlite_db import SQLiteDB
-			self.db = SQLiteDB(self._sqlitedb_path)
-
 		# If running a core files model using the DistributedEvaluator,
 		# the workers won't have access to the DB directly, so we'll only
 		# run the short-circuit test and the ad-hoc write-to-database
 		# section of this code if the `db` attribute is available.
 		if hasattr(self, 'db') and self.db is not None:
+
+			assert isinstance(self.db, Database)
 
 			if experiment_id is None:
 				experiment_id = self.db.read_experiment_id(self.scope.name, scenario, policy)
