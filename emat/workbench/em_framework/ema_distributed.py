@@ -224,10 +224,6 @@ class DistributedEvaluator(BaseEvaluator):
 
 			for b in batches:
 				self.futures.append(f(b))
-				if self.stagger_start:
-					time.sleep(self.stagger_start)
-			# for f_ in a_queue:
-			# 	self.client.sync(f_)
 
 
 		else:

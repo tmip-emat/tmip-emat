@@ -16,7 +16,7 @@ class AsyncExperimentalDesign:
 			self,
 			evaluator,
 			max_n_workers=None,
-			stagger_start=None,
+			stagger_start=0,
 	):
 		if evaluator is None:
 			evaluator = await AsyncDistributedEvaluator(
@@ -31,7 +31,11 @@ class AsyncExperimentalDesign:
 			evaluator=evaluator,
 		)
 		# TODO: write results as available?
-		return asyncio.gather(*evaluator.futures)
+		tasks = []
+		for fut in evaluator.futures:
+			tasks.append(asyncio.create_task(fut))
+			await asyncio.sleep(stagger_start)
+		return tasks
 
 	@property
 	def client(self):
@@ -53,7 +57,7 @@ def asynchronous_experiments(
 		design,
 		evaluator=None,
 		max_n_workers=None,
-		stagger_start=None,
+		stagger_start=0,
 ):
 	_logger.info(f"asynchronous_experiments(max_n_workers={max_n_workers})")
 	t = AsyncExperimentalDesign(
