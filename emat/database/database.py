@@ -215,7 +215,8 @@ class Database(abc.ABC):
         """
         parameters = {}
         for a in args:
-            parameters.update(a)
+            if a is not None:
+                parameters.update(a)
         parameters.update(kwargs)
         xl_df = pd.DataFrame(parameters, index=[0])
         result = self.write_experiment_parameters(scope_name, design_name, xl_df)

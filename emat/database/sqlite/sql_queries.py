@@ -100,7 +100,7 @@ INSERT_EX = (
     )
 
 INSERT_DESIGN = '''
-INSERT INTO ema_design (scope_id, design) 
+INSERT OR IGNORE INTO ema_design (scope_id, design) 
     SELECT ema_scope.rowid, ?2
     FROM ema_scope WHERE ema_scope.name = ?1
 '''

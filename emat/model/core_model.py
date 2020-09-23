@@ -5,6 +5,7 @@ import abc
 import yaml
 import pandas as pd
 import numpy as np
+import logging
 from typing import Union, Mapping
 from ..workbench.em_framework.model import AbstractModel as AbstractWorkbenchModel
 from ..workbench.em_framework.evaluators import BaseEvaluator
@@ -1528,3 +1529,24 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         out = self.run_experiment(params).copy()
         out.update(params)
         return out
+
+    def log(self, message, level=logging.INFO):
+        """
+        Log a message.
+
+        This facility will attempt to send log messages to
+        the attached database, falling back to the regular
+        module logger in case that fails.
+
+        Args:
+            message (str): Message to send to log.
+            level (int, default logging.INFO): Log level.
+
+        Returns:
+
+        """
+        db = getattr(self, 'db', None)
+        try:
+            db.log(message, level=level)
+        except:
+            _logger.log(level, message)

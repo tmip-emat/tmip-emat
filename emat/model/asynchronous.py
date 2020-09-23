@@ -9,7 +9,7 @@ _logger = get_module_logger(__name__)
 class AsyncExperimentalDesign:
 	def __init__(self, model, design):
 		self.model = model
-		self.results = design.copy()
+		self._storage = design.copy()
 		self.params = design.columns
 
 	async def run(
@@ -27,7 +27,7 @@ class AsyncExperimentalDesign:
 		self._evaluator = evaluator
 		self._client = self.evaluator.client
 		self.model.run_experiments(
-			design=self.results[self.params],
+			design=self._storage[self.params],
 			evaluator=evaluator,
 		)
 		# TODO: write results as available?

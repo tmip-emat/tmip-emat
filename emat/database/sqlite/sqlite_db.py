@@ -30,14 +30,30 @@ class SQLiteDB(Database):
     Args:
         database_path (str, optional): file path and name of database file
             If not given, a database is initialized in-memory.
-        initialize (bool, default False):
+        initialize (bool or 'skip', default False):
             Whether to initialize emat database file.  The value of this argument
             is ignored if `database_path` is not given (as in-memory databases
-            must always be initialized).
-
+            must always be initialized).  If given as 'skip' then no setup
+            scripts are run, and it is assumed that all relevant tables already
+            exist in the database.
+        readonly (bool, default False):
+            Whether to open the database connection in readonly mode.
+        check_same_thread (bool, default True):
+            By default, check_same_thread is True and only the creating thread
+            may use the connection. If set False, the returned connection may be
+            shared across multiple threads.  The dask distributed evaluator has
+            workers that run code in a separate thread from the model class object,
+            so setting this to False is necessary to enable SQLite connections on
+            the workers.
     """
 
-    def __init__(self, database_path: str=":memory:", initialize: bool=False, readonly=False):
+    def __init__(
+            self,
+            database_path=":memory:",
+            initialize=False,
+            readonly=False,
+            check_same_thread=True,
+    ):
 
         if database_path[-3:] == '.gz':
             import tempfile, os, shutil, gzip
@@ -50,24 +66,44 @@ class SQLiteDB(Database):
             database_path = tempfilename
 
         self.database_path = database_path
+        self.readonly = readonly
 
         if self.database_path == ":memory:":
             initialize = True
         # in order:
         self.modules = {}
-        if initialize:
-            self.conn = self.__create(["emat_db_init.sql", "meta_model.sql"], wipe=True)
+        if initialize == 'skip':
+            self.conn = self.__create(
+                [],
+                wipe=False,
+                check_same_thread=check_same_thread,
+            )
+        elif initialize:
+            self.conn = self.__create(
+                ["emat_db_init.sql", "meta_model.sql"],
+                wipe=True,
+                check_same_thread=check_same_thread,
+            )
         elif readonly:
-            self.conn = sqlite3.connect(f'file:{database_path}?mode=ro', uri=True)
+            self.conn = sqlite3.connect(
+                f'file:{database_path}?mode=ro',
+                uri=True,
+                check_same_thread=check_same_thread,
+            )
         else:
-            self.conn = self.__create(["emat_db_init.sql", "meta_model.sql"], wipe=False)
-        self.conn.execute("PRAGMA foreign_keys = ON")
-        with self.conn:
-            self.conn.cursor().execute(sq.SET_VERSION_DATABASE)
+            self.conn = self.__create(
+                ["emat_db_init.sql", "meta_model.sql"],
+                wipe=False,
+                check_same_thread=check_same_thread,
+            )
+        if not readonly:
+            self.conn.execute("PRAGMA foreign_keys = ON")
+            with self.conn:
+                self.conn.cursor().execute(sq.SET_VERSION_DATABASE)
         atexit.register(self.conn.close)
 
 
-    def __create(self, filenames, wipe=False):
+    def __create(self, filenames, wipe=False, check_same_thread=None):
         """
         Call sql files to create sqlite database file
         """
@@ -76,7 +112,7 @@ class SQLiteDB(Database):
         if self.database_path != ":memory:" and wipe:
             self.__delete_database()
         try:
-            conn = sqlite3.connect(self.database_path)
+            conn = sqlite3.connect(self.database_path, check_same_thread=check_same_thread)
         except sqlite3.OperationalError as err:
             raise sqlite3.OperationalError(f'error on connecting to {self.database_path}') from err
         with conn:
@@ -379,6 +415,9 @@ class SQLiteDB(Database):
             TypeError: If not all scope variables are defined in the
                 exp_def
         """
+        if design_name is None:
+            design_name = 'ad hoc'
+
         with self.conn:
             scope_name = self._validate_scope(scope_name, 'design_name')
             # local cursor because we'll depend on lastrowid
@@ -463,7 +502,8 @@ class SQLiteDB(Database):
         scope_name = self._validate_scope(scope_name, 'design_name')
         parameters = {}
         for a in args:
-            parameters.update(a)
+            if a is not None:
+                parameters.update(a)
         parameters.update(kwargs)
         xl_df = pd.DataFrame(parameters, index=[0])
         result = self.read_experiment_ids(scope_name, xl_df)
@@ -497,7 +537,8 @@ class SQLiteDB(Database):
         if ex_id is None:
             parameters = self.read_scope(scope_name).get_parameter_defaults()
             for a in args:
-                parameters.update(a)
+                if a is not None:
+                    parameters.update(a)
             parameters.update(kwargs)
             df = pd.DataFrame(parameters, index=[0])
             ex_id = self.write_experiment_parameters(scope_name, None, df)[0]

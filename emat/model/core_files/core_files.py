@@ -131,6 +131,48 @@ class FilesCoreModel(AbstractCoreModel):
 
 		self._parsers = []
 
+	def __getstate__(self):
+		state = super().__getstate__()
+		# The SQLite Database does not serialize for usage in other
+		# threads or processes, so we will pass through the database path
+		# to open another new connection on the other end, assuming it is
+		# a file object that can be re-opened for other connections.
+		db = getattr(self, 'db', None)
+		from ...database import SQLiteDB
+		if isinstance(db, SQLiteDB):
+			if os.path.exists(db.database_path):
+				state['_sqlitedb_path_'] = db.database_path
+				state['_sqlitedb_readonly_'] = db.readonly
+		return state
+
+	def __setstate__(self, state):
+		# When we are running on a dask worker, functions
+		# are executed in a different thread from the worker
+		# itself, even if there is only one thread.  To prevent
+		# problems with SQLite, we check if this is a worker and
+		# if there is only one thread, in which case we can
+		# safely ignore the fact that the database is accessed
+		# from a different thread than where it is created.
+		from dask.distributed import get_worker
+		try:
+			worker = get_worker()
+		except ValueError:
+			n_threads = -1
+		else:
+			n_threads = worker.nthreads
+		database_path = state.pop('_sqlitedb_path_', None)
+		database_readonly = state.pop('_sqlitedb_readonly_', False)
+		self.__dict__ = state
+		if database_path and not database_readonly:
+			from ...database import SQLiteDB
+			if os.path.exists(database_path):
+				self.db = SQLiteDB(
+					database_path,
+					initialize='skip',
+					readonly=database_readonly,
+					check_same_thread=(n_threads!=1),
+				)
+
 	@property
 	def resolved_model_path(self):
 		"""
