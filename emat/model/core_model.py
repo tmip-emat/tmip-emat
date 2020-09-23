@@ -499,6 +499,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             design_name=None,
             evaluator=None,
             max_n_workers=None,
+            stagger_start=None,
     ):
         """
         Asynchronously runs a design of combined experiments using this model.
@@ -537,6 +538,11 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 dask.distributed LocalCluster.  If the number of cores available is
                 smaller than this number, fewer workers will be spawned.  This value
                 is only used if a default LocalCluster has not yet been created.
+            stagger_start (int, optional):
+                If provided, wait this number of seconds between initial dispatch
+                of experiments to the evaluator.  For models that do a lot of
+                file copying up front, this can prevent over-saturating the file
+                storage system.
 
         Raises:
             ValueError:
@@ -571,7 +577,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             else:
                 raise ValueError("cannot run async_experiments without a `db` defined")
 
-        return asynchronous_experiments(self, design, evaluator=evaluator, max_n_workers=max_n_workers)
+        return asynchronous_experiments(
+            self,
+            design,
+            evaluator=evaluator,
+            max_n_workers=max_n_workers,
+            stagger_start=stagger_start,
+        )
 
 
     def run_experiments(
