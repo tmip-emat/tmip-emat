@@ -1,4 +1,5 @@
-
+import numpy as np
+import pandas as pd
 import asyncio
 from ..workbench.em_framework.ema_distributed import AsyncDistributedEvaluator
 
@@ -9,8 +10,11 @@ _logger = get_module_logger(__name__)
 class AsyncExperimentalDesign:
 	def __init__(self, model, design):
 		self.model = model
-		self._storage = design.copy()
 		self.params = design.columns
+		self._storage = design.reindex(
+			columns=model.scope.get_all_names(),
+			copy=True,
+		)
 
 	async def run(
 			self,
@@ -32,12 +36,18 @@ class AsyncExperimentalDesign:
 			design=self._storage[self.params],
 			evaluator=evaluator,
 		)
-		# TODO: write results as available?
 		tasks = []
 		for fut in evaluator.futures:
-			tasks.append(asyncio.create_task(fut))
+			t = asyncio.create_task(fut)
+			t.add_done_callback(self._update_storage)
+			tasks.append(t)
 			await asyncio.sleep(stagger_start)
 		return tasks
+
+	def _update_storage(self, fut):
+		for i in fut.result():
+			y = pd.DataFrame(i[1], index=[self._storage.index[i[0]]])
+			self._storage.update(y)
 
 	@property
 	def client(self):
@@ -52,6 +62,9 @@ class AsyncExperimentalDesign:
 			return self._evaluator
 		except AttributeError:
 			return
+
+	def results(self):
+		return self._storage.copy()
 
 
 def asynchronous_experiments(

@@ -76,7 +76,7 @@ def run_experiment_on_worker(experiment):
 	outcomes = model.outcomes_output
 	model.reset_model()
 
-	return experiment.experiment_id, outcomes.copy()
+	return experiment.experiment_id, outcomes.copy(), getattr(model, 'comment_on_run', None)
 
 def run_experiments_on_worker(experiments):
 	"""
@@ -212,7 +212,7 @@ class DistributedEvaluator(BaseEvaluator):
 			async def f(_b):
 				future = self.client.submit(run_experiments_on_worker, _b)
 				result_batch = await self.client.gather(future, asynchronous=True)
-				for (experiment_id, outcome) in result_batch:
+				for (experiment_id, outcome, comment_on_run) in result_batch:
 					experiment = experiments[experiment_id]
 					_logger.debug(
 						log_message,
@@ -221,6 +221,9 @@ class DistributedEvaluator(BaseEvaluator):
 						experiment.model_name,
 					)
 					callback(experiment, outcome)
+					if comment_on_run:
+						_logger.warning(comment_on_run)
+				return result_batch
 
 			for b in batches:
 				self.futures.append(f(b))
@@ -233,7 +236,7 @@ class DistributedEvaluator(BaseEvaluator):
 			_logger.debug("waiting to receive experiment results")
 
 			for future, result_batch in as_completed(outcomes, with_results=True):
-				for (experiment_id, outcome) in result_batch:
+				for (experiment_id, outcome, comment_on_run) in result_batch:
 					experiment = experiments[experiment_id]
 					_logger.debug(
 						log_message,
@@ -242,6 +245,8 @@ class DistributedEvaluator(BaseEvaluator):
 						experiment.model_name,
 					)
 					callback(experiment, outcome)
+					if comment_on_run:
+						_logger.warning(comment_on_run)
 
 			os.chdir(cwd)
 

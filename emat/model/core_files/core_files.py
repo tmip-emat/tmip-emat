@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import subprocess
 import warnings
+import logging
 from pathlib import Path
 from ...model.core_model import AbstractCoreModel
 from ...scope.scope import Scope
@@ -286,6 +287,7 @@ class FilesCoreModel(AbstractCoreModel):
 				this type.
 
 		"""
+		self.comment_on_run = None
 
 		_logger.debug("run_core_model read_experiment_parameters")
 
@@ -372,7 +374,8 @@ class FilesCoreModel(AbstractCoreModel):
 				# If 'ignore_crash' is False (the default), then abort now and skip
 				# any post-processing and other archiving steps, which will
 				# probably fail anyway.
-				_logger.error(f"run_core_model ABORT {experiment_id}")
+				self.log(f"run_core_model ABORT {experiment_id}", level=logging.ERROR)
+				self.comment_on_run = f"FAILED EXPERIMENT {experiment_id}: {str(err)}"
 				return
 			else:
 				_logger.error(f"run_core_model CONTINUE AFTER ERROR {experiment_id}")
@@ -382,9 +385,11 @@ class FilesCoreModel(AbstractCoreModel):
 				# The absence of the `success_indicator` file means that the model
 				# did not actually terminate correctly, so we do not want to
 				# post-process or store these results in the database.
+				self.comment_on_run = f"NON-SUCCESSFUL EXPERIMENT {experiment_id}: success_indicator missing"
 				raise ValueError(f"success_indicator missing: {success_indicator}")
 
 			if killed_indicator and os.path.exists(killed_indicator):
+				self.comment_on_run = f"KILLED EXPERIMENT {experiment_id}: killed_indicator present"
 				raise ValueError(f"killed_indicator present: {killed_indicator}")
 
 			_logger.debug(f"run_core_model post_process {experiment_id}")
@@ -399,9 +404,11 @@ class FilesCoreModel(AbstractCoreModel):
 		except KeyboardInterrupt:
 			_logger.exception(f"KeyboardInterrupt in post_process, load_measures or outcome processing {experiment_id}")
 			raise
-		except:
+		except Exception as err:
 			_logger.exception(f"error in post_process, load_measures or outcome processing {experiment_id}")
 			_logger.error(f"proceeding directly to archive attempt {experiment_id}")
+			if not self.comment_on_run:
+				self.comment_on_run = f"PROBLEM IN EXPERIMENT {experiment_id}: {str(err)}"
 		else:
 			# only write to database if there was no error in post_process, load_measures or outcome processing
 			_logger.debug(f"run_core_model write db {experiment_id}")
