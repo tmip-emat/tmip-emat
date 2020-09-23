@@ -62,7 +62,8 @@ class SQLiteDB(Database):
         else:
             self.conn = self.__create(["emat_db_init.sql", "meta_model.sql"], wipe=False)
         self.conn.execute("PRAGMA foreign_keys = ON")
-        self.conn.cursor().execute(sq.SET_VERSION_DATABASE)
+        with self.conn:
+            self.conn.cursor().execute(sq.SET_VERSION_DATABASE)
         atexit.register(self.conn.close)
 
 
