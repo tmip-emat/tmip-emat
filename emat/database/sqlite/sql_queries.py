@@ -340,7 +340,7 @@ GET_EXPERIMENT_MEASURES = '''
             JOIN ema_scope es on ee.scope_id = es.rowid
             JOIN ema_design_experiment ede ON ee.rowid = ede.experiment_id
             JOIN ema_design ed ON (es.rowid = ed.scope_id AND ed.rowid = ede.design_id)
-            WHERE es.name =?1 and ed.design = ?2
+            WHERE es.name =?1 and ed.design = ?2 AND measure_value IS NOT NULL
             /*source*/
 '''
 
@@ -355,7 +355,7 @@ GET_EXPERIMENT_MEASURES_BY_ID = '''
             JOIN ema_scope es on ee.scope_id = es.rowid
             JOIN ema_design_experiment ede ON ee.rowid = ede.experiment_id
             JOIN ema_design ed ON (es.rowid = ed.scope_id AND ed.rowid = ede.design_id)
-            WHERE es.name =?1 and ed.design = ?2 AND eem.experiment_id = ?3
+            WHERE es.name =?1 and ed.design = ?2 AND eem.experiment_id = ?3 AND measure_value IS NOT NULL
             /*source*/
 '''
 
@@ -387,7 +387,7 @@ GET_EX_M_ALL = (
             FROM ema_experiment_measure JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
             JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.rowid
             JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-            WHERE s.name =?1
+            WHERE s.name =?1 AND measure_value IS NOT NULL
     '''
     )
 
@@ -397,7 +397,7 @@ GET_EX_M_BY_ID_ALL = (
             FROM ema_experiment_measure JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
             JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.rowid
             JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-            WHERE s.name =?1 AND experiment_id = ?2
+            WHERE s.name =?1 AND experiment_id = ?2 AND measure_value IS NOT NULL
     '''
     )
 
