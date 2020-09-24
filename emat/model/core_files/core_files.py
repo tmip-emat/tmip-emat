@@ -413,7 +413,10 @@ class FilesCoreModel(AbstractCoreModel):
 			# only write to database if there was no error in post_process, load_measures or outcome processing
 			_logger.debug(f"run_core_model write db {experiment_id}")
 			if hasattr(self, 'db') and self.db is not None:
-				self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df)
+				try:
+					self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df)
+				except Exception as err:
+					_logger.exception(f"error in writing results to database: {str(err)}")
 
 		try:
 			ex_archive_path = self.get_experiment_archive_path(experiment_id)

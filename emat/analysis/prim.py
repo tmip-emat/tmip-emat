@@ -382,25 +382,30 @@ class PrimBox(prim.PrimBox):
 				widget['data'][0]['marker']['size'] = sizes
 			explorer = getattr(self, '_explorer', None)
 			if explorer is not None:
-				name_t = f"PRIM Box {self.box_number()} Target [{self._target_name}]"
-				name_s = f"PRIM Box {self.box_number()} Solution [{self._target_name}]"
-				explorer.new_selection(
-					self,
-					name=name_t,
-					activate=False,
-				)
-				explorer.new_selection(
-					self.to_emat_box(),
-					name=name_s,
-					activate=False,
-				)
-				if explorer.active_selection_name() not in (name_t, name_s):
-					explorer.set_active_selection_name(name_t)
-				else:
-					explorer.set_active_selection_name(
-						explorer.active_selection_name(),
-						force_update=True,
+				from .explore_2.explore_base import DataFrameExplorerBase
+				if isinstance(explorer, DataFrameExplorerBase):
+					name_t = f"PRIM Box {self.box_number()} Target [{self._target_name}]"
+					name_s = f"PRIM Box {self.box_number()} Solution [{self._target_name}]"
+					explorer.new_selection(
+						self,
+						name=name_t,
+						activate=False,
 					)
+					explorer.new_selection(
+						self.to_emat_box(),
+						name=name_s,
+						activate=False,
+					)
+					if explorer.active_selection_name() not in (name_t, name_s):
+						explorer.set_active_selection_name(name_t)
+					else:
+						explorer.set_active_selection_name(
+							explorer.active_selection_name(),
+							force_update=True,
+						)
+				else:
+					# for old explorer interface
+					explorer.set_box(self.to_emat_box())
 
 	def explore(self, scope=None, data=None):
 		if getattr(self, '_explorer', None) is None:

@@ -326,6 +326,12 @@ def test_deduplicate_indexes():
     assert all(r_df.index == [50, 51, 52, 53, 54, -1, -1, 53, 54, -1])
     np.testing.assert_array_equal(r_df.to_numpy(), testing_df.to_numpy())
 
+def test_version_warning():
+    from emat.exceptions import DatabaseVersionWarning
+    with pytest.warns(DatabaseVersionWarning):
+        db = emat.SQLiteDB("require_version_999.sqldb")
+
+
 emat.package_file('model', 'tests', 'road_test.yaml')
 
 if __name__ == '__main__':

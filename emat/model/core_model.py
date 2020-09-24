@@ -723,7 +723,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             outcomes.index = design.index
 
             if db:
-                db.write_experiment_measures(self.scope.name, self.metamodel_id, outcomes)
+                metamodel_id = self.metamodel_id
+                if metamodel_id is None:
+                    metamodel_id = 0
+                db.write_experiment_measures(self.scope.name, metamodel_id, outcomes)
 
             # Put constants back into experiments
             experiments_ = experiments.drop(columns=['scenario', 'policy', 'model'])

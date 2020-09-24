@@ -143,7 +143,6 @@ class DistributedEvaluator(BaseEvaluator):
 			batch_size=None,
 			max_n_workers=32,
 			asynchronous=False,
-			stagger_start=0,
 	):
 		super().__init__(msis, )
 
@@ -162,7 +161,6 @@ class DistributedEvaluator(BaseEvaluator):
 		self.client = client
 		self.batch_size = batch_size
 		self.asynchronous = asynchronous
-		self.stagger_start = stagger_start
 
 		# The worker plugin ensures that all models are copied
 		# to workers before model runs are conducted, even if a
@@ -259,7 +257,6 @@ async def AsyncDistributedEvaluator(
 		client=None,
 		batch_size=None,
 		max_n_workers=None,
-		stagger_start=None,
 ):
 	# Initialize a default dask.distributed client if one is not given
 	if client is None:
@@ -285,7 +282,6 @@ async def AsyncDistributedEvaluator(
 		batch_size=batch_size,
 		max_n_workers=max_n_workers,
 		asynchronous=True,
-		stagger_start=stagger_start,
 	)
 
 	await self.client.register_worker_plugin(self.plugin)
