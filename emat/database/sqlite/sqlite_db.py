@@ -730,6 +730,7 @@ class SQLiteDB(Database):
             design=None,
             *,
             experiment_ids=None,
+            ensure_dtypes=True,
     ):
         """
         Read experiment definitions from the database.
@@ -752,6 +753,11 @@ class SQLiteDB(Database):
             experiment_ids (Collection, optional):
                 A collection of experiment id's to load.  If given,
                 both `design_name` and `only_pending` are ignored.
+            ensure_dtypes (bool, default True): If True, the scope
+                associated with these experiments is also read out
+                of the database, and that scope file is used to
+                format experimental data consistently (i.e., as
+                float, integer, bool, or categorical).
 
         Returns:
             emat.ExperimentalDesign:
@@ -811,6 +817,10 @@ class SQLiteDB(Database):
         from ...experiment.experimental_design import ExperimentalDesign
         result = ExperimentalDesign(xl_df[[i for i in column_order if i in xl_df.columns]])
         result.design_name = design_name
+        if ensure_dtypes:
+            scope = self.read_scope(scope_name)
+            if scope is not None:
+                result = scope.ensure_dtypes(result)
         return result
 
     def write_experiment_measures(
@@ -1536,6 +1546,18 @@ class SQLiteDB(Database):
                 print(" - ".join(row), file=file)
 
     def merge_database(self, other):
+        """
+        Merge results from another database.
+
+        Only results from a matching identical scope are
+        merged.  Metamodels are copied without checking
+        if they are duplicate.
+
+        Args:
+            other (emat.Database):
+                The other database from which to draw data.
+
+        """
         assert isinstance(other, Database)
         for scope_name in other.read_scope_names():
             if scope_name in self.read_scope_names():
