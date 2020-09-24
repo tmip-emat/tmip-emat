@@ -232,6 +232,7 @@ class Database(abc.ABC):
             design=None,
             *,
             experiment_ids=None,
+            ensure_dtypes=True,
     ):
         """
         Read experiment definitions from the database.
@@ -254,6 +255,11 @@ class Database(abc.ABC):
             experiment_ids (Collection, optional):
                 A collection of experiment id's to load.  If given,
                 both `design_name` and `only_pending` are ignored.
+            ensure_dtypes (bool, default True): If True, the scope
+                associated with these experiments is also read out
+                of the database, and that scope file is used to
+                format experimental data consistently (i.e., as
+                float, integer, bool, or categorical).
 
         Returns:
             emat.ExperimentalDesign:
