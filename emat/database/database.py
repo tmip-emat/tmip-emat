@@ -402,6 +402,36 @@ class Database(abc.ABC):
         """
 
     @abc.abstractmethod
+    def read_experiment_measure_sources(
+            self,
+            scope_name,
+            design_name=None,
+            experiment_id=None,
+            design=None,
+    ):
+        """
+        Read all source ids from the results stored in the database.
+
+        Args:
+            scope_name (str):
+                A scope name, used to identify experiments,
+                performance measures, and results associated with this
+                exploratory analysis.
+            design_name (str, optional): If given, only experiments
+                associated with both the scope and the named design
+                are returned, otherwise all experiments associated
+                with the scope are returned.
+            experiment_id (int, optional): The id of the experiment to
+                retrieve.  If omitted, get all experiments matching the
+                named scope and design.
+            design (str): Deprecated, use `design_name`.
+
+        Returns:
+            List[Int]: performance measure source ids
+        """
+
+
+    @abc.abstractmethod
     def delete_experiments(self, scope_name, design_name=None, design=None):
         """
         Delete experiment definitions and results.

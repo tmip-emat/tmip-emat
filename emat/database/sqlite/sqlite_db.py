@@ -16,6 +16,7 @@ import numpy as np
 from . import sql_queries as sq
 from ..database import Database
 from ...util.deduplicate import reindex_duplicates
+from ...exceptions import DatabaseVersionWarning, DatabaseVersionError
 
 from ...util.loggers import get_module_logger
 _logger = get_module_logger(__name__)
@@ -100,6 +101,35 @@ class SQLiteDB(Database):
             self.conn.execute("PRAGMA foreign_keys = ON")
             with self.conn:
                 self.conn.cursor().execute(sq.SET_VERSION_DATABASE)
+                self.conn.cursor().execute(sq.SET_MINIMUM_VERSION_DATABASE)
+
+        # Warn if opening a database that requires a more recent version of tmip-emat.
+        try:
+            _min_ver = list(self.conn.cursor().execute(sq.GET_MINIMUM_VERSION_DATABASE))
+            if len(_min_ver):
+                _min_ver_number = _min_ver[0][0]
+                from ... import __version__
+                ver = (np.asarray([int(i) for i in __version__.split(".")])
+                       @ np.asarray([1000000,1000,1]))
+                if _min_ver_number > ver:
+                    warnings.warn(
+                        f"Database requires emat version {_min_ver_number}",
+                        category=DatabaseVersionWarning,
+                    )
+        except:
+            pass
+
+        # update old databases
+        if 'design' in self._debug_query(table='ema_experiment')['name'].to_numpy():
+            if readonly:
+                raise DatabaseVersionError("cannot open or update an old database in readonly")
+            else:
+                warnings.warn(
+                    f"updating database file",
+                    category=DatabaseVersionWarning,
+                )
+                self.update_database()
+
         atexit.register(self.conn.close)
 
 
@@ -119,7 +149,7 @@ class SQLiteDB(Database):
             cur = conn.cursor()
 
             for filename in filenames:
-                _logger.info("running script " + filename)
+                _logger.debug("running script " + filename)
                 contents = (
                     self.__read_sql_file(
                         os.path.join(
@@ -173,6 +203,16 @@ class SQLiteDB(Database):
         """
         if os.path.exists(self.database_path):
             os.remove(self.database_path)
+
+    def _debug_query(self, qry=None, table=None):
+        if qry is None and table is not None:
+            qry = f"PRAGMA table_info({table});"
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute(qry)
+            cols = ([i[0] for i in cur.description])
+            df = pd.DataFrame(cur.fetchall(), columns=cols)
+        return df
 
     def get_db_info(self):
         """
@@ -252,7 +292,17 @@ class SQLiteDB(Database):
         if blob is None:
             return blob
         import gzip, cloudpickle
-        return cloudpickle.loads(gzip.decompress(blob))
+        try:
+            return cloudpickle.loads(gzip.decompress(blob))
+        except ModuleNotFoundError as err:
+            if "ema_workbench" in err.msg:
+                import sys
+                from ... import workbench
+                sys.modules['ema_workbench'] = workbench
+                return cloudpickle.loads(gzip.decompress(blob))
+            else:
+                raise
+
 
     @copydoc(Database.write_metamodel)
     def write_metamodel(self, scope_name, metamodel=None, metamodel_id=None, metamodel_name=''):
@@ -293,6 +343,7 @@ class SQLiteDB(Database):
             except sqlite3.IntegrityError:
                 raise KeyError(f'metamodel_id {metamodel_id} for scope "{scope_name}" already exists')
 
+        return metamodel_id
 
     @copydoc(Database.read_metamodel)
     def read_metamodel(self, scope_name, metamodel_id=None):
@@ -1065,26 +1116,26 @@ class SQLiteDB(Database):
                 sql = sq.GET_EX_M_ALL
                 arg = [scope_name]
                 if source is not None:
-                    sql += ' AND ema_experiment_measure.measure_source =?2'
+                    sql += ' AND measure_source =?2'
                     arg.append(source)
             else:
                 sql = sq.GET_EX_M_BY_ID_ALL
                 arg = [scope_name, experiment_id]
                 if source is not None:
-                    sql += ' AND ema_experiment_measure.measure_source =?3'
+                    sql += ' AND measure_source =?3'
                     arg.append(source)
         else:
             if experiment_id is None:
                 sql = sq.GET_EXPERIMENT_MEASURES
                 arg = [scope_name, design_name]
                 if source is not None:
-                    sql = sql.replace("/*source*/", ' AND ema_experiment_measure.measure_source =?3')
+                    sql = sql.replace("/*source*/", ' AND measure_source =?3')
                     arg.append(source)
             else:
                 sql = sq.GET_EXPERIMENT_MEASURES_BY_ID
                 arg = [scope_name, design_name, experiment_id]
                 if source is not None:
-                    sql = sql.replace("/*source*/", ' AND ema_experiment_measure.measure_source =?4')
+                    sql = sql.replace("/*source*/", ' AND measure_source =?4')
                     arg.append(source)
         cur = self.conn.cursor()
         ex_m = pd.DataFrame(cur.execute(sql, arg).fetchall())
@@ -1098,6 +1149,58 @@ class SQLiteDB(Database):
         )
 
         return ex_m[[i for i in column_order if i in ex_m.columns]]
+
+    def read_experiment_measure_sources(
+            self,
+            scope_name,
+            design_name=None,
+            experiment_id=None,
+            design=None,
+    ):
+        """
+        Read all source ids from the results stored in the database.
+
+        Args:
+            scope_name (str):
+                A scope name, used to identify experiments,
+                performance measures, and results associated with this
+                exploratory analysis.
+            design_name (str, optional): If given, only experiments
+                associated with both the scope and the named design
+                are returned, otherwise all experiments associated
+                with the scope are returned.
+            experiment_id (int, optional): The id of the experiment to
+                retrieve.  If omitted, get all experiments matching the
+                named scope and design.
+            design (str): Deprecated, use `design_name`.
+
+        Returns:
+            List[Int]: performance measure source ids
+
+        """
+        if design is not None:
+            if design_name is None:
+                design_name = design
+                warnings.warn("the `design` argument is deprecated for "
+                              "read_experiment_parameters, use `design_name`", DeprecationWarning)
+            elif design != design_name:
+                raise ValueError("cannot give both `design_name` and `design`")
+
+        scope_name = self._validate_scope(scope_name, 'design_name')
+        if design_name is None:
+            sql = sq.GET_EXPERIMENT_MEASURE_SOURCES
+            arg = {'scope_name':scope_name}
+            if experiment_id is not None:
+                sql += " AND experiment_id = @experiment_id"
+                arg['experiment_id'] = experiment_id
+        else:
+            sql = sq.GET_EXPERIMENT_MEASURE_SOURCES_BY_DESIGN
+            arg = {'scope_name': scope_name, 'design_name':design_name, }
+            if experiment_id is not None:
+                sql += " AND experiment_id = @experiment_id"
+                arg['experiment_id'] = experiment_id
+        cur = self.conn.cursor()
+        return [i[0] for i in cur.execute(sql, arg).fetchall()]
 
     def delete_experiments(
             self,
@@ -1431,3 +1534,62 @@ class SQLiteDB(Database):
             cur = self.conn.cursor()
             for row in cur.execute(qry):
                 print(" - ".join(row), file=file)
+
+    def merge_database(self, other):
+        assert isinstance(other, Database)
+        for scope_name in other.read_scope_names():
+            if scope_name in self.read_scope_names():
+                scope_self = self.read_scope(scope_name)
+                scope_other = other.read_scope(scope_name)
+                if scope_self == scope_other:
+
+                    # transfer metamodels
+                    source_mapping = {}
+                    other_metamodel_ids = other.read_metamodel_ids(scope_name)
+                    for other_metamodel_id in other_metamodel_ids:
+                        other_metamodel = other.read_metamodel(scope_name, other_metamodel_id)
+                        new_id = self.get_new_metamodel_id(scope_name)
+                        other_metamodel.metamodel_id = new_id
+                        self.write_metamodel(
+                            scope_name,
+                            metamodel=other_metamodel,
+                            metamodel_id=new_id,
+                        )
+                        source_mapping[other_metamodel_id] = new_id
+
+                    # transfer experiments
+                    design_names = other.read_design_names(scope_name)
+                    for design_name in design_names:
+                        xl_df = other.read_experiment_parameters(scope_name, design_name)
+                        proposed_design_name = design_name
+                        design_match = False
+                        experiment_id_map = None
+                        if proposed_design_name in self.read_design_names(scope_name):
+                            xl_df_self = self.read_experiment_parameters(scope_name, design_name)
+                            if not xl_df.reset_index(drop=True).equals(
+                                    xl_df_self.reset_index(drop=True)
+                            ):
+                                n = 2
+                                while proposed_design_name in self.read_design_names(scope_name):
+                                    proposed_design_name = f"{design_name}_{n}"
+                                    n += 1
+                            else:
+                                design_match = True
+                                experiment_id_map = pd.Series(data=xl_df_self.index, index=xl_df.index)
+                        if not design_match:
+                            # transfer parameters
+                            self.write_experiment_parameters(scope_name, proposed_design_name, xl_df)
+                        sources = other.read_experiment_measure_sources(scope_name, design_name)
+                        # transfer measures
+                        for source in sources:
+                            if source == 0:
+                                # source is core model, make updates but do not overwrite non-null values
+                                m_df0 = self.read_experiment_measures(scope_name, design_name, source=source)
+                                m_df1 = other.read_experiment_measures(scope_name, design_name, source=source)
+                                if experiment_id_map is not None:
+                                    m_df1.index = m_df1.index.map(experiment_id_map)
+                                m_df = m_df0.combine_first(m_df1)
+                                self.write_experiment_measures(scope_name, 0, m_df)
+                            else: # source is not core model, just copy
+                                m_df = other.read_experiment_measures(scope_name, design_name, source=source)
+                                self.write_experiment_measures(scope_name, source_mapping[source], m_df)

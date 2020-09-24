@@ -112,7 +112,7 @@ INSERT_EXPERIMENT = '''
 '''
 
 INSERT_DESIGN_EXPERIMENT = '''
-    INSERT INTO ema_design_experiment (experiment_id, design_id)
+    INSERT OR IGNORE INTO ema_design_experiment (experiment_id, design_id)
         SELECT ?3, d.rowid
         FROM ema_design d
         JOIN ema_scope s ON (d.scope_id = s.rowid)
@@ -121,13 +121,6 @@ INSERT_DESIGN_EXPERIMENT = '''
 
 '''
 
-
-INSERT_EX_DUPLICATE = (
-    '''INSERT INTO ema_duplicate_experiment ( scope_id, design, orig_id )
-            SELECT ema_scope.rowid, ?1, ?3
-            FROM ema_scope WHERE ema_scope.name = ?2
-    '''
-    )
 
 
 DELETE_DESIGN_EXPERIMENTS = '''
@@ -329,7 +322,7 @@ GET_EXPERIMENT_PARAMETERS_AND_MEASURES = '''
 
 GET_EXPERIMENT_PARAMETERS_AND_MEASURES_BYSOURCE = GET_EXPERIMENT_PARAMETERS_AND_MEASURES.replace(
     '/*source*/',
-    ' AND ema_experiment_measure.measure_source =?3'
+    ' AND eem.measure_source =?3'
 )
 
 
@@ -344,7 +337,7 @@ GET_EXPERIMENT_MEASURES = '''
             /*source*/
 '''
 
-GET_EXPERIMENT_MEASURES_BYSOURCE = GET_EXPERIMENT_MEASURES.replace('/*source*/', ' AND ema_experiment_measure.measure_source =?3')
+GET_EXPERIMENT_MEASURES_BYSOURCE = GET_EXPERIMENT_MEASURES.replace('/*source*/', ' AND eem.measure_source =?3')
 
 
 
@@ -381,25 +374,71 @@ GET_EX_XLM_ALL = (
 
 GET_EX_XLM_ALL_BYSOURCE = GET_EX_XLM_ALL + ' AND ema_experiment_measure.measure_source =?2'
 
-GET_EX_M_ALL = (
-    '''
-    SELECT experiment_id, ema_measure.name, measure_value
-            FROM ema_experiment_measure JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
-            JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.rowid
-            JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-            WHERE s.name =?1 AND measure_value IS NOT NULL
-    '''
-    )
+GET_EXPERIMENT_MEASURE_SOURCES = '''
+    SELECT DISTINCT
+        measure_source
+    FROM 
+        ema_experiment_measure eem
+        JOIN ema_measure em
+            ON eem.measure_id = em.rowid
+        JOIN ema_experiment ee
+            ON eem.experiment_id = ee.rowid
+        JOIN ema_scope es 
+            ON ee.scope_id = es.rowid
+        /*by-design-join*/
+        WHERE 
+            es.name = @scope_name
+            AND measure_value IS NOT NULL
+            /*by-design-where*/
+'''
 
-GET_EX_M_BY_ID_ALL = (
-    '''
-    SELECT experiment_id, ema_measure.name, measure_value
-            FROM ema_experiment_measure JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
-            JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.rowid
-            JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-            WHERE s.name =?1 AND experiment_id = ?2 AND measure_value IS NOT NULL
-    '''
-    )
+GET_EXPERIMENT_MEASURE_SOURCES_BY_DESIGN = GET_EXPERIMENT_MEASURE_SOURCES.replace("/*by-design-join*/", '''            
+        JOIN ema_design_experiment ede 
+            ON ee.rowid = ede.experiment_id
+        JOIN ema_design ed 
+            ON (es.rowid = ed.scope_id AND ed.rowid = ede.design_id)
+''').replace("/*by-design-where*/", '''   
+        AND ed.design = @design_name         
+''')
+
+GET_EX_M_ALL = '''
+    SELECT 
+        experiment_id, 
+        em.name, 
+        measure_value
+    FROM 
+        ema_experiment_measure eem
+        JOIN ema_measure em
+            ON eem.measure_id = em.rowid
+        JOIN ema_experiment ee
+            ON eem.experiment_id = ee.rowid
+        JOIN ema_scope s 
+            ON ee.scope_id = s.rowid
+        WHERE 
+            s.name = ?1 
+            AND measure_value IS NOT NULL
+'''
+
+
+
+GET_EX_M_BY_ID_ALL = '''
+    SELECT 
+        experiment_id, 
+        em.name, 
+        measure_value
+    FROM 
+        ema_experiment_measure eem
+        JOIN ema_measure em
+            ON eem.measure_id = em.rowid
+        JOIN ema_experiment ee
+            ON eem.experiment_id = ee.rowid
+        JOIN ema_scope s 
+            ON ee.scope_id = s.rowid
+    WHERE 
+        s.name =?1 
+        AND experiment_id = ?2 
+        AND measure_value IS NOT NULL
+'''
 
 CREATE_META_MODEL = (
     '''
@@ -761,13 +800,17 @@ UPDATE_DATABASE = (
 from ... import __version__
 import numpy as np
 SET_VERSION_DATABASE = f'''
-
 INSERT OR IGNORE INTO ema_tool_info VALUES ('version', {np.asarray([int(i) for i in __version__.split(".")]) @ np.asarray([1000000,1000,1])});
-
+'''
+SET_MINIMUM_VERSION_DATABASE = f'''
+INSERT OR IGNORE INTO ema_tool_info VALUES ('minimum_version', 4000); -- 0.4.0
 '''
 
+
 GET_VERSION_DATABASE = f'''
+SELECT val FROM ema_tool_info WHERE tag='version'
+'''
 
-SELECT val FROM ema_tool_info WHERE tag='version';
-
+GET_MINIMUM_VERSION_DATABASE = f'''
+SELECT val FROM ema_tool_info WHERE tag='minimum_version'
 '''

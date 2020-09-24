@@ -1,6 +1,4 @@
 -- Meta Model
-DROP TABLE IF EXISTS meta_model;
-DROP TABLE IF EXISTS meta_model_param;
 
 CREATE TABLE IF NOT EXISTS meta_model (
    scope_id     INT NOT NULL,

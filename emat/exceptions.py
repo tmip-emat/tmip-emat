@@ -33,3 +33,11 @@ class DistributionFreezeError(Exception):
 
 class MissingIdWarning(Warning):
 	"""An experiment id is not found in the database."""
+
+
+class DatabaseVersionWarning(Warning):
+	"""The database requires a more recent version of emat."""
+
+
+class DatabaseVersionError(Exception):
+	"""The database requires a more recent version of emat."""
