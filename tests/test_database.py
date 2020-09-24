@@ -330,10 +330,118 @@ def test_version_warning():
     from emat.exceptions import DatabaseVersionWarning
     print(os.getcwd())
     test_dir = os.path.dirname(__file__)
-    assert os.path.exists(os.path.join(test_dir, "require_version_999.sqldb"))
+    db_file = os.path.join(test_dir, "require_version_999.sqldb")
+    assert os.path.exists(db_file)
     with pytest.warns(DatabaseVersionWarning):
-        db = emat.SQLiteDB("require_version_999.sqldb")
+        db = emat.SQLiteDB(db_file)
 
+def test_database_merging():
+    import emat
+    road_test_scope_file = emat.package_file('model', 'tests', 'road_test.yaml')
+
+    road_scope = emat.Scope(road_test_scope_file)
+    emat_db = emat.SQLiteDB()
+    road_scope.store_scope(emat_db)
+    assert emat_db.read_scope_names() == ['EMAT Road Test']
+
+    from emat.experiment.experimental_design import design_experiments
+
+    design = design_experiments(road_scope, db=emat_db, n_samples_per_factor=10, sampler='lhs')
+    large_design = design_experiments(road_scope, db=emat_db, n_samples=500, sampler='lhs', design_name='lhs_large')
+
+    assert emat_db.read_design_names('EMAT Road Test') == ['lhs', 'lhs_large']
+
+    from emat.model.core_python import PythonCoreModel, Road_Capacity_Investment
+
+    m = PythonCoreModel(Road_Capacity_Investment, scope=road_scope, db=emat_db)
+
+    lhs_results = m.run_experiments(design_name='lhs')
+
+    lhs_large_results = m.run_experiments(design_name='lhs_large')
+
+    reload_results = m.read_experiments(design_name='lhs')
+
+    pd.testing.assert_frame_equal(
+        reload_results,
+        lhs_results,
+        check_like=True,
+    )
+
+    lhs_params = m.read_experiment_parameters(design_name='lhs')
+    assert len(lhs_params) == 110
+    assert len(lhs_params.columns) == 13
+
+    lhs_outcomes = m.read_experiment_measures(design_name='lhs')
+    assert len(lhs_outcomes) == 110
+    assert len(lhs_outcomes.columns) == 7
+
+    mm = m.create_metamodel_from_design('lhs')
+
+    assert mm.metamodel_id == 1
+
+    assert isinstance(mm.function, emat.MetaModel)
+
+    design2 = design_experiments(road_scope, db=emat_db, n_samples_per_factor=10, sampler='lhs', random_seed=2)
+
+    design2_results = mm.run_experiments(design2)
+
+    assert len(design2_results) == 110
+
+    assert len(design2_results.columns) == 20
+
+    assert emat_db.read_design_names(None) == ['lhs', 'lhs_2', 'lhs_large']
+
+    check = emat_db.read_experiment_measures(None, 'lhs_2')
+    assert len(check) == 110
+    assert len(check.columns) == 7
+
+    assert emat_db.read_experiment_measure_sources(None, 'lhs_2') == [1]
+
+    design2_results0 = m.run_experiments(design2.iloc[:5])
+
+    assert len(design2_results0) == 5
+    assert len(design2_results0.columns) == 20
+
+    with pytest.raises(ValueError):
+        # now there are two sources of some measures
+        emat_db.read_experiment_measures(None, 'lhs_2')
+
+    assert set(emat_db.read_experiment_measure_sources(None, 'lhs_2')) == {0, 1}
+
+    check = emat_db.read_experiment_measures(None, 'lhs_2', source=0)
+    assert len(check) == 5
+
+    import emat.examples
+    s2, db2, m2 = emat.examples.road_test()
+
+    # write the design for lhs_2 into a different database.
+    # it ends up giving different experient id's to these, which is fine.
+    db2.write_experiment_parameters(
+        None, 'lhs_2',
+        emat_db.read_experiment_parameters(None, 'lhs_2')
+    )
+
+    check = db2.read_experiment_parameters(None, 'lhs_2', )
+    assert len(check) == 110
+    assert len(check.columns) == 13
+
+    pd.testing.assert_frame_equal(
+        design2.reset_index(drop=True),
+        check.reset_index(drop=True),
+        check_like=True,
+    )
+
+    design2_results2 = m2.run_experiments('lhs_2')
+
+    check = emat_db.read_experiment_measures(None, 'lhs_2', source=0)
+    assert len(check) == 5
+    assert len(check.columns) == 7
+
+    emat_db.merge_database(db2)
+
+    check = emat_db.read_experiment_measures(None, 'lhs_2', source=0)
+    assert len(check) == 110
+    assert len(check.columns) == 7
 
 emat.package_file('model', 'tests', 'road_test.yaml')
 
