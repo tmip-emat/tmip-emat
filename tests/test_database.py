@@ -329,7 +329,8 @@ def test_deduplicate_indexes():
 def test_version_warning():
     from emat.exceptions import DatabaseVersionWarning
     print(os.getcwd())
-    assert os.path.exists("require_version_999.sqldb")
+    test_dir = os.path.dirname(__file__)
+    assert os.path.exists(os.path.join(test_dir, "require_version_999.sqldb"))
     with pytest.warns(DatabaseVersionWarning):
         db = emat.SQLiteDB("require_version_999.sqldb")
 
