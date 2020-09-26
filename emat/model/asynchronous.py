@@ -17,6 +17,10 @@ class AsyncExperimentalDesign:
 		)
 		self.stagger_start = stagger_start
 		self.task = None
+		self._status = pd.Series(
+			data='pending',
+			index=self._storage.index,
+		)
 
 	def __repr__(self):
 		return f"<emat.AsyncExperimentalDesign with {self.progress()}>"
@@ -43,17 +47,22 @@ class AsyncExperimentalDesign:
 			evaluator=evaluator,
 		)
 		self._tasks = []
-		for fut in evaluator.futures:
+		for fut, ilocs in zip(evaluator.futures,evaluator.futures_ilocs):
 			t = asyncio.create_task(fut)
 			t.add_done_callback(self._update_storage)
 			self._tasks.append(t)
-			await asyncio.sleep(self.stagger_start)
+			self._status.iloc[ilocs] = 'queued'
+			hold = 0
+			while hold < self.stagger_start:
+				await asyncio.sleep(1)
+				hold += 1
 		return self._tasks
 
 	def _update_storage(self, fut):
 		for i in fut.result():
 			y = pd.DataFrame(i[1], index=[self._storage.index[i[0]]])
 			self._storage.update(y)
+			self._status.iloc[i[0]] = i[2] or 'done'
 
 	@property
 	def client(self):
@@ -72,14 +81,32 @@ class AsyncExperimentalDesign:
 	def results(self):
 		return self._storage.copy()
 
+	def status(self):
+		return self._status.copy()
+
 	def progress(self):
+		n_done = (self._status == 'done').sum()
+		n_queued = (self._status == 'queued').sum()
+		n_pending = (self._status == 'pending').sum()
+		n_total = len(self._status)
+		n_failed = n_total - n_done - n_queued - n_pending
+		message_part = []
+		if n_done:
+			message_part.append(f"{n_done} done")
+		if n_pending:
+			message_part.append(f"{n_pending} pending")
+		if n_queued:
+			message_part.append(f"{n_queued} queued")
+		if n_failed:
+			message_part.append(f"{n_failed} failed")
+		return f"{n_total} runs: " + ", ".join(message_part)
+
+	async def gather(self):
 		try:
 			_tasks = self._tasks
 		except AttributeError:
-			return f"0 of {len(self._storage)} runs complete"
-		completion = [i.done() for i in _tasks]
-		return f"{sum(completion)} of {len(self._storage)} runs complete"
-
+			return
+		await asyncio.gather(*_tasks)
 
 def asynchronous_experiments(
 		model,

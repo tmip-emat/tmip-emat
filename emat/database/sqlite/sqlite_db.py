@@ -210,8 +210,12 @@ class SQLiteDB(Database):
         with self.conn:
             cur = self.conn.cursor()
             cur.execute(qry)
-            cols = ([i[0] for i in cur.description])
-            df = pd.DataFrame(cur.fetchall(), columns=cols)
+            try:
+                cols = ([i[0] for i in cur.description])
+            except:
+                df = None
+            else:
+                df = pd.DataFrame(cur.fetchall(), columns=cols)
         return df
 
     def get_db_info(self):
@@ -584,7 +588,10 @@ class SQLiteDB(Database):
                 This can happen, for example, if the definition is incomplete.
         """
         scope_name = self._validate_scope(scope_name, 'design_name')
-        ex_id = self.read_experiment_id(scope_name, *args, **kwargs)
+        from ...exceptions import MissingIdWarning
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=MissingIdWarning)
+            ex_id = self.read_experiment_id(scope_name, *args, **kwargs)
         if ex_id is None:
             parameters = self.read_scope(scope_name).get_parameter_defaults()
             for a in args:
@@ -1516,7 +1523,7 @@ class SQLiteDB(Database):
             cur.execute("INSERT INTO ema_log(level, content) VALUES (?,?)", [level, str(message)])
         _logger.log(level, message)
 
-    def print_log(self, file=None, limit=20, order="DESC", level=logging.INFO):
+    def print_log(self, file=None, limit=20, order="DESC", level=logging.INFO, like=None):
         """
         Print logged messages from the SQLite database
 
@@ -1537,7 +1544,29 @@ class SQLiteDB(Database):
             raise ValueError("order must be ASC or DESC")
         if not isinstance(level, int):
             raise ValueError("level must be integer")
-        qry = f"SELECT datetime(timestamp, 'localtime'), content FROM ema_log WHERE level >= {level} ORDER BY timestamp {order}"
+        if like:
+            qry = f"""
+            SELECT
+                datetime(timestamp, 'localtime'), content 
+            FROM
+                ema_log 
+            WHERE
+                level >= {level} 
+                AND content LIKE '{like}'
+            ORDER BY
+                timestamp {order}, rowid {order}
+            """
+        else:
+            qry = f"""
+            SELECT
+                datetime(timestamp, 'localtime'), content 
+            FROM
+                ema_log 
+            WHERE
+                level >= {level} 
+            ORDER BY
+                timestamp {order}, rowid {order}
+            """
         if limit is not None:
             qry += f" LIMIT {limit}"
         with self.conn:
@@ -1559,6 +1588,7 @@ class SQLiteDB(Database):
 
         """
         assert isinstance(other, Database)
+        from ...util.deduplicate import count_diff_rows
         for scope_name in other.read_scope_names():
             if scope_name in self.read_scope_names():
                 scope_self = self.read_scope(scope_name)
@@ -1600,6 +1630,7 @@ class SQLiteDB(Database):
                                 experiment_id_map = pd.Series(data=xl_df_self.index, index=xl_df.index)
                         if not design_match:
                             # transfer parameters
+                            self.log(f"experiment parameters updates for {scope_name}/{design_name}")
                             self.write_experiment_parameters(scope_name, proposed_design_name, xl_df)
                         sources = other.read_experiment_measure_sources(scope_name, design_name)
                         # transfer measures
@@ -1611,6 +1642,9 @@ class SQLiteDB(Database):
                                 if experiment_id_map is not None:
                                     m_df1.index = m_df1.index.map(experiment_id_map)
                                 m_df = m_df0.combine_first(m_df1)
+                                n_diffs = count_diff_rows(m_df, m_df0)
+                                if n_diffs:
+                                    self.log(f"experiment measures {n_diffs} updates for {scope_name}/{design_name}")
                                 self.write_experiment_measures(scope_name, 0, m_df)
                             else: # source is not core model, just copy
                                 m_df = other.read_experiment_measures(scope_name, design_name, source=source)

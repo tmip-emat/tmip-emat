@@ -57,3 +57,9 @@ def reindex_duplicates(df, subset=None):
 
 	first_ids = df.index[uids[1][uids[2]]]
 	return df._constructor(data=df.to_numpy(), index=first_ids, columns=df.columns)
+
+
+def count_diff_rows(df_a, df_b):
+	df_a_ = df_a.reindex(df_b.index)
+	df_b_ = df_b.reindex(df_a_.index)
+	return (~((df_a_.eq(df_b_) | (df_a_.isna() & df_b_.isna())).all(axis=1))).sum()

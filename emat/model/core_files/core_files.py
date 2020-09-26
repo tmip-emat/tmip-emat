@@ -3,7 +3,7 @@
 from typing import List, Union, Mapping, Dict, Tuple, Callable
 import yaml
 import os, sys, time
-from shutil import copyfile, copy
+import shutil
 import glob
 import numpy as np
 import pandas as pd
@@ -28,7 +28,7 @@ def copy_model_outputs_1(
 		remote_repository,
 		file
 ):
-	copyfile(
+	shutil.copyfile(
 		os.path.join(local_model, "Outputs", file),
 		os.path.join(remote_repository, "Outputs", file)
 	)
@@ -237,6 +237,13 @@ class FilesCoreModel(AbstractCoreModel):
 	def model_init(self, policy):
 		super().model_init(policy)
 
+	def enter_run_model(self):
+		"""A hook for actions at the very beginning of the run_model step."""
+		print("enter_run_model")
+
+	def exit_run_model(self):
+		"""A hook for actions at the very end of the run_model step."""
+
 	def run_model(self, scenario, policy):
 		"""
 		Runs an experiment through core model.
@@ -287,144 +294,149 @@ class FilesCoreModel(AbstractCoreModel):
 				this type.
 
 		"""
-		self.comment_on_run = None
-
-		_logger.debug("run_core_model read_experiment_parameters")
-
-		experiment_id = policy.get("_experiment_id_", None)
-		if experiment_id is None:
-			experiment_id = scenario.get("_experiment_id_", None)
-
-		if not hasattr(self, 'db') and hasattr(self, '_db'):
-			self.db = self._db
-
-		# If running a core files model using the DistributedEvaluator,
-		# the workers won't have access to the DB directly, so we'll only
-		# run the short-circuit test and the ad-hoc write-to-database
-		# section of this code if the `db` attribute is available.
-		if hasattr(self, 'db') and self.db is not None:
-
-			assert isinstance(self.db, Database)
-
-			if experiment_id is None:
-				experiment_id = self.db.read_experiment_id(self.scope.name, scenario, policy)
-
-			if experiment_id is not None and self.allow_short_circuit:
-				# opportunity to short-circuit run by loading pre-computed values.
-				precomputed = self.db.read_experiment_measures(
-					self.scope.name,
-					design_name=None,
-					experiment_id=experiment_id,
-				)
-				if not precomputed.empty:
-					self.outcomes_output = dict(precomputed.iloc[0])
-					return
-
-			if experiment_id is None:
-				experiment_id = self.db.write_experiment_parameters_1(
-					self.scope.name, 'ad hoc', scenario, policy
-				)
-
-		xl = {}
-		xl.update(scenario)
-		xl.update(policy)
-
-		m_names = self.scope.get_measure_names()
-
-		_logger.debug(f"run_core_model setup {experiment_id}")
-		self.setup(xl)
-
-		if self.success_indicator is not None:
-			success_indicator = os.path.join(self.resolved_model_path, self.success_indicator)
-			if os.path.exists(success_indicator):
-				os.remove(success_indicator)
-		else:
-			success_indicator = None
-
-		if self.killed_indicator is not None:
-			killed_indicator = os.path.join(self.resolved_model_path, self.killed_indicator)
-			if os.path.exists(killed_indicator):
-				os.remove(killed_indicator)
-		else:
-			killed_indicator = None
-
-		_logger.debug(f"run_core_model run {experiment_id}")
+		self.enter_run_model()
 		try:
-			self.run()
-		except subprocess.CalledProcessError as err:
-			_logger.error(f"ERROR in run_core_model run {experiment_id}: {str(err)}")
+			self.comment_on_run = None
+
+			_logger.debug("run_core_model read_experiment_parameters")
+
+			experiment_id = policy.get("_experiment_id_", None)
+			if experiment_id is None:
+				experiment_id = scenario.get("_experiment_id_", None)
+
+			if not hasattr(self, 'db') and hasattr(self, '_db'):
+				self.db = self._db
+
+			# If running a core files model using the DistributedEvaluator,
+			# the workers won't have access to the DB directly, so we'll only
+			# run the short-circuit test and the ad-hoc write-to-database
+			# section of this code if the `db` attribute is available.
+			if hasattr(self, 'db') and self.db is not None:
+
+				assert isinstance(self.db, Database)
+
+				if experiment_id is None:
+					experiment_id = self.db.read_experiment_id(self.scope.name, scenario, policy)
+
+				if experiment_id is not None and self.allow_short_circuit:
+					# opportunity to short-circuit run by loading pre-computed values.
+					precomputed = self.db.read_experiment_measures(
+						self.scope.name,
+						design_name=None,
+						experiment_id=experiment_id,
+					)
+					if not precomputed.empty:
+						self.outcomes_output = dict(precomputed.iloc[0])
+						self.log(f"short circuit experiment_id {experiment_id} / {getattr(self, 'uid', 'no uid')}")
+						return
+
+				if experiment_id is None:
+					experiment_id = self.db.write_experiment_parameters_1(
+						self.scope.name, 'ad hoc', scenario, policy
+					)
+
+			xl = {}
+			xl.update(scenario)
+			xl.update(policy)
+
+			m_names = self.scope.get_measure_names()
+
+			_logger.debug(f"run_core_model setup {experiment_id}")
+			self.setup(xl)
+
+			if self.success_indicator is not None:
+				success_indicator = os.path.join(self.resolved_model_path, self.success_indicator)
+				if os.path.exists(success_indicator):
+					os.remove(success_indicator)
+			else:
+				success_indicator = None
+
+			if self.killed_indicator is not None:
+				killed_indicator = os.path.join(self.resolved_model_path, self.killed_indicator)
+				if os.path.exists(killed_indicator):
+					os.remove(killed_indicator)
+			else:
+				killed_indicator = None
+
+			_logger.debug(f"run_core_model run {experiment_id}")
 			try:
-				ex_archive_path = self.get_experiment_archive_path(experiment_id, makedirs=True)
+				self.run()
+			except subprocess.CalledProcessError as err:
+				_logger.error(f"ERROR in run_core_model run {experiment_id}: {str(err)}")
+				try:
+					ex_archive_path = self.get_experiment_archive_path(experiment_id, makedirs=True)
+				except MissingArchivePathError:
+					pass
+				else:
+					if err.stdout:
+						with open(os.path.join(ex_archive_path, 'error.stdout.log'), 'ab') as stdout:
+							stdout.write(err.stdout)
+					if err.stderr:
+						with open(os.path.join(ex_archive_path, 'error.stderr.log'), 'ab') as stderr:
+							stderr.write(err.stderr)
+					with open(os.path.join(ex_archive_path, 'error.log'), 'a') as errlog:
+						errlog.write(str(err))
+				measures_dictionary = {name:np.nan for name in m_names}
+				# Assign to outcomes_output, for ema_workbench compatibility
+				self.outcomes_output = measures_dictionary
+
+				if not self.ignore_crash:
+					# If 'ignore_crash' is False (the default), then abort now and skip
+					# any post-processing and other archiving steps, which will
+					# probably fail anyway.
+					self.log(f"run_core_model ABORT {experiment_id}", level=logging.ERROR)
+					self.comment_on_run = f"FAILED EXPERIMENT {experiment_id}: {str(err)}"
+					return
+				else:
+					_logger.error(f"run_core_model CONTINUE AFTER ERROR {experiment_id}")
+
+			try:
+				if success_indicator and not os.path.exists(success_indicator):
+					# The absence of the `success_indicator` file means that the model
+					# did not actually terminate correctly, so we do not want to
+					# post-process or store these results in the database.
+					self.comment_on_run = f"NON-SUCCESSFUL EXPERIMENT {experiment_id}: success_indicator missing"
+					raise ValueError(f"success_indicator missing: {success_indicator}")
+
+				if killed_indicator and os.path.exists(killed_indicator):
+					self.comment_on_run = f"KILLED EXPERIMENT {experiment_id}: killed_indicator present"
+					raise ValueError(f"killed_indicator present: {killed_indicator}")
+
+				_logger.debug(f"run_core_model post_process {experiment_id}")
+				self.post_process(xl, m_names)
+
+				_logger.debug(f"run_core_model wrap up {experiment_id}")
+				measures_dictionary = self.load_measures(m_names)
+				m_df = pd.DataFrame(measures_dictionary, index=[experiment_id])
+
+				# Assign to outcomes_output instead of returning them, for ema_workbench compatibility
+				self.outcomes_output = measures_dictionary
+			except KeyboardInterrupt:
+				_logger.exception(f"KeyboardInterrupt in post_process, load_measures or outcome processing {experiment_id}")
+				raise
+			except Exception as err:
+				_logger.exception(f"error in post_process, load_measures or outcome processing {experiment_id}")
+				_logger.error(f"proceeding directly to archive attempt {experiment_id}")
+				if not self.comment_on_run:
+					self.comment_on_run = f"PROBLEM IN EXPERIMENT {experiment_id}: {str(err)}"
+			else:
+				# only write to database if there was no error in post_process, load_measures or outcome processing
+				_logger.debug(f"run_core_model write db {experiment_id}")
+				if hasattr(self, 'db') and self.db is not None:
+					try:
+						self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df)
+					except Exception as err:
+						_logger.exception(f"error in writing results to database: {str(err)}")
+
+			try:
+				ex_archive_path = self.get_experiment_archive_path(experiment_id)
 			except MissingArchivePathError:
 				pass
 			else:
-				if err.stdout:
-					with open(os.path.join(ex_archive_path, 'error.stdout.log'), 'ab') as stdout:
-						stdout.write(err.stdout)
-				if err.stderr:
-					with open(os.path.join(ex_archive_path, 'error.stderr.log'), 'ab') as stderr:
-						stderr.write(err.stderr)
-				with open(os.path.join(ex_archive_path, 'error.log'), 'a') as errlog:
-					errlog.write(str(err))
-			measures_dictionary = {name:np.nan for name in m_names}
-			# Assign to outcomes_output, for ema_workbench compatibility
-			self.outcomes_output = measures_dictionary
-
-			if not self.ignore_crash:
-				# If 'ignore_crash' is False (the default), then abort now and skip
-				# any post-processing and other archiving steps, which will
-				# probably fail anyway.
-				self.log(f"run_core_model ABORT {experiment_id}", level=logging.ERROR)
-				self.comment_on_run = f"FAILED EXPERIMENT {experiment_id}: {str(err)}"
-				return
-			else:
-				_logger.error(f"run_core_model CONTINUE AFTER ERROR {experiment_id}")
-
-		try:
-			if success_indicator and not os.path.exists(success_indicator):
-				# The absence of the `success_indicator` file means that the model
-				# did not actually terminate correctly, so we do not want to
-				# post-process or store these results in the database.
-				self.comment_on_run = f"NON-SUCCESSFUL EXPERIMENT {experiment_id}: success_indicator missing"
-				raise ValueError(f"success_indicator missing: {success_indicator}")
-
-			if killed_indicator and os.path.exists(killed_indicator):
-				self.comment_on_run = f"KILLED EXPERIMENT {experiment_id}: killed_indicator present"
-				raise ValueError(f"killed_indicator present: {killed_indicator}")
-
-			_logger.debug(f"run_core_model post_process {experiment_id}")
-			self.post_process(xl, m_names)
-
-			_logger.debug(f"run_core_model wrap up {experiment_id}")
-			measures_dictionary = self.load_measures(m_names)
-			m_df = pd.DataFrame(measures_dictionary, index=[experiment_id])
-
-			# Assign to outcomes_output instead of returning them, for ema_workbench compatibility
-			self.outcomes_output = measures_dictionary
-		except KeyboardInterrupt:
-			_logger.exception(f"KeyboardInterrupt in post_process, load_measures or outcome processing {experiment_id}")
-			raise
-		except Exception as err:
-			_logger.exception(f"error in post_process, load_measures or outcome processing {experiment_id}")
-			_logger.error(f"proceeding directly to archive attempt {experiment_id}")
-			if not self.comment_on_run:
-				self.comment_on_run = f"PROBLEM IN EXPERIMENT {experiment_id}: {str(err)}"
-		else:
-			# only write to database if there was no error in post_process, load_measures or outcome processing
-			_logger.debug(f"run_core_model write db {experiment_id}")
-			if hasattr(self, 'db') and self.db is not None:
-				try:
-					self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df)
-				except Exception as err:
-					_logger.exception(f"error in writing results to database: {str(err)}")
-
-		try:
-			ex_archive_path = self.get_experiment_archive_path(experiment_id)
-		except MissingArchivePathError:
-			pass
-		else:
-			_logger.debug(f"run_core_model archive {experiment_id}")
-			self.archive(xl, ex_archive_path, experiment_id)
+				_logger.debug(f"run_core_model archive {experiment_id}")
+				self.archive(xl, ex_archive_path, experiment_id)
+		finally:
+			self.exit_run_model()
 
 	@copydoc(AbstractCoreModel.get_experiment_archive_path)
 	def get_experiment_archive_path(self, experiment_id=None, makedirs=False, parameters=None):
@@ -445,11 +457,86 @@ class FilesCoreModel(AbstractCoreModel):
 			os.makedirs(mod_results_path, exist_ok=True)
 		return mod_results_path
 
-	def setup(self, params: dict):
+	def setup(self, params):
+		"""
+		Configure the core model with the experiment variable values.
+
+		This method is the place where the core model set up takes place,
+		including creating or modifying files as necessary to prepare
+		for a core model run.  When running experiments, this method
+		is called once for each core model experiment, where each experiment
+		is defined by a set of particular values for both the exogenous
+		uncertainties and the policy levers.  These values are passed to
+		the experiment only here, and not in the `run` method itself.
+		This facilitates debugging, as the `setup` method can potentially
+		be used without the `run` method, allowing the user to manually
+		inspect the prepared files and ensure they are correct before
+		actually running a potentially expensive model.
+
+		Each input exogenous uncertainty or policy lever can potentially
+		be used to manipulate multiple different aspects of the underlying
+		core model.  For example, a policy lever that includes a number of
+		discrete future network "build" options might trigger the replacement
+		of multiple related network definition files.  Or, a single uncertainty
+		relating to the cost of fuel might scale both a parameter linked to
+		the modeled per-mile cost of operating an automobile, as well as the
+		modeled total cost of fuel used by transit services.
+
+		At the end of the `setup` method, a core model experiment should be
+		ready to run using the `run` method.
+
+		Classes derived from `FilesCoreModel` do not necessarily need to
+		call `super().setup(params)`, but may find it convenient to do so,
+		as this implementation provides some standard functionality,
+		including validation of parameter names, managing existing
+		archive directories, and logging the start time to the archive.
+
+		Args:
+			params (dict):
+				experiment variables including both exogenous
+				uncertainty and policy levers
+
+		Raises:
+			KeyError:
+				if a defined experiment variable is not supported
+				by the core model
+		"""
+		# If the model has a uid set, make it available for logging.
+		uid = getattr(self, 'uid', '')
+
+		# Validate parameter names
 		scope_param_names = set(self.scope.get_parameter_names())
 		for key in params.keys():
 			if key not in scope_param_names:
+				self.log(
+					f"SETUP ERROR: '{key}' not found in scope parameters {uid}",
+					level=logging.ERROR,
+				)
 				raise KeyError(f"'{key}' not found in scope parameters")
+
+		# Get the experiment_id if stored
+		experiment_id = getattr(self, 'experiment_id', None)
+		db = getattr(self, 'db', None)
+		if db is not None:
+			experiment_id = db.get_experiment_id(self.scope.name, params)
+
+		# Rename any existing archive directories
+		if experiment_id is not None:
+			orig_archive = self.get_experiment_archive_path(experiment_id)
+			if os.path.exists(orig_archive):
+				n = 1
+				orig_archive = orig_archive.rstrip(os.path.sep)
+				dirpath, basepath = os.path.split(orig_archive)
+				new_archive = os.path.normpath(os.path.join(dirpath, f"{basepath}_OLD_{n}"))
+				while os.path.exists(new_archive):
+					n += 1
+					new_archive = os.path.normpath(os.path.join(dirpath, f"{basepath}_OLD_{n}"))
+				shutil.move(orig_archive, new_archive)
+			os.makedirs(orig_archive, exist_ok=True)
+			with open(os.path.join(orig_archive, "_emat_start_.log"), 'at') as f:
+				f.write("Starting model run at {0}\n".format(time.strftime("%Y-%m-%d %H:%M:%S")))
+				if uid is not None:
+					f.write(f"uid = {uid}\n")
 
 	@copydoc(AbstractCoreModel.load_measures)
 	def load_measures(
