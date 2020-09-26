@@ -41,3 +41,12 @@ class DatabaseVersionWarning(Warning):
 
 class DatabaseVersionError(Exception):
 	"""The database requires a more recent version of emat."""
+
+
+class MissingMeasuresWarning(Warning):
+	"""Some experiments have performance measures that are missing."""
+
+
+class MissingMeasuresError(ValueError):
+	"""Some experiments have performance measures that are missing."""
+
