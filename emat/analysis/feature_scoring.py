@@ -7,6 +7,7 @@ from ..workbench.analysis import feature_scoring
 from ..viz import heatmap_table
 from ..scope.box import Box
 from ..util.arg_processing import design_check
+from ..exceptions import MissingMeasuresWarning, MissingMeasuresError
 
 
 def feature_scores(
@@ -60,11 +61,18 @@ def feature_scores(
 	# Remove experiments that have no outcomes in any dimension
 	missing_outcomes_experiments = outcomes.isna().all(axis=1)
 	if missing_outcomes_experiments.any():
+		n_missing = missing_outcomes_experiments.sum()
+		if n_missing == len(outcomes):
+			raise MissingMeasuresError(
+				f"All {n_missing} experiments have no outcomes",
+			)
 		inputs = inputs[~missing_outcomes_experiments]
 		outcomes = outcomes[~missing_outcomes_experiments]
 		warnings.warn(
-			f"There are {missing_outcomes_experiments.sum()} "
-			f"experiments with no outcomes, ignoring them"
+			f"There are {n_missing} experiments "
+			f"with no outcomes, ignoring them",
+			stacklevel=2,
+			category=MissingMeasuresWarning,
 		)
 
 	# prepare to remove input columns with NaN's
