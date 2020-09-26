@@ -2,6 +2,7 @@
 import seaborn as sns
 import pandas
 import numpy
+import warnings
 from ..workbench.analysis import feature_scoring
 from ..viz import heatmap_table
 from ..scope.box import Box
@@ -55,6 +56,16 @@ def feature_scores(
 	# Split design into inputs and outcomes
 	inputs = design[[c for c in design.columns if c in scope.get_parameter_names()]]
 	outcomes = design[[c for c in design.columns if c in scope.get_measure_names()]]
+
+	# Remove experiments that have no outcomes in any dimension
+	missing_outcomes_experiments = outcomes.isna().all(axis=1)
+	if missing_outcomes_experiments.any():
+		inputs = inputs[~missing_outcomes_experiments]
+		outcomes = outcomes[~missing_outcomes_experiments]
+		warnings.warn(
+			f"There are {missing_outcomes_experiments.sum()} "
+			f"experiments with no outcomes, ignoring them"
+		)
 
 	# prepare to remove input columns with NaN's
 	drop_inputs = list(inputs.columns[pandas.isna(inputs).sum()>0])
