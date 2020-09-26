@@ -491,7 +491,14 @@ class MetaModel:
         return result
 
 
-    def cross_val_scores(self, cv=5, gpr_only=False, **kwargs):
+    def cross_val_scores(
+            self,
+            cv=5,
+            gpr_only=False,
+            use_cache=True,
+            return_type='styled',
+            **kwargs,
+    ):
         """
         Calculate the cross validation scores for this meta-model.
 
@@ -503,21 +510,65 @@ class MetaModel:
                 to measure the improvement in meta-model fit from
                 using the GPR-based meta-model, over and above
                 using the linear regression meta-model alone.)
+            use_cache (bool, default True): Use cached cross
+                validation results if available.  All other arguments
+                are ignored if a cached results if available.
+            return_type ({'styled', 'raw'}):  How to return the
+                results.
 
         Returns:
             pandas.Series: The cross-validation scores, by output.
 
         """
-        if self.sample_stratification is not None:
-            from ..learn.splits import ExogenouslyStratifiedKFold
-            cv = ExogenouslyStratifiedKFold(exo_data=self.sample_stratification, n_splits=cv)
+        result = None
+        if use_cache:
+            cached_value = getattr(self, '_cv_cache', None)
+            if cached_value is not None:
+                result = cached_value
 
-        if gpr_only:
-            raise NotImplementedError
-            # residuals = self.regression.residual_predict(self.input_sample)
-            # regression = multitarget.MultipleTargetRegression()
-            # return regression.cross_val_scores(self.input_sample, residuals, cv=cv)
-        return self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv, **kwargs)
+        if result is None:
+            if self.sample_stratification is not None:
+                from ..learn.splits import ExogenouslyStratifiedKFold
+                cv = ExogenouslyStratifiedKFold(exo_data=self.sample_stratification, n_splits=cv)
+
+            if gpr_only:
+                raise NotImplementedError
+                # residuals = self.regression.residual_predict(self.input_sample)
+                # regression = multitarget.MultipleTargetRegression()
+                # return regression.cross_val_scores(self.input_sample, residuals, cv=cv)
+            result = self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv, **kwargs)
+            result.name = "Cross Validation Score"
+
+        if use_cache:
+            self._cv_cache = result
+
+        if return_type == 'styled':
+            def _color(val):
+                """
+                Takes a scalar and returns a string with
+                the css property `'color: xxx'` for certain
+                values, black otherwise.
+                """
+                bgcolor = ''
+                if val == 'bad':
+                    return 'background-color: red'
+                if val < 0.75:
+                    bgcolor = 'yellow'
+                if val < 0.50:
+                    bgcolor = 'orange'
+                if val < 0.25:
+                    bgcolor = 'red'
+                if bgcolor:
+                    return 'background-color: %s' % bgcolor
+                return ''
+            def _fmt(val):
+                if val < -2:
+                    return "bad"
+                return "{:.4f}".format(val)
+
+            return pandas.DataFrame(result).style.applymap(_color).format(_fmt)
+
+        return result
 
     def cross_val_predicts(self, cv=5):
         """
