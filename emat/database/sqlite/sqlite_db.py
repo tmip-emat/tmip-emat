@@ -1574,7 +1574,7 @@ class SQLiteDB(Database):
             for row in cur.execute(qry):
                 print(" - ".join(row), file=file)
 
-    def merge_database(self, other):
+    def merge_database(self, other, force=False, dryrun=False):
         """
         Merge results from another database.
 
@@ -1585,67 +1585,101 @@ class SQLiteDB(Database):
         Args:
             other (emat.Database):
                 The other database from which to draw data.
+            force (bool, default False):
+                By default, database results are merged only
+                when the scopes match exactly between the current
+                and `other` database files.  Setting `force` to
+                `True` will merge results from the `other`
+                database file as long as the scope names match,
+                the names of the the scoped parameters match,
+                and there is some overlap in the names of the
+                scoped performance measures.
+            dryrun (bool, default False):
+                Allows a dry run of the merge, to check how many
+                experiments would be merged, without actually
+                importing any data into the current database.
 
         """
         assert isinstance(other, Database)
         from ...util.deduplicate import count_diff_rows
         for scope_name in other.read_scope_names():
-            if scope_name in self.read_scope_names():
-                scope_self = self.read_scope(scope_name)
-                scope_other = other.read_scope(scope_name)
-                if scope_self == scope_other:
+            if scope_name not in self.read_scope_names():
+                self.log(f"not merging scope name {scope_name}, name does not match current database")
+                continue
+            scope_self = self.read_scope(scope_name)
+            scope_other = other.read_scope(scope_name)
+            if force:
+                # Force merge if parameter names match, and there are some measures in common
+                if set(scope_self.get_parameter_names()) != set(scope_other.get_parameter_names()):
+                    self.log(f"not merging scope name {scope_name}, parameter names do not match current database")
+                    continue
+                common_measure_names = list(set(scope_self.get_measure_names()) & set(scope_other.get_measure_names()))
+                if len(common_measure_names) == 0:
+                    self.log(f"not merging scope name {scope_name}, measure names do not overlap current database")
+                    continue
+            else:
+                # Unforced merge only when scopes are identical
+                if scope_self != scope_other:
+                    self.log(f"not merging scope name {scope_name}, content does not match current database")
+                    continue
+                common_measure_names = scope_self.get_measure_names()
 
-                    # transfer metamodels
-                    source_mapping = {}
-                    other_metamodel_ids = other.read_metamodel_ids(scope_name)
-                    for other_metamodel_id in other_metamodel_ids:
-                        other_metamodel = other.read_metamodel(scope_name, other_metamodel_id)
-                        new_id = self.get_new_metamodel_id(scope_name)
-                        other_metamodel.metamodel_id = new_id
-                        self.write_metamodel(
-                            scope_name,
-                            metamodel=other_metamodel,
-                            metamodel_id=new_id,
-                        )
-                        source_mapping[other_metamodel_id] = new_id
+            self.log(f"merging scope name {scope_name}")
 
-                    # transfer experiments
-                    design_names = other.read_design_names(scope_name)
-                    for design_name in design_names:
-                        xl_df = other.read_experiment_parameters(scope_name, design_name)
-                        proposed_design_name = design_name
-                        design_match = False
-                        experiment_id_map = None
-                        if proposed_design_name in self.read_design_names(scope_name):
-                            xl_df_self = self.read_experiment_parameters(scope_name, design_name)
-                            if not xl_df.reset_index(drop=True).equals(
-                                    xl_df_self.reset_index(drop=True)
-                            ):
-                                n = 2
-                                while proposed_design_name in self.read_design_names(scope_name):
-                                    proposed_design_name = f"{design_name}_{n}"
-                                    n += 1
-                            else:
-                                design_match = True
-                                experiment_id_map = pd.Series(data=xl_df_self.index, index=xl_df.index)
-                        if not design_match:
-                            # transfer parameters
-                            self.log(f"experiment parameters updates for {scope_name}/{design_name}")
-                            self.write_experiment_parameters(scope_name, proposed_design_name, xl_df)
-                        sources = other.read_experiment_measure_sources(scope_name, design_name)
-                        # transfer measures
-                        for source in sources:
-                            if source == 0:
-                                # source is core model, make updates but do not overwrite non-null values
-                                m_df0 = self.read_experiment_measures(scope_name, design_name, source=source)
-                                m_df1 = other.read_experiment_measures(scope_name, design_name, source=source)
-                                if experiment_id_map is not None:
-                                    m_df1.index = m_df1.index.map(experiment_id_map)
-                                m_df = m_df0.combine_first(m_df1)
-                                n_diffs = count_diff_rows(m_df, m_df0)
-                                if n_diffs:
-                                    self.log(f"experiment measures {n_diffs} updates for {scope_name}/{design_name}")
-                                self.write_experiment_measures(scope_name, 0, m_df)
-                            else: # source is not core model, just copy
-                                m_df = other.read_experiment_measures(scope_name, design_name, source=source)
-                                self.write_experiment_measures(scope_name, source_mapping[source], m_df)
+            # transfer metamodels
+            source_mapping = {}
+            other_metamodel_ids = other.read_metamodel_ids(scope_name)
+            for other_metamodel_id in other_metamodel_ids:
+                other_metamodel = other.read_metamodel(scope_name, other_metamodel_id)
+                new_id = self.get_new_metamodel_id(scope_name)
+                other_metamodel.metamodel_id = new_id
+                if not dryrun:
+                    self.write_metamodel(
+                        scope_name,
+                        metamodel=other_metamodel,
+                        metamodel_id=new_id,
+                    )
+                source_mapping[other_metamodel_id] = new_id
+
+            # transfer experiments
+            design_names = other.read_design_names(scope_name)
+            for design_name in design_names:
+                xl_df = other.read_experiment_parameters(scope_name, design_name)
+                proposed_design_name = design_name
+                design_match = False
+                experiment_id_map = None
+                if proposed_design_name in self.read_design_names(scope_name):
+                    xl_df_self = self.read_experiment_parameters(scope_name, design_name)
+                    if not xl_df.reset_index(drop=True).equals(
+                            xl_df_self.reset_index(drop=True)
+                    ):
+                        n = 2
+                        while proposed_design_name in self.read_design_names(scope_name):
+                            proposed_design_name = f"{design_name}_{n}"
+                            n += 1
+                    else:
+                        design_match = True
+                        experiment_id_map = pd.Series(data=xl_df_self.index, index=xl_df.index)
+                if not design_match:
+                    # transfer parameters
+                    self.log(f"experiment parameters updates for {scope_name}/{design_name}")
+                    if not dryrun:
+                        self.write_experiment_parameters(scope_name, proposed_design_name, xl_df)
+                sources = other.read_experiment_measure_sources(scope_name, design_name)
+                # transfer measures
+                for source in sources:
+                    if source == 0:
+                        # source is core model, make updates but do not overwrite non-null values
+                        m_df0 = self.read_experiment_measures(scope_name, design_name, source=source)
+                        m_df1 = other.read_experiment_measures(scope_name, design_name, source=source)[common_measure_names]
+                        if experiment_id_map is not None:
+                            m_df1.index = m_df1.index.map(experiment_id_map)
+                        m_df = m_df0.combine_first(m_df1)
+                        n_diffs = count_diff_rows(m_df, m_df0)
+                        self.log(f"experiment measures {n_diffs} updates for {scope_name}/{design_name}")
+                        if not dryrun:
+                            self.write_experiment_measures(scope_name, 0, m_df)
+                    else: # source is not core model, just copy
+                        m_df = other.read_experiment_measures(scope_name, design_name, source=source)[common_measure_names]
+                        if not dryrun:
+                            self.write_experiment_measures(scope_name, source_mapping[source], m_df)
