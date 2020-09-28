@@ -1254,6 +1254,32 @@ class SQLiteDB(Database):
             cur.execute(sq.DELETE_DESIGN_EXPERIMENTS, [scope_name, design_name])
             cur.execute(sq.DELETE_LOOSE_EXPERIMENTS, [scope_name,])
 
+    def delete_experiment_measures(
+            self,
+            experiment_ids=None,
+    ):
+        """
+        Delete experiment performance measure results.
+
+        The method removes only the performance measures, not the
+        parameters.  This can be useful if a set of corrupted model
+        results was stored in the database.
+
+        Args:
+            experiment_ids (Collection, optional):
+                A collection of experiment id's for which measures shall
+                be deleted.  Note that no scope or design are given here,
+                experiments must be individually identified.
+
+        """
+        with self.conn:
+            cur = self.conn.cursor()
+            bindings = ",".join( ["?"] * len(experiment_ids) )
+            cur.execute(
+                sq.DELETE_MEASURES_BY_EXPERIMENT_ID.replace('?',bindings),
+                experiment_ids,
+            )
+
     def write_experiment_all(
             self,
             scope_name,

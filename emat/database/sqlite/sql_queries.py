@@ -144,6 +144,12 @@ DELETE_LOOSE_EXPERIMENTS = '''
     )
 '''
 
+DELETE_MEASURES_BY_EXPERIMENT_ID = '''
+    DELETE FROM main.ema_experiment_measure
+    WHERE ema_experiment_measure.experiment_id IN (?)
+'''
+
+
 
 INSERT_EX_XL = (
     '''INSERT INTO ema_experiment_parameter( experiment_id, parameter_id, parameter_value )
@@ -327,13 +333,26 @@ GET_EXPERIMENT_PARAMETERS_AND_MEASURES_BYSOURCE = GET_EXPERIMENT_PARAMETERS_AND_
 
 
 GET_EXPERIMENT_MEASURES = '''
-    SELECT ede.experiment_id, ema_measure.name, measure_value
-            FROM ema_experiment_measure eem JOIN ema_measure on eem.measure_id = ema_measure.rowid
-            JOIN ema_experiment ee ON eem.experiment_id = ee.rowid
-            JOIN ema_scope es on ee.scope_id = es.rowid
-            JOIN ema_design_experiment ede ON ee.rowid = ede.experiment_id
-            JOIN ema_design ed ON (es.rowid = ed.scope_id AND ed.rowid = ede.design_id)
-            WHERE es.name =?1 and ed.design = ?2 AND measure_value IS NOT NULL
+    SELECT 
+        ede.experiment_id, 
+        ema_measure.name, 
+        measure_value
+    FROM 
+        ema_experiment_measure eem 
+        JOIN ema_measure 
+            ON eem.measure_id = ema_measure.rowid
+        JOIN ema_experiment ee 
+            ON eem.experiment_id = ee.rowid
+        JOIN ema_scope es 
+            ON ee.scope_id = es.rowid
+        JOIN ema_design_experiment ede 
+            ON ee.rowid = ede.experiment_id
+        JOIN ema_design ed 
+            ON (es.rowid = ed.scope_id AND ed.rowid = ede.design_id)
+        WHERE 
+            es.name =?1 
+            AND ed.design = ?2 
+            AND measure_value IS NOT NULL
             /*source*/
 '''
 
@@ -364,11 +383,18 @@ GET_EX_XLM_ALL = (
             JOIN ema_scope s on ema_experiment.scope_id = s.rowid
             WHERE s.name =?1
     UNION
-    SELECT experiment_id, ema_measure.name, measure_value
-            FROM ema_experiment_measure JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
-            JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.rowid
-            JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-            WHERE s.name =?1
+    SELECT 
+        experiment_id, em.name, measure_value
+    FROM 
+        ema_experiment_measure eem
+        JOIN ema_measure em 
+            ON eem.measure_id = em.rowid
+        JOIN ema_experiment ee 
+            ON eem.experiment_id = ee.rowid
+        JOIN ema_scope s 
+            ON ee.scope_id = s.rowid
+        WHERE 
+            s.name =?1
     '''
     )
 
@@ -402,7 +428,7 @@ GET_EXPERIMENT_MEASURE_SOURCES_BY_DESIGN = GET_EXPERIMENT_MEASURE_SOURCES.replac
 ''')
 
 GET_EX_M_ALL = '''
-    SELECT 
+    SELECT DISTINCT
         experiment_id, 
         em.name, 
         measure_value
@@ -422,7 +448,7 @@ GET_EX_M_ALL = '''
 
 
 GET_EX_M_BY_ID_ALL = '''
-    SELECT 
+    SELECT DISTINCT
         experiment_id, 
         em.name, 
         measure_value
