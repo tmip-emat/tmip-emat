@@ -110,16 +110,6 @@ CREATE TABLE IF NOT EXISTS ema_design_experiment (
 );
 
 
-CREATE TABLE IF NOT EXISTS ema_duplicate_experiment (
-    rowid     INTEGER PRIMARY KEY AUTOINCREMENT,
-    scope_id  INT NOT NULL,
-    design    TEXT,
-    orig_id   INTEGER,
-
-    FOREIGN KEY (scope_id) REFERENCES ema_scope(rowid) ON DELETE CASCADE,
-    FOREIGN KEY (orig_id) REFERENCES ema_experiment(rowid) ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS ema_experiment_parameter (
     experiment_id      INT NOT NULL,
     parameter_id       INT NOT NULL,

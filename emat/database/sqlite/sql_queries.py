@@ -171,21 +171,6 @@ GET_EXPERIMENT_PARAMETERS = '''
         WHERE s.name =?1 and ed.design = ?2
 '''
 
-GET_EX_XL = (
-    '''SELECT experiment_id, ema_parameter.name, parameter_value
-            FROM ema_experiment_parameter JOIN ema_parameter on ema_experiment_parameter.parameter_id = ema_parameter.rowid
-            JOIN ema_experiment ON ema_experiment_parameter.experiment_id = ema_experiment.rowid
-            JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-            WHERE s.name =?1 and ema_experiment.design = ?2
-        UNION ALL
-        SELECT experiment_id, ema_parameter.name, parameter_value
-            FROM ema_experiment_parameter JOIN ema_parameter on ema_experiment_parameter.parameter_id = ema_parameter.rowid
-            JOIN ema_duplicate_experiment ON ema_experiment_parameter.experiment_id = ema_duplicate_experiment.orig_id
-            JOIN ema_scope s on ema_duplicate_experiment.scope_id = s.rowid
-            WHERE s.name =?1 and ema_duplicate_experiment.design = ?2;
-    '''
-    )
-
 GET_EXPERIMENT_IDS_BY_VALUE = (
     '''SELECT experiment_id
             FROM ema_experiment_parameter JOIN ema_parameter on ema_experiment_parameter.parameter_id = ema_parameter.rowid
@@ -263,38 +248,6 @@ GET_PENDING_EXPERIMENT_PARAMETERS = '''
 '''
 
 
-GET_EX_XL_PENDING = (
-    '''SELECT experiment_id, ema_parameter.name, parameter_value
-            FROM ema_experiment_parameter 
-            JOIN ema_parameter ON ema_experiment_parameter.parameter_id = ema_parameter.rowid
-            JOIN ema_experiment ON ema_experiment_parameter.experiment_id = ema_experiment.rowid
-            JOIN ema_scope s ON ema_experiment.scope_id = s.rowid
-            WHERE s.name =?1 AND ema_experiment.design = ?2
-            AND experiment_id NOT IN (
-                SELECT ema_experiment_measure.experiment_id
-                FROM ema_experiment_measure 
-                JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
-                JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.rowid
-                JOIN ema_scope s on ema_experiment.scope_id = s.rowid
-                WHERE s.name =?1 AND ema_experiment.design = ?2
-            )
-        UNION ALL
-        SELECT experiment_id, ema_parameter.name, parameter_value
-            FROM ema_experiment_parameter 
-            JOIN ema_parameter ON ema_experiment_parameter.parameter_id = ema_parameter.rowid
-            JOIN ema_duplicate_experiment ON ema_experiment_parameter.experiment_id = ema_duplicate_experiment.orig_id
-            JOIN ema_scope s ON ema_duplicate_experiment.scope_id = s.rowid
-            WHERE s.name =?1 AND ema_duplicate_experiment.design = ?2
-            AND experiment_id NOT IN (
-                SELECT ema_experiment_measure.experiment_id
-                FROM ema_experiment_measure 
-                JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.rowid
-                JOIN ema_duplicate_experiment ON ema_experiment_measure.experiment_id = ema_duplicate_experiment.orig_id
-                JOIN ema_scope s on ema_duplicate_experiment.scope_id = s.rowid
-                WHERE s.name =?1 AND ema_duplicate_experiment.design = ?2
-            )
-    '''
-    )
 
 INSERT_EX_M = '''
     INSERT OR REPLACE INTO ema_experiment_measure ( experiment_id, measure_id, measure_value, measure_source )
