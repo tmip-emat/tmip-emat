@@ -60,6 +60,22 @@ def reindex_duplicates(df, subset=None):
 
 
 def count_diff_rows(df_a, df_b):
-	df_a_ = df_a.reindex(df_b.index)
-	df_b_ = df_b.reindex(df_a_.index)
-	return (~((df_a_.eq(df_b_) | (df_a_.isna() & df_b_.isna())).all(axis=1))).sum()
+	df_a_ = df_a.reindex(df_b.index) # only keep rows from a that match b
+	df_b_ = df_b.reindex(df_a_.index) # only keep rows from b that also match a
+	regular_equal = df_a_.eq(df_b_) # not true when both are nan
+	both_na = df_a_.isna() & df_b_.isna()
+	nan_equal = regular_equal | both_na
+	all_cols_nan_equal = nan_equal.all(axis=1)
+	return (~all_cols_nan_equal).sum() + len(df_a)-len(df_a_) + len(df_b)-len(df_b_)
+
+def report_diff_rows(df_a, df_b):
+	df_a_ = df_a.reindex(df_b.index) # only keep rows from a that match b
+	df_b_ = df_b.reindex(df_a_.index) # only keep rows from b that also match a
+	regular_equal = df_a_.eq(df_b_) # not true when both are nan
+	both_na = df_a_.isna() & df_b_.isna()
+	nan_equal = regular_equal | both_na
+	all_cols_nan_equal = nan_equal.all(axis=1)
+	changed_rows = set(all_cols_nan_equal.index[~all_cols_nan_equal])
+	removed_rows = set(df_a.index[~np.in1d(df_a.index, df_a_.index)])
+	added_rows = set(df_b.index[~np.in1d(df_b.index, df_b_.index)])
+	return sorted(changed_rows), sorted(removed_rows), sorted(added_rows)
