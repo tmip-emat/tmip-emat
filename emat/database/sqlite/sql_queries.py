@@ -121,6 +121,11 @@ INSERT_DESIGN_EXPERIMENT = '''
 
 '''
 
+NEW_EXPERIMENT_RUN = '''
+    INSERT INTO ema_experiment_run ( run_id, experiment_id, run_status, run_valid, run_location ) 
+    VALUES ( @run_id, @experiment_id, 'init', TRUE, @run_location )
+'''
+
 
 
 DELETE_DESIGN_EXPERIMENTS = '''
@@ -250,12 +255,23 @@ GET_PENDING_EXPERIMENT_PARAMETERS = '''
 
 
 INSERT_EX_M = '''
-    INSERT OR REPLACE INTO ema_experiment_measure ( experiment_id, measure_id, measure_value, measure_source )
+    INSERT OR REPLACE INTO ema_experiment_measure ( 
+        experiment_id, 
+        measure_id, 
+        measure_value, 
+        measure_source, 
+        measure_run )
     SELECT 
-        ?1, ema_measure.rowid, ?2, ?3 
+        @experiment_id, 
+        ema_measure.rowid, 
+        @measure_value, 
+        @measure_source, 
+        eer.ROWID
     FROM 
         ema_measure 
-    WHERE ema_measure.name = ?4
+        LEFT JOIN ema_experiment_run eer
+            ON eer.run_id = @measure_run
+    WHERE ema_measure.name = @measure_name
 '''
 
 
@@ -287,7 +303,7 @@ GET_EXPERIMENT_PARAMETERS_AND_MEASURES_BYSOURCE = GET_EXPERIMENT_PARAMETERS_AND_
 
 GET_EXPERIMENT_MEASURES = '''
     SELECT 
-        ede.experiment_id, 
+        eem.experiment_id, --index_type
         ema_measure.name, 
         measure_value
     FROM 
@@ -302,25 +318,43 @@ GET_EXPERIMENT_MEASURES = '''
             ON ee.rowid = ede.experiment_id
         JOIN ema_design ed 
             ON (es.rowid = ed.scope_id AND ed.rowid = ede.design_id)
+        LEFT JOIN ema_experiment_run eer
+            ON eer.ROWID = eem.measure_run
         WHERE 
-            es.name =?1 
-            AND ed.design = ?2 
+            es.name = @scope_name 
+            AND ed.design = @design_name
             AND measure_value IS NOT NULL
+            AND eer.run_valid IS NOT FALSE
             /*source*/
 '''
-
-GET_EXPERIMENT_MEASURES_BYSOURCE = GET_EXPERIMENT_MEASURES.replace('/*source*/', ' AND eem.measure_source =?3')
 
 
 
 GET_EXPERIMENT_MEASURES_BY_ID = '''
-    SELECT ede.experiment_id, ema_measure.name, measure_value
-            FROM ema_experiment_measure eem JOIN ema_measure on eem.measure_id = ema_measure.rowid
-            JOIN ema_experiment ee ON eem.experiment_id = ee.rowid
-            JOIN ema_scope es on ee.scope_id = es.rowid
-            JOIN ema_design_experiment ede ON ee.rowid = ede.experiment_id
-            JOIN ema_design ed ON (es.rowid = ed.scope_id AND ed.rowid = ede.design_id)
-            WHERE es.name =?1 and ed.design = ?2 AND eem.experiment_id = ?3 AND measure_value IS NOT NULL
+    SELECT 
+        eem.experiment_id, --index_type
+        ema_measure.name, 
+        measure_value
+    FROM 
+        ema_experiment_measure eem 
+        JOIN ema_measure 
+            ON eem.measure_id = ema_measure.rowid
+        JOIN ema_experiment ee 
+            ON eem.experiment_id = ee.rowid
+        JOIN ema_scope es 
+            ON ee.scope_id = es.rowid
+        JOIN ema_design_experiment ede 
+            ON ee.rowid = ede.experiment_id
+        JOIN ema_design ed 
+            ON (es.rowid = ed.scope_id AND ed.rowid = ede.design_id)
+        LEFT JOIN ema_experiment_run eer
+            ON eer.ROWID = eem.measure_run
+        WHERE 
+            es.name = @scope_name  
+            AND ed.design = @design_name 
+            AND eem.experiment_id = @experiment_id
+            AND measure_value IS NOT NULL
+            AND eer.run_valid IS NOT FALSE
             /*source*/
 '''
 
@@ -380,11 +414,11 @@ GET_EXPERIMENT_MEASURE_SOURCES_BY_DESIGN = GET_EXPERIMENT_MEASURE_SOURCES.replac
         AND ed.design = @design_name         
 ''')
 
-GET_EX_M_ALL = '''
+GET_EXPERIMENT_MEASURES_ALL = '''
     SELECT DISTINCT
-        experiment_id, 
+        eem.experiment_id, --index_type
         em.name, 
-        measure_value
+        eem.measure_value
     FROM 
         ema_experiment_measure eem
         JOIN ema_measure em
@@ -393,16 +427,19 @@ GET_EX_M_ALL = '''
             ON eem.experiment_id = ee.rowid
         JOIN ema_scope s 
             ON ee.scope_id = s.rowid
+        LEFT JOIN ema_experiment_run eer
+            ON eer.ROWID = eem.measure_run
         WHERE 
-            s.name = ?1 
-            AND measure_value IS NOT NULL
+            s.name = @scope_name 
+            AND eem.measure_value IS NOT NULL
+            AND eer.run_valid IS NOT FALSE
 '''
 
 
 
-GET_EX_M_BY_ID_ALL = '''
+GET_EXPERIMENT_MEASURES_BY_ID_ALL = '''
     SELECT DISTINCT
-        experiment_id, 
+        eem.experiment_id, --index_type
         em.name, 
         measure_value
     FROM 
@@ -413,10 +450,13 @@ GET_EX_M_BY_ID_ALL = '''
             ON eem.experiment_id = ee.rowid
         JOIN ema_scope s 
             ON ee.scope_id = s.rowid
+        LEFT JOIN ema_experiment_run eer
+            ON eer.ROWID = eem.measure_run
     WHERE 
-        s.name =?1 
-        AND experiment_id = ?2 
+        s.name = @scope_name 
+        AND experiment_id = @experiment_id 
         AND measure_value IS NOT NULL
+        AND eer.run_valid IS NOT FALSE
 '''
 
 CREATE_META_MODEL = (
@@ -762,7 +802,7 @@ SET_BOX_THRESHOLD_M = (
 )
 
 
-UPDATE_DATABASE = (
+UPDATE_DATABASE_ema_design_experiment = (
     '''
         INSERT OR IGNORE INTO ema_design ( scope_id, design )
         SELECT DISTINCT scope_id, design FROM ema_experiment;
@@ -773,6 +813,14 @@ UPDATE_DATABASE = (
         SELECT ema_experiment.rowid, ema_design.rowid
         FROM ema_experiment
         JOIN ema_design ON ema_design.design = ema_experiment.design;
+    ''',
+
+)
+
+UPDATE_DATABASE_ema_experiment_measure_ADD_measure_run = (
+    '''
+        ALTER TABLE ema_experiment_measure
+        ADD COLUMN measure_run UUID;
     ''',
 )
 

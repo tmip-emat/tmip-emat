@@ -12,6 +12,7 @@ import pandas as pd
 import warnings
 from typing import AbstractSet
 import numpy as np
+import uuid
 
 from . import sql_queries as sq
 from ..database import Database
@@ -121,14 +122,10 @@ class SQLiteDB(Database):
 
         # update old databases
         if 'design' in self._debug_query(table='ema_experiment')['name'].to_numpy():
-            if readonly:
-                raise DatabaseVersionError("cannot open or update an old database in readonly")
-            else:
-                warnings.warn(
-                    f"updating database file",
-                    category=DatabaseVersionWarning,
-                )
-                self.update_database()
+            self.update_database(sq.UPDATE_DATABASE_ema_design_experiment)
+
+        if 'measure_run' not in self._debug_query(table='ema_experiment_measure')['name'].to_numpy():
+            self.update_database(sq.UPDATE_DATABASE_ema_experiment_measure_ADD_measure_run)
 
         atexit.register(self.conn.close)
 
@@ -162,18 +159,27 @@ class SQLiteDB(Database):
 
         return conn
 
-    def update_database(self):
+    def update_database(self, queries, on_error='ignore'):
         """
         Update database for compatability with tmip-emat 0.4
         """
+        if self.readonly:
+            raise DatabaseVersionError("cannot open or update an old database in readonly")
+        else:
+            warnings.warn(
+                f"updating database file",
+                category=DatabaseVersionWarning,
+            )
         with self.conn:
             cur = self.conn.cursor()
-            for u in sq.UPDATE_DATABASE:
+            for u in queries:
                 try:
                     cur.execute(u)
                 except:
-                    _logger.error(f"SQL Query:\n{u}\n")
-                    raise
+                    if on_error in ('log','raise'):
+                        _logger.error(f"SQL Query:\n{u}\n")
+                    if on_error == 'raise':
+                        raise
 
 
     def __repr__(self):
@@ -571,10 +577,6 @@ class SQLiteDB(Database):
         Args:
             scope_name (str): scope name, used to identify experiments,
                 performance measures, and results associated with this run
-            design_name (str or None): experiment design name.  Set to None
-                to find experiments across all designs. If the experiment is
-                not found and no design_name is given, it will be assigned to
-                a design named 'ad_hoc'.
             parameters (dict): keys are experiment parameters, values are the
                 experimental values to look up.  Subsequent positional or keyword
                 arguments are used to update parameters.
@@ -601,6 +603,45 @@ class SQLiteDB(Database):
             df = pd.DataFrame(parameters, index=[0])
             ex_id = self.write_experiment_parameters(scope_name, None, df)[0]
         return ex_id
+
+    def new_run_id(self, scope_name=None, *args, location=None, **kwargs):
+        """
+        Create a new run_id in the database.
+
+        Args:
+            scope_name (str): scope name, used to identify experiments,
+                performance measures, and results associated with this run
+            parameters (dict): keys are experiment parameters, values are the
+                experimental values to look up.  Subsequent positional or keyword
+                arguments are used to update parameters.
+
+        Returns:
+            int: the experiment id of the identified experiment
+
+        Raises:
+            ValueError: If scope name does not exist
+            ValueError: If multiple experiments match an experiment definition.
+                This can happen, for example, if the definition is incomplete.
+        """
+        scope_name = self._validate_scope(scope_name, 'design_name')
+        ex_id = self.get_experiment_id(scope_name, *args, **kwargs)
+        run_id = uuid.uuid1()
+        if location is True:
+            import platform
+            location = platform.node()
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute(
+                sq.NEW_EXPERIMENT_RUN,
+                dict(
+                    run_id=run_id.bytes,
+                    experiment_id=ex_id,
+                    run_location=location,
+                )
+            )
+            return run_id, ex_id
+
+
 
     def read_experiment_ids(
             self,
@@ -835,6 +876,7 @@ class SQLiteDB(Database):
             scope_name,
             source,
             m_df,
+            run_ids=None,
     ):
         """
         Write experiment results to the database.
@@ -859,6 +901,10 @@ class SQLiteDB(Database):
             m_df (pandas.DataFrame):
                 The columns of this DataFrame are the performance
                 measure names, and row indexes are the experiment id's.
+            run_ids (pandas.Index, optional):
+                Provide an optional index of universally unique run ids
+                (UUIDs) for these results. The UUIDs can be used to help
+                identify problems and organize model runs.
 
         Raises:
             UserWarning: If scope name does not exist
@@ -873,15 +919,26 @@ class SQLiteDB(Database):
                 raise UserWarning('named scope {0} not found - experiments will \
                                       not be recorded'.format(scope_name))
 
+            if run_ids is None:
+                run_ids = pd.Index([None]*len(m_df))
+
             for m in scp_m:
                 if m[0] in m_df.columns:
-                    for ex_id, value in m_df[m[0]].iteritems():
+                    for (ex_id, value), uid in zip(m_df[m[0]].iteritems(),run_ids):
+                        if isinstance(uid, uuid.UUID):
+                            uid = uid.bytes
                         # index is experiment id
                         try:
                             if not pd.isna(m[0]):
                                 cur.execute(
                                     sq.INSERT_EX_M,
-                                    [ex_id, value, source, m[0]],
+                                    dict(
+                                        experiment_id=ex_id,
+                                        measure_value=value,
+                                        measure_source=source,
+                                        measure_name=m[0],
+                                        measure_run=uid,
+                                    )
                                 )
                         except:
                             _logger.error(f"Error saving {value} to m {m[0]} for ex {ex_id}")
@@ -894,6 +951,7 @@ class SQLiteDB(Database):
             ex_id,
             m_name,
             m_value,
+            run_id=None,
     ):
         """Write a single performance measure result for an experiment
 
@@ -908,6 +966,11 @@ class SQLiteDB(Database):
             ex_id (int): experiment id
             m_name (str): performance measure name
             m_value (numeric): performance measure value
+            run_ids (uuid, optional):
+                Provide an optional universally unique run id
+                (UUID) for these results. The UUID can be used to help
+                identify problems and organize model runs.
+
         Raises:
             UserWarning: If scope name does not exist
         """
@@ -926,7 +989,13 @@ class SQLiteDB(Database):
                         if not pd.isna(m[0]):
                             cur.execute(
                                 sq.INSERT_EX_M,
-                                [ex_id, m_value, source, m[0]]
+                                dict(
+                                    experiment_id=ex_id,
+                                    measure_value=m_value,
+                                    measure_source=source,
+                                    measure_name=m[0],
+                                    measure_run=run_id,
+                                )
                             )
                     except:
                         _logger.error(f"Error saving {m_value} to m {m[0]} for ex {ex_id}")
@@ -1087,6 +1156,7 @@ class SQLiteDB(Database):
             experiment_id=None,
             source=None,
             design=None,
+            index_type='experiment_id',
     ):
         """
         Read experiment results from the database.
@@ -1127,38 +1197,63 @@ class SQLiteDB(Database):
             elif design != design_name:
                 raise ValueError("cannot give both `design_name` and `design`")
 
+        if index_type not in ('experiment_id', 'run_id'):
+            raise ValueError("index_type must be 'experiment_id' or 'run_id'")
+
         scope_name = self._validate_scope(scope_name, 'design_name')
         if design_name is None:
             if experiment_id is None:
-                sql = sq.GET_EX_M_ALL
-                arg = [scope_name]
+                sql = sq.GET_EXPERIMENT_MEASURES_ALL
+                arg = dict(scope_name=scope_name)
                 if source is not None:
-                    sql += ' AND measure_source =?2'
-                    arg.append(source)
+                    sql += ' AND measure_source = @measure_source'
+                    arg['measure_source'] = source
             else:
-                sql = sq.GET_EX_M_BY_ID_ALL
-                arg = [scope_name, experiment_id]
+                sql = sq.GET_EXPERIMENT_MEASURES_BY_ID_ALL
+                arg = dict(
+                    scope_name=scope_name,
+                    experiment_id=experiment_id,
+                )
                 if source is not None:
-                    sql += ' AND measure_source =?3'
-                    arg.append(source)
+                    sql += ' AND measure_source = @measure_source'
+                    arg['measure_source'] = source
         else:
             if experiment_id is None:
                 sql = sq.GET_EXPERIMENT_MEASURES
-                arg = [scope_name, design_name]
+                arg = dict(
+                    scope_name=scope_name,
+                    design_name=design_name,
+                )
                 if source is not None:
-                    sql = sql.replace("/*source*/", ' AND measure_source =?3')
-                    arg.append(source)
+                    sql = sql.replace("/*source*/", ' AND measure_source = @measure_source')
+                    arg['measure_source'] = source
             else:
                 sql = sq.GET_EXPERIMENT_MEASURES_BY_ID
-                arg = [scope_name, design_name, experiment_id]
+                arg = dict(
+                    scope_name=scope_name,
+                    design_name=design_name,
+                    experiment_id=experiment_id,
+                )
                 if source is not None:
-                    sql = sql.replace("/*source*/", ' AND measure_source =?4')
-                    arg.append(source)
+                    sql = sql.replace("/*source*/", ' AND measure_source = @measure_source')
+                    arg['measure_source'] = source
+
+        if index_type == 'run_id':
+            sql = sql.replace(
+                "eem.experiment_id, --index_type",
+                "COALESCE(eer.run_id, 'Ex'||printf('%05d', eem.experiment_id)), --index_type",
+            )
         cur = self.conn.cursor()
         ex_m = pd.DataFrame(cur.execute(sql, arg).fetchall())
         if ex_m.empty is False:
             ex_m = ex_m.pivot(index=0, columns=1, values=2)
         ex_m.index.name = 'experiment'
+        if index_type == 'run_id':
+            ex_m.index = [
+                (uuid.UUID(bytes=i) if isinstance(i,bytes) else i)
+                for i in ex_m.index
+            ]
+            ex_m.index.name = 'run'
         ex_m.columns.name = None
 
         column_order = (
@@ -1286,6 +1381,7 @@ class SQLiteDB(Database):
             design_name,
             source,
             xlm_df,
+            run_ids=None,
     ):
         """
         Write experiment definitions and results
@@ -1316,6 +1412,10 @@ class SQLiteDB(Database):
                 parameters (i.e. policy levers, uncertainties, and
                 constants) and performance measures, and each row
                 is an experiment.
+            run_ids (pandas.Index, optional):
+                Provide an optional index of universally unique run ids
+                (UUIDs) for these results. The UUIDs can be used to help
+                identify problems and organize model runs.
 
         Raises:
             UserWarning: If scope and design already exist
@@ -1352,6 +1452,7 @@ class SQLiteDB(Database):
                 scope_name,
                 source,
                 xlm_df[[z[0] for z in scp_m]],
+                run_ids=run_ids,
             )
 
         
@@ -1642,6 +1743,33 @@ class SQLiteDB(Database):
             cur = self.conn.cursor()
             for row in cur.execute(qry):
                 print(" - ".join(row), file=file)
+
+
+    def mark_run_invalid(
+            self,
+            run_id
+    ):
+        """
+        Mark a particular run_id as invalid.
+
+        Args:
+            run_id (str): The run to mark as invalid.
+        """
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute('''
+            UPDATE 
+                ema_experiment_run
+            SET
+                run_valid = FALSE
+            WHERE
+                run_id = @run_id
+            ''', dict(run_id=run_id))
+            if cursor.rowcount:
+                self.log(f"MARKED AS INVALID RUN_ID {run_id}")
+            else:
+                _logger.warn(f"FAILED TO MARK AS INVALID RUN_ID {run_id}")
+
 
     def merge_database(
             self,

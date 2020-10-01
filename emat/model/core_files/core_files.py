@@ -501,24 +501,28 @@ class FilesCoreModel(AbstractCoreModel):
 				if a defined experiment variable is not supported
 				by the core model
 		"""
-		# If the model has a uid set, make it available for logging.
-		uid = getattr(self, 'uid', '')
 
 		# Validate parameter names
 		scope_param_names = set(self.scope.get_parameter_names())
 		for key in params.keys():
 			if key not in scope_param_names:
 				self.log(
-					f"SETUP ERROR: '{key}' not found in scope parameters {uid}",
+					f"SETUP ERROR: '{key}' not found in scope parameters",
 					level=logging.ERROR,
 				)
 				raise KeyError(f"'{key}' not found in scope parameters")
 
 		# Get the experiment_id if stored
-		experiment_id = getattr(self, 'experiment_id', None)
 		db = getattr(self, 'db', None)
 		if db is not None:
-			experiment_id = db.get_experiment_id(self.scope.name, params)
+			run_id, experiment_id = self.db.new_run_id(self.scope.name, params)
+		else:
+			import uuid
+			experiment_id = getattr(self, 'experiment_id', None)
+			run_id = uuid.uuid4()
+
+		self.run_id = run_id
+		self.experiment_id = experiment_id
 
 		# Rename any existing archive directories
 		if experiment_id is not None:
@@ -535,8 +539,8 @@ class FilesCoreModel(AbstractCoreModel):
 			os.makedirs(orig_archive, exist_ok=True)
 			with open(os.path.join(orig_archive, "_emat_start_.log"), 'at') as f:
 				f.write("Starting model run at {0}\n".format(time.strftime("%Y-%m-%d %H:%M:%S")))
-				if uid is not None:
-					f.write(f"uid = {uid}\n")
+				if run_id is not None:
+					f.write(f"run_id = {run_id}\n")
 
 	@copydoc(AbstractCoreModel.load_measures)
 	def load_measures(

@@ -272,7 +272,7 @@ class Database(abc.ABC):
         """    
 
     @abc.abstractmethod
-    def write_experiment_measures(self, scope_name, source, m_df):
+    def write_experiment_measures(self, scope_name, source, m_df, run_ids=None):
         """
         Write experiment results to the database.
         
@@ -296,6 +296,10 @@ class Database(abc.ABC):
             m_df (pandas.DataFrame):
                 The columns of this DataFrame are the performance
                 measure names, and row indexes are the experiment id's.
+            run_ids (pandas.Index, optional):
+                Provide an optional index of universally unique run ids
+                (UUIDs) for these results. The UUIDs can be used to help
+                identify problems and organize model runs.
 
         Raises:
             UserWarning: If scope name does not exist        
