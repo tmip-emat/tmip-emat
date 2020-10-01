@@ -1549,6 +1549,49 @@ class SQLiteDB(Database):
             cur.execute("INSERT INTO ema_log(level, content) VALUES (?,?)", [level, str(message)])
         _logger.log(level, message)
 
+    def merge_log(self, other):
+        """
+        Merge the log from another SQLiteDB into this database log.
+
+        Args:
+            other (emat.SQLiteDB): Source of log to merge.
+        """
+        if not hasattr(other, 'conn'):
+            return
+        with self.conn:
+            with other.conn:
+                selfc = self.conn.cursor()
+                otherc = other.conn.cursor()
+                other_q = f"""
+                SELECT
+                    timestamp, level, content 
+                FROM
+                    ema_log 
+                ORDER BY
+                    rowid
+                """
+                for timestamp, level, content in otherc.execute(other_q):
+                        selfc.execute(
+                            """
+                            INSERT INTO ema_log(timestamp, level, content) 
+                            SELECT ?1, ?2, ?3
+                            WHERE NOT EXISTS(
+                                SELECT 1 FROM ema_log 
+                                WHERE timestamp=?1 AND level=?2 AND content=?3
+                            )
+                            """,
+                            [timestamp, level, content],
+                        )
+
+                    # if not selfc.execute(
+                    #     "SELECT count(*) FROM ema_log WHERE timestamp=? AND level=? AND content=?",
+                    #     [timestamp, level, content],
+                    # ).fetchall()[0][0]:
+                    #     selfc.execute(
+                    #         "INSERT INTO ema_log(timestamp, level, content) VALUES (?,?,?)",
+                    #         [timestamp, level, content],
+                    #     )
+
     def print_log(self, file=None, limit=20, order="DESC", level=logging.INFO, like=None):
         """
         Print logged messages from the SQLite database
@@ -1600,7 +1643,14 @@ class SQLiteDB(Database):
             for row in cur.execute(qry):
                 print(" - ".join(row), file=file)
 
-    def merge_database(self, other, force=False, dryrun=False):
+    def merge_database(
+            self,
+            other,
+            force=False,
+            dryrun=False,
+            on_conflict='ignore',
+            max_diffs_in_log=50,
+    ):
         """
         Merge results from another database.
 
@@ -1624,10 +1674,25 @@ class SQLiteDB(Database):
                 Allows a dry run of the merge, to check how many
                 experiments would be merged, without actually
                 importing any data into the current database.
+            on_conflict ({'ignore','replace'}, default 'ignore'):
+                When corresponding performance measures for the
+                same experiment exist in both the current and
+                `other` databases, the merge will either ignore
+                the updated value or replace it with the value
+                from the other database.  This only applies to
+                conflicts in performance measures; conflicts in
+                parameters always result in distinct experiments.
+            max_diffs_in_log (int, default 50):
+                When there are fewer than this many changes in
+                a set of experiments, the individual experiment_ids
+                that have been changed are reported.
 
         """
         assert isinstance(other, Database)
-        from ...util.deduplicate import count_diff_rows
+        from ...util.deduplicate import count_diff_rows, report_diff_rows
+        other_db_path = getattr(other, 'database_path', None)
+        if other_db_path:
+            self.log(f"merging from database at {other_db_path}")
         for scope_name in other.read_scope_names():
             if scope_name not in self.read_scope_names():
                 self.log(f"not merging scope name {scope_name}, name does not match current database")
@@ -1688,7 +1753,10 @@ class SQLiteDB(Database):
                         experiment_id_map = pd.Series(data=xl_df_self.index, index=xl_df.index)
                 if not design_match:
                     # transfer parameters
-                    self.log(f"experiment parameters updates for {scope_name}/{design_name}")
+                    if proposed_design_name == design_name:
+                        self.log(f"experiment parameters updates for {scope_name}/{design_name}")
+                    else:
+                        self.log(f"experiment parameters updates for {scope_name}/{design_name} -> {proposed_design_name}")
                     if not dryrun:
                         self.write_experiment_parameters(scope_name, proposed_design_name, xl_df)
                 sources = other.read_experiment_measure_sources(scope_name, design_name)
@@ -1700,12 +1768,32 @@ class SQLiteDB(Database):
                         m_df1 = other.read_experiment_measures(scope_name, design_name, source=source)[common_measure_names]
                         if experiment_id_map is not None:
                             m_df1.index = m_df1.index.map(experiment_id_map)
-                        m_df = m_df0.combine_first(m_df1)
-                        n_diffs = count_diff_rows(m_df, m_df0)
-                        self.log(f"experiment measures {n_diffs} updates for {scope_name}/{design_name}")
+                        df0copy = m_df0.copy()
+                        if on_conflict == 'replace':
+                            m_df = m_df1.combine_first(m_df0)
+                        else:
+                            m_df = m_df0.combine_first(m_df1)
+                        n_diffs = count_diff_rows(m_df, df0copy)
+                        self.log(f"experiment measures {n_diffs} updates "
+                                 f"for {scope_name}/{design_name}")
+                        if n_diffs < max_diffs_in_log:
+                            list_diffs, list_adds, list_drops = report_diff_rows(m_df, df0copy)
+                            if list_diffs:
+                                self.log(f"  {scope_name}/{design_name} experiment measures updated: "
+                                         +", ".join(str(_) for _ in list_diffs))
+                            if list_adds:
+                                self.log(f"  {scope_name}/{design_name} experiment measures added: "
+                                         +", ".join(str(_) for _ in list_adds))
+                            if list_drops: # should be none
+                                self.log(f"  {scope_name}/{design_name} experiment measures dropped: "
+                                         +", ".join(str(_) for _ in list_drops))
                         if not dryrun:
                             self.write_experiment_measures(scope_name, 0, m_df)
                     else: # source is not core model, just copy
                         m_df = other.read_experiment_measures(scope_name, design_name, source=source)[common_measure_names]
                         if not dryrun:
                             self.write_experiment_measures(scope_name, source_mapping[source], m_df)
+
+        # merge logs
+        if isinstance(other, SQLiteDB):
+            self.merge_log(other)
