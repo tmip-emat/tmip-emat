@@ -176,60 +176,110 @@ GET_EXPERIMENT_PARAMETERS = '''
         WHERE s.name =?1 and ed.design = ?2
 '''
 
-GET_EXPERIMENT_IDS_BY_VALUE = (
-    '''SELECT experiment_id
-            FROM ema_experiment_parameter JOIN ema_parameter on ema_experiment_parameter.parameter_id = ema_parameter.parameter_id
-            JOIN ema_experiment ON ema_experiment_parameter.experiment_id = ema_experiment.experiment_id
-            JOIN ema_scope s on ema_experiment.scope_id = s.scope_id
-            WHERE s.name =?1 and ema_parameter.name = ?2 and parameter_value = ?3;
-    '''
-    )
+GET_EXPERIMENT_IDS_BY_VALUE = '''
+    SELECT 
+        eep.experiment_id
+    FROM 
+        ema_experiment_parameter eep
+        JOIN ema_parameter ep
+            ON eep.parameter_id = ep.parameter_id
+        JOIN ema_experiment ee
+            ON eep.experiment_id = ee.experiment_id
+        JOIN ema_scope s 
+            ON ee.scope_id = s.scope_id
+    WHERE 
+        s.name =?1 
+        AND ep.name = ?2 
+        AND parameter_value = ?3;
+'''
 
-GET_EXPERIMENT_IDS_BY_DESIGN_AND_VALUE = (
-    '''SELECT experiment_id
-            FROM ema_experiment_parameter JOIN ema_parameter on ema_experiment_parameter.parameter_id = ema_parameter.parameter_id
-            JOIN ema_experiment ON ema_experiment_parameter.experiment_id = ema_experiment.experiment_id
-            JOIN ema_scope s on ema_experiment.scope_id = s.scope_id
-            WHERE s.name =?1 and ema_experiment.design = ?2 and ema_parameter.name = ?3 and parameter_value = ?4;
-    '''
-    )
+
+GET_EXPERIMENT_IDS_BY_DESIGN_AND_VALUE = '''
+    SELECT 
+        eep.experiment_id
+    FROM 
+        ema_experiment_parameter eep
+        JOIN ema_parameter ep
+            ON eep.parameter_id = ep.parameter_id
+        JOIN ema_experiment ee
+            ON eep.experiment_id = ee.experiment_id
+        JOIN ema_scope s 
+            ON ee.scope_id = s.scope_id
+    WHERE 
+        s.name =?1 
+        AND ee.design = ?2 
+        AND ep.name = ?3 
+        AND parameter_value = ?4;
+'''
 
 
-GET_EX_XL_ALL = (
-    '''SELECT experiment_id, ema_parameter.name, parameter_value
-            FROM ema_experiment_parameter JOIN ema_parameter on ema_experiment_parameter.parameter_id = ema_parameter.parameter_id
-            JOIN ema_experiment ON ema_experiment_parameter.experiment_id = ema_experiment.experiment_id
-            JOIN ema_scope s on ema_experiment.scope_id = s.scope_id
-            WHERE s.name =?1;
-    '''
-    )
 
-GET_EX_XL_IDS_IN = (
-    '''SELECT experiment_id, ema_parameter.name, parameter_value
-            FROM ema_experiment_parameter JOIN ema_parameter on ema_experiment_parameter.parameter_id = ema_parameter.parameter_id
-            JOIN ema_experiment ON ema_experiment_parameter.experiment_id = ema_experiment.experiment_id
-            JOIN ema_scope s on ema_experiment.scope_id = s.scope_id
-            WHERE s.name =?1 AND experiment_id in (???);
-    '''
-    )
+GET_EX_XL_ALL = '''
+    SELECT 
+        eep.experiment_id, 
+        ep.name, 
+        parameter_value
+    FROM 
+        ema_experiment_parameter eep
+        JOIN ema_parameter ep
+            ON eep.parameter_id = ep.parameter_id
+        JOIN ema_experiment ee
+            ON eep.experiment_id = ee.experiment_id
+        JOIN ema_scope s 
+            ON ee.scope_id = s.scope_id
+    WHERE 
+        s.name =?1;
+'''
 
-GET_EX_XL_ALL_PENDING = (
-    '''SELECT experiment_id, ema_parameter.name, parameter_value
-            FROM ema_experiment_parameter 
-            JOIN ema_parameter ON ema_experiment_parameter.parameter_id = ema_parameter.parameter_id
-            JOIN ema_experiment ON ema_experiment_parameter.experiment_id = ema_experiment.experiment_id
-            JOIN ema_scope s ON ema_experiment.scope_id = s.scope_id
-            WHERE s.name =?1
-            AND experiment_id NOT IN (
-                SELECT ema_experiment_measure.experiment_id
-                FROM ema_experiment_measure 
-                JOIN ema_measure on ema_experiment_measure.measure_id = ema_measure.measure_id
-                JOIN ema_experiment ON ema_experiment_measure.experiment_id = ema_experiment.experiment_id
-                JOIN ema_scope s on ema_experiment.scope_id = s.scope_id
-                WHERE s.name =?1
-            )
-    '''
-    )
+
+GET_EX_XL_IDS_IN = '''
+    SELECT 
+        eep.experiment_id, 
+        ep.name, 
+        parameter_value
+    FROM ema_experiment_parameter eep
+        JOIN ema_parameter ep
+            ON eep.parameter_id = ep.parameter_id
+        JOIN ema_experiment ee
+            ON eep.experiment_id = ee.experiment_id
+        JOIN ema_scope s 
+            ON ee.scope_id = s.scope_id
+    WHERE 
+        s.name =?1 
+        AND eep.experiment_id in (???);
+'''
+
+
+GET_EX_XL_ALL_PENDING = '''
+    SELECT 
+        eep.experiment_id, 
+        ep.name, 
+        parameter_value
+    FROM 
+        ema_experiment_parameter eep
+        JOIN ema_parameter ep
+            ON eep.parameter_id = ep.parameter_id
+        JOIN ema_experiment ee
+            ON eep.experiment_id = ee.experiment_id
+        JOIN ema_scope s 
+            ON ee.scope_id = s.scope_id
+    WHERE 
+        s.name =?1
+        AND eep.experiment_id NOT IN (
+            SELECT 
+                eem2.experiment_id
+            FROM 
+                ema_experiment_measure eem2
+                JOIN ema_measure em2
+                    ON eem2.measure_id = em2.measure_id
+                JOIN ema_experiment ee2
+                    ON eem2.experiment_id = ee2.experiment_id
+                JOIN ema_scope es2 
+                    ON ee2.scope_id = es2.scope_id
+            WHERE es2.name =?1
+        )
+'''
+
 
 
 GET_PENDING_EXPERIMENT_PARAMETERS = '''
@@ -380,14 +430,21 @@ GET_EXPERIMENT_MEASURES_BY_ID = '''
 
 GET_EX_XLM_ALL = (
     '''
-    SELECT experiment_id, ema_parameter.name, parameter_value
-            FROM ema_parameter JOIN ema_experiment_parameter on ema_experiment_parameter.parameter_id = ema_parameter.parameter_id
-            JOIN ema_experiment ON ema_experiment_parameter.experiment_id = ema_experiment.experiment_id
-            JOIN ema_scope s on ema_experiment.scope_id = s.scope_id
-            WHERE s.name =?1
+    SELECT 
+        eep.experiment_id, ep.name, parameter_value
+    FROM 
+        ema_parameter ep
+        JOIN ema_experiment_parameter eep
+            ON eep.parameter_id = ep.parameter_id
+        JOIN ema_experiment ee
+            ON eep.experiment_id = ee.experiment_id
+        JOIN ema_scope s 
+            ON ee.scope_id = s.scope_id
+        WHERE 
+            s.name =?1
     UNION
     SELECT 
-        experiment_id, em.name, measure_value
+        eem.experiment_id, em.name, measure_value
     FROM 
         ema_experiment_measure eem
         JOIN ema_measure em 
