@@ -928,20 +928,19 @@ class SQLiteDB(Database):
                         if isinstance(uid, uuid.UUID):
                             uid = uid.bytes
                         # index is experiment id
+                        bindings = dict(
+                            experiment_id=ex_id,
+                            measure_value=value,
+                            measure_source=source,
+                            measure_name=m[0],
+                            measure_run=uid,
+                        )
                         try:
                             if not pd.isna(m[0]):
-                                cur.execute(
-                                    sq.INSERT_EX_M,
-                                    dict(
-                                        experiment_id=ex_id,
-                                        measure_value=value,
-                                        measure_source=source,
-                                        measure_name=m[0],
-                                        measure_run=uid,
-                                    )
-                                )
+                                cur.execute(sq.INSERT_EX_M, bindings)
                         except:
                             _logger.error(f"Error saving {value} to m {m[0]} for ex {ex_id}")
+                            _logger.error(str(cur.execute(sq._DEBUG_INSERT_EX_M, bindings).fetchall()))
                             raise
 
     def write_ex_m_1(
@@ -1156,7 +1155,6 @@ class SQLiteDB(Database):
             experiment_id=None,
             source=None,
             design=None,
-            index_type='experiment_id',
     ):
         """
         Read experiment results from the database.
@@ -1197,9 +1195,6 @@ class SQLiteDB(Database):
             elif design != design_name:
                 raise ValueError("cannot give both `design_name` and `design`")
 
-        if index_type not in ('experiment_id', 'run_id'):
-            raise ValueError("index_type must be 'experiment_id' or 'run_id'")
-
         scope_name = self._validate_scope(scope_name, 'design_name')
         if design_name is None:
             if experiment_id is None:
@@ -1238,22 +1233,17 @@ class SQLiteDB(Database):
                     sql = sql.replace("/*source*/", ' AND measure_source = @measure_source')
                     arg['measure_source'] = source
 
-        if index_type == 'run_id':
-            sql = sql.replace(
-                "eem.experiment_id, --index_type",
-                "COALESCE(eer.run_id, 'Ex'||printf('%05d', eem.experiment_id)), --index_type",
-            )
         cur = self.conn.cursor()
         ex_m = pd.DataFrame(cur.execute(sql, arg).fetchall())
         if ex_m.empty is False:
-            ex_m = ex_m.pivot(index=0, columns=1, values=2)
-        ex_m.index.name = 'experiment'
-        if index_type == 'run_id':
-            ex_m.index = [
-                (uuid.UUID(bytes=i) if isinstance(i,bytes) else i)
-                for i in ex_m.index
-            ]
-            ex_m.index.name = 'run'
+            ex_m = ex_m.pivot(index=(0,1), columns=2, values=3)
+        if isinstance(ex_m.index, pd.MultiIndex):
+            ex_m.index.set_levels([
+                    (uuid.UUID(bytes=i) if isinstance(i,bytes) else i)
+                    for i in ex_m.index.levels[1]
+            ], 1, inplace=True)
+            ex_m.index.names = ['experiment', 'run']
+
         ex_m.columns.name = None
 
         column_order = (
@@ -1303,13 +1293,13 @@ class SQLiteDB(Database):
             sql = sq.GET_EXPERIMENT_MEASURE_SOURCES
             arg = {'scope_name':scope_name}
             if experiment_id is not None:
-                sql += " AND experiment_id = @experiment_id"
+                sql += " AND eem.experiment_id = @experiment_id"
                 arg['experiment_id'] = experiment_id
         else:
             sql = sq.GET_EXPERIMENT_MEASURE_SOURCES_BY_DESIGN
             arg = {'scope_name': scope_name, 'design_name':design_name, }
             if experiment_id is not None:
-                sql += " AND experiment_id = @experiment_id"
+                sql += " AND eem.experiment_id = @experiment_id"
                 arg['experiment_id'] = experiment_id
         cur = self.conn.cursor()
         return [i[0] for i in cur.execute(sql, arg).fetchall()]

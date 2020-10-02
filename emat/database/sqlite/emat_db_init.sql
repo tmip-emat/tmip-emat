@@ -13,30 +13,30 @@ CREATE TABLE IF NOT EXISTS ema_log (
 );
 
 CREATE TABLE IF NOT EXISTS ema_parameter (
-    rowid      INTEGER PRIMARY KEY AUTOINCREMENT,
-    ptype      INTEGER,
-    name       TEXT UNIQUE
+    parameter_id  INTEGER PRIMARY KEY,
+    ptype         INTEGER,
+    name          TEXT UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS ema_measure (
-    rowid     INTEGER PRIMARY KEY AUTOINCREMENT,
-    name      TEXT UNIQUE,
-    transform TEXT
+    measure_id     INTEGER PRIMARY KEY,
+    name           TEXT UNIQUE,
+    transform      TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ema_scope (
-    rowid   INTEGER PRIMARY KEY AUTOINCREMENT,
-    name    TEXT UNIQUE,
-    sheet   TEXT,
-    content BLOB
+    scope_id   INTEGER PRIMARY KEY,
+    name       TEXT UNIQUE,
+    sheet      TEXT,
+    content    BLOB
 );
 
 CREATE TABLE IF NOT EXISTS ema_scope_parameter (
     scope_id      INT NOT NULL,
     parameter_id  INT NOT NULL,
 
-    FOREIGN KEY (scope_id) REFERENCES ema_scope(rowid) ON DELETE CASCADE,
-    FOREIGN KEY (parameter_id) REFERENCES ema_parameter(rowid)
+    FOREIGN KEY (scope_id) REFERENCES ema_scope(scope_id) ON DELETE CASCADE,
+    FOREIGN KEY (parameter_id) REFERENCES ema_parameter(parameter_id)
 );
 
 
@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS ema_scope_measure (
     scope_id      INT NOT NULL,
     measure_id    INT NOT NULL,
 
-    FOREIGN KEY (scope_id) REFERENCES ema_scope(rowid) ON DELETE CASCADE,
-    FOREIGN KEY (measure_id) REFERENCES ema_measure(rowid)
+    FOREIGN KEY (scope_id) REFERENCES ema_scope(scope_id) ON DELETE CASCADE,
+    FOREIGN KEY (measure_id) REFERENCES ema_measure(measure_id)
 
 );
 
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS ema_scope_box (
     scope_id          INT NOT NULL,
     box_name      TEXT UNIQUE,
 
-    FOREIGN KEY (scope_id) REFERENCES ema_scope(rowid) ON DELETE CASCADE
+    FOREIGN KEY (scope_id) REFERENCES ema_scope(scope_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ema_box_parameter (
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS ema_box_parameter (
     threshold_type    INT NOT NULL,
 
     FOREIGN KEY (box_id) REFERENCES ema_scope_box(box_id) ON DELETE CASCADE,
-    FOREIGN KEY (parameter_id) REFERENCES ema_parameter(rowid),
+    FOREIGN KEY (parameter_id) REFERENCES ema_parameter(parameter_id),
     PRIMARY KEY (box_id, parameter_id, threshold_type)
 
 );
@@ -78,20 +78,21 @@ CREATE TABLE IF NOT EXISTS ema_box_measure (
     threshold_type    INT NOT NULL,
 
     FOREIGN KEY (box_id) REFERENCES ema_scope_box(box_id) ON DELETE CASCADE,
-    FOREIGN KEY (measure_id) REFERENCES ema_measure(rowid),
+    FOREIGN KEY (measure_id) REFERENCES ema_measure(measure_id),
     PRIMARY KEY (box_id, measure_id, threshold_type)
 );
 
 
 CREATE TABLE IF NOT EXISTS ema_experiment (
-    rowid     INTEGER PRIMARY KEY AUTOINCREMENT,
-    scope_id  INT NOT NULL,
+    experiment_id     INTEGER PRIMARY KEY,
+    scope_id          INT NOT NULL,
 
-    FOREIGN KEY (scope_id) REFERENCES ema_scope(rowid)
+    FOREIGN KEY (scope_id) REFERENCES ema_scope(scope_id)
     ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ema_experiment_run (
+    run_rowid        INTEGER PRIMARY KEY,
     run_id           UUID NOT NULL UNIQUE,
     experiment_id    INT NOT NULL,
     run_status       TEXT,
@@ -99,18 +100,18 @@ CREATE TABLE IF NOT EXISTS ema_experiment_run (
     run_timestamp    DATETIME DEFAULT CURRENT_TIMESTAMP,
     run_location     TEXT,
 
-    FOREIGN KEY (experiment_id) REFERENCES ema_experiment(rowid)
+    FOREIGN KEY (experiment_id) REFERENCES ema_experiment(experiment_id)
     ON DELETE CASCADE
 );
 
 
 
 CREATE TABLE IF NOT EXISTS ema_design (
-    rowid     INTEGER PRIMARY KEY AUTOINCREMENT,
+    design_id INTEGER PRIMARY KEY,
     scope_id  INT NOT NULL,
     design    TEXT UNIQUE,
 
-    FOREIGN KEY (scope_id) REFERENCES ema_scope(rowid)
+    FOREIGN KEY (scope_id) REFERENCES ema_scope(scope_id)
     ON DELETE CASCADE
 );
 
@@ -118,8 +119,8 @@ CREATE TABLE IF NOT EXISTS ema_design_experiment (
     experiment_id      INT NOT NULL,
     design_id          INT NOT NULL,
 
-    FOREIGN KEY (experiment_id) REFERENCES ema_experiment(rowid) ON DELETE CASCADE,
-    FOREIGN KEY (design_id) REFERENCES ema_design(rowid) ON DELETE CASCADE,
+    FOREIGN KEY (experiment_id) REFERENCES ema_experiment(experiment_id) ON DELETE CASCADE,
+    FOREIGN KEY (design_id) REFERENCES ema_design(design_id) ON DELETE CASCADE,
     PRIMARY KEY (experiment_id, design_id)
 );
 
@@ -129,8 +130,8 @@ CREATE TABLE IF NOT EXISTS ema_experiment_parameter (
     parameter_id       INT NOT NULL,
     parameter_value    NUMERIC,
     
-    FOREIGN KEY (experiment_id) REFERENCES ema_experiment(rowid) ON DELETE CASCADE,
-    FOREIGN KEY (parameter_id) REFERENCES ema_parameter(rowid),
+    FOREIGN KEY (experiment_id) REFERENCES ema_experiment(experiment_id) ON DELETE CASCADE,
+    FOREIGN KEY (parameter_id) REFERENCES ema_parameter(parameter_id),
     PRIMARY KEY (experiment_id, parameter_id)
     
 );
@@ -140,9 +141,28 @@ CREATE TABLE IF NOT EXISTS ema_experiment_measure (
     measure_id        INT NOT NULL,
     measure_value     NUMERIC,
     measure_source    INT NOT NULL DEFAULT 0, --0 if generated by core model, non-zero metamodel_id if from meta-model
-    measure_run       UUID, -- optional linkage to ema_experiment_run(run_id)
+    measure_run       INT, -- optional linkage to ema_experiment_run(run_id)
 
-    FOREIGN KEY (experiment_id) REFERENCES ema_experiment(rowid) ON DELETE CASCADE,
-    FOREIGN KEY (measure_id) REFERENCES ema_measure(rowid),
+    FOREIGN KEY (experiment_id) REFERENCES ema_experiment(experiment_id) ON DELETE CASCADE,
+    FOREIGN KEY (measure_id) REFERENCES ema_measure(measure_id),
+    FOREIGN KEY (measure_run) REFERENCES ema_experiment_run(run_rowid) ON DELETE CASCADE,
     PRIMARY KEY (experiment_id, measure_id, measure_source, measure_run)
 );
+
+CREATE INDEX IF NOT EXISTS ema_experiment_measure_run_index
+ON ema_experiment_measure(measure_run);
+
+-- Most recent valid run for each experiment
+CREATE VIEW IF NOT EXISTS ema_experiment_most_recent_valid_run_with_results AS
+SELECT
+    *,
+    ema_experiment_run.run_rowid,
+    max(run_timestamp)
+FROM
+    ema_experiment_run
+WHERE
+    run_valid IS NOT FALSE
+    AND run_rowid IN (SELECT DISTINCT measure_run FROM ema_experiment_measure)
+GROUP BY
+    experiment_id
+;
