@@ -13,6 +13,7 @@ import warnings
 from typing import AbstractSet
 import numpy as np
 import uuid
+import re
 
 from . import sql_queries as sq
 from ..database import Database
@@ -24,6 +25,21 @@ _logger = get_module_logger(__name__)
 import logging
 
 from ...util.docstrings import copydoc
+
+sqlite3.register_adapter(np.int64, int)
+
+def _to_uuid(b):
+    """Convert a value to a UUID"""
+    if isinstance(b, bytes):
+        return uuid.UUID(bytes=b)
+    if pd.isna(b):
+        return uuid.UUID(bytes=b'\x00' * 16)
+    try:
+        return uuid.UUID(b)
+    except:
+        return uuid.UUID(bytes=b'\xDE\xAD\xBE\xEF' * 4)
+
+
 
 class SQLiteDB(Database):
     """
@@ -121,12 +137,77 @@ class SQLiteDB(Database):
             pass
 
         # update old databases
-        if 'design' in self._debug_query(table='ema_experiment')['name'].to_numpy():
+        if 'design' in self._raw_query(table='ema_experiment')['name'].to_numpy():
             self.update_database(sq.UPDATE_DATABASE_ema_design_experiment)
 
-        if 'measure_run' not in self._debug_query(table='ema_experiment_measure')['name'].to_numpy():
+        if 'measure_run' not in self._raw_query(table='ema_experiment_measure')['name'].to_numpy():
             self.update_database(sq.UPDATE_DATABASE_ema_experiment_measure_ADD_measure_run)
 
+        if 'run_source' not in self._raw_query(table='ema_experiment_run')['name'].to_numpy():
+            self.update_database(sq.UPDATE_DATABASE_ema_experiment_run_ADD_run_source, on_error='raise')
+
+        if 'scope_id' not in self._raw_query(table='ema_scope')['name'].to_numpy():
+            self.__apply_sql_script(self.conn, 'emat_db_rebuild.sql')
+
+        # add run_id to runs that do not have one
+
+        if 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy():
+            # measure source and experiment id
+            experiments_with_missing_run_ids = self._raw_query("""
+            SELECT DISTINCT experiment_id, measure_source FROM ema_experiment_measure WHERE measure_run IS NULL
+            """)
+            experiments_with_missing_run_ids['run_id'] = experiments_with_missing_run_ids['experiment_id'].apply(uuid.uuid1)
+            experiments_with_missing_run_ids['run_rowid'] = 0
+
+        else:
+            # experiment id only
+            experiments_with_missing_run_ids = self._raw_query("""
+            SELECT DISTINCT experiment_id FROM ema_experiment_measure WHERE measure_run IS NULL
+            """)
+            experiments_with_missing_run_ids['run_id'] = experiments_with_missing_run_ids.applymap(uuid.uuid1)
+            experiments_with_missing_run_ids['run_rowid'] = 0
+            experiments_with_missing_run_ids['measure_source'] = 0
+
+        experiments_with_missing_run_ids['run_id'] = experiments_with_missing_run_ids['run_id'].apply(lambda x: x.bytes)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            # write new run_ids to run table
+            qry = """
+            INSERT INTO ema_experiment_run (run_id, experiment_id, run_status, run_valid, run_location, run_source)
+            VALUES (@run_id, @experiment_id, 'existing', TRUE, NULL, @measure_source) 
+            """
+            for j in experiments_with_missing_run_ids.index:
+                cur.execute(qry, dict(experiments_with_missing_run_ids.loc[j]))
+                experiments_with_missing_run_ids.loc[j, 'run_rowid'] = int(cur.lastrowid)
+
+            #then update measures table with run ids.
+            if 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy():
+                qry = """
+                UPDATE 
+                    ema_experiment_measure
+                SET 
+                    measure_run = @run_rowid 
+                WHERE 
+                    measure_run IS NULL 
+                    AND experiment_id = @experiment_id
+                    AND measure_source = @measure_source
+                """
+            else:
+                qry = """
+                UPDATE 
+                    ema_experiment_measure
+                SET 
+                    measure_run = @run_rowid 
+                WHERE 
+                    measure_run IS NULL 
+                    AND experiment_id = @experiment_id
+                """
+            for j in experiments_with_missing_run_ids.index:
+                bindings = dict(experiments_with_missing_run_ids.loc[j])
+                cur.execute(qry, bindings)
+
+        self.__apply_sql_script(self.conn, 'emat_db_init_views.sql')
         atexit.register(self.conn.close)
 
 
@@ -142,22 +223,26 @@ class SQLiteDB(Database):
             conn = sqlite3.connect(self.database_path, check_same_thread=check_same_thread)
         except sqlite3.OperationalError as err:
             raise sqlite3.OperationalError(f'error on connecting to {self.database_path}') from err
-        with conn:
-            cur = conn.cursor()
+        for filename in filenames:
+            self.__apply_sql_script(conn, filename)
+        return conn
 
-            for filename in filenames:
-                _logger.debug("running script " + filename)
-                contents = (
-                    self.__read_sql_file(
-                        os.path.join(
-                            os.path.dirname(os.path.abspath(__file__)),
-                            filename
-                        )
+    def __apply_sql_script(self, connection, filename):
+        with connection:
+            cur = connection.cursor()
+            _logger.debug("running script " + filename)
+            contents = (
+                self.__read_sql_file(
+                    os.path.join(
+                        os.path.dirname(os.path.abspath(__file__)),
+                        filename
                     )
                 )
-                cur.executescript(contents)
-
-        return conn
+            )
+            for q in contents.split(';'):
+                z = cur.execute(q).fetchall()
+                if z:
+                    _logger.error(f"Unexpected output in database script {filename}:\n{q}\n{z}")
 
     def update_database(self, queries, on_error='ignore'):
         """
@@ -210,12 +295,17 @@ class SQLiteDB(Database):
         if os.path.exists(self.database_path):
             os.remove(self.database_path)
 
-    def _debug_query(self, qry=None, table=None):
+    def _raw_query(self, qry=None, table=None, bindings=None):
         if qry is None and table is not None:
             qry = f"PRAGMA table_info({table});"
         with self.conn:
             cur = self.conn.cursor()
-            cur.execute(qry)
+            if isinstance(bindings, pd.DataFrame):
+                cur.executemany(qry, (dict(row) for _,row in bindings.iterrows()))
+            elif bindings is None:
+                cur.execute(qry)
+            else:
+                cur.execute(qry, bindings)
             try:
                 cols = ([i[0] for i in cur.description])
             except:
@@ -604,7 +694,7 @@ class SQLiteDB(Database):
             ex_id = self.write_experiment_parameters(scope_name, None, df)[0]
         return ex_id
 
-    def new_run_id(self, scope_name=None, *args, location=None, **kwargs):
+    def new_run_id(self, scope_name=None, parameters=None, location=None, experiment_id=None, source=0):
         """
         Create a new run_id in the database.
 
@@ -614,9 +704,17 @@ class SQLiteDB(Database):
             parameters (dict): keys are experiment parameters, values are the
                 experimental values to look up.  Subsequent positional or keyword
                 arguments are used to update parameters.
+            location (str or True, optional): An identifier for this location
+                (i.e. this computer).  If set to True, the name of this node
+                is found using the `platform` module.
+            experiment_id (int, optional): The experiment id associated
+                with this run.  If given, the parameters are ignored.
+            source (int, default 0): The metamodel_id of the source for this
+                run, or 0 for a core model run.
 
         Returns:
-            int: the experiment id of the identified experiment
+            Tuple[Int,Int]:
+                The run_id and experiment_id of the identified experiment
 
         Raises:
             ValueError: If scope name does not exist
@@ -624,7 +722,10 @@ class SQLiteDB(Database):
                 This can happen, for example, if the definition is incomplete.
         """
         scope_name = self._validate_scope(scope_name, 'design_name')
-        ex_id = self.get_experiment_id(scope_name, *args, **kwargs)
+        if experiment_id is None:
+            if parameters is None:
+                raise ValueError('must give experiment_id or parameters')
+            experiment_id = self.get_experiment_id(scope_name, parameters)
         run_id = uuid.uuid1()
         if location is True:
             import platform
@@ -635,11 +736,12 @@ class SQLiteDB(Database):
                 sq.NEW_EXPERIMENT_RUN,
                 dict(
                     run_id=run_id.bytes,
-                    experiment_id=ex_id,
+                    experiment_id=experiment_id,
                     run_location=location,
+                    run_source=source,
                 )
             )
-            return run_id, ex_id
+            return run_id, experiment_id
 
 
 
@@ -910,6 +1012,13 @@ class SQLiteDB(Database):
             UserWarning: If scope name does not exist
         """
 
+        # split run_ids from multiindex
+        if m_df.index.nlevels == 2:
+            if run_ids is not None:
+                raise ValueError('run_ids cannot be given when they are embedded in m_df.index')
+            run_ids = m_df.index.get_level_values(1)
+            m_df.index = m_df.index.get_level_values(0)
+
         with self.conn:
             cur = self.conn.cursor()
             scope_name = self._validate_scope(scope_name, None)
@@ -920,7 +1029,15 @@ class SQLiteDB(Database):
                                       not be recorded'.format(scope_name))
 
             if run_ids is None:
-                run_ids = pd.Index([None]*len(m_df))
+                # generate new run_ids if none is given
+                run_ids = []
+                for experiment_id in m_df.index:
+                    run_id, experiment_id = self.new_run_id(
+                        scope_name,
+                        experiment_id=experiment_id,
+                        source=source,
+                    )
+                    run_ids.append(run_id)
 
             for m in scp_m:
                 if m[0] in m_df.columns:
@@ -1155,6 +1272,8 @@ class SQLiteDB(Database):
             experiment_id=None,
             source=None,
             design=None,
+            runs=None,
+            _debug=False,
     ):
         """
         Read experiment results from the database.
@@ -1187,6 +1306,8 @@ class SQLiteDB(Database):
                 results from multiple sources.
         """
 
+        assert runs in (None, 'all', 'valid')
+
         if design is not None:
             if design_name is None:
                 design_name = design
@@ -1196,53 +1317,113 @@ class SQLiteDB(Database):
                 raise ValueError("cannot give both `design_name` and `design`")
 
         scope_name = self._validate_scope(scope_name, 'design_name')
+
+        sql = sq.GET_EXPERIMENT_MEASURES_MASTER
+
         if design_name is None:
-            if experiment_id is None:
-                sql = sq.GET_EXPERIMENT_MEASURES_ALL
-                arg = dict(scope_name=scope_name)
-                if source is not None:
-                    sql += ' AND measure_source = @measure_source'
-                    arg['measure_source'] = source
-            else:
-                sql = sq.GET_EXPERIMENT_MEASURES_BY_ID_ALL
-                arg = dict(
-                    scope_name=scope_name,
-                    experiment_id=experiment_id,
-                )
-                if source is not None:
-                    sql += ' AND measure_source = @measure_source'
-                    arg['measure_source'] = source
-        else:
-            if experiment_id is None:
-                sql = sq.GET_EXPERIMENT_MEASURES
-                arg = dict(
-                    scope_name=scope_name,
-                    design_name=design_name,
-                )
-                if source is not None:
-                    sql = sql.replace("/*source*/", ' AND measure_source = @measure_source')
-                    arg['measure_source'] = source
-            else:
-                sql = sq.GET_EXPERIMENT_MEASURES_BY_ID
-                arg = dict(
-                    scope_name=scope_name,
-                    design_name=design_name,
-                    experiment_id=experiment_id,
-                )
-                if source is not None:
-                    sql = sql.replace("/*source*/", ' AND measure_source = @measure_source')
-                    arg['measure_source'] = source
+            sql = sql.replace("AND ed.design = @design_name", "")
+        if source is None:
+            sql = sql.replace("AND run_source = @measure_source", "")
+        if experiment_id is None:
+            sql = sql.replace("AND eem.experiment_id = @experiment_id", "")
+        if runs == 'all':
+            sql = sql.replace("AND run_valid IS NOT FALSE", "")
+        if runs in ('all', 'valid'):
+            sql = re.sub(
+                r"/\* most recent .* end most recent \*/",
+                "ema_experiment_run",
+                sql,
+                flags=re.DOTALL
+            )
+        arg = dict(
+            scope_name=scope_name,
+            design_name=design_name,
+            experiment_id=experiment_id,
+            measure_source=source,
+        )
+
+        # if design_name is None:
+        #     if experiment_id is None:
+        #         sql = sq.GET_EXPERIMENT_MEASURES_ALL
+        #         arg = dict(scope_name=scope_name)
+        #         if source is not None:
+        #             sql += ' AND measure_source = @measure_source'
+        #             arg['measure_source'] = source
+        #     else:
+        #         sql = sq.GET_EXPERIMENT_MEASURES_BY_ID_ALL
+        #         arg = dict(
+        #             scope_name=scope_name,
+        #             experiment_id=experiment_id,
+        #         )
+        #         if source is not None:
+        #             sql += ' AND measure_source = @measure_source'
+        #             arg['measure_source'] = source
+        # else:
+        #     if experiment_id is None:
+        #         sql = sq.GET_EXPERIMENT_MEASURES
+        #         arg = dict(
+        #             scope_name=scope_name,
+        #             design_name=design_name,
+        #         )
+        #         if source is not None:
+        #             sql = sql.replace("/*source*/", ' AND measure_source = @measure_source')
+        #             arg['measure_source'] = source
+        #     else:
+        #         sql = sq.GET_EXPERIMENT_MEASURES_BY_ID
+        #         arg = dict(
+        #             scope_name=scope_name,
+        #             design_name=design_name,
+        #             experiment_id=experiment_id,
+        #         )
+        #         if source is not None:
+        #             sql = sql.replace("/*source*/", ' AND measure_source = @measure_source')
+        #             arg['measure_source'] = source
+        #
+        # if runs == 'all':
+        #     sql = sql.replace("AND eer.run_valid IS NOT FALSE", "")
+        # if runs in ('all', 'valid'):
+        #     sql = sql.replace(
+        #         "ema_experiment_most_recent_valid_run_with_results",
+        #         "ema_experiment_run"
+        #     )
 
         cur = self.conn.cursor()
+        if _debug == 'sql':
+            return sql, arg
         ex_m = pd.DataFrame(cur.execute(sql, arg).fetchall())
+        if _debug:
+            return ex_m
         if ex_m.empty is False:
+            if runs is None:
+                # by default, raise a value error if there are runs from multiple sources
+                try:
+                    ex_m.pivot(index=0, columns=2, values=3)
+                except ValueError:
+                    raise ValueError("duplicate experiment ids suggest results "
+                                     "from more than one model source are stored\n"
+                                     "set `runs='valid'` to return results from all "
+                                     "sources or set the `source` argument.")
             ex_m = ex_m.pivot(index=(0,1), columns=2, values=3)
         if isinstance(ex_m.index, pd.MultiIndex):
-            ex_m.index.set_levels([
-                    (uuid.UUID(bytes=i) if isinstance(i,bytes) else i)
-                    for i in ex_m.index.levels[1]
-            ], 1, inplace=True)
+            fix_levels = [_to_uuid(i) for i in ex_m.index.levels[1]]
+            zero_uuid = uuid.UUID(bytes=b'\x00' * 16)
+            try:
+                zero_index = fix_levels.index(zero_uuid)
+            except ValueError:
+                zero_index = len(fix_levels)
+                fix_levels.append(zero_uuid) # add a zero level
+            if len(fix_levels):
+                ex_m.index.set_levels(fix_levels, 1, inplace=True)
+            fix_codes = np.array(ex_m.index.codes[1], copy=True)
+            fix_codes[fix_codes == -1] = zero_index
+            ex_m.index.set_codes(fix_codes, level=1, inplace=True)
             ex_m.index.names = ['experiment', 'run']
+        elif len(ex_m.index) == 0:
+            ex_m.index = pd.MultiIndex(
+                levels=[[],[]],
+                codes=[[],[]],
+                names=['experiment', 'run'],
+            )
 
         ex_m.columns.name = None
 
@@ -1760,6 +1941,24 @@ class SQLiteDB(Database):
             else:
                 _logger.warn(f"FAILED TO MARK AS INVALID RUN_ID {run_id}")
 
+    def get_run_list(self):
+        runs = self._raw_query(
+            """
+            SELECT 
+                run_id, 
+                experiment_id, 
+                run_source,
+                run_status, 
+                run_valid, 
+                run_timestamp, 
+                run_location 
+            FROM 
+                ema_experiment_run
+            """
+        )
+        runs['run_id'] = runs['run_id'].apply(lambda x: uuid.UUID(bytes=x))
+        return runs.set_index('run_id')
+
 
     def merge_database(
             self,
@@ -1812,11 +2011,10 @@ class SQLiteDB(Database):
         if other_db_path:
             self.log(f"merging from database at {other_db_path}")
         for scope_name in other.read_scope_names():
-            if scope_name not in self.read_scope_names():
-                self.log(f"not merging scope name {scope_name}, name does not match current database")
-                continue
-            scope_self = self.read_scope(scope_name)
             scope_other = other.read_scope(scope_name)
+            if scope_name not in self.read_scope_names():
+                self.store_scope(scope_other)
+            scope_self = self.read_scope(scope_name)
             if force:
                 # Force merge if parameter names match, and there are some measures in common
                 if set(scope_self.get_parameter_names()) != set(scope_other.get_parameter_names()):
@@ -1850,6 +2048,22 @@ class SQLiteDB(Database):
                     )
                 source_mapping[other_metamodel_id] = new_id
 
+            # transfer runs
+            try:
+                other_runs = other.get_run_list()
+            except AttributeError:
+                other_runs = pd.DataFrame(
+                    columns=[
+                        'run_id',
+                        'experiment_id',
+                        'run_source',
+                        'run_status',
+                        'run_valid',
+                        'run_timestamp',
+                        'run_location',
+                    ]
+                )
+
             # transfer experiments
             design_names = other.read_design_names(scope_name)
             for design_name in design_names:
@@ -1878,19 +2092,74 @@ class SQLiteDB(Database):
                     if not dryrun:
                         self.write_experiment_parameters(scope_name, proposed_design_name, xl_df)
                 sources = other.read_experiment_measure_sources(scope_name, design_name)
+
+                # transfer relevant runs
+                if experiment_id_map is not None:
+                    experiment_id_map_ = experiment_id_map
+                else:
+                    experiment_id_map_ = pd.Series(data=xl_df.index, index=xl_df.index)
+                relevant_runs = other_runs['experiment_id'].map(experiment_id_map_)
+                other_runs['experiment_id'] = relevant_runs
+                copy_runs = other_runs[~relevant_runs.isna()]
+                with self.conn:
+                    cursor = self.conn.cursor()
+                    for row in copy_runs.itertuples():
+                        binding = dict(
+                            run_id=row[0].bytes,
+                            experiment_id=row[1],
+                            run_source=row[2],
+                            run_status=row[3],
+                            run_valid=row[4],
+                            run_timestamp=row[5],
+                            run_location=row[6]
+                        )
+                        cursor.execute(
+                            """
+                            INSERT OR IGNORE INTO ema_experiment_run (
+                                run_id           ,
+                                experiment_id    ,
+                                run_source       ,
+                                run_status       ,
+                                run_valid        ,
+                                run_timestamp    ,
+                                run_location     
+                            ) VALUES (
+                                @run_id           ,
+                                @experiment_id    ,
+                                @run_source       ,
+                                @run_status       ,
+                                @run_valid        ,
+                                @run_timestamp    ,
+                                @run_location    
+                            ) 
+                            """,
+                            binding
+                        )
+
                 # transfer measures
                 for source in sources:
                     if source == 0:
                         # source is core model, make updates but do not overwrite non-null values
-                        m_df0 = self.read_experiment_measures(scope_name, design_name, source=source)
-                        m_df1 = other.read_experiment_measures(scope_name, design_name, source=source)[common_measure_names]
+                        m_df0 = self.read_experiment_measures(scope_name, design_name, source=source, runs='all')
+                        m_df1 = other.read_experiment_measures(scope_name, design_name, source=source, runs='all')[common_measure_names]
                         if experiment_id_map is not None:
-                            m_df1.index = m_df1.index.map(experiment_id_map)
+                            reindexed = m_df1.index.levels[0].map(experiment_id_map)
+                            m_df1.index.set_levels(
+                                reindexed,
+                                level=0,
+                                inplace=True,
+                            )
                         df0copy = m_df0.copy()
-                        if on_conflict == 'replace':
-                            m_df = m_df1.combine_first(m_df0)
-                        else:
-                            m_df = m_df0.combine_first(m_df1)
+                        try:
+                            if on_conflict == 'replace':
+                                m_df = m_df1.combine_first(m_df0)
+                            else:
+                                m_df = m_df0.combine_first(m_df1)
+                        except:
+                            print("m_df0\n",m_df0)
+                            print("m_df1\n",m_df1)
+                            raise
+
                         n_diffs = count_diff_rows(m_df, df0copy)
                         self.log(f"experiment measures {n_diffs} updates "
                                  f"for {scope_name}/{design_name}")

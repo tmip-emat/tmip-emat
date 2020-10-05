@@ -77,7 +77,7 @@ def create_metamodel(
     if experiments is None:
         if design_name is None or db is None:
             raise ValueError('must give `experiments` as a DataFrame or both `db` and `design_name`')
-        experiments = db.read_experiment_all(scope.name, design_name)
+        experiments = db.read_experiment_all(scope.name, design_name, only_with_measures=True)
 
     experiments = scope.ensure_dtypes(experiments)
     _actually_excluded_measures = []

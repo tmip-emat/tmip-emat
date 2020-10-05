@@ -334,6 +334,10 @@ class FilesCoreModel(AbstractCoreModel):
 					experiment_id = self.db.write_experiment_parameters_1(
 						self.scope.name, 'ad hoc', scenario, policy
 					)
+				self.log(f"YES DATABASE experiment_id {experiment_id}", level=logging.CRITICAL)
+
+			else:
+				_logger.critical(f"NO DATABASE experiment_id {experiment_id}")
 
 			xl = {}
 			xl.update(scenario)
@@ -423,8 +427,9 @@ class FilesCoreModel(AbstractCoreModel):
 				# only write to database if there was no error in post_process, load_measures or outcome processing
 				_logger.debug(f"run_core_model write db {experiment_id}")
 				if hasattr(self, 'db') and self.db is not None:
+					run_id = getattr(self, 'run_id', None)
 					try:
-						self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df)
+						self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df, [run_id])
 					except Exception as err:
 						_logger.exception(f"error in writing results to database: {str(err)}")
 

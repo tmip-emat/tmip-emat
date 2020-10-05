@@ -76,6 +76,8 @@ def report_diff_rows(df_a, df_b):
 	nan_equal = regular_equal | both_na
 	all_cols_nan_equal = nan_equal.all(axis=1)
 	changed_rows = set(all_cols_nan_equal.index[~all_cols_nan_equal])
-	removed_rows = set(df_a.index[~np.in1d(df_a.index, df_a_.index)])
-	added_rows = set(df_b.index[~np.in1d(df_b.index, df_b_.index)])
+	a_in_a = df_a.index.isin(df_a_.index)
+	removed_rows = set(df_a.index[~a_in_a])
+	b_in_b = df_b.index.isin(df_b_.index)
+	added_rows = set(df_b.index[~b_in_b])
 	return sorted(changed_rows), sorted(removed_rows), sorted(added_rows)

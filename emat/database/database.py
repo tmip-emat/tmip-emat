@@ -379,6 +379,7 @@ class Database(abc.ABC):
             experiment_id=None,
             source=None,
             design=None,
+            runs=None,
     ):
         """
         Read experiment results from the database.
@@ -401,6 +402,12 @@ class Database(abc.ABC):
                 database, those results are returned.  If there are
                 results from multiple sources, an error is raised.
             design (str): Deprecated, use `design_name`.
+            runs ({None, 'all', 'valid'}, default None):
+                By default, this method returns results from only
+                the most recent valid model run.  Set this to 'valid'
+                to get all valid model runs (not just the most recent).
+                Set to 'all' to get everything, including invalidated
+                results.
 
         Returns:
             results (pandas.DataFrame): performance measures

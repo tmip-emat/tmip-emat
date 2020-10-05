@@ -833,6 +833,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 returns a dictionary of (measure name: value) pairs.
         """
         from .meta_model import create_metamodel
+
+        # The outputs index typically has a 2-level multi-index,
+        # giving both experiment_id and run_id.  But for this
+        # analysis, we will strip out the run_id.
+        if experiment_outputs.index.nlevels == 2:
+            experiment_outputs.index = experiment_outputs.index.get_level_values(0)
+
         return create_metamodel(
             scope=self.scope,
             experiments=pd.concat([experiment_inputs, experiment_outputs], axis=1),

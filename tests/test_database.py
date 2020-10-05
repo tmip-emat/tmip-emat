@@ -411,6 +411,9 @@ def test_database_merging():
     check = emat_db.read_experiment_measures(None, 'lhs_2', source=0)
     assert len(check) == 5
 
+    check = emat_db.read_experiment_measures(None, 'lhs_2', source=1)
+    assert len(check) == 110
+
     import emat.examples
     s2, db2, m2 = emat.examples.road_test()
 
@@ -437,11 +440,30 @@ def test_database_merging():
     assert len(check) == 5
     assert len(check.columns) == 7
 
+    check = emat_db.read_experiment_measures(None, 'lhs_2', runs='valid')
+    assert len(check) == 115
+
     emat_db.merge_database(db2)
 
     check = emat_db.read_experiment_measures(None, 'lhs_2', source=0)
     assert len(check) == 110
     assert len(check.columns) == 7
+
+    check = emat_db.read_experiment_measures(None, 'lhs_2', runs='valid')
+    assert len(check) == 225
+
+
+def test_update_old_database():
+    import shutil
+    shutil.copy2(
+        'old-format-database.sqlitedb',
+        'old-format-database-copy.sqlitedb',
+    )
+    old = emat.SQLiteDB('old-format-database-copy.sqlitedb')
+    assert old.read_experiment_parameters(None, 'lhs_1').shape == (100,13)
+    assert old.read_experiment_measures(None, 'lhs_1').shape == (50,7)
+    old.conn.close()
+    os.remove('old-format-database-copy.sqlitedb')
 
 emat.package_file('model', 'tests', 'road_test.yaml')
 

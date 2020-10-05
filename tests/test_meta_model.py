@@ -66,6 +66,7 @@ class TestMetaModelMethods(unittest.TestCase):
         result2 = mm.run_experiments('tiny2')
 
         tiny2out = mm.read_experiment_measures('tiny2')
+        tiny2out.index = tiny2out.index.droplevel(1)
         stable_df('./test_tiny2out.pkl.gz', tiny2out)
 
         with pytest.raises(ValueError):
