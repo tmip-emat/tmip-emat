@@ -242,7 +242,18 @@ class TwoWayFigure(HBox):
 
 		self.set_x(self._dfv.data.columns[0], drawbox=False)
 		self.set_y(self._dfv.data.columns[-1])
-		self.scattergraph.meta = self._dfv.data.index
+
+		if self._dfv.data.index.nlevels == 2:
+			# index has both experiment_id and run_id
+			tags = []
+			for i in self._dfv.data.index:
+				if pandas.isna(i[1]):
+					tags.append(f"{i[0]}")
+				else:
+					tags.append(f"{i[0]} {{{i[1]}}}")
+			self.scattergraph.meta = tags
+		else:
+			self.scattergraph.meta = self._dfv.data.index
 		if self._dfv.data.index.name:
 			hover_name = self._dfv.data.index.name
 		else:

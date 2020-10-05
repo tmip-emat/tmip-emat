@@ -88,8 +88,8 @@ class TestDatabaseMethods(unittest.TestCase):
         
         # get experiment ids
         exp_with_ids = self.db_test.read_experiment_parameters(self.scope_name,design)
-        exp_with_ids['pm_1'] = [4.0,5.0]
-        exp_with_ids['pm_2'] = [6.0,7.0]
+        exp_with_ids['pm_1'] = [4.4,5.5]
+        exp_with_ids['pm_2'] = [6.6,7.7]
         
         # write performance measures
         self.db_test.write_experiment_measures(self.scope_name,SOURCE_IS_CORE_MODEL,exp_with_ids)
@@ -106,7 +106,7 @@ class TestDatabaseMethods(unittest.TestCase):
         
         # get experiment ids
         exp_with_ids = self.db_test.read_experiment_parameters(self.scope_name,design)
-        exp_with_ids['pm_1'] = [4.0,5.0]
+        exp_with_ids['pm_1'] = [4.4,5.5]
         
         # write performance measures
         self.db_test.write_experiment_measures(self.scope_name,SOURCE_IS_CORE_MODEL,exp_with_ids)

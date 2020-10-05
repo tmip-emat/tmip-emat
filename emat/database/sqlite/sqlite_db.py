@@ -146,66 +146,13 @@ class SQLiteDB(Database):
         if 'run_source' not in self._raw_query(table='ema_experiment_run')['name'].to_numpy():
             self.update_database(sq.UPDATE_DATABASE_ema_experiment_run_ADD_run_source, on_error='raise')
 
-        if 'scope_id' not in self._raw_query(table='ema_scope')['name'].to_numpy():
+        if 'scope_id' not in self._raw_query(table='ema_scope')['name'].to_numpy() or 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy() :
             self.__apply_sql_script(self.conn, 'emat_db_rebuild.sql')
 
-        # add run_id to runs that do not have one
-
-        if 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy():
-            # measure source and experiment id
-            experiments_with_missing_run_ids = self._raw_query("""
-            SELECT DISTINCT experiment_id, measure_source FROM ema_experiment_measure WHERE measure_run IS NULL
-            """)
-            experiments_with_missing_run_ids['run_id'] = experiments_with_missing_run_ids['experiment_id'].apply(uuid.uuid1)
-            experiments_with_missing_run_ids['run_rowid'] = 0
-
-        else:
-            # experiment id only
-            experiments_with_missing_run_ids = self._raw_query("""
-            SELECT DISTINCT experiment_id FROM ema_experiment_measure WHERE measure_run IS NULL
-            """)
-            experiments_with_missing_run_ids['run_id'] = experiments_with_missing_run_ids.applymap(uuid.uuid1)
-            experiments_with_missing_run_ids['run_rowid'] = 0
-            experiments_with_missing_run_ids['measure_source'] = 0
-
-        experiments_with_missing_run_ids['run_id'] = experiments_with_missing_run_ids['run_id'].apply(lambda x: x.bytes)
-
-        with self.conn:
-            cur = self.conn.cursor()
-            # write new run_ids to run table
-            qry = """
-            INSERT INTO ema_experiment_run (run_id, experiment_id, run_status, run_valid, run_location, run_source)
-            VALUES (@run_id, @experiment_id, 'existing', TRUE, NULL, @measure_source) 
-            """
-            for j in experiments_with_missing_run_ids.index:
-                cur.execute(qry, dict(experiments_with_missing_run_ids.loc[j]))
-                experiments_with_missing_run_ids.loc[j, 'run_rowid'] = int(cur.lastrowid)
-
-            #then update measures table with run ids.
-            if 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy():
-                qry = """
-                UPDATE 
-                    ema_experiment_measure
-                SET 
-                    measure_run = @run_rowid 
-                WHERE 
-                    measure_run IS NULL 
-                    AND experiment_id = @experiment_id
-                    AND measure_source = @measure_source
-                """
-            else:
-                qry = """
-                UPDATE 
-                    ema_experiment_measure
-                SET 
-                    measure_run = @run_rowid 
-                WHERE 
-                    measure_run IS NULL 
-                    AND experiment_id = @experiment_id
-                """
-            for j in experiments_with_missing_run_ids.index:
-                bindings = dict(experiments_with_missing_run_ids.loc[j])
-                cur.execute(qry, bindings)
+        try:
+            self.update_database_for_run_ids()
+        except:
+            _logger.exception("UPDATE FAIL")
 
         self.__apply_sql_script(self.conn, 'emat_db_init_views.sql')
         atexit.register(self.conn.close)
@@ -243,6 +190,91 @@ class SQLiteDB(Database):
                 z = cur.execute(q).fetchall()
                 if z:
                     _logger.error(f"Unexpected output in database script {filename}:\n{q}\n{z}")
+
+    def vacuum(self):
+        self.conn.cursor().execute('VACUUM')
+
+    def update_database_for_run_ids(self):
+
+        # add run_id to runs that do not have one
+
+        if 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy():
+            # measure source and experiment id
+            experiments_with_missing_run_ids = self._raw_query("""
+            SELECT DISTINCT experiment_id, measure_source FROM ema_experiment_measure WHERE measure_run IS NULL
+            """)
+            experiments_with_missing_run_ids['run_id'] = experiments_with_missing_run_ids['experiment_id'].apply(uuid.uuid1)
+            experiments_with_missing_run_ids['run_rowid'] = 0
+
+        else:
+            # experiment id only
+            experiments_with_missing_run_ids = self._raw_query("""
+            SELECT DISTINCT experiment_id FROM ema_experiment_measure WHERE measure_run IS NULL
+            """)
+            experiments_with_missing_run_ids['run_id'] = experiments_with_missing_run_ids.applymap(uuid.uuid1)
+            experiments_with_missing_run_ids['run_rowid'] = 0
+            experiments_with_missing_run_ids['measure_source'] = 0
+
+        if len(experiments_with_missing_run_ids) == 0:
+            self.log("found no experiments with missing run_id's")
+            return
+
+        self.log(f"found {len(experiments_with_missing_run_ids)} experiments with missing run_id, updating database")
+
+        experiments_with_missing_run_ids['run_id'] = experiments_with_missing_run_ids['run_id'].apply(lambda x: x.bytes)
+
+        with self.conn:
+            cur = self.conn.cursor()
+
+            # remove otherwise duplicate rows from ema_experiment_measure
+            cur.execute("""
+            DELETE FROM
+                ema_experiment_measure
+            WHERE
+                rowid NOT IN (
+                     SELECT min(rowid)
+                     FROM ema_experiment_measure
+                     GROUP BY 
+                        experiment_id, 
+                        measure_id, 
+                        measure_run
+                )
+            """)
+
+            # write new run_ids to run table
+            qry = """
+            INSERT INTO ema_experiment_run (run_id, experiment_id, run_status, run_valid, run_location, run_source)
+            VALUES (@run_id, @experiment_id, 'existing', TRUE, NULL, @measure_source) 
+            """
+            for j in experiments_with_missing_run_ids.index:
+                cur.execute(qry, dict(experiments_with_missing_run_ids.loc[j]))
+                experiments_with_missing_run_ids.loc[j, 'run_rowid'] = int(cur.lastrowid)
+
+            #then update measures table with run ids.
+            if 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy():
+                qry = """
+                UPDATE 
+                    ema_experiment_measure
+                SET 
+                    measure_run = @run_rowid 
+                WHERE 
+                    measure_run IS NULL 
+                    AND experiment_id = @experiment_id
+                    AND measure_source = @measure_source
+                """
+            else:
+                qry = """
+                UPDATE 
+                    ema_experiment_measure
+                SET 
+                    measure_run = @run_rowid 
+                WHERE 
+                    measure_run IS NULL 
+                    AND experiment_id = @experiment_id
+                """
+            for j in experiments_with_missing_run_ids.index:
+                bindings = dict(experiments_with_missing_run_ids.loc[j])
+                cur.execute(qry, bindings)
 
     def update_database(self, queries, on_error='ignore'):
         """
@@ -1128,6 +1160,7 @@ class SQLiteDB(Database):
             only_complete=False,
             only_with_measures=False,
             ensure_dtypes=True,
+            with_run_ids=False,
     ):
         """
         Read experiment definitions and results
@@ -1169,6 +1202,11 @@ class SQLiteDB(Database):
                 of the database, and that scope file is used to
                 format experimental data consistently (i.e., as
                 float, integer, bool, or categorical).
+            with_run_ids (bool, default False): Whether to use a
+                two-level pd.MultiIndex that includes both the
+                experiment_id (which always appears in the index)
+                as well as the run_id (which only appears in the
+                index if this argument is set to True).
 
         Returns:
             emat.ExperimentalDesign:
@@ -1181,57 +1219,35 @@ class SQLiteDB(Database):
                 When no source is given but the database contains
                 results from multiple sources.
         """
-        scope_name = self._validate_scope(scope_name, 'design_name')
-        cur = self.conn.cursor()
-        if design_name is None:
-            if source is None:
-                ex_xlm = pd.DataFrame(cur.execute(sq.GET_EX_XLM_ALL,
-                                                       [scope_name,]).fetchall())
-            else:
-                ex_xlm = pd.DataFrame(cur.execute(sq.GET_EX_XLM_ALL_BYSOURCE,
-                                                       [scope_name,source]).fetchall())
-        elif isinstance(design_name, str):
-            if source is None:
-                ex_xlm = pd.DataFrame(cur.execute(
-                    sq.GET_EXPERIMENT_PARAMETERS_AND_MEASURES,
-                    [scope_name, design_name],
-                ).fetchall())
-            else:
-                ex_xlm = pd.DataFrame(cur.execute(
-                    sq.GET_EXPERIMENT_PARAMETERS_AND_MEASURES_BYSOURCE,
-                    [scope_name, design_name, source]
-                ).fetchall())
-        else:
-            if source is None:
-                ex_xlm = pd.concat([
-                    pd.DataFrame(cur.execute(
-                        sq.GET_EXPERIMENT_PARAMETERS_AND_MEASURES,
-                        [scope_name, dn],
-                    ).fetchall())
-                    for dn in design_name
-                ])
-            else:
-                ex_xlm = pd.concat([
-                    pd.DataFrame(cur.execute(
-                        sq.GET_EXPERIMENT_PARAMETERS_AND_MEASURES_BYSOURCE,
-                        [scope_name, dn, source],
-                    ).fetchall())
-                    for dn in design_name
-                ])
-        if ex_xlm.empty is False:
-            ex_xlm = ex_xlm.pivot(index=0, columns=1, values=2)
-        ex_xlm.index.name = 'experiment'
-        ex_xlm.columns.name = None
+
+        df_p = self.read_experiment_parameters(
+            scope_name=scope_name,
+            design_name=design_name,
+            ensure_dtypes=ensure_dtypes,
+        )
+        df_m = self.read_experiment_measures(
+            scope_name=scope_name,
+            design_name=design_name,
+        )
+
+        ex_xlm = pd.merge(
+            df_p,
+            df_m.reset_index().set_index('experiment'),
+            how='outer',
+            on='experiment',
+        ).reset_index().set_index(['experiment', 'run'])
+
+        if not with_run_ids:
+            ex_xlm.index = ex_xlm.index.droplevel(1)
 
         if only_incomplete:
-            import numpy, pandas
-            retain = numpy.zeros(len(ex_xlm), dtype=bool)
+            retain = np.zeros(len(ex_xlm), dtype=bool)
             for meas_name in self.read_measures(scope_name):
                 if meas_name not in ex_xlm.columns:
                     retain[:] = True
                     break
                 else:
-                    retain[:] |= pandas.isna(ex_xlm[meas_name])
+                    retain[:] |= pd.isna(ex_xlm[meas_name])
             ex_xlm = ex_xlm.loc[retain, :]
 
         column_order = (
@@ -1296,6 +1312,12 @@ class SQLiteDB(Database):
                 database, those results are returned.  If there are
                 results from multiple sources, an error is raised.
             design (str): Deprecated, use `design_name`.
+            runs ({None, 'all', 'valid', 'invalid'}, default None):
+                By default, this method returns results from only
+                the most recent valid model run.  Set this to 'valid'
+                or 'invalid' to get all valid or invalid model runs
+                (not just the most recent). Set to 'all' to get everything,
+                including both valid and invalidated results.
 
         Returns:
             results (pandas.DataFrame): performance measures
@@ -1306,7 +1328,7 @@ class SQLiteDB(Database):
                 results from multiple sources.
         """
 
-        assert runs in (None, 'all', 'valid')
+        assert runs in (None, 'all', 'valid', 'invalid')
 
         if design is not None:
             if design_name is None:
@@ -1328,7 +1350,10 @@ class SQLiteDB(Database):
             sql = sql.replace("AND eem.experiment_id = @experiment_id", "")
         if runs == 'all':
             sql = sql.replace("AND run_valid IS NOT FALSE", "")
-        if runs in ('all', 'valid'):
+        elif runs == 'invalid':
+            sql = sql.replace("AND run_valid IS NOT FALSE",
+                              "AND run_valid IS NOT TRUE")
+        if runs in ('all', 'valid', 'invalid'):
             sql = re.sub(
                 r"/\* most recent .* end most recent \*/",
                 "ema_experiment_run",
@@ -1522,7 +1547,7 @@ class SQLiteDB(Database):
 
     def delete_experiment_measures(
             self,
-            experiment_ids=None,
+            run_ids=None,
     ):
         """
         Delete experiment performance measure results.
@@ -1532,19 +1557,77 @@ class SQLiteDB(Database):
         results was stored in the database.
 
         Args:
-            experiment_ids (Collection, optional):
-                A collection of experiment id's for which measures shall
+            run_ids (Collection, optional):
+                A collection of run_id's for which measures shall
                 be deleted.  Note that no scope or design are given here,
                 experiments must be individually identified.
 
         """
+        if isinstance(run_ids, uuid.UUID):
+            run_ids = [run_ids]
+        elif isinstance(run_ids, bytes):
+            run_ids = [uuid.UUID(bytes=run_ids)]
+        elif isinstance(run_ids, str):
+            run_ids = [uuid.UUID(run_ids)]
+
         with self.conn:
             cur = self.conn.cursor()
-            bindings = ",".join( ["?"] * len(experiment_ids) )
-            cur.execute(
-                sq.DELETE_MEASURES_BY_EXPERIMENT_ID.replace('?',bindings),
-                experiment_ids,
-            )
+            for run_id in run_ids:
+                if isinstance(run_id, uuid.UUID):
+                    b = run_id.bytes
+                elif isinstance(run_ids, str):
+                    b = uuid.UUID(run_id).bytes
+                elif isinstance(run_id, bytes):
+                    b = run_id
+                else:
+                    raise ValueError(f'cannot interpret run_id "{run_id}"')
+                cur.execute(
+                    sq.DELETE_RUN_ID,
+                    dict(run_id=b),
+                )
+
+    def invalidate_experiment_runs(
+            self,
+            run_ids=None,
+    ):
+        """
+        Delete experiment performance measure results.
+
+        The method removes only the performance measures, not the
+        parameters.  This can be useful if a set of corrupted model
+        results was stored in the database.
+
+        Args:
+            run_ids (Collection, optional):
+                A collection of run_id's for which measures shall
+                be deleted.  Note that no scope or design are given here,
+                experiments must be individually identified.
+
+        """
+        if isinstance(run_ids, uuid.UUID):
+            run_ids = [run_ids]
+        elif isinstance(run_ids, bytes):
+            run_ids = [uuid.UUID(bytes=run_ids)]
+        elif isinstance(run_ids, str):
+            run_ids = [uuid.UUID(run_ids)]
+        elif isinstance(run_ids, pd.MultiIndex) and run_ids.nlevels==2:
+            run_ids = run_ids.get_level_values(1)
+        elif isinstance(run_ids, pd.DataFrame) and run_ids.index.nlevels==2:
+            run_ids = run_ids.index.get_level_values(1)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            for run_id in run_ids:
+                if isinstance(run_id, uuid.UUID):
+                    b = run_id.bytes
+                elif isinstance(run_ids, str):
+                    b = uuid.UUID(run_id).bytes
+                elif isinstance(run_id, bytes):
+                    b = run_id
+                cur.execute(
+                    sq.INVALIDATE_RUN_ID,
+                    dict(run_id=b),
+                )
 
     def write_experiment_all(
             self,
@@ -2049,6 +2132,7 @@ class SQLiteDB(Database):
                 source_mapping[other_metamodel_id] = new_id
 
             # transfer runs
+            n_runs_added = 0
             try:
                 other_runs = other.get_run_list()
             except AttributeError:
@@ -2063,6 +2147,45 @@ class SQLiteDB(Database):
                         'run_location',
                     ]
                 )
+            else:
+                with self.conn:
+                    cursor = self.conn.cursor()
+                    for row in other_runs.itertuples():
+                        binding = dict(
+                            run_id=row[0].bytes,
+                            experiment_id=row[1],
+                            run_source=row[2],
+                            run_status=row[3],
+                            run_valid=row[4],
+                            run_timestamp=row[5],
+                            run_location=row[6]
+                        )
+                        cursor.execute(
+                            """
+                            INSERT OR IGNORE INTO ema_experiment_run (
+                                run_id           ,
+                                experiment_id    ,
+                                run_source       ,
+                                run_status       ,
+                                run_valid        ,
+                                run_timestamp    ,
+                                run_location     
+                            ) VALUES (
+                                @run_id           ,
+                                @experiment_id    ,
+                                @run_source       ,
+                                @run_status       ,
+                                @run_valid        ,
+                                @run_timestamp    ,
+                                @run_location    
+                            ) 
+                            """,
+                            binding
+                        )
+                        if cursor.rowcount:
+                            n_runs_added += 1
+            if n_runs_added:
+                self.log(f"added {n_runs_added} run_ids to database")
 
             # transfer experiments
             design_names = other.read_design_names(scope_name)
@@ -2101,40 +2224,6 @@ class SQLiteDB(Database):
                 relevant_runs = other_runs['experiment_id'].map(experiment_id_map_)
                 other_runs['experiment_id'] = relevant_runs
                 copy_runs = other_runs[~relevant_runs.isna()]
-                with self.conn:
-                    cursor = self.conn.cursor()
-                    for row in copy_runs.itertuples():
-                        binding = dict(
-                            run_id=row[0].bytes,
-                            experiment_id=row[1],
-                            run_source=row[2],
-                            run_status=row[3],
-                            run_valid=row[4],
-                            run_timestamp=row[5],
-                            run_location=row[6]
-                        )
-                        cursor.execute(
-                            """
-                            INSERT OR IGNORE INTO ema_experiment_run (
-                                run_id           ,
-                                experiment_id    ,
-                                run_source       ,
-                                run_status       ,
-                                run_valid        ,
-                                run_timestamp    ,
-                                run_location     
-                            ) VALUES (
-                                @run_id           ,
-                                @experiment_id    ,
-                                @run_source       ,
-                                @run_status       ,
-                                @run_valid        ,
-                                @run_timestamp    ,
-                                @run_location    
-                            ) 
-                            """,
-                            binding
-                        )
 
                 # transfer measures
                 for source in sources:

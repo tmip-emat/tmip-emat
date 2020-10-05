@@ -154,6 +154,20 @@ DELETE_MEASURES_BY_EXPERIMENT_ID = '''
     WHERE ema_experiment_measure.experiment_id IN (?)
 '''
 
+DELETE_RUN_ID = '''
+    DELETE FROM ema_experiment_run
+    WHERE ema_experiment_run.run_id = @run_id
+'''
+
+INVALIDATE_RUN_ID = '''
+    UPDATE 
+        ema_experiment_run
+    SET
+        run_valid = FALSE
+    WHERE 
+        ema_experiment_run.run_id = @run_id
+'''
+
 
 
 INSERT_EX_XL = (
@@ -317,7 +331,7 @@ INSERT_EX_M = '''
         eer.run_rowid
     FROM 
         ema_measure 
-        LEFT JOIN ema_experiment_run eer
+        JOIN ema_experiment_run eer
             ON eer.run_id = @measure_run
     WHERE ema_measure.name = @measure_name
 '''
@@ -469,6 +483,7 @@ GET_EXPERIMENT_MEASURES_MASTER = '''
             AND eem.experiment_id = @experiment_id
             AND measure_value IS NOT NULL
             AND run_source = @measure_source
+            AND run_valid IS NOT FALSE
 '''
 
 
