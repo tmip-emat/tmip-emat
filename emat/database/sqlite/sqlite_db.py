@@ -968,23 +968,17 @@ class SQLiteDB(Database):
                 experiment_ids = [experiment_ids]
             subquery = ",".join(f"?{n+2}" for n in range(len(experiment_ids)))
             query = query.replace("???", subquery)
-            xl_df = pd.DataFrame(cur.execute(query, [scope_name, *experiment_ids]).fetchall())
-        elif only_pending:
-            if design_name is None:
-                xl_df = pd.DataFrame(cur.execute(
-                    sq.GET_EX_XL_ALL_PENDING, [scope_name, ]).fetchall())
-            else:
-                xl_df = pd.DataFrame(cur.execute(
-                    sq.GET_PENDING_EXPERIMENT_PARAMETERS, [scope_name, design_name]
-                ).fetchall())
+            bindings = [scope_name, *experiment_ids]
+        elif design_name is None:
+            query = sq.GET_EX_XL_ALL
+            bindings = dict(scope_name=scope_name)
         else:
-            if design_name is None:
-                xl_df = pd.DataFrame(cur.execute(
-                        sq.GET_EX_XL_ALL, [scope_name, ]).fetchall())
-            else:
-                xl_df = pd.DataFrame(cur.execute(
-                        sq.GET_EXPERIMENT_PARAMETERS, [scope_name, design_name]
-                ).fetchall())
+            query = sq.GET_EXPERIMENT_PARAMETERS
+            bindings = dict(scope_name=scope_name, design_name=design_name)
+        xl_df = pd.DataFrame(cur.execute(
+            query,
+            bindings,
+        ).fetchall())
         if xl_df.empty is False:
             xl_df = xl_df.pivot(index=0, columns=1, values=2)
         xl_df.index.name = 'experiment'
@@ -1003,6 +997,12 @@ class SQLiteDB(Database):
             scope = self.read_scope(scope_name)
             if scope is not None:
                 result = scope.ensure_dtypes(result)
+
+        if only_pending:
+            valid_results = self.read_experiment_measures(scope_name, design_name, source=0)
+            valid_ex_ids = valid_results.index.get_level_values(0)
+            result = result.loc[~result.index.isin(valid_ex_ids)]
+
         return result
 
     def write_experiment_measures(
