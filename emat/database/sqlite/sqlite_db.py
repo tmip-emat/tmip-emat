@@ -1367,51 +1367,6 @@ class SQLiteDB(Database):
             measure_source=source,
         )
 
-        # if design_name is None:
-        #     if experiment_id is None:
-        #         sql = sq.GET_EXPERIMENT_MEASURES_ALL
-        #         arg = dict(scope_name=scope_name)
-        #         if source is not None:
-        #             sql += ' AND measure_source = @measure_source'
-        #             arg['measure_source'] = source
-        #     else:
-        #         sql = sq.GET_EXPERIMENT_MEASURES_BY_ID_ALL
-        #         arg = dict(
-        #             scope_name=scope_name,
-        #             experiment_id=experiment_id,
-        #         )
-        #         if source is not None:
-        #             sql += ' AND measure_source = @measure_source'
-        #             arg['measure_source'] = source
-        # else:
-        #     if experiment_id is None:
-        #         sql = sq.GET_EXPERIMENT_MEASURES
-        #         arg = dict(
-        #             scope_name=scope_name,
-        #             design_name=design_name,
-        #         )
-        #         if source is not None:
-        #             sql = sql.replace("/*source*/", ' AND measure_source = @measure_source')
-        #             arg['measure_source'] = source
-        #     else:
-        #         sql = sq.GET_EXPERIMENT_MEASURES_BY_ID
-        #         arg = dict(
-        #             scope_name=scope_name,
-        #             design_name=design_name,
-        #             experiment_id=experiment_id,
-        #         )
-        #         if source is not None:
-        #             sql = sql.replace("/*source*/", ' AND measure_source = @measure_source')
-        #             arg['measure_source'] = source
-        #
-        # if runs == 'all':
-        #     sql = sql.replace("AND eer.run_valid IS NOT FALSE", "")
-        # if runs in ('all', 'valid'):
-        #     sql = sql.replace(
-        #         "ema_experiment_most_recent_valid_run_with_results",
-        #         "ema_experiment_run"
-        #     )
-
         cur = self.conn.cursor()
         if _debug == 'sql':
             return sql, arg
@@ -2147,45 +2102,6 @@ class SQLiteDB(Database):
                         'run_location',
                     ]
                 )
-            else:
-                with self.conn:
-                    cursor = self.conn.cursor()
-                    for row in other_runs.itertuples():
-                        binding = dict(
-                            run_id=row[0].bytes,
-                            experiment_id=row[1],
-                            run_source=row[2],
-                            run_status=row[3],
-                            run_valid=row[4],
-                            run_timestamp=row[5],
-                            run_location=row[6]
-                        )
-                        cursor.execute(
-                            """
-                            INSERT OR IGNORE INTO ema_experiment_run (
-                                run_id           ,
-                                experiment_id    ,
-                                run_source       ,
-                                run_status       ,
-                                run_valid        ,
-                                run_timestamp    ,
-                                run_location     
-                            ) VALUES (
-                                @run_id           ,
-                                @experiment_id    ,
-                                @run_source       ,
-                                @run_status       ,
-                                @run_valid        ,
-                                @run_timestamp    ,
-                                @run_location    
-                            ) 
-                            """,
-                            binding
-                        )
-                        if cursor.rowcount:
-                            n_runs_added += 1
-            if n_runs_added:
-                self.log(f"added {n_runs_added} run_ids to database")
 
             # transfer experiments
             design_names = other.read_design_names(scope_name)
@@ -2222,8 +2138,48 @@ class SQLiteDB(Database):
                 else:
                     experiment_id_map_ = pd.Series(data=xl_df.index, index=xl_df.index)
                 relevant_runs = other_runs['experiment_id'].map(experiment_id_map_)
-                other_runs['experiment_id'] = relevant_runs
-                copy_runs = other_runs[~relevant_runs.isna()]
+                copy_runs = other_runs.copy()
+                copy_runs['experiment_id'] = relevant_runs
+                copy_runs = copy_runs[~relevant_runs.isna()]
+                with self.conn:
+                    n_runs_added = 0
+                    cursor = self.conn.cursor()
+                    for row in copy_runs.itertuples():
+                        binding = dict(
+                            run_id=row[0].bytes,
+                            experiment_id=row[1],
+                            run_source=row[2],
+                            run_status=row[3],
+                            run_valid=row[4],
+                            run_timestamp=row[5],
+                            run_location=row[6]
+                        )
+                        cursor.execute(
+                            """
+                            INSERT OR IGNORE INTO ema_experiment_run (
+                                run_id           ,
+                                experiment_id    ,
+                                run_source       ,
+                                run_status       ,
+                                run_valid        ,
+                                run_timestamp    ,
+                                run_location     
+                            ) VALUES (
+                                @run_id           ,
+                                @experiment_id    ,
+                                @run_source       ,
+                                @run_status       ,
+                                @run_valid        ,
+                                @run_timestamp    ,
+                                @run_location    
+                            ) 
+                            """,
+                            binding
+                        )
+                        if cursor.rowcount:
+                            n_runs_added += 1
+                    if n_runs_added:
+                        self.log(f"added {n_runs_added} run_ids to database")
 
                 # transfer measures
                 for source in sources:

@@ -376,64 +376,8 @@ GET_EXPERIMENT_PARAMETERS_AND_MEASURES_BYSOURCE = GET_EXPERIMENT_PARAMETERS_AND_
 )
 
 
-GET_EXPERIMENT_MEASURES = '''
-    SELECT DISTINCT 
-        eem.experiment_id, --index_type
-        eer.run_id,
-        ema_measure.name, 
-        measure_value
-    FROM 
-        ema_experiment_measure eem 
-        JOIN ema_measure 
-            ON eem.measure_id = ema_measure.measure_id
-        JOIN ema_experiment ee 
-            ON eem.experiment_id = ee.experiment_id
-        JOIN ema_scope es 
-            ON ee.scope_id = es.scope_id
-        JOIN ema_design_experiment ede 
-            ON ee.experiment_id = ede.experiment_id
-        JOIN ema_design ed 
-            ON (es.scope_id = ed.scope_id AND ed.design_id = ede.design_id)
-        JOIN ema_experiment_most_recent_valid_run_with_results eer
-            ON eer.run_rowid = eem.measure_run
-        WHERE 
-            es.name = @scope_name 
-            AND ed.design = @design_name
-            AND measure_value IS NOT NULL
-            AND eer.run_valid IS NOT FALSE
-            /*source*/
-'''
 
 
-
-GET_EXPERIMENT_MEASURES_BY_ID = '''
-    SELECT DISTINCT 
-        eem.experiment_id, --index_type
-        eer.run_id,
-        ema_measure.name, 
-        measure_value
-    FROM 
-        ema_experiment_measure eem 
-        JOIN ema_measure 
-            ON eem.measure_id = ema_measure.measure_id
-        JOIN ema_experiment ee 
-            ON eem.experiment_id = ee.experiment_id
-        JOIN ema_scope es 
-            ON ee.scope_id = es.scope_id
-        JOIN ema_design_experiment ede 
-            ON ee.experiment_id = ede.experiment_id
-        JOIN ema_design ed 
-            ON (es.scope_id = ed.scope_id AND ed.design_id = ede.design_id)
-        LEFT JOIN ema_experiment_most_recent_valid_run_with_results eer
-            ON eer.run_rowid = eem.measure_run
-        WHERE 
-            es.name = @scope_name  
-            AND ed.design = @design_name 
-            AND eem.experiment_id = @experiment_id
-            AND measure_value IS NOT NULL
-            AND eer.run_valid IS NOT FALSE
-            AND measure_source = @measure_source
-'''
 
 
 GET_EXPERIMENT_MEASURES_MASTER = '''
@@ -549,52 +493,6 @@ GET_EXPERIMENT_MEASURE_SOURCES_BY_DESIGN = GET_EXPERIMENT_MEASURE_SOURCES.replac
         AND ed.design = @design_name         
 ''')
 
-GET_EXPERIMENT_MEASURES_ALL = '''
-    SELECT DISTINCT
-        eem.experiment_id, --index_type
-        eer.run_id,
-        em.name, 
-        eem.measure_value
-    FROM 
-        ema_experiment_measure eem
-        JOIN ema_measure em
-            ON eem.measure_id = em.measure_id
-        JOIN ema_experiment ee
-            ON eem.experiment_id = ee.experiment_id
-        JOIN ema_scope s 
-            ON ee.scope_id = s.scope_id
-        JOIN ema_experiment_most_recent_valid_run_with_results eer
-            ON eer.run_rowid = eem.measure_run
-        WHERE 
-            s.name = @scope_name 
-            AND eem.measure_value IS NOT NULL
-            AND eer.run_valid IS NOT FALSE
-'''
-
-
-
-GET_EXPERIMENT_MEASURES_BY_ID_ALL = '''
-    SELECT DISTINCT
-        eem.experiment_id, --index_type
-        eer.run_id,
-        em.name, 
-        measure_value
-    FROM 
-        ema_experiment_measure eem
-        JOIN ema_measure em
-            ON eem.measure_id = em.measure_id
-        JOIN ema_experiment ee
-            ON eem.experiment_id = ee.experiment_id
-        JOIN ema_scope s 
-            ON ee.scope_id = s.scope_id
-        JOIN ema_experiment_most_recent_valid_run_with_results eer
-            ON eer.run_rowid = eem.measure_run
-    WHERE 
-        s.name = @scope_name 
-        AND eem.experiment_id = @experiment_id 
-        AND measure_value IS NOT NULL
-        AND eer.run_valid IS NOT FALSE
-'''
 
 CREATE_META_MODEL = (
     '''

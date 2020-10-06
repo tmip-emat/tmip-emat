@@ -351,19 +351,6 @@ CREATE INDEX IF NOT EXISTS ema_experiment_measure_run_index
 ON ema_experiment_measure(measure_run);
 
 -- Most recent valid run for each experiment
-CREATE VIEW IF NOT EXISTS ema_experiment_most_recent_valid_run_with_results AS
-SELECT
-    *,
-    max(run_timestamp)
-FROM
-    ema_experiment_run
-WHERE
-    run_valid IS NOT FALSE
-    AND run_rowid IN (SELECT DISTINCT measure_run FROM ema_experiment_measure)
-GROUP BY
-    experiment_id
-;
-
 PRAGMA foreign_key_check;
 
 PRAGMA foreign_keys = ON
