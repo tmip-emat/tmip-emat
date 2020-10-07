@@ -132,7 +132,13 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         """     
  
     @abc.abstractmethod
-    def get_experiment_archive_path(self, experiment_id=None, makedirs=False, parameters=None):
+    def get_experiment_archive_path(
+            self,
+            experiment_id=None,
+            makedirs=False,
+            parameters=None,
+            run_id=None,
+    ):
         """
         Returns a file system location to store model run outputs.
 
@@ -155,7 +161,11 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 The parameters for this experiment, used to create or
                 lookup an experiment id. The parameters are ignored
                 if `experiment_id` is given.
-                
+            run_id (UUID, optional):
+                The run_id of this model run.  If not given but a
+                run_id attribute is stored in this FilesCoreModel
+                instance, that value is used.
+
         Returns:
             str: Experiment archive path (no trailing backslashes).
         """     

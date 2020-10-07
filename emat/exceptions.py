@@ -50,3 +50,6 @@ class MissingMeasuresWarning(Warning):
 class MissingMeasuresError(ValueError):
 	"""Some experiments have performance measures that are missing."""
 
+
+class DesignExistsError(ValueError):
+	"""Attempting to create a design that already exists."""

@@ -1011,6 +1011,7 @@ class SQLiteDB(Database):
             source,
             m_df,
             run_ids=None,
+            experiment_id=None,
     ):
         """
         Write experiment results to the database.
@@ -1032,17 +1033,26 @@ class SQLiteDB(Database):
                 An indicator of performance measure source. This should
                 be 0 for a bona-fide run of the associated core models,
                 or some non-zero metamodel_id number.
-            m_df (pandas.DataFrame):
+            m_df (pandas.DataFrame or dict):
                 The columns of this DataFrame are the performance
                 measure names, and row indexes are the experiment id's.
+                If given as a `dict` instead of a DataFrame, the keys are
+                treated as columns and an `experiment_id` must be provided.
             run_ids (pandas.Index, optional):
                 Provide an optional index of universally unique run ids
                 (UUIDs) for these results. The UUIDs can be used to help
                 identify problems and organize model runs.
+            experiment_id (int, optional):
+                Provide an experiment_id.  This is only used if the
+                `m_df` is provided as a dict instead of a DataFrame
 
         Raises:
             UserWarning: If scope name does not exist
         """
+        if experiment_id is not None:
+            if not isinstance(m_df, dict):
+                raise ValueError("only give an experiment_id with a dict as `m_df`")
+            m_df = pd.DataFrame(m_df, index=[experiment_id])
 
         # split run_ids from multiindex
         if m_df.index.nlevels == 2:
@@ -1627,7 +1637,7 @@ class SQLiteDB(Database):
                 identify problems and organize model runs.
 
         Raises:
-            UserWarning: If scope and design already exist
+            DesignExistsError: If scope and design already exist
             TypeError: If not all scope variables are defined in the
                 experiment
         """
@@ -1641,7 +1651,8 @@ class SQLiteDB(Database):
                 [scope_name, design_name],
             ).fetchall())
             if exist.empty is False:
-                raise UserWarning(
+                from ...exceptions import DesignExistsError
+                raise DesignExistsError(
                     'scope {0} with design {1} found, ' 
                     'must be deleted before recording'
                         .format(scope_name, design_name)

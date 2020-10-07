@@ -272,7 +272,14 @@ class Database(abc.ABC):
         """    
 
     @abc.abstractmethod
-    def write_experiment_measures(self, scope_name, source, m_df, run_ids=None):
+    def write_experiment_measures(
+            self,
+            scope_name,
+            source,
+            m_df,
+            run_ids=None,
+            experiment_id=None,
+    ):
         """
         Write experiment results to the database.
         
@@ -522,7 +529,7 @@ class Database(abc.ABC):
                 is an experiment.
 
         Raises:
-            UserWarning: If scope and design already exist 
+            DesignExistsError: If scope and design already exist
             TypeError: If not all scope variables are defined in the 
                 experiment
         """     

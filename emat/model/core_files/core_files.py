@@ -443,8 +443,43 @@ class FilesCoreModel(AbstractCoreModel):
 		finally:
 			self.exit_run_model()
 
-	@copydoc(AbstractCoreModel.get_experiment_archive_path)
-	def get_experiment_archive_path(self, experiment_id=None, makedirs=False, parameters=None):
+	def get_experiment_archive_path(
+			self,
+			experiment_id=None,
+			makedirs=False,
+			parameters=None,
+			run_id=None,
+	):
+		"""
+		Returns a file system location to store model run outputs.
+
+		For core models with long model run times, it is recommended
+		to store the complete model run results in an archive.  This
+		will facilitate adding additional performance measures to the
+		scope at a later time.
+
+		Both the scope name and experiment id can be used to create the
+		folder path.
+
+		Args:
+		    experiment_id (int):
+		        The experiment id, which is also the row id of the
+		        experiment in the database. If this is omitted, an
+		        experiment id is read or created using the parameters.
+		    makedirs (bool, default False):
+		        If this archive directory does not yet exist, create it.
+		    parameters (dict, optional):
+		        The parameters for this experiment, used to create or
+		        lookup an experiment id. The parameters are ignored
+		        if `experiment_id` is given.
+		    run_id (UUID, optional):
+		        The run_id of this model run.  If not given but a
+		        run_id attribute is stored in this FilesCoreModel
+		        instance, that value is used.
+
+		Returns:
+		    str: Experiment archive path (no trailing backslashes).
+		"""
 		if experiment_id is None:
 			if parameters is None:
 				raise ValueError("must give `experiment_id` or `parameters`")
@@ -453,10 +488,21 @@ class FilesCoreModel(AbstractCoreModel):
 				with warnings.catch_warnings():
 					warnings.simplefilter("ignore", category=MissingIdWarning)
 					experiment_id = db.get_experiment_id(self.scope.name, parameters)
+
+		if run_id is None:
+			run_id = getattr(self, 'run_id', None)
+
+		try:
+			exp_dir_name = f"exp_{experiment_id:03d}"
+		except ValueError:
+			exp_dir_name = f"exp_{experiment_id}"
+		if run_id is not None:
+			exp_dir_name += f"_{run_id}"
+
 		mod_results_path = os.path.join(
 			self.resolved_archive_path,
 			f"scp_{self.scope.name}",
-			f"exp_{experiment_id}"
+			exp_dir_name,
 		)
 		if makedirs:
 			os.makedirs(mod_results_path, exist_ok=True)

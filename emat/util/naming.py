@@ -33,3 +33,8 @@ def multiindex_to_strings(index):
 		return tags
 	else:
 		return index
+
+def reset_multiindex_to_strings(df):
+	df = df.copy(deep=False)
+	df.index = multiindex_to_strings(df.index)
+	return df.reset_index()
