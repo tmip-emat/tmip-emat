@@ -213,6 +213,10 @@ def contrast_experiments(
 			design_name=experiments_2,
 		)
 
+	# check that categories align with scope
+	scope.ensure_cat_ordering(experiments_1)
+	scope.ensure_cat_ordering(experiments_2)
+
 	if rows == 'measures':
 		rows = scope.get_measure_names()
 	elif rows == 'levers':

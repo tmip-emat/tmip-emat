@@ -610,6 +610,34 @@ class Scope:
             raise KeyError(name)
         return correct_dtypes[name]
 
+    def ensure_cat_ordering(self, data, inplace=True):
+        """
+        Ensure that all categorical columns have correctly ordered values.
+
+        Args:
+            data (pandas.DataFrame or pandas.Series):
+
+        Returns:
+            pandas.DataFrame or pandas.Series
+        """
+        if isinstance(data, pandas.Series):
+            data = pandas.DataFrame(data)
+            base_was_series = True
+        else:
+            base_was_series = False
+        if not inplace:
+            data = data.copy(deep=True)
+        data = data.select_dtypes('category')
+        for c in data:
+            ordering = getattr(self[c],'values',None)
+            if ordering:
+                data[c].cat.reorder_categories(ordering)
+        if not inplace:
+            if base_was_series:
+                return data.iloc[:,0]
+            else:
+                return data
+
     def design_experiments(self, *args, **kwargs):
         """
         Create a design of experiments based on this Scope.
