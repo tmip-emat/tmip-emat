@@ -8,6 +8,7 @@ X_FIGURE_BUFFER = 0.03
 
 from ...viz import colors, _pick_color
 from ... import styles
+from ...util.naming import multiindex_to_strings
 
 import logging
 _logger = logging.getLogger('EMAT.explore')
@@ -744,7 +745,7 @@ def new_splom_figure(
 							f'<b>{scope.shortname(col)}</b>: %{{x}}' +
 							f'<extra>{experiment_name} %{{meta}}</extra>'
 						)
-						meta = data.index
+						meta = multiindex_to_strings(data.index)
 
 					fig.add_trace(
 						Scatter(
@@ -1506,7 +1507,7 @@ def new_hmm_figure(
 								f'<b>{scope.shortname(col)}</b>: %{{x}}' +
 								f'<extra>{experiment_name} %{{meta}}</extra>'
 						)
-						meta_s = data[selection].index
+						meta_s = multiindex_to_strings(data[selection].index)
 
 					fig.add_trace(
 						go.Scatter(

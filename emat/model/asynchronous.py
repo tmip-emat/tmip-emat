@@ -106,7 +106,8 @@ class AsyncExperimentalDesign:
 			_tasks = self._tasks
 		except AttributeError:
 			return
-		await asyncio.gather(*_tasks)
+		result = await asyncio.gather(*_tasks)
+		return result
 
 def asynchronous_experiments(
 		model,

@@ -29,6 +29,7 @@ def create_metamodel(
         regressor=None,
         name=None,
         design_name=None,
+        find_best_metamodeltype=False,
 ):
     """
     Create a MetaModel from a set of input and output observations.
@@ -64,6 +65,16 @@ def create_metamodel(
         design_name (str, optional): The name of the design of experiments
             from `db` to use to create the metamodel. Only used if `experiments`
             is not given explicitly.
+        find_best_metamodeltype (int, default 0):
+            Run a search to find the best metamodeltype for each
+            performance measure, repeating each cross-validation
+            step this many times.  For more stable results, choose
+            3 or more, although larger numbers will be slow.  If
+            domain knowledge about the normal expected range and
+            behavior of each performance measure is available,
+            it is better to give the metamodeltype explicitly in
+            the Scope.
+
     Returns:
         PythonCoreModel:
             a callable object that, when called as if a
@@ -118,14 +129,18 @@ def create_metamodel(
         else:
             metamodel_id = numpy.random.randint(1, 2 ** 63, dtype='int64')
 
-    output_transforms = {
-        i.name: i.metamodeltype
-        for i in scope.get_measures()
-    }
-
-    output_transforms = {i: output_transforms[i]
-                         for i in output_transforms
-                         if i in meas}
+    if find_best_metamodeltype:
+        output_transforms, metamodeltype_tabulation = select_best_metamodeltype(
+            experiment_inputs, experiment_outputs, return_tabulation=True
+        )
+        output_transforms = dict(output_transforms)
+    else:
+        output_transforms = {
+            i.name: i.metamodeltype
+            for i in scope.get_measures()
+            if i in meas
+        }
+        metamodeltype_tabulation = None
 
     # change log tranforms to log1p when the experimental minimum is
     # non-positive but not less than -1
@@ -141,13 +156,16 @@ def create_metamodel(
     func = MetaModel(
         experiment_inputs,
         experiment_outputs,
-        output_transforms,
-        disabled_outputs,
-        random_state,
-        experiment_stratification,
+        metamodel_types=output_transforms,
+        disabled_outputs=disabled_outputs,
+        random_state=random_state,
+        sample_stratification=experiment_stratification,
         suppress_converge_warnings=suppress_converge_warnings,
         regressor=regressor,
     )
+
+    if metamodeltype_tabulation is not None:
+        func.metamodeltype_tabulation = metamodeltype_tabulation
 
     scope_ = scope.duplicate(
         strip_measure_transforms=True,
@@ -238,6 +256,8 @@ class MetaModel:
         'ln': (numpy.log, numpy.exp),
         'log1p': (numpy.log1p, numpy.expm1),
         'log1p-linear': (numpy.log1p, numpy.expm1),
+        'exp': (numpy.exp, numpy.log),
+        'logit': (lambda x: numpy.log(x/(1-x)), lambda x: numpy.exp(x)/(numpy.exp(x)+1)),
         # x is applied immediate from arguments in metamodeltype string, y is the eventual data
         'logxp': (lambda x: (lambda y: numpy.log(y + x)), lambda x: (lambda y: numpy.exp(y) - x)),
         'logxp-linear': (lambda x: (lambda y: numpy.log(y + x)), lambda x: (lambda y: numpy.exp(y) - x)),
@@ -281,6 +301,7 @@ class MetaModel:
 
         self.output_transforms = {}
         if metamodel_types is not None:
+            self.metamodel_types = metamodel_types
             for k,t in metamodel_types.items():
                 if t is None:
                     continue
@@ -319,7 +340,7 @@ class MetaModel:
             self.regression.set_params(random_state=random_state)
 
         if suppress_converge_warnings:
-            from sklearn.gaussian_process.gpr import ConvergenceWarning
+            from sklearn.exceptions import ConvergenceWarning
             import warnings
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=ConvergenceWarning)
@@ -867,3 +888,63 @@ class MetaModel:
         self.regression.clear_hypothetical_training_points()
         return proposed_candidates
 
+
+def select_best_metamodeltype(
+        params,
+        measures,
+        random_state=0,
+        suppress_converge_warnings=True,
+        possible_types=None,
+        n_repeats=3,
+        regressor=None,
+        return_tabulation=False,
+):
+    if possible_types is None:
+        possible_types = {'linear', 'log', 'log1p', 'logit', 'exp'}
+
+    if regressor is None:
+        from ..learn.boosting import LinearAndGaussian
+        regressor = LinearAndGaussian
+
+    def _metamodel_scores(t, filter_cols):
+        if t in possible_types:
+            result = MetaModel(
+                params,
+                measures[filter_cols],
+                {
+                    i: t
+                    for i in filter_cols
+                },
+                disabled_outputs=None,
+                random_state=random_state,
+                suppress_converge_warnings=suppress_converge_warnings,
+                regressor=LinearAndGaussian,
+            ).cross_val_scores(
+                random_state=random_state,
+                n_repeats=n_repeats,
+            ).data
+            result.columns = [t]
+            return result
+        else:
+            return pandas.Series(-2.0, index=filter_cols, name=t)
+
+    scores = [pandas.Series(-1.0, index=measures.columns, name='linear')]
+    scores.append(_metamodel_scores('linear', measures.columns))
+
+    check_log = measures.columns[(measures.min() > 0)]
+    scores.append(_metamodel_scores('log', check_log))
+
+    check_log1p = measures.columns[(measures.min() > -1)]
+    scores.append(_metamodel_scores('log1p', check_log1p))
+
+    check_logit = measures.columns[(measures.min() > 0) & (measures.max() < 1)]
+    scores.append(_metamodel_scores('logit', check_logit))
+
+    check_exp = measures.columns[(measures.max() < 10)]
+    scores.append(_metamodel_scores('exp', check_exp))
+
+    tabulation = pandas.concat(scores, axis=1)
+    if return_tabulation:
+        return tabulation.idxmax(axis=1), tabulation
+    else:
+        return tabulation.idxmax(axis=1)

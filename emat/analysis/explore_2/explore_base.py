@@ -122,16 +122,39 @@ class DataFrameExplorerBase():
 			self._active_selection_changed()
 
 	def active_selection_color(self):
+		"""
+		The color associated with the active selection.
+
+		This is either the color as set by `set_active_selection_color`
+		or the default highlight color.
+
+		Returns:
+			str
+		"""
 		return self._colors.get(
 			self._active_selection_name,
 			colors.DEFAULT_HIGHLIGHT_COLOR,
 		)
 
 	def set_active_selection_color(self, color):
-		# if self._active_selection_name in self._colors:
-		# 	if color != self._colors[self._active_selection_name]:
-		# 		print(f"change active selection [{self._active_selection_name}] color to {color}")
+		"""
+		A color to associate with the active selection.
+
+		The color should be a plotly-compatible representation
+		of the color, although no validation is done and any
+		value will be accepted.
+
+		"""
 		self._colors[self._active_selection_name] = color
+
+	def active_selection_data(self):
+		"""
+		The data associated with the active selection.
+
+		Returns:
+			pandas.DataFrame
+		"""
+		return self.data[self.active_selection()]
 
 	def _active_selection_changed(self):
 		pass

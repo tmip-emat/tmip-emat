@@ -1,5 +1,5 @@
 
-
+import pandas as pd
 import re
 
 def clean_name(s):
@@ -20,3 +20,16 @@ def clean_name(s):
 	s = re.sub('^[^a-zA-Z_]+', '', s)
 
 	return s
+
+def multiindex_to_strings(index):
+	if index.nlevels == 2:
+		# index has both experiment_id and run_id
+		tags = []
+		for i in index:
+			if pd.isna(i[1]):
+				tags.append(f"{i[0]}")
+			else:
+				tags.append(f"{i[0]} {{{i[1]}}}")
+		return tags
+	else:
+		return index

@@ -110,14 +110,14 @@ def check_cv(cv='warn', y=None, classifier=False, random_state=None, n_repeats=1
 	if isinstance(cv, numbers.Integral):
 		if (classifier and (y is not None) and (type_of_target(y) in ('binary', 'multiclass'))):
 			if n_repeats>1:
-				return RepeatedStratifiedKFold(cv, random_state=random_state, n_repeats=n_repeats, shuffle=shuffle)
+				return RepeatedStratifiedKFold(n_splits=cv, random_state=random_state, n_repeats=n_repeats)
 			else:
-				return StratifiedKFold(cv, random_state=random_state, shuffle=shuffle)
+				return StratifiedKFold(cv, random_state=random_state if shuffle else None, shuffle=shuffle)
 		else:
 			if n_repeats>1:
-				return RepeatedKFold(cv, random_state=random_state, n_repeats=n_repeats, shuffle=shuffle)
+				return RepeatedKFold(n_splits=cv, random_state=random_state, n_repeats=n_repeats)
 			else:
-				return KFold(cv, random_state=random_state, shuffle=shuffle)
+				return KFold(cv, random_state=random_state if shuffle else None, shuffle=shuffle)
 
 	return cv  # New style cv objects are passed without any modification
 
@@ -226,9 +226,18 @@ class CrossValMixin:
 			self._cross_validate_results[hashkey] = p
 		return p
 
-	def cross_val_scores(self, X, Y, cv=5, S=None,
-						 random_state=None, n_repeats=1,
-						 cache_metadata=None, n_jobs=-1):
+	def cross_val_scores(
+			self,
+			X,
+			Y,
+			cv=5,
+			S=None,
+			random_state=None,
+			n_repeats=1,
+			cache_metadata=None,
+			n_jobs=-1,
+			shuffle=False,
+	):
 		"""
 		Calculate the cross validation scores for this model.
 
@@ -264,7 +273,7 @@ class CrossValMixin:
 		p = self._cross_validate(
 			X, Y, cv=cv, S=S, random_state=random_state,
 			cache_metadata=cache_metadata, n_repeats=n_repeats,
-			n_jobs=n_jobs,
+			n_jobs=n_jobs, shuffle=shuffle,
 		)
 		try:
 			return pandas.Series({j:p[f"test_{j}"].mean() for j in self.Y_columns})
