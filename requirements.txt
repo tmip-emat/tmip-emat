@@ -8,3 +8,4 @@ seaborn
 pyyaml
 cloudpickle
 datashader
+packaging

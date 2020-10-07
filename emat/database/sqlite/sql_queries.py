@@ -827,8 +827,12 @@ UPDATE_DATABASE_ema_experiment_run_ADD_run_source = (
 
 from ... import __version__
 import numpy as np
+__version_as_int__ = np.asarray([
+    int(i)
+    for i in __version__.replace("a",'').replace("b",'').split(".")
+]) @ np.asarray([1000000,1000,1])
 SET_VERSION_DATABASE = f'''
-INSERT OR IGNORE INTO ema_tool_info VALUES ('version', {np.asarray([int(i) for i in __version__.split(".")]) @ np.asarray([1000000,1000,1])});
+INSERT OR IGNORE INTO ema_tool_info VALUES ('version', {__version_as_int__});
 '''
 SET_MINIMUM_VERSION_DATABASE = f'''
 INSERT OR IGNORE INTO ema_tool_info VALUES ('minimum_version', 4000); -- 0.4.0

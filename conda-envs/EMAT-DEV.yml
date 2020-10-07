@@ -51,5 +51,6 @@ dependencies:
 - sphinxcontrib-restbuilder
 - nbsphinx
 - jupyter_sphinx
+- packaging
 
 ## For development, install emat locally

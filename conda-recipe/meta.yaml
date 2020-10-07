@@ -43,6 +43,7 @@ requirements:
     - sqlalchemy
     - statsmodels
     - datashader
+    - packaging
 
 test:
   # Python imports

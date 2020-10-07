@@ -1,6 +1,6 @@
 #
 
-__version__ = '0.4.2'
+__version__ = '0.5.0a'
 
 
 import logging
@@ -23,7 +23,7 @@ try:
 	from .model.meta_model import MetaModel, create_metamodel
 	from .optimization.optimization_result import OptimizationResult
 	from .exceptions import *
-	from .versions import versions
+	from .versions import versions, require_version
 	from .experiment.experimental_design import ExperimentalDesign
 
 	try:
