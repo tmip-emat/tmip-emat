@@ -106,9 +106,8 @@ class AbstractOutcome(Variable):
             return values[0]
 
     def __eq__(self, other):
-        comparison = [all(hasattr(self, key) == hasattr(other, key) and
-                          getattr(self, key) == getattr(other, key) for key
-                          in self.__dict__.keys())]
+        comparison = [all(getattr(self, key, None) == getattr(other, key, None) for key
+                          in self.__dict__.keys()|other.__dict__.keys())]
         comparison.append(self.__class__ == other.__class__)
         return all(comparison)
 

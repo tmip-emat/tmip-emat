@@ -50,7 +50,7 @@ class TestCoreFilesMethods(unittest.TestCase):
         import emat.examples
         s, db, m = emat.examples.gbnrtc()
         m.archive_path = emat.examples.package_file("examples", "gbnrtc", "archive")
-        assert os.path.exists(m.get_experiment_archive_path(1))
+        assert os.path.exists(m.get_experiment_archive_path(1, run_id=False))
         measures = m.load_archived_measures(1)
         correct_1 = {
             'Peak Walk-to-transit Boarding': 34281.205786,

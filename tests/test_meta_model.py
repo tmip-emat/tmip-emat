@@ -143,18 +143,6 @@ class TestMetaModelMethods(unittest.TestCase):
 
         result2 = mm.run_experiments('tiny2')
 
-        # print(dict(mm.read_experiment_measures('tiny2').iloc[0]))
-        #
-        # print({
-        #     'no_build_travel_time': 81.6839454971052,
-        #     'build_travel_time': 61.91038371206646,
-        #     'time_savings': 44.94189289289446,
-        #     'value_of_time_savings': 2904.081661408463,
-        #     'net_benefits': -34.09931528157315,
-        #     'cost_of_capacity_expansion': 1085.3565091745982,
-        #     'present_cost_expansion': 19923.66625500023,
-        # })
-        #
         assert dict(mm.read_experiment_measures('tiny2').iloc[0]) == approx({
             'no_build_travel_time': 81.6839454971052,
             'build_travel_time': 61.91038371206646,

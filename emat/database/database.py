@@ -71,6 +71,15 @@ class Database(abc.ABC):
         """
 
     @abc.abstractmethod
+    def update_scope(self, scope):
+        """
+        Update the emat scope information in the database.
+
+        Args:
+            scope (Scope): scope to update
+        """
+
+    @abc.abstractmethod
     def store_scope(self, scope):
         """
         Save an emat.Scope directly to the database.

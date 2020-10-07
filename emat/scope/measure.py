@@ -96,6 +96,7 @@ class Measure(ScalarOutcome, ShortnameMixin):
             metamodeltype=None,
             shortname=None,
             desc=None,
+            formula=None,
     ):
 
         if isinstance(kind, str):
@@ -134,6 +135,9 @@ class Measure(ScalarOutcome, ShortnameMixin):
         self._shortname = shortname
         self.desc = desc
         """str: Human readable description of this performance measure, for reference only"""
+
+        self.formula = formula
+        """str: An eval-able expression to compute this performance measure from other measures"""
 
     def __repr__(self):
         return super().__repr__()

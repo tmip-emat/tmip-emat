@@ -138,7 +138,7 @@ def create_metamodel(
         output_transforms = {
             i.name: i.metamodeltype
             for i in scope.get_measures()
-            if i in meas
+            if i.name in meas
         }
         metamodeltype_tabulation = None
 

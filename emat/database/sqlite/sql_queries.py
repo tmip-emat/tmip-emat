@@ -24,6 +24,16 @@ INSERT_SCOPE = (
     '''
     )
 
+UPDATE_SCOPE_CONTENT = '''
+    REPLACE INTO 
+        ema_scope( name, content )
+    VALUES (
+        @scope_name, 
+        @scope_pickle
+    )
+'''
+
+
 GET_SCOPE = (
     '''SELECT content FROM ema_scope WHERE name = ?'''
 )

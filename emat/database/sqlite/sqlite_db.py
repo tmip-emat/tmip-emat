@@ -126,7 +126,7 @@ class SQLiteDB(Database):
             if len(_min_ver):
                 _min_ver_number = _min_ver[0][0]
                 from ... import __version__
-                ver = (np.asarray([int(i) for i in __version__.split(".")])
+                ver = (np.asarray([int(i.replace('a','')) for i in __version__.split(".")])
                        @ np.asarray([1000000,1000,1]))
                 if _min_ver_number > ver:
                     warnings.warn(
@@ -398,6 +398,47 @@ class SQLiteDB(Database):
                 if cur.rowcount < 1:
                     raise KeyError('Performance measure {0} not present in database'
                                    .format(m))
+
+    @copydoc(Database.update_scope)
+    def update_scope(self, scope):
+
+        scope_name = scope.name
+        scp_xl = [xl for xl in scope.xl_di]
+        scp_m = [m.name for m in scope._m_list]
+
+        with self.conn:
+            cur = self.conn.cursor()
+
+            if scope is not None:
+                import gzip, cloudpickle
+                blob = gzip.compress(cloudpickle.dumps(scope))
+            else:
+                blob = None
+
+            cur.execute(
+                sq.UPDATE_SCOPE_CONTENT,
+                {'scope_name':scope_name, 'scope_pickle':blob},
+            )
+
+            for xl in scp_xl:
+                cur.execute(
+                    sq.CONDITIONAL_INSERT_XL,
+                    (xl.name, xl.ptype),
+                )
+                cur.execute(
+                    sq.INSERT_SCOPE_XL.replace("INSERT", "INSERT OR IGNORE"),
+                    [scope_name, xl],
+                )
+
+            for m in scp_m:
+                cur.execute(
+                    sq.CONDITIONAL_INSERT_M,
+                    (m.name, m.transform),
+                )
+                cur.execute(
+                    sq.INSERT_SCOPE_M.replace("INSERT", "INSERT OR IGNORE"),
+                    [scope_name, m],
+                )
 
 
     @copydoc(Database.store_scope)
@@ -1062,6 +1103,9 @@ class SQLiteDB(Database):
             m_df.index = m_df.index.get_level_values(0)
 
         with self.conn:
+
+            scope = None # don't load unless needed
+
             cur = self.conn.cursor()
             scope_name = self._validate_scope(scope_name, None)
             scp_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
@@ -1082,8 +1126,21 @@ class SQLiteDB(Database):
                     run_ids.append(run_id)
 
             for m in scp_m:
-                if m[0] in m_df.columns:
-                    for (ex_id, value), uid in zip(m_df[m[0]].iteritems(),run_ids):
+                dataseries = None
+                measure_name = m[0]
+                if measure_name not in m_df.columns:
+                    if scope is None:
+                        scope = self.read_scope(scope_name)
+                        print("scope=",scope)
+                    formula = getattr(scope[measure_name], 'formula', None)
+                    if formula:
+                        dataseries = m_df.eval(formula).rename(m.name)
+
+                if measure_name in m_df.columns:
+                    dataseries = m_df[measure_name]
+
+                if dataseries is not None:
+                    for (ex_id, value), uid in zip(dataseries.iteritems(),run_ids):
                         if isinstance(uid, uuid.UUID):
                             uid = uid.bytes
                         # index is experiment id
@@ -1091,7 +1148,7 @@ class SQLiteDB(Database):
                             experiment_id=ex_id,
                             measure_value=value,
                             measure_source=source,
-                            measure_name=m[0],
+                            measure_name=measure_name,
                             measure_run=uid,
                         )
                         try:

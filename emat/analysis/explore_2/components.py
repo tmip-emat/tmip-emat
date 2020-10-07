@@ -8,7 +8,7 @@ X_FIGURE_BUFFER = 0.03
 
 from ...viz import colors, _pick_color
 from ... import styles
-from ...util.naming import multiindex_to_strings
+from ...util.naming import multiindex_to_strings, reset_multiindex_to_strings
 
 import logging
 _logger = logging.getLogger('EMAT.explore')
@@ -738,7 +738,7 @@ def new_splom_figure(
 							f'<b>{scope.shortname(col)}</b>: %{{meta[2]}}' +
 							f'<extra>{experiment_name} %{{meta[0]}}</extra>'
 						)
-						meta = data[[row,col]].reset_index().to_numpy()
+						meta = reset_multiindex_to_strings(data[[row,col]]).to_numpy()
 					else:
 						hovertemplate = (
 							f'<b>{scope.shortname(row)}</b>: %{{y}}<br>' +

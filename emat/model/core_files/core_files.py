@@ -496,7 +496,7 @@ class FilesCoreModel(AbstractCoreModel):
 			exp_dir_name = f"exp_{experiment_id:03d}"
 		except ValueError:
 			exp_dir_name = f"exp_{experiment_id}"
-		if run_id is not None:
+		if run_id:
 			exp_dir_name += f"_{run_id}"
 
 		mod_results_path = os.path.join(

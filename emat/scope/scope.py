@@ -810,3 +810,26 @@ class Scope:
         values = {u.name: u.default for u in self.get_uncertainties()}
         values.update(kwargs)
         return Scenario('default', **values)
+
+    def add_measure(self, measure, db=None, **kwargs):
+        """
+        Add a performance measure to this scope.
+
+        Args:
+            measure:
+            db:
+            **kwargs:
+
+        """
+        if isinstance(measure, str):
+            measure = Measure(measure, **kwargs)
+        if not isinstance(measure, Measure):
+            raise TypeError("must add `Measure`, or give a name to create one")
+        self._m_list.append(measure)
+        if measure.formula is not None and db is not None:
+            if not isinstance(db, Database):
+                raise TypeError("db must be an emat.Database")
+            db.update_scope(self)
+            df_m = db.read_experiment_measures(self.name, runs='all', source=0)
+            df_n = pandas.DataFrame(df_m.eval(measure.formula).rename(measure.name))
+            db.write_experiment_measures(self.name, 0, df_n)

@@ -37,13 +37,43 @@ class TestDatabaseMethods(unittest.TestCase):
     ex_xl = ['constant','exp_var1','exp_var2']
     ex_m = ['pm_1', 'pm_2']
     db_test.delete_scope(scope_name)
+    scope_yaml = """
+    scope:
+        name: test-scope
+    inputs:
+        constant:
+            ptype: constant
+            dtype: float
+            default: 1
+        exp_var1:
+            ptype: lever
+            dtype: float
+            default: 1
+            min: 0
+            max: 2
+        exp_var2:
+            ptype: uncertainty
+            dtype: float
+            default: 1
+            min: 0
+            max: 2
+    outputs:
+        pm_1:
+            kind: info
+        pm_2:
+            kind: info
+    """
+    scope = emat.Scope(sheet, scope_yaml)
     
     def setUp(self):
          # create emat scope 
-        self.db_test.write_scope(self.scope_name,
-                                  self.sheet, 
-                                  self.ex_xl, 
-                                  self.ex_m)
+        self.db_test.write_scope(
+            self.scope_name,
+            self.sheet,
+            self.ex_xl,
+            self.ex_m,
+            self.scope,
+        )
 
     def tearDown(self):
         self.db_test.delete_scope(self.scope_name)
@@ -76,7 +106,7 @@ class TestDatabaseMethods(unittest.TestCase):
     
         xl_readback = self.db_test.read_experiment_parameters(self.scope_name,design)
         #note - indexes may not match
-        self.assertTrue(np.array_equal(xl_readback.values, xl_df.values))
+        assert np.array_equal(xl_readback.values, xl_df.values)
 
     def test_write_pm(self):
          # write experiment definition
@@ -97,7 +127,11 @@ class TestDatabaseMethods(unittest.TestCase):
         pd.testing.assert_frame_equal(exp_with_ids, xlm_readback)
 
     def test_write_partial_pm(self):
-         # write experiment definition
+        #assert self.db_test.read_scope(self.scope_name) is not None
+
+        print(self.db_test._raw_query("SELECT * FROM ema_scope"))
+
+        # write experiment definition
         xl_df = pd.DataFrame({'constant' : [1,1], 
                                 'exp_var1' : [1.1,1.2], 
                                 'exp_var2' : [2.1,2.2]})
