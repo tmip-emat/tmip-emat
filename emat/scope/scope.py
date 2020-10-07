@@ -627,11 +627,11 @@ class Scope:
             base_was_series = False
         if not inplace:
             data = data.copy(deep=True)
-        data = data.select_dtypes('category')
-        for c in data:
+        categorical_columns = data.select_dtypes('category').columns
+        for c in categorical_columns:
             ordering = getattr(self[c],'values',None)
             if ordering:
-                data[c].cat.reorder_categories(ordering)
+                data[c].cat.reorder_categories(ordering, inplace=True)
         if not inplace:
             if base_was_series:
                 return data.iloc[:,0]
