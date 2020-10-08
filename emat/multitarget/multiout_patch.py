@@ -29,7 +29,8 @@ def predict_std(self, X, return_std=True):
 	if not return_std:
 		raise TypeError('only use predict_std to access return_std')
 
-	y = Parallel(n_jobs=self.n_jobs)(
+	from ..util import n_jobs_cap
+	y = Parallel(n_jobs=n_jobs_cap(self.n_jobs))(
 		delayed(parallel_helper)(e, 'predict', X, return_std)
 		for e in self.estimators_)
 

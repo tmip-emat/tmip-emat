@@ -104,3 +104,27 @@ def rv_frozen_as_dict(frozen, min=None, max=None):
 	# ToDo, unravel pert
 
 	return x
+
+
+def n_jobs_cap(n_jobs):
+	"""
+	Cap the number of jobs for sklearn tasks on Windows.
+
+	https://github.com/scikit-learn/scikit-learn/issues/13354
+
+	Args:
+		n_jobs: int
+
+	Returns:
+		n_jobs
+	"""
+	if n_jobs is None or n_jobs < 0 or n_jobs > 60:
+		# Bug in windows if more than 60 jobs
+		# https://github.com/scikit-learn/scikit-learn/issues/13354
+		import platform
+		if platform.system() == 'Windows':
+			if n_jobs is None or n_jobs < 0:
+				import multiprocessing
+				n_jobs = max(multiprocessing.cpu_count() - 2, 1)
+			n_jobs = min(n_jobs, 60)
+	return n_jobs

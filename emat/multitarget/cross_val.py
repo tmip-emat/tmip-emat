@@ -55,7 +55,7 @@ def single_multiscore(n=0):
 
 class CrossValMixin:
 
-	def cross_val_scores(self, X, Y, cv=5, S=None):
+	def cross_val_scores(self, X, Y, cv=5, S=None, n_jobs=-1):
 		"""
 		Calculate the cross validation scores for this model.
 
@@ -79,11 +79,17 @@ class CrossValMixin:
 				vector of length equal to the first dimension
 				(i.e. number of observations) in the `X` and `Y`
 				arrays.
+			n_jobs : int, default -1
+				The number of jobs, forwarded to the scikit-learn
+				cross_validate function.
 
 		Returns:
 			pandas.Series: The cross-validation scores, by output.
 
 		"""
+		from ..util import n_jobs_cap
+		n_jobs = n_jobs_cap(n_jobs)
+
 		if S is not None:
 			from ..multitarget.splits import ExogenouslyStratifiedKFold
 			cv = ExogenouslyStratifiedKFold(exo_data=S, n_splits=cv)
@@ -99,7 +105,9 @@ class CrossValMixin:
 				j: make_scorer(single_multiscore(n))
 				for n,j in enumerate(self.Y_columns)
 			}
-			p = cross_validate(self, X, Y, cv=cv, scoring=ms, n_jobs=-1)
+			from ..util import n_jobs_cap
+			n_jobs = n_jobs_cap(n_jobs)
+			p = cross_validate(self, X, Y, cv=cv, scoring=ms, n_jobs=n_jobs)
 		try:
 			return pandas.Series({j:p[f"test_{j}"].mean() for j in self.Y_columns})
 		except:

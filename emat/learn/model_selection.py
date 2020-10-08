@@ -220,6 +220,8 @@ class CrossValMixin:
 				cv = check_cv(cv, Y, classifier=is_classifier(self),
 							  random_state=random_state, n_repeats=n_repeats,
 							  shuffle=shuffle)
+				from ..util import n_jobs_cap
+				n_jobs = n_jobs_cap(n_jobs)
 				p = cross_validate(self, X, Y, cv=cv, scoring=ms, n_jobs=n_jobs)
 
 		if hashkey is not None:

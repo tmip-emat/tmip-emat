@@ -63,7 +63,8 @@ class LinearRegression(_sklearn_LinearRegression, FrameableMixin):
 		self.fit_intercept = fit_intercept
 		self.normalize = normalize
 		self.copy_X = copy_X
-		self.n_jobs = n_jobs
+		from ..util import n_jobs_cap
+		self.n_jobs = n_jobs_cap(n_jobs)
 		self.frame_out = frame_out
 
 	def fit(self, X, y, sample_weight=None):
