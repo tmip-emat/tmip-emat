@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS ema_scope_parameter (
     parameter_id  INT NOT NULL,
 
     FOREIGN KEY (scope_id) REFERENCES ema_scope(scope_id) ON DELETE CASCADE,
-    FOREIGN KEY (parameter_id) REFERENCES ema_parameter(parameter_id)
+    FOREIGN KEY (parameter_id) REFERENCES ema_parameter(parameter_id) ON DELETE CASCADE,
+    UNIQUE (scope_id, parameter_id)
 );
 
 
@@ -45,8 +46,8 @@ CREATE TABLE IF NOT EXISTS ema_scope_measure (
     measure_id    INT NOT NULL,
 
     FOREIGN KEY (scope_id) REFERENCES ema_scope(scope_id) ON DELETE CASCADE,
-    FOREIGN KEY (measure_id) REFERENCES ema_measure(measure_id)
-
+    FOREIGN KEY (measure_id) REFERENCES ema_measure(measure_id) ON DELETE CASCADE,
+    UNIQUE (scope_id, measure_id)
 );
 
 

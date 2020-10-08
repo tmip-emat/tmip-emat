@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS xma_scope_parameter (
     parameter_id  INT NOT NULL,
 
     FOREIGN KEY (scope_id) REFERENCES xma_scope(scope_id) ON DELETE CASCADE,
-    FOREIGN KEY (parameter_id) REFERENCES xma_parameter(parameter_id)
+    FOREIGN KEY (parameter_id) REFERENCES xma_parameter(parameter_id) ON DELETE CASCADE,
+    UNIQUE (scope_id, parameter_id)
 );
 
 CREATE TABLE IF NOT EXISTS xma_scope_measure (
@@ -34,7 +35,8 @@ CREATE TABLE IF NOT EXISTS xma_scope_measure (
     measure_id    INT NOT NULL,
 
     FOREIGN KEY (scope_id) REFERENCES xma_scope(scope_id) ON DELETE CASCADE,
-    FOREIGN KEY (measure_id) REFERENCES xma_measure(measure_id)
+    FOREIGN KEY (measure_id) REFERENCES xma_measure(measure_id) ON DELETE CASCADE,
+    UNIQUE (scope_id, measure_id)
 );
 
 CREATE TABLE IF NOT EXISTS xma_experiment (
@@ -242,7 +244,7 @@ FROM
 
 INSERT INTO
     xma_scope_measure
-SELECT
+SELECT DISTINCT
     scope_id,
     measure_id
 FROM
@@ -251,7 +253,7 @@ FROM
 
 INSERT INTO
     xma_scope_parameter
-SELECT
+SELECT DISTINCT
     scope_id,
     parameter_id
 FROM

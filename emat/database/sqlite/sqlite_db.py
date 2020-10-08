@@ -146,7 +146,11 @@ class SQLiteDB(Database):
         if 'run_source' not in self._raw_query(table='ema_experiment_run')['name'].to_numpy():
             self.update_database(sq.UPDATE_DATABASE_ema_experiment_run_ADD_run_source, on_error='raise')
 
-        if 'scope_id' not in self._raw_query(table='ema_scope')['name'].to_numpy() or 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy() :
+        if (
+            'scope_id' not in self._raw_query(table='ema_scope')['name'].to_numpy()
+            or 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy()
+            or "UNIQUE" not in self._raw_query("SELECT sql FROM sqlite_master WHERE name='ema_scope_measure'").loc[0,'sql']
+        ):
             self.__apply_sql_script(self.conn, 'emat_db_rebuild.sql')
 
         try:
@@ -177,7 +181,7 @@ class SQLiteDB(Database):
     def __apply_sql_script(self, connection, filename):
         with connection:
             cur = connection.cursor()
-            _logger.debug("running script " + filename)
+            _logger.critical("running script " + filename)
             contents = (
                 self.__read_sql_file(
                     os.path.join(

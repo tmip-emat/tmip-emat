@@ -43,13 +43,20 @@ DELETE_SCOPE = (
     '''
     )
 
-INSERT_SCOPE_XL = (
-    '''INSERT INTO ema_scope_parameter( scope_id, parameter_id )
-        SELECT ema_scope.scope_id, ema_parameter.parameter_id FROM
-            ema_scope JOIN ema_parameter
-            WHERE ema_scope.name = ? AND ema_parameter.name = ?
-    '''
-    )
+INSERT_SCOPE_XL = '''
+    INSERT INTO 
+        ema_scope_parameter( scope_id, parameter_id )
+    SELECT 
+        ema_scope.scope_id, 
+        ema_parameter.parameter_id 
+    FROM
+        ema_scope 
+        JOIN ema_parameter
+    WHERE 
+        ema_scope.name = ? 
+        AND ema_parameter.name = ?
+'''
+
 
 INSERT_SCOPE_M = (
     '''INSERT INTO ema_scope_measure( scope_id, measure_id )
@@ -67,14 +74,20 @@ GET_SCOPE_XL = (
     '''
     )
 
-GET_SCOPE_X = (
-    '''SELECT ema_parameter.name
-        FROM ema_parameter JOIN ema_scope_parameter sv ON (ema_parameter.parameter_id = sv.parameter_id)
-        JOIN ema_scope s ON (sv.scope_id = s.scope_id)
-        WHERE s.name = ?
-        AND ema_parameter.ptype = 1
-    '''
-    )
+GET_SCOPE_X = '''
+    SELECT 
+        ema_parameter.name
+    FROM 
+        ema_parameter 
+        JOIN ema_scope_parameter sv 
+            ON (ema_parameter.parameter_id = sv.parameter_id)
+        JOIN ema_scope s 
+            ON (sv.scope_id = s.scope_id)
+        WHERE 
+            s.name = ?
+            AND ema_parameter.ptype = 1
+'''
+
 
 GET_SCOPE_L = (
     '''SELECT ema_parameter.name
