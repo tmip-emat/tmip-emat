@@ -33,7 +33,7 @@ that are available for Python.
 
 .. note::
 
-    Python has two versions (2 and 3) that are available and currently maintained.
+    Python has two versions (2 and 3) that are available.
     TMIP-EMAT is compatible *only* with version 3.
 
 You should usually install Anaconda for the local user,
@@ -213,4 +213,31 @@ before the installation of new environments or packages will work:
 .. code-block:: console
 
     conda install -n base -c defaults conda anaconda-client
+
+If you are running TMIP-EMAT successfully but the interface seems
+sluggish in the jupyter notebook interface, your problem might be
+caused by your browser.  You can try using a different browser --
+Google's Chrome browser has been found to be much more performant
+for running the interactive visualizations.  If you don't want to
+make chrome your default browser for everything, but just make it
+the default for jupyter notebooks, you can do so in the configurations
+for the notebook server. If you haven't already, create a notebook
+config file by running
+
+.. code-block:: console
+
+    jupyter notebook --generate-config
+
+Then, edit the file `jupyter_notebook_config.py` found in the
+`.jupyter` folder of your home directory. You need to change the line:
+
+    # c.NotebookApp.browser = ''
+
+to
+
+    c.NotebookApp.browser = 'C:/path/to/your/chrome.exe %s'
+
+On Windows, Chrome is usually located at
+"C:/Program Files (x86)/Google/Chrome/Application/chrome.exe" but
+you should check on your system to confirm.
 
