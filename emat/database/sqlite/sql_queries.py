@@ -25,12 +25,12 @@ INSERT_SCOPE = (
     )
 
 UPDATE_SCOPE_CONTENT = '''
-    REPLACE INTO 
-        ema_scope( name, content )
-    VALUES (
-        @scope_name, 
-        @scope_pickle
-    )
+    UPDATE 
+        ema_scope
+    SET 
+        content = @scope_pickle
+    WHERE 
+        name = @scope_name
 '''
 
 

@@ -811,25 +811,39 @@ class Scope:
         values.update(kwargs)
         return Scenario('default', **values)
 
-    def add_measure(self, measure, db=None, **kwargs):
+    def add_measure(self, measure, db=None, precompute=False, **kwargs):
         """
         Add a performance measure to this scope.
 
         Args:
-            measure:
-            db:
-            **kwargs:
+            measure (str or emat.Measure):
+                A measure to add.  If given as a string, a measure
+                is created with this name and the default settings, and
+                other keyword arguments given will be forwarded to the
+                `Measure` constructor.
+            db (emat.Database, optional):
+                If given, the scope in this database is updated to include
+                the new measure (and any other prior changes to this
+                scope).
+            precompute (bool, default False):
+                Whether to pre-compute formula-based measures and store
+                them in the database.  This will result in a larger file
+                size, but faster reading, especially for complex measures.
 
         """
         if isinstance(measure, str):
             measure = Measure(measure, **kwargs)
         if not isinstance(measure, Measure):
             raise TypeError("must add `Measure`, or give a name to create one")
+        for m in self._m_list:
+            if m.name == measure.name:
+                raise ValueError(f"duplicate measure name '{measure.name}'")
         self._m_list.append(measure)
         if measure.formula is not None and db is not None:
             if not isinstance(db, Database):
                 raise TypeError("db must be an emat.Database")
             db.update_scope(self)
-            df_m = db.read_experiment_measures(self.name, runs='all', source=0)
-            df_n = pandas.DataFrame(df_m.eval(measure.formula).rename(measure.name))
-            db.write_experiment_measures(self.name, 0, df_n)
+            if precompute:
+                df_m = db.read_experiment_measures(self.name, runs='all', source=0)
+                df_n = pandas.DataFrame(df_m.eval(measure.formula).rename(measure.name))
+                db.write_experiment_measures(self.name, 0, df_n)

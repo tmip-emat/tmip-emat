@@ -401,10 +401,9 @@ class SQLiteDB(Database):
 
     @copydoc(Database.update_scope)
     def update_scope(self, scope):
-
+        from ...scope.scope import Scope
+        assert isinstance(scope, Scope)
         scope_name = scope.name
-        scp_xl = [xl for xl in scope.xl_di]
-        scp_m = [m.name for m in scope._m_list]
 
         with self.conn:
             cur = self.conn.cursor()
@@ -420,24 +419,24 @@ class SQLiteDB(Database):
                 {'scope_name':scope_name, 'scope_pickle':blob},
             )
 
-            for xl in scp_xl:
+            for xl in scope.get_uncertainties()+scope.get_levers():
                 cur.execute(
                     sq.CONDITIONAL_INSERT_XL,
                     (xl.name, xl.ptype),
                 )
                 cur.execute(
                     sq.INSERT_SCOPE_XL.replace("INSERT", "INSERT OR IGNORE"),
-                    [scope_name, xl],
+                    [scope_name, xl.name],
                 )
 
-            for m in scp_m:
+            for m in scope.get_measures():
                 cur.execute(
                     sq.CONDITIONAL_INSERT_M,
                     (m.name, m.transform),
                 )
                 cur.execute(
                     sq.INSERT_SCOPE_M.replace("INSERT", "INSERT OR IGNORE"),
-                    [scope_name, m],
+                    [scope_name, m.name],
                 )
 
 
@@ -1356,6 +1355,7 @@ class SQLiteDB(Database):
             source=None,
             design=None,
             runs=None,
+            formulas=True,
             _debug=False,
     ):
         """
@@ -1473,6 +1473,12 @@ class SQLiteDB(Database):
             )
 
         ex_m.columns.name = None
+
+        if formulas:
+            scope = self.read_scope(scope_name)
+            for measure in scope.get_measures():
+                if getattr(measure, 'formula', None):
+                    ex_m[measure.name] = ex_m.eval(measure.formula)
 
         column_order = (
                 self.read_measures(scope_name)
