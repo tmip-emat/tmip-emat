@@ -194,19 +194,47 @@ class TestDatabaseMethods(unittest.TestCase):
                                       ['pm_3'])         
         self.db_test.delete_scope('test2')            
 
-    # scope with invalid performance measures
-    def test_scope_add_pm(self):
-        
-        # add new pm
-        self.db_test.init_xlm([], [('pm_4','none')])
-        self.db_test.add_scope_meas(self.scope_name,
-                                   self.ex_m + ['pm_4'])
-        
-        
-       
-    
-    # delete experiment
-    
+
+scope_yaml = """
+    scope:
+        name: test-scope
+    inputs:
+        constant:
+            ptype: constant
+            dtype: float
+            default: 1
+        exp_var1:
+            ptype: lever
+            dtype: float
+            default: 1
+            min: 0
+            max: 2
+        exp_var2:
+            ptype: uncertainty
+            dtype: float
+            default: 1
+            min: 0
+            max: 2
+    outputs:
+        pm_1:
+            kind: info
+        pm_2:
+            kind: info
+    """
+
+def test_database_scope_updating():
+
+    scope = emat.Scope("fake_filename.yaml", scope_yaml)
+    db = emat.SQLiteDB()
+    db.store_scope(scope)
+    assert db.read_scope(scope.name) == scope
+    scope.add_measure("plus1")
+    db.update_scope(scope)
+    assert db.read_scope(scope.name) == scope
+    assert len(scope.get_measures()) == 3
+    scope.add_measure("plus2", db=db)
+    assert db.read_scope(scope.name) == scope
+    assert len(scope.get_measures()) == 4
 
 class TestDatabaseGZ():
 

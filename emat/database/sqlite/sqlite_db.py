@@ -416,7 +416,7 @@ class SQLiteDB(Database):
                 import gzip, cloudpickle
                 blob = gzip.compress(cloudpickle.dumps(scope))
             else:
-                blob = None
+                raise ValueError("unpickleable scope")
 
             cur.execute(
                 sq.UPDATE_SCOPE_CONTENT,
@@ -580,21 +580,7 @@ class SQLiteDB(Database):
 
     @copydoc(Database.add_scope_meas)
     def add_scope_meas(self, scope_name, scp_m):
-        with self.conn:
-            cur = self.conn.cursor()
-            scope_name = self._validate_scope(scope_name, None)
-
-            # test that scope exists
-            saved_m = cur.execute(sq.GET_SCOPE_M, [scope_name]).fetchall()
-            if len(saved_m) == 0:
-                raise KeyError('named scope does not exist')
-
-            for m in scp_m:
-                if m not in saved_m:
-                    cur.execute(sq.INSERT_SCOPE_M, [scope_name, m])
-                    if cur.rowcount < 1:
-                        raise KeyError('Performance measure {0} not present in database'
-                                       .format(m))
+        raise NotImplementedError("deprecated: use update_scope instead")
 
 
     @copydoc(Database.delete_scope) 

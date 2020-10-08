@@ -920,12 +920,16 @@ class Box(GenericBox):
 				will be attached.
 			values (set):
 				A set of values to use as the allowed set.
+				If an empty set or None is given, then any
+				values are allowed.
 		"""
 		action = True
 		if self.scope is not None:
 			if key not in self.scope.get_all_names():
 				raise ScopeError(f"cannot set allowed_set on '{key}'")
 			cat_values = set(self.scope.get_cat_values(key))
+			if values is None or len(values)==0:
+				values = cat_values
 			if not cat_values.issuperset(values):
 				raise ScopeError(f"allowed_set is not a subset of scope defined values for '{key}'")
 			if len(cat_values) == len(values):

@@ -839,11 +839,11 @@ class Scope:
             if m.name == measure.name:
                 raise ValueError(f"duplicate measure name '{measure.name}'")
         self._m_list.append(measure)
-        if measure.formula is not None and db is not None:
+        if db is not None:
             if not isinstance(db, Database):
                 raise TypeError("db must be an emat.Database")
             db.update_scope(self)
-            if precompute:
-                df_m = db.read_experiment_measures(self.name, runs='all', source=0)
-                df_n = pandas.DataFrame(df_m.eval(measure.formula).rename(measure.name))
-                db.write_experiment_measures(self.name, 0, df_n)
+        if precompute and measure.formula is not None and db is not None:
+            df_m = db.read_experiment_measures(self.name, runs='all', source=0)
+            df_n = pandas.DataFrame(df_m.eval(measure.formula).rename(measure.name))
+            db.write_experiment_measures(self.name, 0, df_n)

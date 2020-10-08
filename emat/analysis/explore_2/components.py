@@ -236,9 +236,9 @@ def interpret_histogram_selection(name, selection_range, box, data, scope):
 	close_to_min_value = min_value + 0.03 * (max_value - min_value)
 	_logger.debug("name: %s  limits: %f - %f", name, close_to_min_value, close_to_max_value)
 
-	if select_min <= close_to_min_value:
+	if select_min is not None and select_min <= close_to_min_value:
 		select_min = None
-	if select_max >= close_to_max_value:
+	if select_max is not None and select_max >= close_to_max_value:
 		select_max = None
 
 	_logger.debug("name: %s  final range: %f - %f", name, select_min or numpy.nan, select_max or numpy.nan)
@@ -1898,3 +1898,70 @@ def new_parcoords_figure(
 	if figure_class is not None:
 		fig = figure_class(fig)
 	return fig
+
+
+
+def _to_thing(s, thing=float):
+	if s == 'up' or s is None:
+		return None
+	try:
+		return thing(s)
+	except ValueError:
+		return None
+
+def convert_rangestring_to_tuple(rs, thing=float):
+	if rs == 'any value':
+		return (None, None)
+	dn, up = None, None
+	for sep in ["to", "and", "--", "—", ","]:
+		if sep in rs:
+			dn, up = rs.split(sep)
+			dn = dn.strip()
+			up = up.strip()
+			break
+	return (_to_thing(dn, thing), _to_thing(up, thing))
+
+def convert_bounds_to_rangestring(b):
+	if b is None:
+		return ""
+	if b.lowerbound is None:
+		if b.upperbound is None:
+			return ""
+		else:
+			if isinstance(b.upperbound, int):
+				return f"up to {b.upperbound}"
+			else:
+				return f"up to {b.upperbound:0.4g}"
+	else: # b.lowerbound is not None
+		if b.upperbound is None:
+			if isinstance(b.lowerbound, int):
+				return f"{b.lowerbound} and up"
+			else:
+				return f"{b.lowerbound:0.4g} and up"
+		else:
+			if isinstance(b.lowerbound, int):
+				return f"{b.lowerbound} to {b.upperbound}"
+			else:
+				return f"{b.lowerbound:0.4g} to {b.upperbound:0.4g}"
+
+def convert_set_to_rangestring(s):
+	included = []
+	if not s:
+		return ""
+	for i in s:
+		if "," in i:
+			included.append(f'"{i}"')
+		else:
+			included.append(i)
+	return ", ".join(included)
+
+def convert_rangestring_to_set(rs):
+	if rs == 'any value' or rs is None or rs == '':
+		return None
+	import shlex
+	result = set(
+		i.strip('"')
+		for i in shlex.shlex(instream=rs, punctuation_chars=",;")
+		if i != ","
+	)
+	return result

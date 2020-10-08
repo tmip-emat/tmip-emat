@@ -17,6 +17,8 @@ _logger = logging.getLogger('EMAT.widget')
 
 from .explore_base import DataFrameExplorer
 from ..prim import PrimBox
+from ...exceptions import ScopeError
+
 
 def _deselect_all_points(trace):
 	trace.selectedpoints = None
@@ -190,7 +192,17 @@ class Visualizer(DataFrameExplorer):
 				ref_point=self.reference_point(col),
 				selected_color=self.active_selection_color(),
 			)
-			self._figures_hist[col] = fig
+			fig_rangecaption = widget.Text(
+				value="",
+				placeholder="any value",
+				continuous_update=False,
+				layout={'padding': '0px 25px 15px', },
+			)
+			fig_rangecaption.observe(
+				lambda payload: self._on_select_from_rangestring(payload, name=col),
+				names='value',
+			)
+			self._figures_hist[col] = widget.VBox([fig, fig_rangecaption])
 
 	def _create_frequencies_figure(self, col, labels=None, *, marker_line_width=None):
 		if col in self._figures_freq:
@@ -210,11 +222,21 @@ class Visualizer(DataFrameExplorer):
 				label_name_map=self.scope[col].abbrev,
 				selected_color=self.active_selection_color(),
 			)
-			self._figures_freq[col] = fig
+			fig_rangecaption = widget.Text(
+				value="",
+				placeholder="any value",
+				continuous_update=False,
+				layout={'padding': '0px 25px 15px', },
+			)
+			fig_rangecaption.observe(
+				lambda payload: self._on_select_from_setstring(payload, name=col),
+				names='value',
+			)
+			self._figures_freq[col] = widget.VBox([fig, fig_rangecaption])
 
 	def _update_histogram_figure(self, col):
 		if col in self._figures_hist:
-			fig = self._figures_hist[col]
+			fig = self._figures_hist[col].children[0]
 			box = self.__get_plain_box()
 			with fig.batch_update():
 				update_histogram_figure(
@@ -224,16 +246,17 @@ class Visualizer(DataFrameExplorer):
 					box=box,
 					ref_point=self.reference_point(col),
 				)
+			rangestring_input = self._figures_hist[col].children[1]
+			if box is not None:
+				bounds = box.thresholds.get(col, None)
+			else:
+				bounds = None
+			rangestring_input.value = convert_bounds_to_rangestring(bounds)
 
 	def _update_frequencies_figure(self, col):
 		if col in self._figures_freq:
-			fig = self._figures_freq[col]
+			fig = self._figures_freq[col].children[0]
 			box = self.__get_plain_box()
-			#
-			# if self.active_selection_deftype() == 'box':
-			# 	box = self._selection_defs[self.active_selection_name()]
-			# else:
-			# 	box = None
 			with fig.batch_update():
 				update_frequencies_figure(
 					fig,
@@ -242,6 +265,12 @@ class Visualizer(DataFrameExplorer):
 					box=box,
 					ref_point=self.reference_point(col),
 				)
+			rangestring_input = self._figures_freq[col].children[1]
+			if box is not None:
+				allowedset = box.thresholds.get(col, None)
+			else:
+				allowedset = None
+			rangestring_input.value = convert_set_to_rangestring(allowedset)
 
 	def _compute_histogram(self, col, selection, bins=None):
 		if col not in self._base_histogram:
@@ -278,11 +307,31 @@ class Visualizer(DataFrameExplorer):
 			self._freeze = True
 			select_min, select_max = args[2].xrange
 			_logger.debug("name: %s  range: %f - %f", name, select_min, select_max)
-			self._figures_hist[name].for_each_trace(_deselect_all_points)
+			self._figures_hist[name].children[0].for_each_trace(_deselect_all_points)
 
 			if self.active_selection_deftype() == 'box':
 				box = self._selection_defs[self.active_selection_name()]
 				box = interpret_histogram_selection(name, args[2].xrange, box, self.data, self.scope)
+				self.new_selection(box, name=self.active_selection_name())
+				self._active_selection_changed()
+		except:
+			_logger.exception("error in _on_select_from_histogram")
+			raise
+		finally:
+			self._freeze = False
+
+	def _on_select_from_rangestring(self, payload, name=None):
+		if self._freeze:
+			return
+		try:
+			self._freeze = True
+			from .components import convert_rangestring_to_tuple
+			select_min, select_max = convert_rangestring_to_tuple(payload.get('new', None))
+			_logger.debug("name: %s  range: %f - %f", name, select_min, select_max)
+
+			if self.active_selection_deftype() == 'box':
+				box = self._selection_defs[self.active_selection_name()]
+				box = interpret_histogram_selection(name, (select_min, select_max), box, self.data, self.scope)
 				self.new_selection(box, name=self.active_selection_name())
 				self._active_selection_changed()
 		except:
@@ -306,7 +355,7 @@ class Visualizer(DataFrameExplorer):
 		select_min = int(numpy.ceil(select_min))
 		select_max = int(numpy.ceil(select_max))
 
-		fig = self.get_figure(name)
+		fig = self.get_figure(name).children[0]
 
 		toggles = fig.layout['meta']['x_tick_values'][select_min:select_max]
 		fig.for_each_trace(_deselect_all_points)
@@ -330,6 +379,28 @@ class Visualizer(DataFrameExplorer):
 				self.new_selection(box, name=self.active_selection_name())
 				self._active_selection_changed()
 
+	def _on_select_from_setstring(self, payload, name=None):
+		if self._freeze:
+			return
+		try:
+			self._freeze = True
+			from .components import convert_rangestring_to_set
+			allowed_set = convert_rangestring_to_set(payload.get('new', None))
+
+			if self.active_selection_deftype() == 'box':
+				box = self._selection_defs[self.active_selection_name()]
+				try:
+					box.replace_allowed_set(name, allowed_set)
+				except ScopeError:
+					pass
+				else:
+					self.new_selection(box, name=self.active_selection_name())
+					self._active_selection_changed()
+		except:
+			_logger.exception("error in _on_select_from_setstring")
+			raise
+		finally:
+			self._freeze = False
 
 	def _on_click_from_frequencies(self, *args, name=None):
 		x = None
@@ -395,7 +466,7 @@ class Visualizer(DataFrameExplorer):
 		return None
 
 	def _clear_boxes_on_figure(self, col):
-		fig = self.get_figure(col)
+		fig = self.get_figure(col).children[0]
 		if fig is None: return
 
 		foreground_shapes = []
@@ -642,9 +713,9 @@ class Visualizer(DataFrameExplorer):
 	def set_active_selection_color(self, color):
 		super().set_active_selection_color(color)
 		for col, fig in self._figures_freq.items():
-			fig.data[0].marker.color = color
+			fig.children[0].data[0].marker.color = color
 		for col, fig in self._figures_hist.items():
-			fig.data[0].marker.color = color
+			fig.children[0].data[0].marker.color = color
 		c = self._status_pie.data[0].marker.colors
 		self._status_pie.data[0].marker.colors = [color, c[1]]
 		for k, twoway in self._two_way.items():
