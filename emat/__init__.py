@@ -1,6 +1,6 @@
 #
 
-__version__ = '0.5.0a'
+__version__ = '0.5.0a2'
 
 
 import logging

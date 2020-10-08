@@ -85,13 +85,22 @@ def new_histogram_figure(
 		selected_color = colors.DEFAULT_HIGHLIGHT_COLOR
 	if figure_class is None:
 		figure_class = go.FigureWidget
+	data_column_missing_data = data_column.isna()
+	data_column_legit_data = ~data_column_missing_data
 
 	if bins is None:
 		bins = 20
-	bar_heights, bar_x = numpy.histogram(data_column, bins=bins)
+	try:
+		bar_heights, bar_x = numpy.histogram(data_column[data_column_legit_data], bins=bins)
+	except:
+		_logger.error("ERROR IN COMPUTING HISTOGRAM")
+		_logger.error(f"  bins = {bins}")
+		_logger.error(f"  data_column.name = {getattr(data_column,'name','name not found')}")
+		_logger.error(f"  data_column = {data_column}")
+		raise
 	bins_left = bar_x[:-1]
 	bins_width = bar_x[1:] - bar_x[:-1]
-	bar_heights_select, bar_x = numpy.histogram(data_column[selection], bins=bar_x)
+	bar_heights_select, bar_x = numpy.histogram(data_column[selection][data_column_legit_data], bins=bar_x)
 
 	fig = figure_class(
 		data=[
@@ -186,8 +195,10 @@ def update_histogram_figure(
 	"""
 	bins = list(fig['data'][0]['x'])
 	bins.append(fig['data'][0]['x'][-1] + fig['data'][0]['width'][-1])
-	bar_heights, bar_x = numpy.histogram(data_column, bins=bins)
-	bar_heights_select, bar_x = numpy.histogram(data_column[selection], bins=bar_x)
+	data_column_missing_data = data_column.isna()
+	data_column_legit_data = ~data_column_missing_data
+	bar_heights, bar_x = numpy.histogram(data_column[data_column_legit_data], bins=bins)
+	bar_heights_select, bar_x = numpy.histogram(data_column[selection][data_column_legit_data], bins=bar_x)
 	fig['data'][0]['y'] = bar_heights_select
 	fig['data'][1]['y'] = bar_heights - bar_heights_select
 	if rerange_y:
