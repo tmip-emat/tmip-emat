@@ -700,15 +700,26 @@ class Visualizer(DataFrameExplorer):
 		Returns:
 			ipywidgets.Box
 		"""
-		return widget.VBox([
-			self.status(),
-			widget.HTML("<h3>Policy Levers</h3>"),
-			self.lever_selectors(),
-			widget.HTML("<h3>Exogenous Uncertainties</h3>"),
-			self.uncertainty_selectors(),
-			widget.HTML("<h3>Performance Measures</h3>"),
-			self.measure_selectors(),
-		])
+		content = [self.status()]
+		levers = self.lever_selectors()
+		if levers.children:
+			content += [
+				widget.HTML("<h3>Policy Levers</h3>"),
+				levers,
+			]
+		uncs = self.uncertainty_selectors()
+		if uncs.children:
+			content += [
+				widget.HTML("<h3>Exogenous Uncertainties</h3>"),
+				uncs,
+			]
+		meas = self.measure_selectors()
+		if meas.children:
+			content += [
+				widget.HTML("<h3>Performance Measures</h3>"),
+				meas,
+			]
+		return widget.VBox(content)
 
 	def set_active_selection_color(self, color):
 		super().set_active_selection_color(color)
