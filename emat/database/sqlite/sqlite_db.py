@@ -181,7 +181,7 @@ class SQLiteDB(Database):
     def __apply_sql_script(self, connection, filename):
         with connection:
             cur = connection.cursor()
-            _logger.critical("running script " + filename)
+            _logger.info("running script " + filename)
             contents = (
                 self.__read_sql_file(
                     os.path.join(

@@ -334,10 +334,10 @@ class FilesCoreModel(AbstractCoreModel):
 					experiment_id = self.db.write_experiment_parameters_1(
 						self.scope.name, 'ad hoc', scenario, policy
 					)
-				self.log(f"YES DATABASE experiment_id {experiment_id}", level=logging.CRITICAL)
+				self.log(f"YES DATABASE experiment_id {experiment_id}", level=logging.INFO)
 
 			else:
-				_logger.critical(f"NO DATABASE experiment_id {experiment_id}")
+				_logger.info(f"NO DATABASE experiment_id {experiment_id}")
 
 			xl = {}
 			xl.update(scenario)
