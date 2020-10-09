@@ -1217,6 +1217,7 @@ class SQLiteDB(Database):
             only_with_measures=False,
             ensure_dtypes=True,
             with_run_ids=False,
+            runs=None,
     ):
         """
         Read experiment definitions and results
@@ -1284,6 +1285,7 @@ class SQLiteDB(Database):
         df_m = self.read_experiment_measures(
             scope_name=scope_name,
             design_name=design_name,
+            runs=runs,
         )
 
         ex_xlm = pd.merge(
@@ -1385,7 +1387,7 @@ class SQLiteDB(Database):
                 results from multiple sources.
         """
 
-        assert runs in (None, 'all', 'valid', 'invalid')
+        assert runs in (None, 'all', 'valid', 'invalid', 'ignore_validity')
 
         if design is not None:
             if design_name is None:
@@ -1405,7 +1407,7 @@ class SQLiteDB(Database):
             sql = sql.replace("AND run_source = @measure_source", "")
         if experiment_id is None:
             sql = sql.replace("AND eem.experiment_id = @experiment_id", "")
-        if runs == 'all':
+        if runs in ('all', 'ignore_validity'):
             sql = sql.replace("AND run_valid IS NOT FALSE", "")
         elif runs == 'invalid':
             sql = sql.replace("AND run_valid IS NOT FALSE",
@@ -1632,6 +1634,8 @@ class SQLiteDB(Database):
             run_ids = run_ids.get_level_values(1)
         elif isinstance(run_ids, pd.DataFrame) and run_ids.index.nlevels==2:
             run_ids = run_ids.index.get_level_values(1)
+        elif isinstance(run_ids, pd.Series) and run_ids.index.nlevels==2 and run_ids.dtype==bool:
+            run_ids = run_ids[run_ids].index.get_level_values(1)
 
         with self.conn:
             cur = self.conn.cursor()
@@ -1642,6 +1646,8 @@ class SQLiteDB(Database):
                     b = uuid.UUID(run_id).bytes
                 elif isinstance(run_id, bytes):
                     b = run_id
+                else:
+                    raise TypeError(f"Error run_id type {type(run_id)} = {run_id}")
                 cur.execute(
                     sq.INVALIDATE_RUN_ID,
                     dict(run_id=b),
