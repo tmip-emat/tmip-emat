@@ -30,6 +30,15 @@ def _deselect_all_points(trace):
 
 from .components import *
 
+range_caption_css = (
+	"<style> "
+	".emat-rangecaption > input "
+	"{ border: solid 1px #eeeeee !important; text-align: center;} "
+	".emat-rangecaption > input::placeholder "
+	"{color:#dddddd}</style>"
+)
+
+
 class Visualizer(DataFrameExplorer):
 	"""
 	A data visualization framework.
@@ -197,12 +206,12 @@ class Visualizer(DataFrameExplorer):
 				placeholder="any value",
 				continuous_update=False,
 				layout={'padding': '0px 25px 15px', },
-			)
+			).add_class("emat-rangecaption")
 			fig_rangecaption.observe(
 				lambda payload: self._on_select_from_rangestring(payload, name=col),
 				names='value',
 			)
-			self._figures_hist[col] = widget.VBox([fig, fig_rangecaption])
+			self._figures_hist[col] = widget.VBox([fig, fig_rangecaption, widget.HTML(range_caption_css)])
 
 	def _create_frequencies_figure(self, col, labels=None, *, marker_line_width=None):
 		if col in self._figures_freq:
@@ -227,12 +236,12 @@ class Visualizer(DataFrameExplorer):
 				placeholder="any value",
 				continuous_update=False,
 				layout={'padding': '0px 25px 15px', },
-			)
+			).add_class("emat-rangecaption")
 			fig_rangecaption.observe(
 				lambda payload: self._on_select_from_setstring(payload, name=col),
 				names='value',
 			)
-			self._figures_freq[col] = widget.VBox([fig, fig_rangecaption])
+			self._figures_freq[col] = widget.VBox([fig, fig_rangecaption, widget.HTML(range_caption_css)])
 
 	def _update_histogram_figure(self, col):
 		if col in self._figures_hist:
