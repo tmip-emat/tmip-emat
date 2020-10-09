@@ -1949,19 +1949,27 @@ def convert_set_to_rangestring(s):
 	if not s:
 		return ""
 	for i in s:
-		if "," in i:
-			included.append(f'"{i}"')
+		i_ = str(i)
+		if "," in i_:
+			included.append(f'"{i_}"')
 		else:
-			included.append(i)
+			included.append(i_)
 	return ", ".join(included)
 
 def convert_rangestring_to_set(rs):
 	if rs == 'any value' or rs is None or rs == '':
 		return None
-	import shlex
-	result = set(
-		i.strip('"')
-		for i in shlex.shlex(instream=rs, punctuation_chars=",;")
-		if i != ","
-	)
+
+	if '"' in rs:
+		import shlex
+		result = set(
+			i.strip('"')
+			for i in shlex.shlex(instream=rs, punctuation_chars=",;")
+			if i != ","
+		)
+	else:
+		result = set(
+			i.strip()
+			for i in rs.split(',')
+		)
 	return result

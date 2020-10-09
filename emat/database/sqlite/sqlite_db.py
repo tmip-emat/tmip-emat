@@ -71,6 +71,7 @@ class SQLiteDB(Database):
             initialize=False,
             readonly=False,
             check_same_thread=True,
+            update=True,
     ):
 
         if database_path[-3:] == '.gz':
@@ -136,29 +137,33 @@ class SQLiteDB(Database):
         except:
             pass
 
-        # update old databases
-        if 'design' in self._raw_query(table='ema_experiment')['name'].to_numpy():
-            self.update_database(sq.UPDATE_DATABASE_ema_design_experiment)
+        if update:
 
-        if 'measure_run' not in self._raw_query(table='ema_experiment_measure')['name'].to_numpy():
-            self.update_database(sq.UPDATE_DATABASE_ema_experiment_measure_ADD_measure_run)
+            # update old databases
+            if 'design' in self._raw_query(table='ema_experiment')['name'].to_numpy():
+                self.update_database(sq.UPDATE_DATABASE_ema_design_experiment)
 
-        if 'run_source' not in self._raw_query(table='ema_experiment_run')['name'].to_numpy():
-            self.update_database(sq.UPDATE_DATABASE_ema_experiment_run_ADD_run_source, on_error='raise')
+            if 'run_source' not in self._raw_query(table='ema_experiment_run')['name'].to_numpy():
+                self.update_database(sq.UPDATE_DATABASE_ema_experiment_run_ADD_run_source, on_error='raise')
 
-        if (
-            'scope_id' not in self._raw_query(table='ema_scope')['name'].to_numpy()
-            or 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy()
-            or "UNIQUE" not in self._raw_query("SELECT sql FROM sqlite_master WHERE name='ema_scope_measure'").loc[0,'sql']
-        ):
-            self.__apply_sql_script(self.conn, 'emat_db_rebuild.sql')
+            if (
+                'scope_id' not in self._raw_query(table='ema_scope')['name'].to_numpy()
+                or 'measure_source' in self._raw_query(table='ema_experiment_measure')['name'].to_numpy()
+                or "UNIQUE" not in self._raw_query("SELECT sql FROM sqlite_master WHERE name='ema_scope_measure'").loc[0,'sql']
+            ):
+                if 'measure_run' not in self._raw_query(table='ema_experiment_measure')['name'].to_numpy():
+                    self.update_database(sq.UPDATE_DATABASE_ema_experiment_measure_ADD_measure_run)
+                self.__apply_sql_script(self.conn, 'emat_db_rebuild.sql')
+
+            try:
+                self.update_database_for_run_ids()
+            except:
+                _logger.exception("UPDATE FAIL")
 
         try:
-            self.update_database_for_run_ids()
+            self.__apply_sql_script(self.conn, 'emat_db_init_views.sql')
         except:
-            _logger.exception("UPDATE FAIL")
-
-        self.__apply_sql_script(self.conn, 'emat_db_init_views.sql')
+            _logger.exception("VIEWS FAIL")
         atexit.register(self.conn.close)
 
 

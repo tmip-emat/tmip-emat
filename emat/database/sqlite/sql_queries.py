@@ -819,6 +819,8 @@ SET_BOX_THRESHOLD_M = (
 
 
 UPDATE_DATABASE_ema_design_experiment = (
+    "PRAGMA foreign_keys = OFF",
+
     '''
         INSERT OR IGNORE INTO ema_design ( scope_id, design )
         SELECT DISTINCT scope_id, design FROM ema_experiment;

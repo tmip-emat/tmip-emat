@@ -930,6 +930,22 @@ class Box(GenericBox):
 			cat_values = set(self.scope.get_cat_values(key))
 			if values is None or len(values)==0:
 				values = cat_values
+
+			# handle True and False
+			values = set(values)
+			_t = True in cat_values
+			_f = False in cat_values
+			if _t or _f:
+				_values = set()
+				for v in values:
+					if _t and str(v).lower() == 'true':
+						_values.add(True)
+					elif _f and str(v).lower() == 'false':
+						_values.add(False)
+					else:
+						_values.add(v)
+				values = _values
+
 			if not cat_values.issuperset(values):
 				raise ScopeError(f"allowed_set is not a subset of scope defined values for '{key}'")
 			if len(cat_values) == len(values):

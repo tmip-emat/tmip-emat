@@ -380,7 +380,7 @@ class Visualizer(DataFrameExplorer):
 				for x in toggles:
 					if name not in box or x in box[name]:
 						box.remove_from_allowed_set(name, x)
-						if len(box[name]) == 0:
+						if name in box and len(box[name]) == 0:
 							del box[name]
 					else:
 						box.add_to_allowed_set(name, x)
@@ -423,7 +423,7 @@ class Visualizer(DataFrameExplorer):
 				box.scope = self.scope
 				if name not in box or x in box[name]:
 					box.remove_from_allowed_set(name, x)
-					if len(box[name]) == 0:
+					if name in box and len(box[name]) == 0:
 						del box[name]
 				else:
 					box.add_to_allowed_set(name, x)
