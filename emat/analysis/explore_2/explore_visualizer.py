@@ -161,7 +161,8 @@ class Visualizer(DataFrameExplorer):
 			return self.get_frequency_figure(col)
 		if this_type in ('int',):
 			param = self.scope[col]
-			if param.max - param.min + 1 <= bins * 4:
+			if param.max - param.min + 1 <= bins * configuration.config.get("integer_bin_ratio", 4):
+				print("OVERLOAD BINS",bins, configuration.config.get("integer_bin_ratio", 4), param.max - param.min + 1)
 				bins = param.max - param.min + 1
 				if marker_line_width is None:
 					marker_line_width = 0

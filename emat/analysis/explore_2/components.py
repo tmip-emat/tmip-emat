@@ -1160,7 +1160,6 @@ def update_splom_figure(
 
 
 
-import datashader as ds
 
 def _hue_mix(selected_array, unselected_array, selected_rgb, unselected_rgb):
 	selected_rgb = numpy.asanyarray(selected_rgb)
@@ -1187,6 +1186,7 @@ def _hue_mix(selected_array, unselected_array, selected_rgb, unselected_rgb):
 	hue_array[...,-1] = selection_total
 	return hue_array
 
+from ... import configuration
 
 def _get_bins_and_range(ticktext, label, in_range, scope):
 	bins = 20
@@ -1205,7 +1205,7 @@ def _get_bins_and_range(ticktext, label, in_range, scope):
 		except:
 			this_type = 'float'
 		if this_type == 'int':
-			if param.max - param.min + 1 <= bins * 4:
+			if param.max - param.min + 1 <= bins * configuration.config.get("integer_bin_ratio", 4):
 				bins = param.max - param.min + 1
 			range_ = (param.min-0.5, param.max+0.5)
 	return bins, range_
@@ -1229,6 +1229,8 @@ def new_hmm_figure(
 		show_points=50,
 		marker_size=5,
 ):
+	import datashader as ds  # optional dependency
+
 	if unselected_color is None:
 		unselected_color = colors.DEFAULT_BASE_COLOR_RGB
 	else:
