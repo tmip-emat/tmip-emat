@@ -253,7 +253,7 @@ class SQLiteDB(Database):
             # write new run_ids to run table
             qry = """
             INSERT INTO ema_experiment_run (run_id, experiment_id, run_status, run_valid, run_location, run_source)
-            VALUES (@run_id, @experiment_id, 'existing', TRUE, NULL, @measure_source) 
+            VALUES (@run_id, @experiment_id, 'existing', 1, NULL, @measure_source) 
             """
             for j in experiments_with_missing_run_ids.index:
                 cur.execute(qry, dict(experiments_with_missing_run_ids.loc[j]))
@@ -1413,10 +1413,10 @@ class SQLiteDB(Database):
         if experiment_id is None:
             sql = sql.replace("AND eem.experiment_id = @experiment_id", "")
         if runs in ('all', 'ignore_validity'):
-            sql = sql.replace("AND run_valid IS NOT FALSE", "")
+            sql = sql.replace("AND run_valid = 1", "")
         elif runs == 'invalid':
-            sql = sql.replace("AND run_valid IS NOT FALSE",
-                              "AND run_valid IS NOT TRUE")
+            sql = sql.replace("AND run_valid = 1",
+                              "AND run_valid = 0")
         if runs in ('all', 'valid', 'invalid'):
             sql = re.sub(
                 r"/\* most recent .* end most recent \*/",
@@ -1434,7 +1434,12 @@ class SQLiteDB(Database):
         cur = self.conn.cursor()
         if _debug == 'sql':
             return sql, arg
-        ex_m = pd.DataFrame(cur.execute(sql, arg).fetchall())
+        try:
+            ex_m = pd.DataFrame(cur.execute(sql, arg).fetchall())
+        except:
+            _logger.error(f"ERROR ON READ MEASURES query=\n{sql}")
+            _logger.error(f"ERROR ON READ MEASURES arg=\n{arg}")
+            raise
         if _debug:
             return ex_m
         if ex_m.empty is False:
@@ -2045,7 +2050,7 @@ class SQLiteDB(Database):
             UPDATE 
                 ema_experiment_run
             SET
-                run_valid = FALSE
+                run_valid = 0
             WHERE
                 run_id = @run_id
             ''', dict(run_id=run_id))

@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS xma_experiment_run (
     run_id           UUID NOT NULL UNIQUE,
     experiment_id    INT NOT NULL,
     run_status       TEXT,
-    run_valid        TEXT,
+    run_valid        INT NOT NULL DEFAULT 1,
     run_timestamp    DATETIME DEFAULT CURRENT_TIMESTAMP,
     run_location     TEXT,
     run_source       INT NOT NULL DEFAULT 0,

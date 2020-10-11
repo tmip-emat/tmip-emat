@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS ema_experiment_run (
     experiment_id    INT NOT NULL,
     run_source       INT NOT NULL DEFAULT 0, -- 0 for core model, or a metamodel_id
     run_status       TEXT,
-    run_valid        TEXT,
+    run_valid        INT NOT NULL DEFAULT 1,
     run_timestamp    DATETIME DEFAULT CURRENT_TIMESTAMP,
     run_location     TEXT,
 

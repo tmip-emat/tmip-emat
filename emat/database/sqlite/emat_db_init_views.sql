@@ -15,7 +15,7 @@ SELECT
 FROM
     ema_experiment_run
 WHERE
-    run_valid IS NOT FALSE
+    run_valid = 1
     AND (
         run_rowid IN (SELECT DISTINCT measure_run FROM ema_experiment_measure)
     )

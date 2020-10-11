@@ -146,7 +146,7 @@ INSERT_DESIGN_EXPERIMENT = '''
 
 NEW_EXPERIMENT_RUN = '''
     INSERT INTO ema_experiment_run ( run_id, experiment_id, run_status, run_valid, run_location, run_source ) 
-    VALUES ( @run_id, @experiment_id, 'init', TRUE, @run_location, @run_source )
+    VALUES ( @run_id, @experiment_id, 'init', 1, @run_location, @run_source )
 '''
 
 
@@ -186,7 +186,7 @@ INVALIDATE_RUN_ID = '''
     UPDATE 
         ema_experiment_run
     SET
-        run_valid = FALSE
+        run_valid = 0
     WHERE 
         ema_experiment_run.run_id = @run_id
 '''
@@ -396,7 +396,7 @@ GET_EXPERIMENT_MEASURES_MASTER = '''
                         WHERE eem3.measure_value IS NOT NULL
                     )
                 )
-                AND run_valid IS NOT FALSE
+                AND run_valid = 1
                 AND run_source = @measure_source
             GROUP BY
                 experiment_id, run_source
@@ -408,7 +408,7 @@ GET_EXPERIMENT_MEASURES_MASTER = '''
             AND eem.experiment_id = @experiment_id
             AND measure_value IS NOT NULL
             AND run_source = @measure_source
-            AND run_valid IS NOT FALSE
+            AND run_valid = 1
 '''
 
 

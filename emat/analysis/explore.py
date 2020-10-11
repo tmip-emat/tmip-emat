@@ -417,9 +417,16 @@ class Explore(GenericBox):
 		if this_type in ('int',):
 			param = self.scope[col]
 			if param.max - param.min + 1 <= bins * 4:
-				bins = param.max - param.min + 1
-				if marker_line_width is None:
-					marker_line_width = 0
+				# Adjustment for integer bins to reduce noise.
+				# propose to use bins for every integer value if the total number
+				# of bins will not be more than 4 times the suggested number
+				proposed_bins = param.max - param.min + 1
+				# but don't to this if the quantity of data to display will be
+				# small, making the histogram look more like a bar code.
+				if proposed_bins > len(col)/3:
+					bins = proposed_bins
+					if marker_line_width is None:
+						marker_line_width = 0
 		self._create_histogram_figure(col, bins=bins, marker_line_width=marker_line_width)
 		return self._figures_hist[col]
 
