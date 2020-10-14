@@ -689,6 +689,13 @@ def new_splom_figure(
 					except TypeError:
 						kde0 = scipy.stats.gaussian_kde(data[~selection][row].cat.codes)
 						kde1 = scipy.stats.gaussian_kde(data[selection][row].cat.codes)
+					except ValueError:
+						if selection.all():
+							kde0 = lambda z: numpy.zeros_like(z)
+							kde1 = scipy.stats.gaussian_kde(data[row])
+						elif (~selection).all():
+							kde0 = scipy.stats.gaussian_kde(data[row])
+							kde1 = lambda z: numpy.zeros_like(z)
 					x_fill = numpy.linspace(*x_range, 200)
 					y_0 = kde0(x_fill)
 					y_1 = kde1(x_fill)
@@ -1227,6 +1234,7 @@ def new_hmm_figure(
 		unselected_color=None,
 		emph_selected=True,
 		show_points=50,
+		show_points_frac=0.1,
 		marker_size=5,
 ):
 	import datashader as ds  # optional dependency
@@ -1337,6 +1345,13 @@ def new_hmm_figure(
 				except TypeError:
 					kde0 = scipy.stats.gaussian_kde(data[~selection][row].cat.codes)
 					kde1 = scipy.stats.gaussian_kde(data[selection][row].cat.codes)
+				except ValueError:
+					if selection.all():
+						kde0 = lambda z: numpy.zeros_like(z)
+						kde1 = scipy.stats.gaussian_kde(data[row])
+					elif (~selection).all():
+						kde0 = scipy.stats.gaussian_kde(data[row])
+						kde1 = lambda z: numpy.zeros_like(z)
 				x_fill = numpy.linspace(*x_range, 200)
 				y_0 = kde0(x_fill)
 				y_1 = kde1(x_fill)
@@ -1500,6 +1515,7 @@ def new_hmm_figure(
 						row=rownum, col=colnum,
 					)
 
+					show_points = max(show_points, len(data)*show_points_frac)
 					if n_selected <= show_points:
 						_x_points_selected = x_points[selection]
 						_y_points_selected = y_points[selection]
@@ -1681,6 +1697,39 @@ def update_hmm_figure(
 		rows = existing_rows
 	if cols is None:
 		cols = existing_cols
+
+	change_dims = False
+	if rows is None:
+		rows = existing_rows
+	else:
+		if rows != existing_rows:
+			change_dims = True
+	if cols is None:
+		cols = existing_cols
+	else:
+		if cols != existing_cols:
+			change_dims = True
+	if change_dims:
+		new_fig = new_hmm_figure(
+			scope,
+			data,
+			rows=rows,
+			cols=cols,
+			row_titles=fig['layout']['meta'].get('row_titles', 'side'),
+			size=fig['layout']['meta'].get('size', None),
+			selection=selection,
+			box=box,
+			refpoint=fig['layout']['meta'].get('refpoint', None),
+			figure_class=None,
+			on_select=None,  # lambda *a: self._on_select_from_histogram(*a,name=col)
+			on_deselect=None,  # lambda *a: self._on_deselect_from_histogram(*a,name=col)
+			selected_color=selected_color,
+			unselected_color=unselected_color,
+			marker_size=fig['layout']['meta'].get('marker_size', 3),
+		)
+		fig['data'] = new_fig['data']
+		fig['layout'] = new_fig['layout']
+		return fig
 
 	replacement = new_hmm_figure(
 		scope,
