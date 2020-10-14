@@ -137,7 +137,7 @@ class SQLiteDB(Database):
         except:
             pass
 
-        if update:
+        if update and not self.readonly:
 
             # update old databases
             if 'design' in self._raw_query(table='ema_experiment')['name'].to_numpy():
@@ -161,7 +161,8 @@ class SQLiteDB(Database):
                 _logger.exception("UPDATE FAIL")
 
         try:
-            self.__apply_sql_script(self.conn, 'emat_db_init_views.sql')
+            if not self.readonly:
+                self.__apply_sql_script(self.conn, 'emat_db_init_views.sql')
         except:
             _logger.exception("VIEWS FAIL")
         atexit.register(self.conn.close)
@@ -1934,9 +1935,10 @@ class SQLiteDB(Database):
             level (int): A logging level, can be used to filter messages.
         """
         message = str(message)
-        with self.conn:
-            cur = self.conn.cursor()
-            cur.execute("INSERT INTO ema_log(level, content) VALUES (?,?)", [level, str(message)])
+        if not self.readonly:
+            with self.conn:
+                cur = self.conn.cursor()
+                cur.execute("INSERT INTO ema_log(level, content) VALUES (?,?)", [level, str(message)])
         _logger.log(level, message)
 
     def merge_log(self, other):
