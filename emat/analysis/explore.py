@@ -710,7 +710,7 @@ class Explore(GenericBox):
 	def measure_viewers(self, style='kde'):
 		return self.viewers(*self.scope.get_measure_names(), style=style)
 
-	def complete(self, measure_style='hist'):
+	def complete(self, measure_style='hist', measures=None):
 		return widget.VBox([
 			self.status(),
 			widget.HTML("<h3>Ⓛ Policy Levers</h3>"),
@@ -719,7 +719,11 @@ class Explore(GenericBox):
 			self.selectors(*self.scope.get_uncertainty_names()),
 			widget.HTML("<h3>Ⓜ Performance Measures</h3>"),
 			self._measure_notes(style=measure_style),
-			self.measure_selectors(style=measure_style),
+			(
+				self.selectors(measures, style=measure_style)
+				if measures is not None else
+				self.measure_selectors(style=measure_style)
+			),
 		])
 
 	def _measure_notes(self, style='kde'):

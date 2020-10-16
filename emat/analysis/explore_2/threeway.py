@@ -214,6 +214,7 @@ class ThreeWayFigure(HBox, BaseTwoWayFigure):
             z=self.z_axis_choose.value,
             s=self.s_axis_choose.value,
         )
+        self.change_selection_color(self._dfv.active_selection_color())
         from ...util.naming import multiindex_to_strings
 
         self.graph3d.data[0]['meta'] = multiindex_to_strings(self._dfv.data.index)

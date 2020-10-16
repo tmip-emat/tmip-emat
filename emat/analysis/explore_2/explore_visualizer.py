@@ -401,7 +401,11 @@ class Visualizer(DataFrameExplorer):
 			if self.active_selection_deftype() == 'box':
 				box = self._selection_defs[self.active_selection_name()]
 				try:
-					box.replace_allowed_set(name, allowed_set)
+					if allowed_set is None:
+						if name in box._thresholds:
+							del box._thresholds[name]
+					else:
+						box.replace_allowed_set(name, allowed_set)
 				except ScopeError:
 					pass
 				else:
@@ -709,7 +713,7 @@ class Visualizer(DataFrameExplorer):
 		"""
 		return self._get_widgets(*self.scope.get_measure_names())
 
-	def complete(self):
+	def complete(self, measures=None):
 		"""
 		Display status and selector widgets for all dimensions.
 
@@ -729,7 +733,10 @@ class Visualizer(DataFrameExplorer):
 				widget.HTML("<h3>Exogenous Uncertainties</h3>"),
 				uncs,
 			]
-		meas = self.measure_selectors()
+		if measures is None:
+			meas = self.measure_selectors()
+		else:
+			meas = self.selectors(measures)
 		if meas.children:
 			content += [
 				widget.HTML("<h3>Performance Measures</h3>"),
