@@ -907,7 +907,7 @@ def select_best_metamodeltype(
         regressor = LinearAndGaussian
 
     def _metamodel_scores(t, filter_cols):
-        if t in possible_types:
+        if t in possible_types and len(filter_cols):
             result = MetaModel(
                 params,
                 measures[filter_cols],
