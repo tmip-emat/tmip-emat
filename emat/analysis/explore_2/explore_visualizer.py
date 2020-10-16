@@ -110,6 +110,7 @@ class Visualizer(DataFrameExplorer):
 		self._categorical_data = {}
 		self._freeze = False
 		self._two_way = {}
+		self._three_way = {}
 		self._splom = {}
 		self._hmm = {}
 		self._parcoords = {}
@@ -449,6 +450,11 @@ class Visualizer(DataFrameExplorer):
 					self._two_way[key]._on_change_selection_choose(payload={
 						'new':self.active_selection_name(),
 					})
+				for key in self._three_way:
+					self._three_way[key].change_selection(
+						self.active_selection(),
+						self.active_selection_color(),
+					)
 				self._update_sploms()
 				self._update_hmms()
 				self._update_selection_feature_score_figure()
@@ -809,6 +815,30 @@ class Visualizer(DataFrameExplorer):
 		_try_set_value(self._two_way[key].x_axis_choose, x, 'the x axis dimension')
 		_try_set_value(self._two_way[key].y_axis_choose, y, 'the y axis dimension')
 		return self._two_way[key]
+
+	def three_way(
+			self,
+			key=None,
+			reset=False,
+			*,
+			x=None,
+			y=None,
+			z=None,
+			s=None,
+	):
+		"""
+		Create or display a three-way widget.
+		"""
+		if key is None and (x is not None or y is not None or z is not None or s is not None):
+			key = (x,y,z,s)
+
+		if key in self._three_way and not reset:
+			return self._three_way[key]
+
+		from .threeway import ThreeWayFigure
+		self._three_way[key] = ThreeWayFigure(self, x=x,y=y,z=z,s=s)
+		return self._three_way[key]
+
 
 	def splom(
 			self,

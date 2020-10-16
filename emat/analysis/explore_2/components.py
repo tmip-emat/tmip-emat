@@ -1515,7 +1515,7 @@ def new_hmm_figure(
 						row=rownum, col=colnum,
 					)
 
-					show_points = max(show_points, len(data)*show_points_frac)
+					show_points = min(show_points, len(data)*show_points_frac)
 					if n_selected <= show_points:
 						_x_points_selected = x_points[selection]
 						_y_points_selected = y_points[selection]

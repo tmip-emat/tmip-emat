@@ -15,8 +15,112 @@ _logger = logging.getLogger('EMAT.widget')
 # def _debugprint(s):
 # 	print(s.replace("rgb(255, 127, 14)", "<ORANGE>").replace("rgb(255, 46, 241)","<PINK>"))
 
+class BaseTwoWayFigure():
 
-class TwoWayFigure(HBox):
+	def __init__(
+			self,
+			viz,
+	):
+		assert isinstance(viz, Visualizer)
+		self._dfv = viz
+		self._alt_selections = {}
+
+
+	@property
+	def scope(self):
+		return self._dfv.scope
+
+
+	@property
+	def selection(self):
+		return self._dfv.active_selection()
+
+
+	def _get_sectional_names(self, columns):
+		scope = self.scope
+		uncs = scope.get_uncertainty_names()
+		levs = scope.get_lever_names()
+		cons = scope.get_constant_names()
+		meas = scope.get_measure_names()
+
+		c_uncs = []
+		c_levs = []
+		c_cons = []
+		c_meas = []
+		c_other = []
+
+		for c in columns:
+			if c in uncs:
+				c_uncs.append(c)
+			elif c in levs:
+				c_levs.append(c)
+			elif c in cons:
+				c_cons.append(c)
+			elif c in meas:
+				c_meas.append(c)
+			else:
+				c_other.append(c)
+
+		result = []
+		if len(c_uncs):
+			result.append("-- (X) Uncertainties --")
+			result.extend(c_uncs)
+		if len(c_levs):
+			result.append("-- (L) Levers --")
+			result.extend(c_levs)
+		if len(c_cons):
+			result.append("-- Constants --")
+			result.extend(c_cons)
+		if len(c_meas):
+			result.append("-- (M) Measures --")
+			result.extend(c_meas)
+		if len(c_other):
+			result.append("-- Other --")
+			result.extend(c_other)
+
+		return result
+
+
+	def _get_shortname(self, name):
+		if self.scope is None:
+			return name
+		return self.scope.shortname(name)
+
+	def _manage_categorical(self, x, perturb=True):
+		try:
+			valid_scales = ['linear']
+			x_categories = None
+			x_ticktext = None
+			x_tickvals = None
+			if not isinstance(x, pandas.Series):
+				x = pandas.Series(x)
+			try:
+				if numpy.issubdtype(x.dtype, numpy.bool_):
+					x = x.astype('category')
+			except TypeError:
+				pass
+			if isinstance(x.dtype, pandas.CategoricalDtype):
+				x_categories = x.cat.categories
+				codes = x.cat.codes
+				x = codes.astype(float)
+				s_ = x.size * 0.01
+				s_ = s_ / (1 + s_)
+				epsilon = 0.05 + 0.20 * s_
+				if perturb:
+					x = x + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
+				x_tickmode = 'array'
+				x_ticktext = list(x_categories)
+				x_tickvals = list(range(len(x_ticktext)))
+			else:
+				if x.min() >= 0:
+					valid_scales.append('log')
+
+			return x, x_ticktext, x_tickvals, valid_scales
+		except:
+			_logger.exception('ERROR IN _manage_categorical')
+			raise
+
+class TwoWayFigure(HBox, BaseTwoWayFigure):
 	"""
 	The two-way visualizer widget.
 
@@ -47,10 +151,6 @@ class TwoWayFigure(HBox):
 			sets.
 	"""
 
-	@property
-	def scope(self):
-		return self._dfv.scope
-
 	def __init__(
 			self,
 			viz,
@@ -58,10 +158,7 @@ class TwoWayFigure(HBox):
 			minimum_marker_opacity=0.25,
 			use_gl=True,
 	):
-		assert isinstance(viz, Visualizer)
-		self._dfv = viz
-
-		self._alt_selections = {}
+		BaseTwoWayFigure.__init__(self, viz)
 
 		axis_choices = self._get_sectional_names(self._dfv.data.columns)
 
@@ -266,58 +363,6 @@ class TwoWayFigure(HBox):
 		self.out_logger = Output()
 		self._update_state_ = set()
 
-	def _get_sectional_names(self, columns):
-		scope = self.scope
-		uncs = scope.get_uncertainty_names()
-		levs = scope.get_lever_names()
-		cons = scope.get_constant_names()
-		meas = scope.get_measure_names()
-
-		c_uncs = []
-		c_levs = []
-		c_cons = []
-		c_meas = []
-		c_other = []
-
-		for c in columns:
-			if c in uncs:
-				c_uncs.append(c)
-			elif c in levs:
-				c_levs.append(c)
-			elif c in cons:
-				c_cons.append(c)
-			elif c in meas:
-				c_meas.append(c)
-			else:
-				c_other.append(c)
-
-		result = []
-		if len(c_uncs):
-			result.append("-- (X) Uncertainties --")
-			result.extend(c_uncs)
-		if len(c_levs):
-			result.append("-- (L) Levers --")
-			result.extend(c_levs)
-		if len(c_cons):
-			result.append("-- Constants --")
-			result.extend(c_cons)
-		if len(c_meas):
-			result.append("-- (M) Measures --")
-			result.extend(c_meas)
-		if len(c_other):
-			result.append("-- Other --")
-			result.extend(c_other)
-
-		return result
-
-
-
-
-
-	def _get_shortname(self, name):
-		if self.scope is None:
-			return name
-		return self.scope.shortname(name)
 
 	def _compute_marker_opacity(self):
 		# if self.selection is None:
@@ -376,38 +421,6 @@ class TwoWayFigure(HBox):
 	def _observe_change_scale_y(self, payload):
 		self.set_y(self.y_axis_choose.value)
 
-	def __manage_categorical(self, x):
-		try:
-			valid_scales = ['linear']
-			x_categories = None
-			x_ticktext = None
-			x_tickvals = None
-			if not isinstance(x, pandas.Series):
-				x = pandas.Series(x)
-			try:
-				if numpy.issubdtype(x.dtype, numpy.bool_):
-					x = x.astype('category')
-			except TypeError:
-				pass
-			if isinstance(x.dtype, pandas.CategoricalDtype):
-				x_categories = x.cat.categories
-				codes = x.cat.codes
-				x = codes.astype(float)
-				s_ = x.size * 0.01
-				s_ = s_ / (1 + s_)
-				epsilon = 0.05 + 0.20 * s_
-				x = x + numpy.random.uniform(-epsilon, epsilon, size=x.shape)
-				x_tickmode = 'array'
-				x_ticktext = list(x_categories)
-				x_tickvals = list(range(len(x_ticktext)))
-			else:
-				if x.min() >= 0:
-					valid_scales.append('log')
-
-			return x, x_ticktext, x_tickvals, valid_scales
-		except:
-			_logger.exception('ERROR IN __manage_categorical')
-			raise
 
 	def set_x(self, col, drawbox=True):
 		"""
@@ -431,7 +444,7 @@ class TwoWayFigure(HBox):
 					except:
 						pass
 
-				x, x_ticktext, x_tickvals, x_scales = self.__manage_categorical(x)
+				x, x_ticktext, x_tickvals, x_scales = self._manage_categorical(x)
 				self.x_axis_scale.options = x_scales
 				self._x = x
 				self._x_ticktext = x_ticktext or []
@@ -509,7 +522,7 @@ class TwoWayFigure(HBox):
 				except:
 					pass
 
-			y, y_ticktext, y_tickvals, y_scales = self.__manage_categorical(y)
+			y, y_ticktext, y_tickvals, y_scales = self._manage_categorical(y)
 			self.y_axis_scale.options = y_scales
 			self._y = y
 			self._y_ticktext = y_ticktext or []
@@ -887,10 +900,6 @@ class TwoWayFigure(HBox):
 			tentative_name = f"{default_name} {n}"
 			n += 1
 		self.selection_name.value = tentative_name
-
-	@property
-	def selection(self):
-		return self._dfv.active_selection()
 
 	def refresh_selection_names(self):
 		if "refresh_selection_names" in self._update_state_: return
