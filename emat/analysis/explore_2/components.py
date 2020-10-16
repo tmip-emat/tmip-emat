@@ -1135,10 +1135,26 @@ def update_splom_figure(
 	n = 0
 	trace_n = 0
 	box_shapes = []
+	extra_y_ax = len(rows) * len(cols)
+
 	for rownum, row in enumerate(rows, start=1):
 		for colnum, col in enumerate(cols, start=1):
 			if row == col:
+				x_ticktext, x_tickvals, x_range = axis_info(data[col], range_padding=0.3)
+				extra_y_ax += 1
 				n += 1
+				__update_univar_cell_in_splom(
+					data,
+					selection,
+					row,
+					x_range,
+					fig,
+					trace_n,
+					unselected_color,
+					selected_color,
+					extra_y_ax,
+					n,
+				)
 				trace_n += 3
 				continue
 
@@ -1165,7 +1181,52 @@ def update_splom_figure(
 	fig['layout']['shapes'] = box_shapes + existing_lines
 	return fig
 
+def __update_univar_cell_in_splom(
+		data,
+		selection,
+		row,
+		x_range,
+		fig,
+		trace_n,
+		unselected_color_str,
+		selected_color_str,
+		extra_y_ax,
+		n,
+):
+	import scipy.stats
+	# recompute KDEs
+	try:
+		kde0 = scipy.stats.gaussian_kde(data[~selection][row])
+		kde1 = scipy.stats.gaussian_kde(data[selection][row])
+	except TypeError:
+		kde0 = scipy.stats.gaussian_kde(data[~selection][row].cat.codes)
+		kde1 = scipy.stats.gaussian_kde(data[selection][row].cat.codes)
+	except ValueError:
+		if selection.all():
+			kde0 = lambda z: numpy.zeros_like(z)
+			kde1 = scipy.stats.gaussian_kde(data[row])
+		elif (~selection).all():
+			kde0 = scipy.stats.gaussian_kde(data[row])
+			kde1 = lambda z: numpy.zeros_like(z)
+	x_fill = numpy.linspace(*x_range, 200)
+	y_0 = kde0(x_fill)
+	y_1 = kde1(x_fill)
+	topline = max(y_0.max(), y_1.max())
 
+	fig['data'][trace_n + 1]['y'] = y_0
+	fig['data'][trace_n + 2]['y'] = y_1
+	fig['data'][trace_n + 1]['line']['color'] = unselected_color_str
+	fig['data'][trace_n + 2]['line']['color'] = selected_color_str
+
+	y_range_kde = (-0.07 * topline, 1.07 * topline)
+	layout_updates = {}
+	layout_updates[f'yaxis{extra_y_ax}'] = dict(
+		domain=fig['layout'][f'yaxis{n}']['domain'],
+		anchor=f'free',
+		showticklabels=False,
+		range=y_range_kde,
+	)
+	fig.update_layout(**layout_updates)
 
 
 def _hue_mix(selected_array, unselected_array, selected_rgb, unselected_rgb):
