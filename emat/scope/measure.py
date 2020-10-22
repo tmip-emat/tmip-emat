@@ -3,9 +3,9 @@
 import numpy
 import re
 from ..workbench import ScalarOutcome
-from .names import ShortnameMixin
+from .names import ShortnameMixin, TaggableMixin
 
-class Measure(ScalarOutcome, ShortnameMixin):
+class Measure(ScalarOutcome, ShortnameMixin, TaggableMixin):
     '''
     Measure represents an outcome measure of the model.
 
@@ -97,6 +97,7 @@ class Measure(ScalarOutcome, ShortnameMixin):
             shortname=None,
             desc=None,
             formula=None,
+            tags=None,
     ):
 
         if isinstance(kind, str):
@@ -138,6 +139,12 @@ class Measure(ScalarOutcome, ShortnameMixin):
 
         self.formula = formula
         """str: An eval-able expression to compute this performance measure from other measures"""
+
+        if tags:
+            if isinstance(tags, str):
+                tags = [tags]
+            for tag in tags:
+                self.add_tag(tag)
 
     def __repr__(self):
         return super().__repr__()

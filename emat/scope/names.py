@@ -32,3 +32,28 @@ class ShortnameMixin:
 			return None
 		return self._shortname
 
+
+
+class TaggableMixin:
+	"""
+	Adds a `tags` attribute.
+	"""
+
+	@property
+	def tags(self):
+		"""Set: A set of tags attached to this object."""
+		tags = getattr(self, '_tags', None)
+		if not tags:
+			tags = set()
+		return tags
+
+	def add_tag(self, tag):
+		if not hasattr(self, '_tags'):
+			self._tags = {tag}
+		else:
+			self._tags.add(tag)
+
+	def remove_tag(self, tag):
+		if hasattr(self, '_tags'):
+			self._tags.remove(tag)
+

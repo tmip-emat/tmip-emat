@@ -6,9 +6,10 @@ from plotly.subplots import make_subplots
 
 X_FIGURE_BUFFER = 0.03
 
-from ...viz import colors, _pick_color
-from ... import styles
-from ...util.naming import multiindex_to_strings, reset_multiindex_to_strings
+from ....viz import colors, _pick_color
+from .... import styles
+from ....util.naming import multiindex_to_strings, reset_multiindex_to_strings
+from ....scope.box import Bounds
 
 import logging
 _logger = logging.getLogger('EMAT.explore')
@@ -513,7 +514,7 @@ def add_boxes_to_figure(box, col, fig, ref_point=None, existing_shapes=None):
 
 
 
-from ...viz.perturbation import perturb_categorical
+from ....viz.perturbation import perturb_categorical
 
 def axis_info(x, range_padding=0.0, epsilon=None, refpoint=None):
 	if hasattr(x, 'dtype'):
@@ -863,7 +864,6 @@ def new_splom_figure(
 
 
 
-from ...scope.box import Bounds
 
 def _splom_marker_opacity(
 		data_index,
@@ -871,7 +871,7 @@ def _splom_marker_opacity(
 		mass=1000,
 ):
 	if isinstance(mass, int):
-		from ...viz import ScatterMass
+		from ....viz import ScatterMass
 		mass = ScatterMass(mass)
 	data_index = pandas.Index(data_index)
 	if selection is None:
@@ -1254,7 +1254,7 @@ def _hue_mix(selected_array, unselected_array, selected_rgb, unselected_rgb):
 	hue_array[...,-1] = selection_total
 	return hue_array
 
-from ... import configuration
+from .... import configuration
 
 def _get_bins_and_range(ticktext, label, in_range, scope):
 	bins = 20
@@ -1902,7 +1902,7 @@ def new_parcoords_figure(
 	df = data[coords].copy()
 	flips = set(flip_dims)
 
-	from ...viz.parcoords import _prefix_symbols
+	from ....viz.parcoords import _prefix_symbols
 	prefix_chars = _prefix_symbols(scope, robustness_functions)
 
 	for colnum, col in enumerate(coords, start=1):

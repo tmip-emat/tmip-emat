@@ -9,7 +9,7 @@ from scipy.stats._distn_infrastructure import rv_frozen
 
 from ..util import distributions, DistributionTypeError, DistributionFreezeError
 from ..util import make_rv_frozen, rv_frozen_as_dict
-from .names import ShortnameMixin
+from .names import ShortnameMixin, TaggableMixin
 
 def standardize_parameter_type(original_type):
     """Standardize parameter type descriptions
@@ -420,7 +420,7 @@ class Constant(workbench_param.Constant):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-class Parameter(workbench_param.Parameter, ShortnameMixin):
+class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
 
     dtype = None
 
@@ -442,6 +442,7 @@ class Parameter(workbench_param.Parameter, ShortnameMixin):
             dist_def=None,
             shortname=None,
             abbrev=None,
+            tags=None,
     ):
 
         # The default constructor for ema_workbench parameters uses no distribution
@@ -522,6 +523,11 @@ class Parameter(workbench_param.Parameter, ShortnameMixin):
         self.abbrev = abbrev or {}
         """Dict: Abbreviations used for long attribute names in figures."""
 
+        if tags:
+            if isinstance(tags, str):
+                tags = [tags]
+            for tag in tags:
+                self.add_tag(tag)
 
     @property
     def min(self):

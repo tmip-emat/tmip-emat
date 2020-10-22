@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from ...viz import colors
+from .components.three_dim_figure import three_dim_figure
 
 def flex_scale(x):
     try:
@@ -24,103 +25,6 @@ def flex_scale(x):
     except:
         return x
 
-def _three_way_figure(
-        data,
-        x,
-        y,
-        z,
-        selection=None,
-        scope=None,
-        hover_name=None,
-):
-    """
-
-    Args:
-        data:
-        x:
-        y:
-        z:
-        selection (pd.Series[Bool]):
-            The active selection.
-        scope (emat.Scope, optional):
-            Used to label axes with shortnames where
-            defined instead of identifier labels.
-    Returns:
-
-    """
-    unselected_color = colors.DEFAULT_BASE_COLOR
-    selected_color = colors.DEFAULT_HIGHLIGHT_COLOR
-
-    if scope is None:
-        from ...scope.scope import Scope
-        scope = Scope("")
-
-    marker_color = pd.Series(data=unselected_color, index=data.index)
-    if selection is not None:
-        marker_color[selection] = selected_color
-
-    scene_bgcolor = 'rgb(255,255,255,0)'
-    scene_gridcolor = '#E5ECF6'
-
-    hovertemplate = f"{scope.shortname(x)}: %{{x}}<br>" \
-                    f"{scope.shortname(y)}: %{{y}}<br>" \
-                    f"{scope.shortname(z)}: %{{z}}" \
-                    f"<extra>{hover_name} %{{meta}}</extra>"
-
-    fig = go.Figure(
-        go.Scatter3d(
-            x=data[x],
-            y=data[y],
-            z=data[z],
-            mode='markers',
-            marker=dict(
-                size=8,
-                color=marker_color,
-                opacity=0.9
-            ),
-            hovertemplate=hovertemplate,
-        ),
-        layout=dict(
-            margin=dict(
-                l=10, r=10, t=0, b=0,
-            ),
-            scene={
-                'xaxis': {
-                    'backgroundcolor': scene_bgcolor,
-                    'gridcolor': scene_gridcolor,
-                    'gridwidth': 2,
-                    'linecolor': scene_gridcolor,
-                    'showbackground': False,
-                    'ticks': '',
-                    'zerolinecolor': scene_gridcolor,
-                    'title': {'text': scope.shortname(x)},
-                },
-                'yaxis': {
-                    'backgroundcolor': scene_bgcolor,
-                    'gridcolor': scene_gridcolor,
-                    'gridwidth': 2,
-                    'linecolor': scene_gridcolor,
-                    'showbackground': False,
-                    'ticks': '',
-                    'zerolinecolor': scene_gridcolor,
-                    'title': {'text': scope.shortname(y)},
-                },
-                'zaxis': {
-                    'backgroundcolor': scene_bgcolor,
-                    'gridcolor': scene_gridcolor,
-                    'gridwidth': 2,
-                    'linecolor': scene_gridcolor,
-                    'showbackground': False,
-                    'ticks': '',
-                    'zerolinecolor': scene_gridcolor,
-                    'title': {'text': scope.shortname(z)},
-                },
-                'aspectmode': 'cube',
-            },
-        ),
-
-    )
-    return fig
 
 
 
@@ -198,7 +102,7 @@ class ThreeWayFigure(HBox, BaseTwoWayFigure):
         self.hover_name = hover_name
 
         self.graph3d = go.FigureWidget(
-            _three_way_figure(
+            three_dim_figure(
                 data=self._dfv.data,
                 x=self.x_axis_choose.value,
                 y=self.y_axis_choose.value,

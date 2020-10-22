@@ -7,5 +7,4 @@ scipy
 seaborn
 pyyaml
 cloudpickle
-datashader
 packaging

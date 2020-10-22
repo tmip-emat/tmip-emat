@@ -503,6 +503,18 @@ class Scope:
         """Get a list of performance measures."""
         return [i for i in self._m_list]
 
+    def get_measure_tags(self):
+        """
+        Get the set of all performance measure tags.
+
+        Returns:
+            set
+        """
+        tags = set()
+        for i in self._m_list:
+            tags |= i.tags
+        return tags
+
     def __getitem__(self, item):
         """Get a parameter or measure by name."""
         for i in itertools.chain(self._x_list, self._l_list, self._c_list, self._m_list):
