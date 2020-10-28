@@ -15,7 +15,7 @@ import logging
 _logger = logging.getLogger('EMAT.explore')
 
 def _y_maximum(fig):
-	return sum(t.y for t in fig.select_traces()).max()
+	return sum(t.y for t in list(fig.select_traces())[:2]).max()
 
 
 def fig_existing_lines(fig):
@@ -80,10 +80,8 @@ def new_histogram_figure(
 	Returns:
 		go.FigureWidget or go.Figure
 	"""
-	if unselected_color is None:
-		unselected_color = colors.DEFAULT_BASE_COLOR
-	if selected_color is None:
-		selected_color = colors.DEFAULT_HIGHLIGHT_COLOR
+	unselected_color = colors.Color(unselected_color, default=colors.DEFAULT_BASE_COLOR)
+	selected_color = colors.Color(selected_color, default=colors.DEFAULT_HIGHLIGHT_COLOR_RGB)
 	if figure_class is None:
 		figure_class = go.FigureWidget
 	data_column_missing_data = data_column.isna()
@@ -106,22 +104,35 @@ def new_histogram_figure(
 	fig = figure_class(
 		data=[
 			go.Bar(
-				x=bins_left,
+				x=bins_left + bins_width/2,
 				y=bar_heights_select,
 				width=bins_width,
 				name='Inside',
-				marker_color=selected_color,
+				marker_color=selected_color.rgb(),
 				marker_line_width=marker_line_width,
 				hoverinfo='skip',
 			),
 			go.Bar(
-				x=bins_left,
+				x=bins_left + bins_width/2,
 				y=bar_heights - bar_heights_select,
 				width=bins_width,
 				name='Outside',
-				marker_color=unselected_color,
+				marker_color=unselected_color.rgb(),
 				marker_line_width=marker_line_width,
 				hoverinfo='skip',
+			),
+			go.Scatter(
+				x=[],
+				y=[],
+				mode='lines',
+				line=dict(
+					color=selected_color.rgb(),
+					width=1,
+					dash='dot',
+				),
+				hoverinfo='skip',
+				fill='tozeroy',
+				fillcolor=selected_color.rgba(0.15),
 			),
 		],
 		layout=dict(
@@ -182,6 +193,7 @@ def update_histogram_figure(
 		ref_point=None,
 		selected_color=None,
 		unselected_color=None,
+		ghost_fraction=0.2,
 ):
 	"""
 	Update an existing figure used in the visualizer.
@@ -194,7 +206,9 @@ def update_histogram_figure(
 	Returns:
 		fig
 	"""
-	bins = list(fig['data'][0]['x'])
+	unselected_color = colors.Color(unselected_color)
+	selected_color = colors.Color(selected_color)
+	bins = list(fig['data'][0]['x'] - fig['data'][0]['width']/2)
 	bins.append(fig['data'][0]['x'][-1] + fig['data'][0]['width'][-1])
 	data_column_missing_data = data_column.isna()
 	data_column_legit_data = ~data_column_missing_data
@@ -212,10 +226,68 @@ def update_histogram_figure(
 	col = getattr(data_column, 'name', None)
 	fig = add_boxes_to_figure(box, col, fig, ref_point=ref_point, existing_shapes=existing_lines)
 	if unselected_color is not None:
-		fig['data'][1]['marker']['color'] = unselected_color
+		fig['data'][1]['marker']['color'] = unselected_color.rgb()
 	if selected_color is not None:
-		fig['data'][0]['marker']['color'] = selected_color
+		fig['data'][0]['marker']['color'] = selected_color.rgb()
+	ghost_mode = (numpy.sum(bar_heights_select) / numpy.sum(bar_heights) < ghost_fraction)
+	if ghost_mode:
+		max_height = numpy.max(bar_heights)
+		max_select_height = numpy.max(bar_heights_select)
+		ghost_scale = max_height/max_select_height
+		if ghost_scale < 2.0:
+			ghost_mode = False
+	if ghost_mode:
+		ghost_x, ghost_y = pseudo_bar_data(bar_x, bar_heights_select * ghost_scale)
+		# manipulate existing ghost line
+		fig['data'][2]['x'] = ghost_x
+		fig['data'][2]['y'] = ghost_y
+		if selected_color is not None:
+			fig['data'][2]['line']['color'] = selected_color.rgb()
+			fig['data'][2]['fillcolor'] = selected_color.rgba(0.15)
+	else:
+		fig['data'][2]['x'] = []
+		fig['data'][2]['y'] = []
 	return fig
+
+
+
+def pseudo_bar_data(x_bins, y, gap=0):
+	"""
+	Parameters
+	----------
+	x_bins : array-like, shape=(N,) or (N+1,)
+		The bin boundaries
+	y : array-like, shape=(N,)
+		The bar heights
+
+	Returns
+	-------
+	x, y
+	"""
+	if len(x_bins) == len(y):
+		# add a width
+		width = (x_bins[-1] - x_bins[0]) / (len(x_bins)-1)
+		x_bins = numpy.asarray(list(x_bins) + [x_bins[-1]+width])
+	else:
+		width = 0
+
+	if gap:
+		x_doubled = numpy.zeros(((x_bins.shape[0] - 1) * 4), dtype=numpy.float)
+		x_doubled[::4] = x_bins[:-1]
+		x_doubled[1::4] = x_bins[:-1]
+		x_doubled[2::4] = x_bins[1:] - gap
+		x_doubled[3::4] = x_bins[1:] - gap
+		y_doubled = numpy.zeros(((y.shape[0]) * 4), dtype=y.dtype)
+		y_doubled[1::4] = y
+		y_doubled[2::4] = y
+	else:
+		x_doubled = numpy.zeros((x_bins.shape[0] - 1) * 2, dtype=x_bins.dtype)
+		x_doubled[::2] = x_bins[:-1]
+		x_doubled[1::2] = x_bins[1:]
+		y_doubled = numpy.zeros((y.shape[0]) * 2, dtype=y.dtype)
+		y_doubled[::2] = y
+		y_doubled[1::2] = y
+	return x_doubled-(width/2), y_doubled
 
 
 def interpret_histogram_selection(name, selection_range, box, data, scope):
@@ -379,7 +451,7 @@ def add_boxes_to_figure(box, col, fig, ref_point=None, existing_shapes=None):
 
 	box_shapes = []
 	ref_shapes = []
-	_y_max = sum(t['y'] for t in fig['data']).max()
+	_y_max = sum(t['y'] for t in fig['data'][:2]).max()
 	y_range = (
 		-_y_max * 0.02,
 		_y_max * 1.04,
@@ -1303,11 +1375,11 @@ def new_hmm_figure(
 	if unselected_color is None:
 		unselected_color = colors.DEFAULT_BASE_COLOR_RGB
 	else:
-		unselected_color = colors.interpret_color(unselected_color)
+		unselected_color = colors.Color(unselected_color)
 	if selected_color is None:
 		selected_color = colors.DEFAULT_HIGHLIGHT_COLOR_RGB
 	else:
-		selected_color = colors.interpret_color(selected_color)
+		selected_color = colors.Color(selected_color)
 
 	selected_color_str = ", ".join(str(int(i)) for i in selected_color)
 	unselected_color_str = ", ".join(str(int(i)) for i in unselected_color)
@@ -1445,7 +1517,7 @@ def new_hmm_figure(
 						yaxis=f"y{extra_y_ax}",
 						xaxis=f"x{n}",
 						showlegend=False,
-						line_color=f'rgb({unselected_color_str})',
+						line_color=unselected_color.rgb(),
 						fill='tozeroy',
 					)
 				)
@@ -1456,7 +1528,7 @@ def new_hmm_figure(
 						yaxis=f"y{extra_y_ax}",
 						xaxis=f"x{n}",
 						showlegend=False,
-						line_color=f'rgb({selected_color_str})',
+						line_color=selected_color.rgb(),
 						fill='tozeroy',
 					)
 				)
@@ -1605,7 +1677,7 @@ def new_hmm_figure(
 							y=_y_points_selected,
 							mode='markers',
 							marker=dict(
-								color=f'rgb({selected_color_str})',
+								color=selected_color.rgb(),
 								size=marker_size,
 							),
 							showlegend=False,
@@ -1618,9 +1690,9 @@ def new_hmm_figure(
 						f"coloraxis{n*2-1}": {
 							'showscale': False,
 							'colorscale': [
-								[0.0, f'rgba({selected_color_str}, 0.0)'],
-								[0.5, f'rgba({selected_color_str}, 0.6)'],
-								[1.0, f'rgba({selected_color_str}, 1.0)'],
+								[0.0, selected_color.rgba(0.0)],
+								[0.5, selected_color.rgba(0.6)],
+								[1.0, selected_color.rgba(1.0)],
 							],
 							'cmax':zmax,
 							'cmin':0,
@@ -1628,9 +1700,9 @@ def new_hmm_figure(
 						f"coloraxis{n*2}": {
 							'showscale': False,
 							'colorscale': [
-								[0.0, f'rgba({unselected_color_str}, 0.0)'],
-								[0.5, f'rgba({unselected_color_str}, 0.6)'],
-								[1.0, f'rgba({unselected_color_str}, 1.0)'],
+								[0.0, unselected_color.rgba(0.0)],
+								[0.5, unselected_color.rgba(0.6)],
+								[1.0, unselected_color.rgba(1.0)],
 							],
 							'cmax': zmax,
 							'cmin': 0,
@@ -1751,9 +1823,15 @@ def update_hmm_figure(
 	existing_rows = fig['layout']['meta']['rows']
 	existing_cols = fig['layout']['meta']['cols']
 	if selected_color is None:
-		selected_color = fig['layout']['meta'].get('selected_color', colors.DEFAULT_HIGHLIGHT_COLOR_RGB)
+		selected_color =colors.Color(
+			fig['layout']['meta'].get('selected_color'),
+			default=colors.DEFAULT_HIGHLIGHT_COLOR_RGB,
+		)
 	if unselected_color is None:
-		unselected_color = fig['layout']['meta'].get('unselected_color', colors.DEFAULT_BASE_COLOR_RGB)
+		unselected_color = colors.Color(
+			fig['layout']['meta'].get('unselected_color'),
+			default=colors.DEFAULT_BASE_COLOR_RGB,
+		)
 	if rows is None:
 		rows = existing_rows
 	if cols is None:

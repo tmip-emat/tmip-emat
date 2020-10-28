@@ -128,3 +128,8 @@ def n_jobs_cap(n_jobs):
 				n_jobs = max(multiprocessing.cpu_count() - 2, 1)
 			n_jobs = min(n_jobs, 60)
 	return n_jobs
+
+
+def time_from_uuid(u):
+	import datetime
+	return datetime.datetime.fromtimestamp((u.time - 0x01b21dd213814000)*100/1e9)

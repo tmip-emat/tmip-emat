@@ -1,9 +1,51 @@
 
 from ..util import webcolors
 import re
+import numpy as np
 
-DEFAULT_BASE_COLOR_RGB = (31, 119, 180)         # Blue
-DEFAULT_HIGHLIGHT_COLOR_RGB = (255, 127, 14)    # Orange
+class Color:
+
+	def __new__(cls, *args, **kwargs):
+		if len(kwargs) == 0 and len(args) == 1 and args[0] is None:
+			return None
+		return super().__new__(cls)
+
+	def __init__(self,r,g=None,b=None,a=None,default=None):
+		if r is None and default is not None:
+			r = Color(default)
+		if isinstance(r, Color) and g is None and b is None:
+			r,g,b,a = r.r, r.g, r.b, r.a
+		elif isinstance(r, str) and g is None and b is None:
+			r,g,b = interpret_color(r)
+		self.r = np.clip(int(r),0,255)
+		self.g = np.clip(int(g),0,255)
+		self.b = np.clip(int(b),0,255)
+		if a is None:
+			self.a = None
+		else:
+			self.a = np.clip(a,0,1.0)
+
+	def __repr__(self):
+		if self.a is None:
+			return self.rgb()
+		return self.rgba()
+
+	def alpha(self, a):
+		return type(self)(self.r,self.g,self.b,a)
+
+	def rgb(self):
+		return f"rgb({self.r},{self.g},{self.b})"
+
+	def rgba(self, a=None):
+		if a is not None:
+			return f"rgba({self.r},{self.g},{self.b},{np.clip(a,0,1.0)})"
+		if self.a is not None:
+			return f"rgba({self.r},{self.g},{self.b},{self.a})"
+		return f"rgba({self.r},{self.g},{self.b},1.0)"
+
+
+DEFAULT_BASE_COLOR_RGB = Color(31, 119, 180)         # Blue
+DEFAULT_HIGHLIGHT_COLOR_RGB = Color(255, 127, 14)    # Orange
 
 DEFAULT_BASE_COLOR = 'rgb(31, 119, 180)'      # Blue
 DEFAULT_HIGHLIGHT_COLOR = 'rgb(255, 127, 14)' # Orange
@@ -83,3 +125,5 @@ def get_colour_name(requested_colour, case=None):
 	if case is None:
 		return name
 	return case(name)
+
+

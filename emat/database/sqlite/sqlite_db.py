@@ -1383,6 +1383,10 @@ class SQLiteDB(Database):
                 or 'invalid' to get all valid or invalid model runs
                 (not just the most recent). Set to 'all' to get everything,
                 including both valid and invalidated results.
+            formulas (bool, default True): If the scope includes
+                formulaic measures (computed directly from other
+                measures) then compute these values and include them in
+                the results.
 
         Returns:
             results (pandas.DataFrame): performance measures

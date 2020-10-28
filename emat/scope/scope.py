@@ -338,6 +338,7 @@ class Scope:
             ('corr', lambda x: x or None),
             ('values', lambda x: x or None),
             ('abbrev', lambda x: x or None),
+            ('tags', lambda x: list(x) if x else None),
         ])
         measure_keys = {
             # 'shortname': lambda x: x or None,  # processed separately
@@ -345,6 +346,7 @@ class Scope:
             'desc': lambda x: x,
             'transform': lambda x: x,
             'metamodeltype': lambda x: 'linear' if x is None else x,
+            'tags': lambda x: list(x) if x else None,
         }
         if strip_measure_transforms:
             measure_keys.pop('transform', None)
@@ -380,7 +382,9 @@ class Scope:
                 s['outputs'][i.name]['shortname'] = i.shortname_if_any
             for k in measure_keys:
                 if hasattr(i, k):
-                    s['outputs'][i.name][k] = measure_keys[k](getattr(i,k))
+                    v = measure_keys[k](getattr(i,k))
+                    if v is not None:
+                        s['outputs'][i.name][k] = v
 
         import yaml.representer
         yaml.add_representer(dict,

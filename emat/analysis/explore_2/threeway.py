@@ -256,7 +256,7 @@ class ThreeWayFigure(HBox, BaseTwoWayFigure):
                         self.graph3d.data[0]['marker']['symbol'] = _values
                         self.graph3d.data[0]['marker']['size'] = 8
                     else:
-                        self.graph3d.data[0]['marker']['size'] = (_values+1) * 8
+                        self.graph3d.data[0]['marker']['size'] = (_values+1).fillna(0) * 8
                         self.graph3d.data[0]['marker']['symbol'] = "circle"
 
                 hovertemplate = f"{template_tags['x']}: %{{x}}<br>" \
