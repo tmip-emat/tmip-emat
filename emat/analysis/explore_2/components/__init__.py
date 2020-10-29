@@ -1414,9 +1414,6 @@ def new_hmm_figure(
 	else:
 		selected_color = colors.Color(selected_color)
 
-	selected_color_str = ", ".join(str(int(i)) for i in selected_color)
-	unselected_color_str = ", ".join(str(int(i)) for i in unselected_color)
-
 	def _make_axis_list(j):
 		if isinstance(j, str):
 			if set('XLM').issuperset(j.upper()):
