@@ -337,10 +337,8 @@ def new_frequencies_figure(
 		box=None,
 		ref_point=None,
 ):
-	if unselected_color is None:
-		unselected_color = colors.DEFAULT_BASE_COLOR
-	if selected_color is None:
-		selected_color = colors.DEFAULT_HIGHLIGHT_COLOR
+	unselected_color = colors.Color(unselected_color, default=colors.DEFAULT_BASE_COLOR)
+	selected_color = colors.Color(selected_color, default=colors.DEFAULT_HIGHLIGHT_COLOR_RGB)
 	if figure_class is None:
 		figure_class = go.FigureWidget
 	if label_name_map is None:
@@ -359,7 +357,7 @@ def new_frequencies_figure(
 				x=labels,
 				y=bar_heights_select,
 				name='Inside',
-				marker_color=selected_color,
+				marker_color=selected_color.rgb(),
 				marker_line_width=marker_line_width,
 				hoverinfo='none',
 			),
@@ -367,9 +365,23 @@ def new_frequencies_figure(
 				x=labels,
 				y=bar_heights - bar_heights_select,
 				name='Outside',
-				marker_color=unselected_color,
+				marker_color=unselected_color.rgb(),
 				marker_line_width=marker_line_width,
 				hoverinfo='none',
+			),
+			go.Scatter(
+				x=[],
+				y=[],
+				mode='lines',
+				line=dict(
+					color=selected_color.rgb(),
+					width=1,
+					dash='dot',
+					shape='hvh',
+				),
+				hoverinfo='skip',
+				fill='tozeroy',
+				fillcolor=selected_color.rgba(0.15),
 			),
 		],
 		layout=dict(
@@ -420,7 +432,10 @@ def update_frequencies_figure(
 		ref_point=None,
 		selected_color=None,
 		unselected_color=None,
+		ghost_fraction=0.2,
 ):
+	unselected_color = colors.Color(unselected_color)
+	selected_color = colors.Color(selected_color)
 	labels = list(fig['layout']['meta']['x_tick_values'])
 	v = data_column.astype(
 		pandas.CategoricalDtype(categories=labels, ordered=False)
@@ -439,9 +454,27 @@ def update_frequencies_figure(
 	col = getattr(data_column, 'name', None)
 	fig = add_boxes_to_figure(box, col, fig, ref_point=ref_point, existing_shapes=existing_lines)
 	if unselected_color is not None:
-		fig['data'][1]['marker']['color'] = unselected_color
+		fig['data'][1]['marker']['color'] = unselected_color.rgb()
 	if selected_color is not None:
-		fig['data'][0]['marker']['color'] = selected_color
+		fig['data'][0]['marker']['color'] = selected_color.rgb()
+	ghost_mode = (numpy.sum(bar_heights_select) / numpy.sum(bar_heights) < ghost_fraction)
+	if ghost_mode:
+		max_height = numpy.max(bar_heights)
+		max_select_height = numpy.max(bar_heights_select)
+		ghost_scale = max_height / max_select_height
+		if ghost_scale < 2.0:
+			ghost_mode = False
+	if ghost_mode:
+		ghost_y = bar_heights_select * ghost_scale
+		# manipulate existing ghost line
+		fig['data'][2]['x'] = fig['data'][0]['x']
+		fig['data'][2]['y'] = ghost_y
+		if selected_color is not None:
+			fig['data'][2]['line']['color'] = selected_color.rgb()
+			fig['data'][2]['fillcolor'] = selected_color.rgba(0.15)
+	else:
+		fig['data'][2]['x'] = []
+		fig['data'][2]['y'] = []
 	return fig
 
 
