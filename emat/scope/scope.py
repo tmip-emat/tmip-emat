@@ -347,6 +347,7 @@ class Scope:
             'transform': lambda x: x,
             'metamodeltype': lambda x: 'linear' if x is None else x,
             'tags': lambda x: list(x) if x else None,
+            'formula': lambda x: x if x else None,
         }
         if strip_measure_transforms:
             measure_keys.pop('transform', None)
@@ -398,6 +399,51 @@ class Scope:
                 yaml.dump(s, stream=stream, default_flow_style=default_flow_style, **kwargs)
         else:
             return yaml.dump(s, stream=stream, default_flow_style=default_flow_style, **kwargs)
+
+    def subscope(
+            self,
+            name,
+            include_measures=None,
+            exclude_measures=None,
+            add_measure_formulas=None,
+    ):
+        """
+        Create a limited version of an existing scope.
+
+        This method can limit the number of performance measures
+        included in the scope, or create a curated set of formulaic
+        performance measures.
+
+        Args:
+            name (str, optional): A new name for this sub-scope.
+                If not provided, the subscope uses the same name
+                as the original scope.
+            include_measures (Collection[str], optional):
+                If provided, only performance measures with names in
+                this set will be included.
+            exclude_measures (Collection[str], optional):
+                If provided, only performance measures with names not
+                in this set will be included.
+            add_measure_formulas (Mapping[str,str], optional):
+                If provided, these formulaic performance measures
+                will be added to the subscope (but not to the original
+                scope).
+
+        Returns:
+            Scope
+        """
+        subscope = type(self)(
+            "modified.yaml",
+            self.dump(
+                include_measures=include_measures,
+                exclude_measures=exclude_measures,
+            ),
+        )
+        subscope.name = name or self.name
+        if add_measure_formulas is not None:
+            for mname, formula in add_measure_formulas.items():
+                subscope.add_measure(Measure(mname, formula=formula))
+        return subscope
 
     def info(self, return_string=False):
         """Print a summary of this Scope.
@@ -549,22 +595,58 @@ class Scope:
         correct_dtypes.update({i.name: (i.dtype, getattr(i,'values',None)) for i in self.get_parameters()})
         correct_dtypes.update({i.name: (i.dtype, getattr(i,'values',None)) for i in self.get_measures()})
 
+        copy_made = False
+
         for col in df.columns:
             if col in correct_dtypes:
                 correct_dtype, cat_values = correct_dtypes[col]
                 if correct_dtype == 'real':
-                    df[col] = df[col].astype(float)
+                    if not pandas.api.types.is_float_dtype(df[col]):
+                        if not copy_made: df = df.copy()
+                        df[col] = df[col].astype(float)
                 elif correct_dtype == 'int':
-                    df[col] = df[col].astype(int)
+                    if not pandas.api.types.is_integer_dtype(df[col]):
+                        if not copy_made: df = df.copy()
+                        df[col] = df[col].astype(int)
                 elif correct_dtype == 'bool':
-                    t = df[col].apply(lambda z: z.value if isinstance(z,Category) else z)
-                    df[col] = t.astype(bool)
+                    if not pandas.api.types.is_bool_dtype(df[col]):
+                        if not copy_made: df = df.copy()
+                        t = df[col].apply(lambda z: z.value if isinstance(z,Category) else z)
+                        df[col] = t.astype(bool)
                 elif correct_dtype == 'cat':
-                    t = df[col].apply(lambda z: z.value if isinstance(z,Category) else z)
-                    df[col] = pandas.Categorical(t, categories=cat_values, ordered=True)
+                    if not pandas.api.types.is_categorical_dtype(df[col]):
+                        if not copy_made: df = df.copy()
+                        t = df[col].apply(lambda z: z.value if isinstance(z,Category) else z)
+                        df[col] = pandas.Categorical(t, categories=cat_values, ordered=True)
                 elif correct_dtype is None and df[col].dtype is numpy.dtype('O'):
+                    if not copy_made: df = df.copy()
                     df[col] = df[col].astype(float)
 
+        return df
+
+    def apply_formulas(self, df, overwrite=False):
+        """
+        Compute formulaic measures as needed.
+
+        Args:
+            df (pandas.DataFrame): A dataframe with column names
+                that are uncertainties, levers, or measures.
+
+        Returns:
+            pandas.DataFrame:
+                The same data as input, but with added results.
+        """
+        queue = {}
+        for measure in self.get_measures():
+            formula = getattr(measure, 'formula', None)
+            if formula:
+                dataseries = df.eval(formula).rename(measure.name)
+                if measure.name in df.columns and not overwrite:
+                    queue[measure.name] = df[measure.name].fillna(dataseries)
+                else:
+                    queue[measure.name] = dataseries
+        if queue:
+            df = df.assign(**queue)
         return df
 
     def get_dtype(self, name):

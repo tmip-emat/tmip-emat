@@ -1232,7 +1232,7 @@ class SQLiteDB(Database):
         results for each performance measure per experiment.
 
         Args:
-            scope_name (str):
+            scope_name (str or Scope):
                 A scope name, used to identify experiments,
                 performance measures, and results associated with this
                 exploratory analysis.
@@ -1282,6 +1282,12 @@ class SQLiteDB(Database):
                 When no source is given but the database contains
                 results from multiple sources.
         """
+        from ...scope.scope import Scope
+        if isinstance(scope_name, Scope):
+            scope = scope_name
+            scope_name = scope.name
+        else:
+            scope = None
 
         df_p = self.read_experiment_parameters(
             scope_name=scope_name,
@@ -1289,7 +1295,7 @@ class SQLiteDB(Database):
             ensure_dtypes=ensure_dtypes,
         )
         df_m = self.read_experiment_measures(
-            scope_name=scope_name,
+            scope_name=scope or scope_name,
             design_name=design_name,
             runs=runs,
         )
@@ -1314,12 +1320,20 @@ class SQLiteDB(Database):
                     retain[:] |= pd.isna(ex_xlm[meas_name])
             ex_xlm = ex_xlm.loc[retain, :]
 
-        column_order = (
+        if scope is None:
+            column_order = (
                 self.read_constants(scope_name)
                 + self.read_uncertainties(scope_name)
                 + self.read_levers(scope_name)
                 + self.read_measures(scope_name)
-        )
+            )
+        else:
+            column_order = (
+                scope.get_constant_names()
+                + scope.get_uncertainty_names()
+                + scope.get_lever_names()
+                + scope.get_measure_names()
+            )
         result = ex_xlm[[i for i in column_order if i in ex_xlm.columns]]
 
         if only_complete:
@@ -1335,7 +1349,8 @@ class SQLiteDB(Database):
             result = result[result_measures.isna().all(axis=1)]
 
         if ensure_dtypes:
-            scope = self.read_scope(scope_name)
+            if scope is None:
+                scope = self.read_scope(scope_name)
             if scope is not None:
                 result = scope.ensure_dtypes(result)
 
@@ -1360,8 +1375,8 @@ class SQLiteDB(Database):
         Read experiment results from the database.
 
         Args:
-            scope_name (str):
-                A scope name, used to identify experiments,
+            scope_name (str or Scope):
+                A scope or just its name, used to identify experiments,
                 performance measures, and results associated with this
                 exploratory analysis.
             design_name (str, optional): If given, only experiments
@@ -1407,6 +1422,12 @@ class SQLiteDB(Database):
             elif design != design_name:
                 raise ValueError("cannot give both `design_name` and `design`")
 
+        from ...scope.scope import Scope
+        if isinstance(scope_name, Scope):
+            scope = scope_name
+            scope_name = scope.name
+        else:
+            scope = None
         scope_name = self._validate_scope(scope_name, 'design_name')
 
         sql = sq.GET_EXPERIMENT_MEASURES_MASTER
@@ -1482,14 +1503,18 @@ class SQLiteDB(Database):
         ex_m.columns.name = None
 
         if formulas:
-            scope = self.read_scope(scope_name)
+            if scope is None:
+                scope = self.read_scope(scope_name)
             for measure in scope.get_measures():
                 if getattr(measure, 'formula', None):
                     ex_m[measure.name] = ex_m.eval(measure.formula)
 
-        column_order = (
+        if scope is None:
+            column_order = (
                 self.read_measures(scope_name)
-        )
+            )
+        else:
+            column_order = scope.get_measure_names()
 
         return ex_m[[i for i in column_order if i in ex_m.columns]]
 

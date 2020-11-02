@@ -965,6 +965,7 @@ class Visualizer(DataFrameExplorer):
 			emph_selected=True,
 			show_points=30,
 			size=150,
+			with_hover=True,
 	):
 		"""
 		Create or display a heat map matrix widget.
@@ -1040,6 +1041,7 @@ class Visualizer(DataFrameExplorer):
 			emph_selected=emph_selected,
 			show_points=show_points,
 			selected_color=self.active_selection_color(),
+			with_hover=with_hover,
 		)
 
 		return self._hmm[key]

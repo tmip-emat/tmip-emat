@@ -56,6 +56,7 @@ def new_histogram_figure(
 		figure_class=None,
 		box=None,
 		ref_point=None,
+		ghost_fraction=0.2,
 ):
 	"""
 	Create a new histogram figure for use with the visualizer.
@@ -101,6 +102,17 @@ def new_histogram_figure(
 	bins_width = bar_x[1:] - bar_x[:-1]
 	bar_heights_select, bar_x = numpy.histogram(data_column[selection][data_column_legit_data], bins=bar_x)
 
+	ghost_x, ghost_y = [], []
+	ghost_mode = (numpy.sum(bar_heights_select) / numpy.sum(bar_heights) < ghost_fraction)
+	if ghost_mode:
+		max_height = numpy.max(bar_heights)
+		max_select_height = numpy.max(bar_heights_select)
+		ghost_scale = max_height/max_select_height
+		if ghost_scale < 2.0:
+			ghost_mode = False
+	if ghost_mode:
+		ghost_x, ghost_y = pseudo_bar_data(bar_x, bar_heights_select * ghost_scale)
+
 	fig = figure_class(
 		data=[
 			go.Bar(
@@ -122,13 +134,13 @@ def new_histogram_figure(
 				hoverinfo='skip',
 			),
 			go.Scatter(
-				x=[],
-				y=[],
+				x=ghost_x,
+				y=ghost_y,
 				mode='lines',
 				line=dict(
 					color=selected_color.rgb(),
-					width=1,
-					dash='dot',
+					width=2,
+					dash='2px,1px',
 				),
 				hoverinfo='skip',
 				fill='tozeroy',
@@ -336,6 +348,7 @@ def new_frequencies_figure(
 		label_name_map=None,
 		box=None,
 		ref_point=None,
+		ghost_fraction=0.2,
 ):
 	unselected_color = colors.Color(unselected_color, default=colors.DEFAULT_BASE_COLOR)
 	selected_color = colors.Color(selected_color, default=colors.DEFAULT_HIGHLIGHT_COLOR_RGB)
@@ -351,6 +364,17 @@ def new_frequencies_figure(
 	bar_heights_select, _ = numpy.histogram(v[selection], bins=numpy.arange(0, len(labels) + 1))
 	original_labels = labels
 	labels = [label_name_map.get(i, i) for i in labels]
+	ghost_x, ghost_y = [], []
+	ghost_mode = (numpy.sum(bar_heights_select) / numpy.sum(bar_heights) < ghost_fraction)
+	if ghost_mode:
+		max_height = numpy.max(bar_heights)
+		max_select_height = numpy.max(bar_heights_select)
+		ghost_scale = max_height / max_select_height
+		if ghost_scale < 2.0:
+			ghost_mode = False
+	if ghost_mode:
+		ghost_x = labels
+		ghost_y = bar_heights_select * ghost_scale
 	fig = figure_class(
 		data=[
 			go.Bar(
@@ -370,13 +394,13 @@ def new_frequencies_figure(
 				hoverinfo='none',
 			),
 			go.Scatter(
-				x=[],
-				y=[],
+				x=ghost_x,
+				y=ghost_y,
 				mode='lines',
 				line=dict(
 					color=selected_color.rgb(),
-					width=1,
-					dash='dot',
+					width=2,
+					dash='2px,1px',
 					shape='hvh',
 				),
 				hoverinfo='skip',
@@ -1402,6 +1426,7 @@ def new_hmm_figure(
 		show_points=50,
 		show_points_frac=0.1,
 		marker_size=5,
+		with_hover=True,
 ):
 	import datashader as ds  # optional dependency
 
@@ -1590,11 +1615,17 @@ def new_hmm_figure(
 				else:
 					y_arr = None
 					y_hovertag = "%{y:.3s}"
-				hovertemplate = (
-					f"<b>{scope.shortname(col)}</b>: {x_hovertag}<br>" +
-					f"<b>{scope.shortname(row)}</b>: {y_hovertag}" +
-					"<extra>%{meta[0]} selected<br>%{meta[1]} unselected</extra>"
-				)
+				if with_hover:
+					hovertemplate = (
+						f"<b>{scope.shortname(col)}</b>: {x_hovertag}<br>" +
+						f"<b>{scope.shortname(row)}</b>: {y_hovertag}" +
+						"<extra>%{meta[0]} selected<br>%{meta[1]} unselected</extra>"
+					)
+				else:
+					hovertemplate = (
+						f"<b>{scope.shortname(col)}</b>: {{x}}<br>" +
+						f"<b>{scope.shortname(row)}</b>: {{y}}"
+					)
 				agg0_arr = numpy.asanyarray(agg0)
 				agg1_arr = numpy.asanyarray(agg1)
 				wtype_def = [
@@ -1610,14 +1641,16 @@ def new_hmm_figure(
 						('y', y_arr.dtype)
 					)
 				wtype = numpy.dtype(wtype_def)
-				meta = numpy.empty(agg0_arr.shape, dtype=wtype)
-				meta['ns'] = agg1_arr
-				meta['nu'] = agg0_arr
-				if x_ticktext is not None:
-					meta[:,1::2]['x']=x_ticktext
-				if y_ticktext is not None:
-					meta[1::2,:]['y']=numpy.asarray(y_ticktext)[:,None]
-
+				if with_hover:
+					meta = numpy.empty(agg0_arr.shape, dtype=wtype)
+					meta['ns'] = agg1_arr
+					meta['nu'] = agg0_arr
+					if x_ticktext is not None:
+						meta[:,1::2]['x']=x_ticktext
+					if y_ticktext is not None:
+						meta[1::2,:]['y']=numpy.asarray(y_ticktext)[:,None]
+				else:
+					meta = None
 				y_label, x_label = agg0.dims[0], agg0.dims[1]
 				# np.datetime64 is not handled correctly by go.Heatmap
 				for ax in [x_label, y_label]:
@@ -1642,7 +1675,7 @@ def new_hmm_figure(
 					)
 				else:
 					zmax = max(numpy.percentile(agg0_arr, 98), numpy.percentile(agg1_arr, 98))
-					agg0_arr = agg0_arr.astype(numpy.float64)
+					agg0_arr = agg0_arr.astype(numpy.float32)
 					agg0_arr[agg0_arr==0] = numpy.nan
 					fig.add_trace(
 						go.Heatmap(
@@ -1660,7 +1693,7 @@ def new_hmm_figure(
 						row=rownum, col=colnum,
 					)
 
-					agg1_arr = agg1_arr.astype(numpy.float64)
+					agg1_arr = agg1_arr.astype(numpy.float32)
 					agg1_arr[agg1_arr == 0] = numpy.nan
 					fig.add_trace(
 						go.Heatmap(
@@ -1821,8 +1854,8 @@ def new_hmm_figure(
 	metadata = dict(
 		rows=rows,
 		cols=cols,
-		selected_color=selected_color,
-		unselected_color=unselected_color,
+		selected_color=selected_color.rgb(),
+		unselected_color=unselected_color.rgb(),
 		emph_selected=emph_selected,
 		show_points=show_points,
 		# saved_bins=saved_bins,
