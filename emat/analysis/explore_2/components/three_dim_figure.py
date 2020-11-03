@@ -32,6 +32,9 @@ def three_dim_figure(
         selection=None,
         scope=None,
         hover_name=None,
+        mass=300,
+        maximum_marker_opacity=0.9,
+        minimum_marker_opacity=0.01,
 ):
     """
 
@@ -52,12 +55,18 @@ def three_dim_figure(
     selected_color = colors.DEFAULT_HIGHLIGHT_COLOR
 
     if scope is None:
-        from ...scope.scope import Scope
+        from ....scope.scope import Scope
         scope = Scope("")
 
     marker_color = pd.Series(data=unselected_color, index=data.index)
     if selection is not None:
         marker_color[selection] = selected_color
+
+    marker_opacity = np.clip(
+        mass/len(data),
+        minimum_marker_opacity,
+        maximum_marker_opacity,
+    )
 
     scene_bgcolor = 'rgb(255,255,255,0)'
     scene_gridcolor = '#E5ECF6'
@@ -76,7 +85,7 @@ def three_dim_figure(
             marker=dict(
                 size=8,
                 color=marker_color,
-                opacity=0.9
+                opacity=marker_opacity,
             ),
             hovertemplate=hovertemplate,
         ),
