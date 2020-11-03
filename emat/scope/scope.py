@@ -624,6 +624,33 @@ class Scope:
 
         return df
 
+    def formula_components(self):
+        """
+        The set of all measure names used as inputs to other measure formulas.
+
+        Returns:
+            set
+        """
+        from tokenize import tokenize
+        import token
+        math = {
+            "sin", "cos", "exp", "log", "expm1", "log1p", "sqrt", "sinh", "cosh",
+            "tanh", "arcsin", "arccos", "arctan", "arccosh", "arcsinh", "arctanh",
+            "abs", "arctan2", "log10",
+        }
+        names = set()
+        for measure in self.get_measures():
+            formula = getattr(measure, 'formula', None)
+            if formula:
+                import io
+                stream = io.BytesIO(formula)
+                stream.seek(0)
+                for tokentype, k, _, _, _ in tokenize(stream.readline):
+                    if tokentype == token.NAME:
+                        if k not in math:
+                            names.add(k)
+        return names
+
     def apply_formulas(self, df, overwrite=False):
         """
         Compute formulaic measures as needed.
@@ -640,10 +667,12 @@ class Scope:
         for measure in self.get_measures():
             formula = getattr(measure, 'formula', None)
             if formula:
-                dataseries = df.eval(formula).rename(measure.name)
                 if measure.name in df.columns and not overwrite:
-                    queue[measure.name] = df[measure.name].fillna(dataseries)
+                    if df[measure.name].isna().sum():
+                        dataseries = df.eval(formula).rename(measure.name)
+                        queue[measure.name] = df[measure.name].fillna(dataseries)
                 else:
+                    dataseries = df.eval(formula).rename(measure.name)
                     queue[measure.name] = dataseries
         if queue:
             df = df.assign(**queue)
