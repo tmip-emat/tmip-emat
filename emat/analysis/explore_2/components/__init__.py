@@ -10,6 +10,7 @@ from ....viz import colors, _pick_color
 from .... import styles
 from ....util.naming import multiindex_to_strings, reset_multiindex_to_strings
 from ....scope.box import Bounds
+from ....util.si import si_units, get_float
 
 import logging
 _logger = logging.getLogger('EMAT.explore')
@@ -42,6 +43,51 @@ def embolden(text, bold=True):
 			return text.replace("<b>","").replace("</b>","")
 
 
+def compute_earth_mover_distance(x, y):
+	"""
+	Compute the earth mover distance between two digitized continuous distributions.
+
+	Args:
+		x, y (array-like):
+			Two arrays of the same shape describing two distributions
+			on the same range.  All values should be non-negative.
+			If either array sums to zero, no result is computed.
+
+	Returns:
+		float or None
+	"""
+
+	x_cum = numpy.asanyarray(x, dtype=numpy.float).cumsum()
+	y_cum = numpy.asanyarray(y, dtype=numpy.float).cumsum()
+	if x_cum[-1] == 0 or y_cum[-1] == 0:
+		return None
+	try:
+		x_cum /= x_cum[-1]
+		y_cum /= y_cum[-1]
+	except TypeError:
+		return -1.0
+	return numpy.absolute(x_cum - y_cum)[:-1].mean()
+
+def compute_categorical_similarity(x,y):
+	"""
+	Compute the categorical similarity between two discrete distributions.
+
+	Args:
+		x, y (array-like): Two arrays of the same shape
+
+	Returns:
+		float
+	"""
+	x = numpy.asarray(x, dtype=numpy.float).copy()
+	y = numpy.asarray(y, dtype=numpy.float).copy()
+	try:
+		x /= x.sum()
+		y /= y.sum()
+	except TypeError:
+		return -1.0
+	return numpy.absolute(x - y).sum()
+
+
 def new_histogram_figure(
 		selection,
 		data_column,
@@ -57,6 +103,7 @@ def new_histogram_figure(
 		box=None,
 		ref_point=None,
 		ghost_fraction=0.2,
+		earth_movers_dist=False,
 ):
 	"""
 	Create a new histogram figure for use with the visualizer.
@@ -112,7 +159,9 @@ def new_histogram_figure(
 			ghost_mode = False
 	if ghost_mode:
 		ghost_x, ghost_y = pseudo_bar_data(bar_x, bar_heights_select * ghost_scale)
-
+	meta = dict()
+	if earth_movers_dist:
+		meta['emd'] = compute_earth_mover_distance(bar_heights_select, bar_heights)
 	fig = figure_class(
 		data=[
 			go.Bar(
@@ -157,6 +206,7 @@ def new_histogram_figure(
 			title_xanchor='center',
 			selectdirection='h',
 			dragmode='select',
+			meta=meta if len(meta) else None,
 			**styles.figure_dims,
 		),
 	)
@@ -206,6 +256,7 @@ def update_histogram_figure(
 		selected_color=None,
 		unselected_color=None,
 		ghost_fraction=0.2,
+		earth_movers_dist=False,
 ):
 	"""
 	Update an existing figure used in the visualizer.
@@ -226,6 +277,12 @@ def update_histogram_figure(
 	data_column_legit_data = ~data_column_missing_data
 	bar_heights, bar_x = numpy.histogram(data_column[data_column_legit_data], bins=bins)
 	bar_heights_select, bar_x = numpy.histogram(data_column[selection][data_column_legit_data], bins=bar_x)
+	if 'meta' in fig['layout']:
+		meta = fig['layout']['meta']
+	else:
+		meta = fig['layout']['meta'] = dict()
+	if earth_movers_dist or 'emd' in meta:
+		meta['emd'] = compute_earth_mover_distance(bar_heights_select, bar_heights)
 	fig['data'][0]['y'] = bar_heights_select
 	fig['data'][1]['y'] = bar_heights - bar_heights_select
 	if rerange_y:
@@ -349,6 +406,7 @@ def new_frequencies_figure(
 		box=None,
 		ref_point=None,
 		ghost_fraction=0.2,
+		categorical_similarity=False,
 ):
 	unselected_color = colors.Color(unselected_color, default=colors.DEFAULT_BASE_COLOR)
 	selected_color = colors.Color(selected_color, default=colors.DEFAULT_HIGHLIGHT_COLOR_RGB)
@@ -375,6 +433,11 @@ def new_frequencies_figure(
 	if ghost_mode:
 		ghost_x = labels
 		ghost_y = bar_heights_select * ghost_scale
+	meta = dict(
+		x_tick_values=original_labels,
+	)
+	if categorical_similarity:
+		meta['cat_sim'] = compute_categorical_similarity(bar_heights_select, bar_heights)
 	fig = figure_class(
 		data=[
 			go.Bar(
@@ -419,7 +482,7 @@ def new_frequencies_figure(
 			selectdirection='h',
 			dragmode='select',
 			**styles.figure_dims,
-			meta=dict(x_tick_values=original_labels),
+			meta=meta,
 		),
 	)
 	if on_select is not None:
@@ -457,6 +520,7 @@ def update_frequencies_figure(
 		selected_color=None,
 		unselected_color=None,
 		ghost_fraction=0.2,
+		categorical_similarity=False,
 ):
 	unselected_color = colors.Color(unselected_color)
 	selected_color = colors.Color(selected_color)
@@ -481,6 +545,12 @@ def update_frequencies_figure(
 		fig['data'][1]['marker']['color'] = unselected_color.rgb()
 	if selected_color is not None:
 		fig['data'][0]['marker']['color'] = selected_color.rgb()
+	if 'meta' in fig['layout']:
+		meta = fig['layout']['meta']
+	else:
+		meta = fig['layout']['meta'] = dict()
+	if categorical_similarity or 'cat_sim' in meta:
+		meta['cat_sim'] = compute_categorical_similarity(bar_heights_select, bar_heights)
 	ghost_mode = (numpy.sum(bar_heights_select) / numpy.sum(bar_heights) < ghost_fraction)
 	if ghost_mode:
 		max_height = numpy.max(bar_heights)
@@ -2162,7 +2232,8 @@ def _to_thing(s, thing=float):
 	except ValueError:
 		return None
 
-def convert_rangestring_to_tuple(rs, thing=float):
+
+def convert_rangestring_to_tuple(rs, thing=get_float):
 	if rs == 'any value':
 		return (None, None)
 	dn, up = None, None
@@ -2181,21 +2252,12 @@ def convert_bounds_to_rangestring(b):
 		if b.upperbound is None:
 			return ""
 		else:
-			if isinstance(b.upperbound, int):
-				return f"up to {b.upperbound}"
-			else:
-				return f"up to {b.upperbound:0.4g}"
+			return "up to " + si_units(b.upperbound)
 	else: # b.lowerbound is not None
 		if b.upperbound is None:
-			if isinstance(b.lowerbound, int):
-				return f"{b.lowerbound} and up"
-			else:
-				return f"{b.lowerbound:0.4g} and up"
+			return si_units(b.lowerbound) + " and up"
 		else:
-			if isinstance(b.lowerbound, int):
-				return f"{b.lowerbound} to {b.upperbound}"
-			else:
-				return f"{b.lowerbound:0.4g} to {b.upperbound:0.4g}"
+			return si_units(b.lowerbound) + " to " + si_units(b.upperbound)
 
 def convert_set_to_rangestring(s):
 	included = []
