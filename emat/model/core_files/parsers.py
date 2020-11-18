@@ -206,9 +206,12 @@ class SingleGetter(Getter):
 	def __init__(self, *item):
 		self._item = item
 	def __repr__(self):
-		return f"{self.__class__.__name__[1:].lower()}[{tuple_repr_with_slice(self._item)}]"
+		clsname = self.__class__.__name__[1:].replace('Neg','-').lower()
+		return f"{clsname}[{tuple_repr_with_slice(self._item)}]"
 	def __add__(self, other):
 		return SumOfGetter(self, other)
+	def __sub__(self, other):
+		return SumOfGetter(self, -other)
 
 class SumOfGetter(Getter):
 	def __init__(self, *parts):
@@ -216,14 +219,24 @@ class SumOfGetter(Getter):
 	def __call__(self, x):
 		return sum(p(x) for p in self._parts)
 	def __repr__(self):
-		return "+".join(repr(x) for x in self._parts)
+		return (" + ".join(repr(x) for x in self._parts)).replace(" + -", " - ")
 	def __add__(self, other):
 		return SumOfGetter(*self._parts, other)
+	def __sub__(self, other):
+		return SumOfGetter(*self._parts, -other)
 
 
 class _Loc(SingleGetter):
 	def __call__(self, x):
 		return float(x.loc[self._item])
+	def __neg__(self):
+		return _NegLoc(*self._item)
+
+class _NegLoc(SingleGetter):
+	def __call__(self, x):
+		return -float(x.loc[self._item])
+	def __neg__(self):
+		return _Loc(*self._item)
 
 class _Loc_Sum(SingleGetter):
 	def __call__(self, x):

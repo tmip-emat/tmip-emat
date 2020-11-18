@@ -65,6 +65,14 @@ class Scope:
 
         self.scope_file = scope_file
 
+        if scope_file is None and scope_def is None:
+            scope_def = """
+            scope:
+              name: Empty-Scope
+            inputs:
+            outputs:
+            """
+
         self._m_list = []
         """list of Measure: A list of performance measures that are output by the model."""
 
@@ -92,53 +100,56 @@ class Scope:
         self.xl_di = scope['inputs']
         self.m_di = scope['outputs']
 
-        if not isinstance(self.xl_di, dict):
-            raise ScopeFormatError(
-                'inputs must be a dictionary with (name: attributes) key:value pairs'
-            )
 
-        if not isinstance(self.m_di, dict):
-            raise ScopeFormatError(
-                'outputs must be a dictionary with (name: attributes) key:value pairs'
-            )
+        if self.m_di is not None:
+            if not isinstance(self.m_di, dict):
+                raise ScopeFormatError(
+                    'outputs must be a dictionary with (name: attributes) key:value pairs'
+                )
 
-        for m_name, m_attr in self.m_di.items():
-            if isinstance(m_attr, dict):
-                self._m_list.append(Measure(m_name, **m_attr))
-            else:
-                warnings.warn(f'for {m_name} cannot process list {m_attr}')
-                self._m_list.append(Measure(m_name))
+            for m_name, m_attr in self.m_di.items():
+                if isinstance(m_attr, dict):
+                    self._m_list.append(Measure(m_name, **m_attr))
+                else:
+                    warnings.warn(f'for {m_name} cannot process list {m_attr}')
+                    self._m_list.append(Measure(m_name))
 
         if 'random_seed' in scope:
             self.random_seed = scope['random_seed']
 
-        for x_name, x_attr in self.xl_di.items():
-            if not isinstance(x_attr, dict):
-                warnings.warn(f'for {x_name} cannot process list {x_attr}')
-            else:
-                x_attr_type = x_attr.get('ptype', 'missing')
-                if x_attr_type == 'missing':
-                    raise ScopeFormatError(f'inputs:{x_name} is missing ptype, must be uncertainty, lever, or constant')
-                if not isinstance(x_attr_type, str):
-                    raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr_type}, it must be uncertainty, lever, or constant')
-                try:
-                    x_attr_type = standardize_parameter_type(x_attr_type)
-                except ValueError:
-                    raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr.get("ptype")}, it must be uncertainty, lever, or constant')
+        if self.xl_di is not None:
+            if  not isinstance(self.xl_di, dict):
+                raise ScopeFormatError(
+                    'inputs must be a dictionary with (name: attributes) key:value pairs'
+                )
 
-                try:
-                    p = make_parameter(x_name, **x_attr)
-                except Exception as err:
-                    raise ScopeFormatError(f"in making parameter '{x_name}': {str(err)}")
+            for x_name, x_attr in self.xl_di.items():
+                if not isinstance(x_attr, dict):
+                    warnings.warn(f'for {x_name} cannot process list {x_attr}')
                 else:
-                    if x_attr_type == 'uncertainty':
-                        self._x_list.append(p)
-                    elif x_attr_type == 'lever':
-                        self._l_list.append(p)
-                    elif x_attr_type == 'constant':
-                        self._c_list.append(p)
+                    x_attr_type = x_attr.get('ptype', 'missing')
+                    if x_attr_type == 'missing':
+                        raise ScopeFormatError(f'inputs:{x_name} is missing ptype, must be uncertainty, lever, or constant')
+                    if not isinstance(x_attr_type, str):
+                        raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr_type}, it must be uncertainty, lever, or constant')
+                    try:
+                        x_attr_type = standardize_parameter_type(x_attr_type)
+                    except ValueError:
+                        raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr.get("ptype")}, it must be uncertainty, lever, or constant')
+
+                    try:
+                        p = make_parameter(x_name, **x_attr)
+                    except Exception as err:
+                        raise ScopeFormatError(f"in making parameter '{x_name}': {str(err)}")
                     else:
-                        raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr.get("ptype")}')
+                        if x_attr_type == 'uncertainty':
+                            self._x_list.append(p)
+                        elif x_attr_type == 'lever':
+                            self._l_list.append(p)
+                        elif x_attr_type == 'constant':
+                            self._c_list.append(p)
+                        else:
+                            raise ScopeFormatError(f'inputs:{x_name} has invalid ptype {x_attr.get("ptype")}')
 
 
     def __eq__(self, other):
@@ -244,6 +255,8 @@ class Scope:
             content.append(f"{len(self._l_list)} levers")
         if len(self._m_list):
             content.append(f"{len(self._m_list)} measures")
+        if not content:
+            content.append("no content")
         return f"<emat.Scope with " + ", ".join(content) + ">"
 
 
@@ -348,6 +361,7 @@ class Scope:
             'metamodeltype': lambda x: 'linear' if x is None else x,
             'tags': lambda x: list(x) if x else None,
             'formula': lambda x: x if x else None,
+            'parser': lambda x: x,
         }
         if strip_measure_transforms:
             measure_keys.pop('transform', None)

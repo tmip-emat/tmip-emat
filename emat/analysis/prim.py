@@ -105,7 +105,7 @@ class Prim(prim.Prim, ScenarioDiscoveryMixin):
 		primbox.select(primbox._cur_box)
 		return primbox
 
-	def tradeoff_selector(self, n=-1, colorscale='viridis'):
+	def tradeoff_selector(self, n=-1, colorscale='viridis', figure_class=None):
 		"""
 		Visualize the trade off between coverage and density.
 
@@ -150,13 +150,25 @@ class Prim(prim.Prim, ScenarioDiscoveryMixin):
 				box = self.find_box()
 			else:
 				raise
-		return box.tradeoff_selector(colorscale=colorscale)
+		return box.tradeoff_selector(colorscale=colorscale, figure_class=figure_class)
+
+	def to_json(self, n=-1):
+		try:
+			box = self._boxes[n]
+		except IndexError:
+			if n == -1:
+				box = self.find_box()
+			else:
+				raise
+		return box.to_json()
 
 	def __init__(self, x, y, threshold=0.05, *args, scope=None, explorer=None, **kwargs):
 		super().__init__(x, y, threshold, *args, **kwargs)
 		self._target_name = getattr(y, 'name', None)
 		if explorer is not None:
 			self._explorer = explorer
+		elif explorer is False:
+			self._explorer = None
 		else:
 			self._explorer = None
 			if hasattr(x, 'scope') and scope is None:
@@ -241,7 +253,14 @@ class PrimBox(prim.PrimBox):
 			head += "\n     "+str(box_lim).replace("\n", "\n     ")
 		return head
 
-	def _make_tradeoff_selector(self, colorscale='cividis'):
+	def to_json(self):
+		state = {}
+		for i in range(len(self.peeling_trajectory)):
+			state[i] = self.to_emat_box(i, name=str(i)).to_json()
+		import json
+		return json.dumps(state)
+
+	def _make_tradeoff_selector(self, colorscale='cividis', figure_class=None):
 		'''
 		Visualize the trade off between coverage and density. Color
 		is used to denote the number of restricted dimensions.
@@ -261,7 +280,9 @@ class PrimBox(prim.PrimBox):
 
 		hovertext = pandas.Series('', index=peeling_trajectory.index)
 
-		fig = go.FigureWidget()
+		if figure_class is None:
+			figure_class = go.FigureWidget
+		fig = figure_class()
 
 		for i in range(len(peeling_trajectory)):
 			t = str(self.to_emat_box(i, name=str(i))).replace("\n","<br>")
@@ -317,7 +338,7 @@ class PrimBox(prim.PrimBox):
 
 		return fig
 
-	def tradeoff_selector(self, colorscale='viridis'):
+	def tradeoff_selector(self, colorscale='viridis', figure_class=None):
 		'''
 		Visualize the trade off between coverage and density.
 
@@ -352,7 +373,10 @@ class PrimBox(prim.PrimBox):
 		FigureWidget
 		'''
 		if getattr(self, '_tradeoff_widget', None) is None:
-			self._tradeoff_widget = self._make_tradeoff_selector(colorscale=colorscale)
+			self._tradeoff_widget = self._make_tradeoff_selector(
+				colorscale=colorscale,
+				figure_class=figure_class,
+			)
 		return self._tradeoff_widget
 
 	def select(self, i):

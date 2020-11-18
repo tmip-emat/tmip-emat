@@ -30,6 +30,10 @@ def si_units(x, kind='', f="{:.3g}{}{}"):
 	while np.absolute(x) < 1 and tier >= 0:
 		x *= shift
 		tier -= 1
+	# Convert modest fractions back to simple decimals
+	if tiers[tier] == 'm' and x > 10:
+		x /= shift
+		tier += 1
 	return f.format(x,tiers[tier],kind)
 
 _si_float = re.compile("^\s*([0-9]+\.?[0-9]*)\s?([yzafpnµmKMGTPEZY])\s*$")

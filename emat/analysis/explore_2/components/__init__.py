@@ -279,6 +279,8 @@ def update_histogram_figure(
 	bar_heights_select, bar_x = numpy.histogram(data_column[selection][data_column_legit_data], bins=bar_x)
 	if 'meta' in fig['layout']:
 		meta = fig['layout']['meta']
+		if meta is None:
+			meta = fig['layout']['meta'] = dict()
 	else:
 		meta = fig['layout']['meta'] = dict()
 	if earth_movers_dist or 'emd' in meta:
@@ -547,6 +549,8 @@ def update_frequencies_figure(
 		fig['data'][0]['marker']['color'] = selected_color.rgb()
 	if 'meta' in fig['layout']:
 		meta = fig['layout']['meta']
+		if meta is None:
+			meta = fig['layout']['meta'] = dict()
 	else:
 		meta = fig['layout']['meta'] = dict()
 	if categorical_similarity or 'cat_sim' in meta:

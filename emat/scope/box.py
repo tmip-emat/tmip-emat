@@ -807,8 +807,8 @@ class Box(GenericBox):
 				temp[k] = {'lowerbound':v.lowerbound, 'upperbound':v.upperbound}
 			else:
 				temp[k] = list(v)
-		import json
-		return json.dumps(temp)
+		from ..util.json_encoder import dumps
+		return dumps(temp)
 
 	@classmethod
 	def from_json(cls, j):

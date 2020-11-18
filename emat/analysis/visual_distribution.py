@@ -111,9 +111,18 @@ def display_experiments(
 
 		figures = {}
 		for row in rows:
-			if not return_figures:
-				display_html(f'<h4 title="{scope.get_description(row)}">{scope.shortname(row)}</h4>', raw=True)
-			fig = scatter_graphs(row, experiment_results, scope=scope, render=render, use_gl=use_gl, mass=mass, contrast=columns)
+			try:
+				fig = scatter_graphs(
+					row,
+					experiment_results,
+					scope=scope,
+					render=render,
+					use_gl=use_gl,
+					mass=mass,
+					contrast=columns,
+				)
+			except KeyError:
+				continue
 			try:
 				fig.update_layout(height=250)
 			except KeyboardInterrupt:
@@ -123,6 +132,7 @@ def display_experiments(
 			if return_figures:
 				figures[row] = fig
 			else:
+				display_html(f'<h4 title="{scope.get_description(row)}">{scope.shortname(row)}</h4>', raw=True)
 				display(fig)
 
 		if return_figures:

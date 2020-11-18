@@ -52,8 +52,11 @@ class TestScopeMethods(unittest.TestCase):
         scp = Scope(self.scope_file)
         scp.store_scope(self.db_test)
         
-
-
+    def test_null_scope(self):
+        scp = Scope(None)
+        assert repr(scp) == "<emat.Scope with no content>"
+        assert len(scp.get_measures()) == 0
+        assert len(scp.get_parameters()) == 0
 
     def test_box(self):
         scope = Scope(package_file('model','tests','road_test.yaml'))

@@ -98,6 +98,7 @@ class Measure(ScalarOutcome, ShortnameMixin, TaggableMixin):
             desc=None,
             formula=None,
             tags=None,
+            parser=None,
     ):
 
         if isinstance(kind, str):
@@ -139,6 +140,9 @@ class Measure(ScalarOutcome, ShortnameMixin, TaggableMixin):
 
         self.formula = formula
         """str: An eval-able expression to compute this performance measure from other measures"""
+
+        self.parser = parser
+        """dict: Instructions for how to parse this performance measure from raw output files"""
 
         if tags:
             if isinstance(tags, str):
