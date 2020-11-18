@@ -18,7 +18,7 @@ import re
 from . import sql_queries as sq
 from ..database import Database
 from ...util.deduplicate import reindex_duplicates
-from ...exceptions import DatabaseVersionWarning, DatabaseVersionError
+from ...exceptions import DatabaseVersionWarning, DatabaseVersionError, DatabaseError
 
 from ...util.loggers import get_module_logger
 _logger = get_module_logger(__name__)
@@ -179,7 +179,7 @@ class SQLiteDB(Database):
         try:
             conn = sqlite3.connect(self.database_path, check_same_thread=check_same_thread)
         except sqlite3.OperationalError as err:
-            raise sqlite3.OperationalError(f'error on connecting to {self.database_path}') from err
+            raise DatabaseError(f'error on connecting to {self.database_path}') from err
         for filename in filenames:
             self.__apply_sql_script(conn, filename)
         return conn
@@ -524,6 +524,8 @@ class SQLiteDB(Database):
                              [scope_name, metamodel_id, metamodel_name, blob])
             except sqlite3.IntegrityError:
                 raise KeyError(f'metamodel_id {metamodel_id} for scope "{scope_name}" already exists')
+            except sqlite3.OperationalError as err:
+                raise DatabaseError from err
 
         return metamodel_id
 
@@ -580,7 +582,11 @@ class SQLiteDB(Database):
             scope_name = self._validate_scope(scope_name, None)
             cur = self.conn.cursor()
             metamodel_id = [i[0] for i in cur.execute(sq.GET_NEW_METAMODEL_ID,).fetchall()][0]
-            self.write_metamodel(scope_name, None, metamodel_id)
+            try:
+                self.write_metamodel(scope_name, None, metamodel_id)
+            except (sqlite3.OperationalError, DatabaseError):
+                # for read only database, generate a random large integer
+                metamodel_id = np.random.randint(1<<32, 1<<63, dtype='int64')
             return metamodel_id
 
 
@@ -648,7 +654,10 @@ class SQLiteDB(Database):
                 raise UserWarning('named scope {0} not found - experiments will \
                                       not be recorded'.format(scope_name))
 
-            fcur.execute(sq.INSERT_DESIGN, [scope_name, design_name])
+            try:
+                fcur.execute(sq.INSERT_DESIGN, [scope_name, design_name])
+            except sqlite3.OperationalError as err:
+                raise DatabaseError from err
 
             ### split experiments into novel and duplicate ###
             # first join to existing experiments

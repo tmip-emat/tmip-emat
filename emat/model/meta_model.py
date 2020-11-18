@@ -126,8 +126,8 @@ def create_metamodel(
     if metamodel_id is None:
         if db is not None:
             metamodel_id = db.get_new_metamodel_id(scope.name)
-        else:
-            metamodel_id = numpy.random.randint(1, 2 ** 63, dtype='int64')
+    if metamodel_id is None:
+        metamodel_id = numpy.random.randint(1<<32, 1<<63, dtype='int64')
 
     if find_best_metamodeltype:
         output_transforms, metamodeltype_tabulation = select_best_metamodeltype(
@@ -184,8 +184,11 @@ def create_metamodel(
     )
 
     if db is not None:
+        from ..exceptions import DatabaseError
         try:
             db.write_metamodel(result)
+        except DatabaseError:
+            pass # read only database, don't store
         except Exception as err:
             _logger.exception("exception in storing metamodel in database")
 

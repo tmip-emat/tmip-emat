@@ -239,7 +239,6 @@ class FilesCoreModel(AbstractCoreModel):
 
 	def enter_run_model(self):
 		"""A hook for actions at the very beginning of the run_model step."""
-		print("enter_run_model")
 
 	def exit_run_model(self):
 		"""A hook for actions at the very end of the run_model step."""

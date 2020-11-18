@@ -43,6 +43,10 @@ class DatabaseVersionError(Exception):
 	"""The database requires a more recent version of emat."""
 
 
+class DatabaseError(Exception):
+	"""A generic database error."""
+
+
 class MissingMeasuresWarning(Warning):
 	"""Some experiments have performance measures that are missing."""
 

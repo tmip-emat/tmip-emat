@@ -7,6 +7,7 @@ import pandas as pd
 
 from ..scope.scope import Scope
 from ..database.database import Database
+from ..exceptions import DatabaseError
 
 from ..util.loggers import get_module_logger
 _logger = get_module_logger(__name__)
@@ -260,9 +261,13 @@ def design_experiments(
     design = design.drop_duplicates()
 
     if db is not None and sample_from is 'all':
-        experiment_ids = db.write_experiment_parameters(scope.name, design_name, design)
-        design.index = experiment_ids
-        design.index.name = 'experiment'
+        try:
+            experiment_ids = db.write_experiment_parameters(scope.name, design_name, design)
+        except DatabaseError:
+            pass
+        else:
+            design.index = experiment_ids
+            design.index.name = 'experiment'
 
     design = ExperimentalDesign(design)
     design.design_name = design_name
