@@ -20,9 +20,8 @@ source code is recommended.
 
 .. note::
 
-	Python has two versions (2 and 3) that are available and currently maintained,
-	but only through the end of 2019.  From 2020 on,
-	`only Python 3 will be supported <https://python3statement.org>`_.
+	Python has two versions (2 and 3) but .
+	`only version 3 is currently maintained for most tools <https://python3statement.org>`_.
 	TMIP-EMAT is compatible *only* with version 3.6 or later.
 
 **Core Model Configuration**
