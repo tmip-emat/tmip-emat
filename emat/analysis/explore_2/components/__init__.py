@@ -2128,7 +2128,7 @@ def new_parcoords_figure(
 			tickvals[col] = [col_range[0]] + list(x_tickvals) + [col_range[1]]
 			ticktext[col] = [""] + [str(i) for i in x_ticktext] + [""]
 
-	from ...workbench.em_framework.outcomes import ScalarOutcome
+	from ....workbench.em_framework.outcomes import ScalarOutcome
 
 	# flip all MINIMIZE outcomes (or unflip them if previously marked as flip)
 	if robustness_functions is not None:
