@@ -148,34 +148,34 @@ outputs:
     Kensington_IB AM VHT:
         metamodeltype: log
         kind: minimize
-    190 Daily VMT:
+    Corridor 190 Daily VMT:
         metamodeltype: log
         kind: minimize
-    190 Daily VHT:
+    Corridor 190 Daily VHT:
         metamodeltype: log
         kind: minimize
-    190_OB Daily VMT:
+    Corridor 190_OB Daily VMT:
         metamodeltype: log
         kind: minimize
-    190_OB Daily VHT:
+    Corridor 190_OB Daily VHT:
         metamodeltype: log
         kind: minimize
-    190_IB Daily VMT:
+    Corridor 190_IB Daily VMT:
         metamodeltype: log
         kind: minimize
-    190_IB Daily VHT:
+    Corridor 190_IB Daily VHT:
         metamodeltype: log
         kind: minimize
-    33_west Daily VMT:
+    Corridor 33_west Daily VMT:
         metamodeltype: log
         kind: minimize
-    33_west Daily VHT:
+    Corridor 33_west Daily VHT:
         metamodeltype: log
         kind: minimize
-    I90_south Daily VMT:
+    Corridor I90_south Daily VMT:
         metamodeltype: log
         kind: minimize
-    I90_south Daily VHT:
+    Corridor I90_south Daily VHT:
         metamodeltype: log
         kind: minimize
 
