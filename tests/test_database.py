@@ -459,6 +459,7 @@ def test_database_merging():
 
     assert emat_db.read_experiment_measure_sources(None, 'lhs_2') == [1]
 
+    m.allow_short_circuit = False
     design2_results0 = m.run_experiments(design2.iloc[:5])
 
     assert len(design2_results0) == 5

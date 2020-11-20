@@ -18,7 +18,7 @@ import re
 from . import sql_queries as sq
 from ..database import Database
 from ...util.deduplicate import reindex_duplicates
-from ...exceptions import DatabaseVersionWarning, DatabaseVersionError, DatabaseError
+from ...exceptions import DatabaseVersionWarning, DatabaseVersionError, DatabaseError, ReadOnlyDatabaseError
 
 from ...util.loggers import get_module_logger
 _logger = get_module_logger(__name__)
@@ -73,6 +73,7 @@ class SQLiteDB(Database):
             check_same_thread=True,
             update=True,
     ):
+        super().__init__(readonly=readonly)
 
         if database_path[-3:] == '.gz':
             import tempfile, os, shutil, gzip
@@ -85,7 +86,6 @@ class SQLiteDB(Database):
             database_path = tempfilename
 
         self.database_path = database_path
-        self.readonly = readonly
 
         if self.database_path == ":memory:":
             initialize = True
@@ -382,7 +382,8 @@ class SQLiteDB(Database):
 
     @copydoc(Database.write_scope)
     def write_scope(self, scope_name, sheet, scp_xl, scp_m, content=None):
-
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         with self.conn:
             cur = self.conn.cursor()
 
@@ -411,6 +412,8 @@ class SQLiteDB(Database):
 
     @copydoc(Database.update_scope)
     def update_scope(self, scope):
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         from ...scope.scope import Scope
         assert isinstance(scope, Scope)
         scope_name = scope.name
@@ -452,6 +455,8 @@ class SQLiteDB(Database):
 
     @copydoc(Database.store_scope)
     def store_scope(self, scope):
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         return scope.store_scope(self)
 
     @copydoc(Database.read_scope)
@@ -488,7 +493,8 @@ class SQLiteDB(Database):
 
     @copydoc(Database.write_metamodel)
     def write_metamodel(self, scope_name, metamodel=None, metamodel_id=None, metamodel_name=''):
-
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         with self.conn:
             if metamodel is None and hasattr(scope_name, 'scope'):
                 # The metamodel was the one and only argument,
@@ -584,7 +590,7 @@ class SQLiteDB(Database):
             metamodel_id = [i[0] for i in cur.execute(sq.GET_NEW_METAMODEL_ID,).fetchall()][0]
             try:
                 self.write_metamodel(scope_name, None, metamodel_id)
-            except (sqlite3.OperationalError, DatabaseError):
+            except (sqlite3.OperationalError, DatabaseError, ReadOnlyDatabaseError):
                 # for read only database, generate a random large integer
                 metamodel_id = np.random.randint(1<<32, 1<<63, dtype='int64')
             return metamodel_id
@@ -597,6 +603,8 @@ class SQLiteDB(Database):
 
     @copydoc(Database.delete_scope) 
     def delete_scope(self, scope_name):
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         with self.conn:
             cur = self.conn.cursor()
             cur.execute(sq.DELETE_SCOPE, [scope_name])
@@ -640,6 +648,8 @@ class SQLiteDB(Database):
             TypeError: If not all scope variables are defined in the
                 exp_def
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         if design_name is None:
             design_name = 'ad hoc'
 
@@ -771,7 +781,14 @@ class SQLiteDB(Database):
             ex_id = self.write_experiment_parameters(scope_name, None, df)[0]
         return ex_id
 
-    def new_run_id(self, scope_name=None, parameters=None, location=None, experiment_id=None, source=0):
+    def new_run_id(
+            self,
+            scope_name=None,
+            parameters=None,
+            location=None,
+            experiment_id=None,
+            source=0,
+    ):
         """
         Create a new run_id in the database.
 
@@ -798,6 +815,8 @@ class SQLiteDB(Database):
             ValueError: If multiple experiments match an experiment definition.
                 This can happen, for example, if the definition is incomplete.
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         scope_name = self._validate_scope(scope_name, 'design_name')
         if experiment_id is None:
             if parameters is None:
@@ -1094,6 +1113,8 @@ class SQLiteDB(Database):
         Raises:
             UserWarning: If scope name does not exist
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         if experiment_id is not None:
             if not isinstance(m_df, dict):
                 raise ValueError("only give an experiment_id with a dict as `m_df`")
@@ -1135,7 +1156,6 @@ class SQLiteDB(Database):
                 if measure_name not in m_df.columns:
                     if scope is None:
                         scope = self.read_scope(scope_name)
-                        print("scope=",scope)
                     formula = getattr(scope[measure_name], 'formula', None)
                     if formula:
                         dataseries = m_df.eval(formula).rename(m.name)
@@ -1145,6 +1165,7 @@ class SQLiteDB(Database):
 
                 if dataseries is not None:
                     for (ex_id, value), uid in zip(dataseries.iteritems(),run_ids):
+                        _logger.debug(f"write_experiment_measures: writing {measure_name} = {value} @ {ex_id}/{uid}")
                         if isinstance(uid, uuid.UUID):
                             uid = uid.bytes
                         # index is experiment id
@@ -1160,8 +1181,12 @@ class SQLiteDB(Database):
                                 cur.execute(sq.INSERT_EX_M, bindings)
                         except:
                             _logger.error(f"Error saving {value} to m {m[0]} for ex {ex_id}")
+                            for binding, bval in bindings.items():
+                                _logger.error(f"bindings[{binding}]={bval} ({type(bval)})")
                             _logger.error(str(cur.execute(sq._DEBUG_INSERT_EX_M, bindings).fetchall()))
                             raise
+                else:
+                    _logger.debug(f"write_experiment_measures: no dataseries for {measure_name}")
 
     def write_ex_m_1(
             self,
@@ -1193,6 +1218,8 @@ class SQLiteDB(Database):
         Raises:
             UserWarning: If scope name does not exist
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         with self.conn:
             scope_name = self._validate_scope(scope_name, None)
             cur = self.conn.cursor()
@@ -1402,11 +1429,12 @@ class SQLiteDB(Database):
                 results from multiple sources, an error is raised.
             design (str): Deprecated, use `design_name`.
             runs ({None, 'all', 'valid', 'invalid'}, default None):
-                By default, this method returns results from only
-                the most recent valid model run.  Set this to 'valid'
-                or 'invalid' to get all valid or invalid model runs
-                (not just the most recent). Set to 'all' to get everything,
-                including both valid and invalidated results.
+                By default, this method fails if there is more than
+                one valid model run matching the given `design_name`
+                and `source` (if any) for any experiment.  Set this to
+                'valid' or 'invalid' to get all valid or invalid model
+                runs (instead of raising an exception). Set to 'all' to get
+                everything, including both valid and invalidated results.
             formulas (bool, default True): If the scope includes
                 formulaic measures (computed directly from other
                 measures) then compute these values and include them in
@@ -1417,8 +1445,9 @@ class SQLiteDB(Database):
 
         Raises:
             ValueError
-                When no source is given but the database contains
-                results from multiple sources.
+                When the database contains multiple sets of results
+                matching the given `design_name` and/or `source`
+                (if any) for any experiment.
         """
 
         assert runs in (None, 'all', 'valid', 'invalid', 'ignore_validity')
@@ -1601,6 +1630,8 @@ class SQLiteDB(Database):
                 are deleted.
             design (str): Deprecated, use `design_name`.
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         with self.conn:
             if design is not None:
                 if design_name is None:
@@ -1632,6 +1663,8 @@ class SQLiteDB(Database):
                 experiments must be individually identified.
 
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         if isinstance(run_ids, uuid.UUID):
             run_ids = [run_ids]
         elif isinstance(run_ids, bytes):
@@ -1673,6 +1706,8 @@ class SQLiteDB(Database):
                 experiments must be individually identified.
 
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         if isinstance(run_ids, uuid.UUID):
             run_ids = [run_ids]
         elif isinstance(run_ids, bytes):
@@ -1749,6 +1784,8 @@ class SQLiteDB(Database):
             TypeError: If not all scope variables are defined in the
                 experiment
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
 
         with self.conn:
             scope_name = self._validate_scope(scope_name, 'design_name')
@@ -1986,6 +2023,8 @@ class SQLiteDB(Database):
         Args:
             other (emat.SQLiteDB): Source of log to merge.
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         if not hasattr(other, 'conn'):
             return
         with self.conn:
@@ -2084,6 +2123,8 @@ class SQLiteDB(Database):
         Args:
             run_id (str): The run to mark as invalid.
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         with self.conn:
             cursor = self.conn.cursor()
             cursor.execute('''
@@ -2163,6 +2204,8 @@ class SQLiteDB(Database):
                 that have been changed are reported.
 
         """
+        if self.readonly:
+            raise ReadOnlyDatabaseError
         assert isinstance(other, Database)
         from ...util.deduplicate import count_diff_rows, report_diff_rows
         other_db_path = getattr(other, 'database_path', None)

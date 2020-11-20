@@ -7,7 +7,7 @@ import pandas as pd
 
 from ..scope.scope import Scope
 from ..database.database import Database
-from ..exceptions import DatabaseError
+from ..exceptions import DatabaseError, ReadOnlyDatabaseError
 
 from ..util.loggers import get_module_logger
 _logger = get_module_logger(__name__)

@@ -37,7 +37,7 @@ class TestCoreFilesMethods(unittest.TestCase):
         assert repr(k) == 'iloc_sum[2,:]'
 
         j = h + k
-        assert repr(j) == 'iloc[3,3]+iloc_sum[2,:]'
+        assert repr(j) == 'iloc[3,3] + iloc_sum[2,:]'
 
         assert a(zz) == 17
         assert h(zz) == 33

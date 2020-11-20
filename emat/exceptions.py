@@ -39,12 +39,16 @@ class DatabaseVersionWarning(Warning):
 	"""The database requires a more recent version of emat."""
 
 
-class DatabaseVersionError(Exception):
+class DatabaseError(Exception):
+	"""A generic database error."""
+
+
+class DatabaseVersionError(DatabaseError):
 	"""The database requires a more recent version of emat."""
 
 
-class DatabaseError(Exception):
-	"""A generic database error."""
+class ReadOnlyDatabaseError(DatabaseError):
+	"""Writing to a readonly database is prohibited."""
 
 
 class MissingMeasuresWarning(Warning):
@@ -55,5 +59,5 @@ class MissingMeasuresError(ValueError):
 	"""Some experiments have performance measures that are missing."""
 
 
-class DesignExistsError(ValueError):
+class DesignExistsError(DatabaseError):
 	"""Attempting to create a design that already exists."""

@@ -84,12 +84,19 @@ class AsyncExperimentalDesign:
 	def status(self):
 		return self._status.copy()
 
-	def progress(self):
+	def progress(self, raw=False):
 		n_done = (self._status == 'done').sum()
 		n_queued = (self._status == 'queued').sum()
 		n_pending = (self._status == 'pending').sum()
 		n_total = len(self._status)
 		n_failed = n_total - n_done - n_queued - n_pending
+		if raw:
+			summary = {}
+			if n_done: summary['done'] = n_done
+			if n_queued: summary['queued'] = n_queued
+			if n_pending: summary['pending'] = n_pending
+			if n_failed: summary['failed'] = n_failed
+			return summary
 		message_part = []
 		if n_done:
 			message_part.append(f"{n_done} done")

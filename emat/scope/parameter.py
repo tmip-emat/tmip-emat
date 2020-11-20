@@ -585,6 +585,21 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
         result = rv_frozen_as_dict(self.dist, self.min, self.max)
         return result
 
+    @property
+    def dist_description(self):
+        result = self.dist_def
+        if isinstance(result, str):
+            result = {'name':result}
+        if result.get('name') == 'pert':
+            if 'gamma' in result:
+                return f"Pert Distribution (min={self.min}, peak={result.get('peak')}, max={self.max}, gamma={result.get('gamma')})"
+            return f"Pert Distribution (min={self.min}, peak={result.get('peak')}, max={self.max})"
+        if result.get('name') == 'uniform':
+            return f"Uniform Distribution (min={self.min}, max={self.max})"
+        if result.get('name') == 'triangle':
+            return f"Trianglar Distribution (min={self.min}, peak={result.get('peak')}, max={self.max})"
+        return str(result)
+
     def __repr__(self):
         return f"<emat.{self.__class__.__name__} '{self.name}'>"
 
@@ -804,6 +819,9 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
         """None: Categorical parameters distribution is not implemented."""
         return None
 
+    @property
+    def dist_description(self):
+        return "Uniform Distribution"
 
 #############
 

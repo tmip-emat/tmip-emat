@@ -6,6 +6,8 @@ import yaml
 import pandas as pd
 import numpy as np
 import logging
+import subprocess
+import warnings
 from typing import Union, Mapping
 from ..workbench.em_framework.model import AbstractModel as AbstractWorkbenchModel
 from ..workbench.em_framework.evaluators import BaseEvaluator
@@ -18,6 +20,7 @@ from ..scope.scope import Scope
 from ..optimization.optimization_result import OptimizationResult
 from ..optimization import EpsilonProgress, ConvergenceMetrics, SolutionCount
 from ..util.evaluators import prepare_evaluator
+from ..exceptions import MissingArchivePathError, ReadOnlyDatabaseError
 
 from .._pkg_constants import *
 
@@ -33,35 +36,39 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
     this class directly.
 
     Args:
-        configuration: The configuration for this
-            core model. This can be passed as a dict, or as a str
-            which gives the filename of a YAML file that will be
-            loaded. If there is no configuration, giving None is
-            also acceptable.
-        scope (Scope or str): The exploration scope, as a Scope object or as
-            a str which gives the filename of a YAML file that will be
+        configuration (str or Mapping or None):
+            The configuration for this core model. This can be given
+            explicitly as a `dict`, or as a `str` which gives the
+            filename of a YAML file that will be loaded. If there is
+            no configuration, giving `None` is also acceptable.
+        scope (Scope or str):
+            The exploration scope, as a `Scope` object or as
+            a `str` which gives the filename of a YAML file that will be
             loaded.
-        safe: Load the configuration YAML file in 'safe' mode.
+        safe (bool):
+            Load the configuration YAML file in 'safe' mode.
             This can be disabled if the configuration requires
             custom Python types or is otherwise not compatible with
             safe mode. Loading configuration files with safe mode
             off is not secure and should not be done with files from
             untrusted sources.
-        db: An optional Database to store experiments and results.
-        name: A name for this model, given as an alphanumeric string.
+        db (Database, optional):
+            An optional Database to store experiments and results.
+        name (str, default "EMAT"):
+            A name for this model, given as an alphanumeric string.
             The name is required by workbench operations.
-            If not given, "EMAT" is used.
-        metamodel_id: An identifier for this model, if it is a meta-model.
+        metamodel_id (int, optional):
+            An identifier for this model, if it is a meta-model.
             Defaults to 0 (i.e., not a meta-model).
     """
 
     def __init__(self,
                  configuration:Union[str,Mapping,None],
-                 scope:Union[Scope,str],
-                 safe:bool=True,
-                 db:Database=None,
-                 name:str='EMAT',
-                 metamodel_id:int=0,
+                 scope,
+                 safe=True,
+                 db=None,
+                 name='EMAT',
+                 metamodel_id=0,
                  ):
         if isinstance(configuration, str):
             with open(configuration, 'r') as stream:
@@ -292,6 +299,295 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         
         """
 
+    @property
+    def allow_short_circuit(self):
+        """
+        Bool: Allow model runs to be skipped if measures already appear in the database.
+        """
+        return self.config.get('allow_short_circuit', True)
+
+    @allow_short_circuit.setter
+    def allow_short_circuit(self, value):
+        self.config['allow_short_circuit'] = bool(value)
+
+    @property
+    def ignore_crash(self):
+        """
+        Bool: Allow model runs to `post_process` and `archive` even after an apparent crash in `run`.
+        """
+        return self.config.get('ignore_crash', False)
+
+    @ignore_crash.setter
+    def ignore_crash(self, value):
+        self.config['ignore_crash'] = bool(value)
+
+    @property
+    def success_indicator(self):
+        """
+        str: The name of a file that indicates the model has run successfully.
+
+        The flag is the mere existance of a file with this name, not any particular
+        file content. This file is deleted automatically when the model `run` is
+        initiated, so that it can be recreated to indicate a success.
+        """
+        return self.config.get('success_indicator', None)
+
+    @success_indicator.setter
+    def success_indicator(self, value):
+        self.config['success_indicator'] = value
+
+    @property
+    def killed_indicator(self):
+        """
+        str: The name of a file that indicates the model was killed due to an unrecoverable error.
+
+        The flag is the mere existance of a file with this name, not any particular
+        file content. This file is deleted automatically when the model `run` is
+        initiated, so that it can be recreated to indicate an unrecoverable error.
+        """
+        return self.config.get('killed_indicator', None)
+
+    @killed_indicator.setter
+    def killed_indicator(self, value):
+        self.config['killed_indicator'] = value
+
+    @property
+    def local_directory(self):
+        """Path: The current local working directory for this model."""
+        return self.config.get("local_directory", os.getcwd())
+
+    @property
+    def resolved_model_path(self):
+        """
+        Path: The resolved model path.
+
+        For core models that don't rely on the file system, this
+        is set to the current working directory and is generally
+        irrelevant. Overload this property for models that do
+        rely on the file system.
+        """
+        return self.local_directory
+
+    def enter_run_model(self):
+        """A hook for actions at the very beginning of the run_model step."""
+
+    def exit_run_model(self):
+        """A hook for actions at the very end of the run_model step."""
+
+    def run_model(self, scenario, policy):
+        """
+        Runs an experiment through core model.
+
+        This method overloads the `run_model` method given in
+        the EMA Workbench, and provides the correct execution
+        of a core model within the workbench framework.  This
+        function assembles and executes the steps laid out in
+        other methods of this class, adding some useful logic
+        to optimize the process (e.g. optionally short-
+        circuiting runs that already have results stored
+        in the database).
+
+        For each experiment, the core model is called to:
+
+            1.  `setup` experiment variables, copy files
+                as needed, and otherwise prepare to run the
+                core model for a particular experiment,
+            2.  `run` the experiment,
+            3.  `post_process` the result if needed to
+                produce all relevant performance measures,
+            4.  `archive` model outputs from this experiment
+                (optional), and
+            5.  `load_measures` from the experiment and
+                store those measures in the associated database.
+
+        Note that this method does *not* return any outcomes.
+        Outcomes are instead written into self.outcomes_output,
+        and can be retrieved from there, or from the database at
+        a later time.
+
+        In general, it should not be necessary to overload this
+        method in derived classes built for particular core models.
+        Instead, write overloaded methods for `setup`, `run`,
+        `post_process` , `archive`, and `load_measures`.  Moreover,
+        in typical usage a modeler will generally not want to rely
+        on this method directly, but instead use `run_experiments`
+        to automatically run multiple experiments with one command.
+
+        Args:
+            scenario (Scenario): A dict-like object that
+                has key-value pairs for each uncertainty.
+            policy (Policy): A dict-like object that
+                has key-value pairs for each lever.
+
+        Raises:
+            UserWarning: If there are no experiments associated with
+                this type.
+
+        """
+        self.enter_run_model()
+        try:
+            self.comment_on_run = None
+
+            _logger.debug("run_core_model read_experiment_parameters")
+
+            experiment_id = policy.get("_experiment_id_", None)
+            if experiment_id is None:
+                experiment_id = scenario.get("_experiment_id_", None)
+
+            if not hasattr(self, 'db') and hasattr(self, '_db'):
+                self.db = self._db
+
+            # If running a core files model using the DistributedEvaluator,
+            # the workers won't have access to the DB directly, so we'll only
+            # run the short-circuit test and the ad-hoc write-to-database
+            # section of this code if the `db` attribute is available.
+            if hasattr(self, 'db') and self.db is not None:
+
+                assert isinstance(self.db, Database)
+
+                if experiment_id is None:
+                    experiment_id = self.db.read_experiment_id(self.scope.name, scenario, policy)
+
+                if experiment_id and self.allow_short_circuit:
+                    # opportunity to short-circuit run by loading pre-computed values.
+                    precomputed = self.db.read_experiment_measures(
+                        self.scope,
+                        design_name=None,
+                        experiment_id=experiment_id,
+                    )
+                    if not precomputed.empty:
+                        self.outcomes_output = dict(precomputed.iloc[0])
+                        self.log(f"short circuit experiment_id {experiment_id} / {getattr(self, 'uid', 'no uid')}")
+                        return
+
+                if experiment_id is None and not self.db.readonly:
+                    experiment_id = self.db.write_experiment_parameters_1(
+                        self.scope.name, 'ad hoc', scenario, policy
+                    )
+                self.log(f"YES DATABASE experiment_id {experiment_id}", level=logging.DEBUG)
+
+            else:
+                _logger.debug(f"NO DATABASE experiment_id {experiment_id}")
+
+            xl = {}
+            xl.update(scenario)
+            xl.update(policy)
+
+            m_names = self.scope.get_measure_names()
+
+            _logger.debug(f"run_core_model setup {experiment_id}")
+            self.setup(xl)
+
+            if self.success_indicator is not None:
+                success_indicator = os.path.join(self.resolved_model_path, self.success_indicator)
+                if os.path.exists(success_indicator):
+                    os.remove(success_indicator)
+            else:
+                success_indicator = None
+
+            if self.killed_indicator is not None:
+                killed_indicator = os.path.join(self.resolved_model_path, self.killed_indicator)
+                if os.path.exists(killed_indicator):
+                    os.remove(killed_indicator)
+            else:
+                killed_indicator = None
+
+            _logger.debug(f"run_core_model run {experiment_id}")
+            try:
+                self.run()
+            except subprocess.CalledProcessError as err:
+                _logger.error(f"ERROR in run_core_model run {experiment_id}: {str(err)}")
+                try:
+                    ex_archive_path = self.get_experiment_archive_path(experiment_id, makedirs=True)
+                except MissingArchivePathError:
+                    pass
+                else:
+                    if isinstance(err, subprocess.CalledProcessError):
+                        if err.stdout:
+                            with open(os.path.join(ex_archive_path, 'error.stdout.log'), 'ab') as stdout:
+                                stdout.write(err.stdout)
+                        if err.stderr:
+                            with open(os.path.join(ex_archive_path, 'error.stderr.log'), 'ab') as stderr:
+                                stderr.write(err.stderr)
+                    with open(os.path.join(ex_archive_path, 'error.log'), 'a') as errlog:
+                        errlog.write(str(err))
+                measures_dictionary = {name: np.nan for name in m_names}
+                # Assign to outcomes_output, for ema_workbench compatibility
+                self.outcomes_output = measures_dictionary
+
+                if not self.ignore_crash:
+                    # If 'ignore_crash' is False (the default), then abort now and skip
+                    # any post-processing and other archiving steps, which will
+                    # probably fail anyway.
+                    self.log(f"run_core_model ABORT {experiment_id}", level=logging.ERROR)
+                    self.comment_on_run = f"FAILED EXPERIMENT {experiment_id}: {str(err)}"
+                    return
+                else:
+                    _logger.error(f"run_core_model CONTINUE AFTER ERROR {experiment_id}")
+
+            try:
+                if success_indicator and not os.path.exists(success_indicator):
+                    # The absence of the `success_indicator` file means that the model
+                    # did not actually terminate correctly, so we do not want to
+                    # post-process or store these results in the database.
+                    self.comment_on_run = f"NON-SUCCESSFUL EXPERIMENT {experiment_id}: success_indicator missing"
+                    raise ValueError(f"success_indicator missing: {success_indicator}")
+
+                if killed_indicator and os.path.exists(killed_indicator):
+                    self.comment_on_run = f"KILLED EXPERIMENT {experiment_id}: killed_indicator present"
+                    raise ValueError(f"killed_indicator present: {killed_indicator}")
+
+                _logger.debug(f"run_core_model post_process {experiment_id}")
+                self.post_process(xl, m_names)
+
+                _logger.debug(f"run_core_model wrap up {experiment_id}")
+                measures_dictionary = self.load_measures(m_names)
+                m_df = pd.DataFrame(measures_dictionary, index=[experiment_id])
+
+            except KeyboardInterrupt:
+                _logger.exception(
+                    f"KeyboardInterrupt in post_process, load_measures or outcome processing {experiment_id}")
+                raise
+            except Exception as err:
+                _logger.exception(f"error in post_process, load_measures or outcome processing {experiment_id}")
+                _logger.error(f"proceeding directly to archive attempt {experiment_id}")
+                if not self.comment_on_run:
+                    self.comment_on_run = f"PROBLEM IN EXPERIMENT {experiment_id}: {str(err)}"
+            else:
+                # only write to database if there was no error in post_process, load_measures or outcome processing
+                if experiment_id and hasattr(self, 'db') and self.db is not None and not self.db.readonly:
+                    _logger.debug(f"run_core_model write db {experiment_id}")
+                    run_id = getattr(self, 'run_id', None)
+                    if run_id is None:
+                        run_id, _ = self.db.new_run_id(
+                            scope_name=self.scope.name,
+                            experiment_id=experiment_id,
+                            source=self.metamodel_id or 0,
+                        )
+                    try:
+                        self.db.write_experiment_measures(self.scope.name, self.metamodel_id, m_df, [run_id])
+                    except ReadOnlyDatabaseError:
+                        warnings.warn("database is read-only, not storing model outcomes")
+                    except Exception as err:
+                        _logger.exception(f"error in writing results to database: {str(err)}")
+                    else:
+                        _logger.debug(f"run_core_model OK write db {experiment_id} {self.metamodel_id} {run_id}\n{m_df}")
+                else:
+                    _logger.debug(f"run_core_model no db to write to {experiment_id}")
+
+            if experiment_id:
+                try:
+                    ex_archive_path = self.get_experiment_archive_path(experiment_id)
+                except MissingArchivePathError:
+                    pass
+                else:
+                    _logger.debug(f"run_core_model archive {experiment_id}")
+                    self.archive(xl, ex_archive_path, experiment_id)
+            else:
+                _logger.debug(f"run_core_model no archive because no experiment_id")
+        finally:
+            self.exit_run_model()
+
     def read_experiments(
             self,
             design_name,
@@ -396,7 +692,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db=None,
     ):
         """
-        Reads performace measures from a design of experiments from the database.
+        Reads performance measures from a design of experiments from the database.
 
         Args:
             design_name (str): The name of the design to load.
@@ -420,7 +716,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             raise ValueError('no database to read from')
 
         measures =  self.ensure_dtypes(
-            db.read_experiment_measures(self.scope.name, design_name, experiment_id)
+            db.read_experiment_measures(
+                self.scope.name,
+                design_name,
+                experiment_id,
+                source=self.metamodel_id,
+            )
         )
         
         # only return measures within scope
@@ -680,16 +981,26 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if design.empty:
             raise ValueError(f"no experiments available")
 
-        scenarios = [
-            Scenario(**dict(zip(self.scope._get_uncertainty_and_constant_names(), i)))
-            for i in design[self.scope._get_uncertainty_and_constant_names()].itertuples(index=False,
-                                                                           name='ExperimentX')
-        ]
+        scenarios = []
+        scenario_cols = self.scope._get_uncertainty_and_constant_names()
+        design_scenarios = design[scenario_cols]
+        for rownum in range(len(design)):
+            if design.index.name == 'experiment':
+                s = Scenario(
+                    _experiment_id_=design.index[rownum],
+                    **design_scenarios.iloc[rownum],
+                )
+            else:
+                s = Scenario(
+                    _experiment_id_=False,
+                    **design_scenarios.iloc[rownum],
+                )
+            scenarios.append(s)
 
+        lever_names = self.scope.get_lever_names()
         policies = [
-            Policy(f"Incognito{n}", **dict(zip(self.scope.get_lever_names(), i)))
-            for n,i in enumerate(design[self.scope.get_lever_names()].itertuples(index=False,
-                                                                                 name='ExperimentL'))
+            Policy(f"Incognito{n}", **dict(zip(lever_names, i)))
+            for n,i in enumerate(design[lever_names].itertuples(index=False, name='ExperimentL'))
         ]
 
         evaluator = prepare_evaluator(evaluator, self)
@@ -732,14 +1043,17 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             outcomes = pd.DataFrame.from_dict(outcomes)
             outcomes.index = design.index
 
-            if db:
-                metamodel_id = self.metamodel_id
-                if metamodel_id is None:
-                    metamodel_id = 0
-                db.write_experiment_measures(self.scope.name, metamodel_id, outcomes)
+            # if db:
+            #     metamodel_id = self.metamodel_id
+            #     if metamodel_id is None:
+            #         metamodel_id = 0
+            #     db.write_experiment_measures(self.scope.name, metamodel_id, outcomes)
 
             # Put constants back into experiments
-            experiments_ = experiments.drop(columns=['scenario', 'policy', 'model'])
+            experiments_ = experiments.drop(
+                columns=['scenario', 'policy', 'model', '_experiment_id_'],
+                errors='ignore',
+            )
             for i in self.scope.get_constants():
                 experiments_[i.name] = i.value
 
@@ -1225,7 +1539,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     k.kind_original = k.kind
                     k.kind = k.kind * -1
 
+            _db_pause = self.db
+
             try:
+                self.db = None
                 with evaluator:
 
                     if epsilons == 'auto':
@@ -1288,7 +1605,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     for k in self.scope.get_measures():
                         k.kind = k.kind_original
                         del k.kind_original
-
+                self.db = _db_pause
 
         elif display_convergence:
             _, convergence, display_convergence, _ = self._common_optimization_setup(
@@ -1415,20 +1732,25 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         )
 
         if result is None:
-            result = robust_optimize(
-                self,
-                robustness_functions,
-                scenarios,
-                evaluator=evaluator,
-                nfe=nfe,
-                convergence=convergence,
-                display_convergence=display_convergence,
-                convergence_freq=convergence_freq,
-                constraints=constraints,
-                epsilons=epsilons,
-                check_extremes=check_extremes,
-                **kwargs,
-            )
+            _db_pause = self.db
+            try:
+                self.db = None
+                result = robust_optimize(
+                    self,
+                    robustness_functions,
+                    scenarios,
+                    evaluator=evaluator,
+                    nfe=nfe,
+                    convergence=convergence,
+                    display_convergence=display_convergence,
+                    convergence_freq=convergence_freq,
+                    constraints=constraints,
+                    epsilons=epsilons,
+                    check_extremes=check_extremes,
+                    **kwargs,
+                )
+            finally:
+                self.db = _db_pause
         elif display_convergence:
             _, convergence, display_convergence, _ = self._common_optimization_setup(
                 None, convergence, display_convergence, False
@@ -1506,7 +1828,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             except KeyboardInterrupt:
                 raise
             except:
-                import warnings, traceback
+                import traceback
                 warnings.warn('unable to manage cache')
                 traceback.print_exc()
 

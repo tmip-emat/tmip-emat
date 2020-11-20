@@ -1,5 +1,6 @@
 
 from . import distributions
+import numpy as np
 from scipy.stats._distn_infrastructure import rv_frozen
 
 def close_excess_files():
@@ -101,7 +102,20 @@ def rv_frozen_as_dict(frozen, min=None, max=None):
 		if min is not None and max is not None and x.get('args') == (min, max + 1):
 			return 'uniform'
 
-	# ToDo, unravel pert
+	if x.get('name') == 'beta':
+		if min is not None and x.get('loc') == min:
+			if max is not None and x.get('scale') == max - min:
+				rel_peak = (x.get('a') - 1) / (x.get('a') + x.get('b') - 2)
+				peak = x.get('loc') + rel_peak * x.get('scale')
+				mean = (1 / (1 + (x.get('b') / x.get('a')))) * x.get('scale') + x.get('loc')
+				if np.absolute(peak - mean) < 1e-8:
+					gamma = (x.get('a') - 1) * 2
+				else:
+					gamma = (x.get('loc') * 2 + x.get('scale')) / mean - 2
+					gamma /= (1 - peak / mean)
+				if np.absolute(gamma - 4) < 1e-5:
+					return {'name': 'pert', 'peak': peak}
+				return {'name': 'pert', 'peak': peak, 'gamma': gamma}
 
 	return x
 

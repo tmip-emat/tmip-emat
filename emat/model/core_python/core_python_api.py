@@ -141,8 +141,8 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
 
     @copydoc(AbstractCoreModel.run)
     def run(self):
-        """Not used for PythonCoreModel objects."""
-    
+        self.outcomes_output = self.function(**self.xl_di)
+
     @copydoc(AbstractCoreModel.post_process)
     def post_process(self, params, measure_names, output_path=None):
         """Not used for PythonCoreModel objects."""
@@ -156,7 +156,7 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
             abs_output_path=None,
     ):
 
-        result = self.function(**self.xl_di)
+        result = self.outcomes_output
 
         if measure_names is None:
             return result.copy()

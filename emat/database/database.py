@@ -19,6 +19,9 @@ class Database(abc.ABC):
     and the core and meta-model results (performance measures)
     """
 
+    def __init__(self, readonly=False):
+        self.readonly = readonly
+
     def get_db_info(self):
         """
         Get a short string describing this Database
@@ -401,8 +404,8 @@ class Database(abc.ABC):
         Read experiment results from the database.
 
         Args:
-            scope_name (str):
-                A scope name, used to identify experiments,
+            scope_name (str or Scope):
+                A scope or just its name, used to identify experiments,
                 performance measures, and results associated with this
                 exploratory analysis.
             design_name (str, optional): If given, only experiments
@@ -418,20 +421,26 @@ class Database(abc.ABC):
                 database, those results are returned.  If there are
                 results from multiple sources, an error is raised.
             design (str): Deprecated, use `design_name`.
-            runs ({None, 'all', 'valid'}, default None):
-                By default, this method returns results from only
-                the most recent valid model run.  Set this to 'valid'
-                to get all valid model runs (not just the most recent).
-                Set to 'all' to get everything, including invalidated
-                results.
+            runs ({None, 'all', 'valid', 'invalid'}, default None):
+                By default, this method fails if there is more than
+                one valid model run matching the given `design_name`
+                and `source` (if any) for any experiment.  Set this to
+                'valid' or 'invalid' to get all valid or invalid model
+                runs (instead of raising an exception). Set to 'all' to get
+                everything, including both valid and invalidated results.
+            formulas (bool, default True): If the scope includes
+                formulaic measures (computed directly from other
+                measures) then compute these values and include them in
+                the results.
 
         Returns:
             results (pandas.DataFrame): performance measures
 
         Raises:
             ValueError
-                When no source is given but the database contains
-                results from multiple sources.
+                When the database contains multiple sets of results
+                matching the given `design_name` and/or `source`
+                (if any) for any experiment.
         """
 
     @abc.abstractmethod
@@ -824,3 +833,58 @@ class Database(abc.ABC):
                 of the assigned scope.
 
         """
+
+    @abc.abstractmethod
+    def new_run_id(
+            self,
+            scope_name=None,
+            parameters=None,
+            location=None,
+            experiment_id=None,
+            source=0,
+    ):
+        """
+        Create a new run_id in the database.
+
+        Args:
+            scope_name (str): scope name, used to identify experiments,
+                performance measures, and results associated with this run
+            parameters (dict): keys are experiment parameters, values are the
+                experimental values to look up.  Subsequent positional or keyword
+                arguments are used to update parameters.
+            location (str or True, optional): An identifier for this location
+                (i.e. this computer).  If set to True, the name of this node
+                is found using the `platform` module.
+            experiment_id (int, optional): The experiment id associated
+                with this run.  If given, the parameters are ignored.
+            source (int, default 0): The metamodel_id of the source for this
+                run, or 0 for a core model run.
+
+        Returns:
+            Tuple[Int,Int]:
+                The run_id and experiment_id of the identified experiment
+
+        Raises:
+            ValueError: If scope name does not exist
+            ValueError: If multiple experiments match an experiment definition.
+                This can happen, for example, if the definition is incomplete.
+        """
+
+    def info(self, stream=None):
+        """
+        Print info about scopes and designs in this database.
+        """
+        if stream is None:
+            import sys
+            stream = sys.stdout
+        print(f"<emat.{self.__class__.__name__}>", file=stream)
+        scope_names = self.read_scope_names()
+        for scope_name in scope_names:
+            print(f"scope: {scope_name}:", file=stream)
+            design_names = self.read_design_names(scope_name)
+            if design_names:
+                print(f"  designs:", file=stream)
+                for design_name in design_names:
+                    print(f"    - {design_name}", file=stream)
+            else:
+                print(f"  no designs", file=stream)

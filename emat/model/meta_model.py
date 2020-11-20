@@ -11,6 +11,7 @@ from ..util.variance_threshold import VarianceThreshold
 from ..experiment.experimental_design import batch_pick_new_experiments, minimum_weighted_distance
 from ..database.database import Database
 from ..scope.scope import Scope
+from ..exceptions import ReadOnlyDatabaseError
 
 from ..util.loggers import get_module_logger
 _logger = get_module_logger(__name__)
@@ -184,10 +185,9 @@ def create_metamodel(
     )
 
     if db is not None:
-        from ..exceptions import DatabaseError
         try:
             db.write_metamodel(result)
-        except DatabaseError:
+        except ReadOnlyDatabaseError:
             pass # read only database, don't store
         except Exception as err:
             _logger.exception("exception in storing metamodel in database")
