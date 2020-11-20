@@ -7,16 +7,16 @@ convergence = default
 convergence_freq = 100
 
 
-constraints = [Constraint('Minimum Capacity Expansion', variable_name=['expand_capacity'], function=<function Constraint.must_be_greater_than.<locals>.<lambda> at 0x126e0af28>), Constraint('Minimum Net Benefit', variable_name=['Mean Net Benefits'], function=<function Constraint.must_be_greater_than.<locals>.<lambda> at 0x126b8cbf8>), Constraint('Maximum Paygo', variable_name=['debt_type', '99%ile Present Cost'], function=<function <lambda> at 0x115badbf8>)]
+constraints = [Constraint('Minimum Capacity Expansion', variable_name=['expand_capacity'], function=<function Constraint.must_be_greater_than.<locals>.<lambda> at 0x7fee004ae9d0>), Constraint('Minimum Net Benefit', variable_name=['Mean Net Benefits'], function=<function Constraint.must_be_greater_than.<locals>.<lambda> at 0x7fee504a44c0>), Constraint('Maximum Paygo', variable_name=['debt_type', '99%ile Present Cost'], function=<function <lambda> at 0x7fee408a9dc0>)]
 
 
-epsilons = auto
+epsilons = 0.1
 
 
 nfe = 10000
 
 
-robustness_functions = [Measure('Mean Net Benefits', variable_name=['net_benefits'], function=<function mean at 0x114939f28>), Measure('5%ile Net Benefits', variable_name=['net_benefits'], function=functools.partial(<function percentile at 0x114a8d158>, q=5)), Measure('Possibility of Negative Net Benefits', variable_name=['net_benefits'], function=functools.partial(<function percentileofscore at 0x11d94b400>, score=0, kind='strict')), Measure('95%ile Capacity Expansion Cost', variable_name=['cost_of_capacity_expansion'], function=functools.partial(<function percentile at 0x114a8d158>, q=95)), Measure('Expected Time Savings', variable_name=['time_savings'], function=<function mean at 0x114939f28>), Measure('99%ile Present Cost', variable_name=['present_cost_expansion'], function=functools.partial(<function percentile at 0x114a8d158>, q=99))]
+robustness_functions = [Measure('Mean Net Benefits', variable_name=['net_benefits'], function=<function mean at 0x7fee001150d0>), Measure('5%ile Net Benefits', variable_name=['net_benefits'], function=functools.partial(<function percentile at 0x7fee20e7c790>, q=5)), Measure('Possibility of Negative Net Benefits', variable_name=['net_benefits'], function=functools.partial(<function percentileofscore at 0x7fee10476790>, score=0, kind='strict')), Measure('95%ile Capacity Expansion Cost', variable_name=['cost_of_capacity_expansion'], function=functools.partial(<function percentile at 0x7fee20e7c790>, q=95)), Measure('Expected Time Savings', variable_name=['time_savings'], function=<function mean at 0x7fee001150d0>), Measure('99%ile Present Cost', variable_name=['present_cost_expansion'], function=functools.partial(<function percentile at 0x7fee20e7c790>, q=99))]
 
 
 alg = None
