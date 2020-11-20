@@ -10,7 +10,7 @@ from ..model import AbstractCoreModel
 from ..viz import colors
 from .. import styles
 
-
+DEFAULT_BACKGROUND = 100
 
 class Timer:
 	def __init__(self, timeout, callback):
@@ -86,7 +86,7 @@ class AB_Contrast():
 		self.test_name = test_name
 
 		if isinstance(background, int):
-			background = model.design_experiments(
+			self.background = background = model.design_experiments(
 				n_samples=background,
 				design_name=test_name,
 			)
@@ -114,6 +114,7 @@ class AB_Contrast():
 			self.results_a[measure],
 			self.results_b[measure],
 			label=self.model.scope.shortname(measure),
+			points=False,
 			a_name=self.a_name(),
 			b_name=self.b_name(),
 			**kwargs,
@@ -213,18 +214,19 @@ def create_kde_2_figure(x_a, x_b, bw_method=None):
 
 
 def create_violin(
-		x_a, x_b,
+		x_a,
+		x_b,
 		label=None,
 		points='suspectedoutliers',
 		points_diff=False,
 		a_name=None,
 		b_name=None,
 		showlegend=False,
-		orientation='h',
+		orientation='v',
 		orientation_raw='v',
 		orientation_diff='v',
-		width=300,
-		height=400,
+		width=490,
+		height=300,
 ):
 	"""
 
@@ -248,9 +250,9 @@ def create_violin(
 	if orientation == 'h':
 		fig = make_subplots(rows=2, cols=1, vertical_spacing=0.03, row_heights=[0.65, 0.35])
 	elif orientation == 'v':
-		fig = make_subplots(rows=1, cols=2, horizontal_spacing=0.03, column_widths=[0.65, 0.35])
+		fig = make_subplots(rows=1, cols=2, horizontal_spacing=0.02, column_widths=[0.55, 0.45])
 	else:
-		raise ValueError("orientation must be 'h' or ''")
+		raise ValueError("orientation must be 'h' or 'v'")
 
 	if orientation_raw is None:
 		orientation_raw=orientation
@@ -266,6 +268,7 @@ def create_violin(
 		box_visible=True,
 		meanline_visible=True,
 		hoveron='points',
+		width=1,
 	)
 	if orientation_raw == 'h':
 		kwargs_common['y0'] = 0
@@ -318,6 +321,7 @@ def create_violin(
 		hoveron='points',
 		side='positive',
 		orientation=orientation_diff,
+		width=1,
 	)
 	if orientation_diff == 'h':
 		kwargs_diff['x'] = x_a - x_b
@@ -389,14 +393,17 @@ def create_violin(
 				visible=(orientation_raw == 'v'),
 			),
 			yaxis2=dict(
-				title="Differences",
-				side="right",
+				# title="Differences",
+				# side="right",
+				visible=False,
 			),
 			xaxis1=dict(
 				visible=(orientation_raw == 'h'),
 			),
 			xaxis2=dict(
-				visible=False,
+				visible=True,
+				title="Differences",
+				side="bottom",
 			),
 		)
 
@@ -409,7 +416,7 @@ def create_violin(
 
 class _ChooserRow(widget.Box):
 
-	def __init__(self, tag, a_widget, b_widget, orientation='h'):
+	def __init__(self, tag, a_widget, b_widget, orientation='h', offwidget=None):
 		self.tag = tag
 		self.description = widget.Label(tag, layout=widget.Layout(
 			width="135px"
@@ -419,6 +426,13 @@ class _ChooserRow(widget.Box):
 		# )
 		self.a_widget = a_widget
 		self.b_widget = b_widget
+		if offwidget is None:
+			self.offwidget = widget.Label("background")
+		elif isinstance(offwidget, str):
+			self.offwidget = widget.Label(offwidget)
+		else:
+			self.offwidget = offwidget
+		self.offwidget.add_class("EMAT_NOSHOW")
 		self.active_status_box = widget.ToggleButton(
 			value=True,
 			disabled=False,
@@ -443,6 +457,7 @@ class _ChooserRow(widget.Box):
 			self.a_widget,
 			self.link_status_box,
 			self.b_widget,
+			self.offwidget,
 		))
 		self.layout.display = 'flex'
 		self.layout.align_items = 'stretch'
@@ -474,17 +489,35 @@ class _ChooserRow(widget.Box):
 				self.a_widget.disabled = False
 				self.b_widget.disabled = False
 				self.link_status_box.disabled = False
-				self.a_widget.layout.visibility = 'visible'
-				self.b_widget.layout.visibility = 'visible'
-				self.link_status_box.layout.visibility = 'visible'
+				# self.a_widget.layout.visibility = 'visible'
+				# self.b_widget.layout.visibility = 'visible'
+				# self.offwidget.layout.visibility = 'hidden'
+				# self.link_status_box.layout.visibility = 'visible'
+				# self.a_widget.layout.display = 'block'
+				# self.b_widget.layout.display = 'block'
+				# self.offwidget.layout.display = 'none'
+				# self.link_status_box.layout.display = 'block'
+				self.a_widget.remove_class("EMAT_NOSHOW")
+				self.b_widget.remove_class("EMAT_NOSHOW")
+				self.offwidget.add_class("EMAT_NOSHOW")
+				self.link_status_box.remove_class("EMAT_NOSHOW")
 				self.active_status_box.icon = 'toggle-on'
 			else:
 				self.a_widget.disabled = True
 				self.b_widget.disabled = True
 				self.link_status_box.disabled = True
-				self.a_widget.layout.visibility = 'hidden'
-				self.b_widget.layout.visibility = 'hidden'
-				self.link_status_box.layout.visibility = 'hidden'
+				# self.a_widget.layout.visibility = 'hidden'
+				# self.b_widget.layout.visibility = 'hidden'
+				# self.offwidget.layout.visibility = 'visible'
+				# self.link_status_box.layout.visibility = 'hidden'
+				# self.a_widget.layout.display = 'none'
+				# self.b_widget.layout.display = 'none'
+				# self.offwidget.layout.display = 'block'
+				# self.link_status_box.layout.display = 'none'
+				self.a_widget.add_class("EMAT_NOSHOW")
+				self.b_widget.add_class("EMAT_NOSHOW")
+				self.offwidget.remove_class("EMAT_NOSHOW")
+				self.link_status_box.add_class("EMAT_NOSHOW")
 				self.active_status_box.icon = 'toggle-off'
 
 _ox = {
@@ -500,11 +533,14 @@ class AB_Chooser(widget.Box):
 		self.orientation = orientation
 		a_slides = []
 		b_slides = []
-		rows = []
+		rows = [
+			widget.HTML("<style> .EMAT_NOSHOW {display: none} </style>")
+		]
 		assert isinstance(scope, Scope)
-		for param in scope.get_parameters():
+
+		def _add_param(param):
 			if param.ptype == 'constant':
-				continue
+				return
 			if param.dtype in ('cat', 'bool'):
 				a = widget.SelectionSlider(
 					value=param.default,
@@ -558,9 +594,17 @@ class AB_Chooser(widget.Box):
 				a_slides[-1],
 				b_slides[-1],
 				orientation=orientation,
+				offwidget=scope[param.name].dist_description
 			))
 			if param.ptype != 'lever':
 				rows[-1].active_status_box.value = False
+
+		rows.append(widget.HTML("<b>Uncertainties</b>"))
+		for param in scope.get_uncertainties():
+			_add_param(param)
+		rows.append(widget.HTML("<b>Policy Levers</b>"))
+		for param in scope.get_levers():
+			_add_param(param)
 
 		super().__init__(children=rows)
 		self.layout.display = 'flex'
@@ -571,20 +615,23 @@ class AB_Chooser(widget.Box):
 	def get_ab(self):
 		a, b = {}, {}
 		for row in self.children:
-			if row.active_status_box.value:
-				a[row.tag] = row.a_widget.value
-				b[row.tag] = row.b_widget.value
+			try:
+				if row.active_status_box.value:
+					a[row.tag] = row.a_widget.value
+					b[row.tag] = row.b_widget.value
+			except AttributeError:
+				pass
 		return a, b
 
-def _AB_Viewer_compute(self, payload=None):
-	a, b = self.chooser.get_ab()
-	ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
-	if self._ab == ab: return
-	self._ab = ab
-	background = getattr(self.contrast, 'background', 500)
-	self.contrast = AB_Contrast(self.model, a, b, background=background)
-	for measure in self._figures.keys():
-		self.get_figure(measure, **self.figure_kwargs)
+# def _AB_Viewer_compute(self, payload=None):
+# 	a, b = self.chooser.get_ab()
+# 	ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
+# 	if self._ab == ab: return
+# 	self._ab = ab
+# 	background = getattr(self.contrast, 'background', DEFAULT_BACKGROUND)
+# 	self.contrast = AB_Contrast(self.model, a, b, background=background)
+# 	for measure in self._figures.keys():
+# 		self.get_figure(measure, **self.figure_kwargs)
 
 
 class AB_Viewer():
@@ -592,6 +639,7 @@ class AB_Viewer():
 	def __init__(
 			self,
 			model,
+			background=None,
 			figure_kwargs=None,
 	):
 		self.model = model
@@ -599,19 +647,57 @@ class AB_Viewer():
 		a, b = self.chooser.get_ab()
 		ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
 		self._ab = ab
-		self.contrast = AB_Contrast(self.model, a, b, background=500)
+		self.contrast = AB_Contrast(
+			self.model,
+			a,
+			b,
+			background=background or DEFAULT_BACKGROUND)
 		self._figures = {}
 		self._ab = None
 		self.figure_kwargs = figure_kwargs or {}
-		self.figure_kwargs.setdefault('orientation', 'h')
-		self.figure_kwargs.setdefault('orientation_raw', 'v')
+		self.figure_kwargs.setdefault('orientation', 'v')
+		self.figure_kwargs.setdefault('orientation_raw', 'h')
 		self.figure_kwargs.setdefault('orientation_diff', 'h')
-		for row in self.chooser.children:
-			row.a_widget.observe(self.compute)
-			row.b_widget.observe(self.compute)
+		self._compute_button = widget.Button(description="Recompute")
+		self._compute_button.on_click(self.compute)
+		self.interface = widget.VBox(
+			[
+				self.chooser,
+				self._compute_button,
+			],
+			layout=dict(
+				justify_content = 'space-between',
+				align_items = 'center',
+			),
+		)
+		# for row in self.chooser.children:
+		# 	row.a_widget.observe(self.compute)
+		# 	row.b_widget.observe(self.compute)
 
 	def compute(self, payload=None):
-		return _AB_Viewer_compute(self, payload)
+		#return _AB_Viewer_compute(self, payload)
+		try:
+			if payload.get('name') != 'value':
+				print("NO ACTION -- ",payload)
+				return
+			print("CHANGE -- ",payload)
+		except:
+			pass
+		self._compute_button.description = "running..."
+		self._compute_button.disabled = True
+		try:
+			a, b = self.chooser.get_ab()
+			ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
+			if self._ab == ab and 'force' not in payload: return
+			self._ab = ab
+			background = getattr(self.contrast, 'background', DEFAULT_BACKGROUND)
+			self.contrast = AB_Contrast(self.model, a, b, background=background)
+			for measure in self._figures.keys():
+				self.get_figure(measure, **self.figure_kwargs)
+		finally:
+			self._compute_button.description = "Recompute"
+			self._compute_button.disabled = False
+
 
 	def get_figure(self, measure, **kwargs):
 		if self.contrast is None:
@@ -622,15 +708,30 @@ class AB_Viewer():
 			self._figures[measure] = go.FigureWidget(fig)
 		else:
 			with self._figures[measure].batch_update():
+				main_min = min(fig.data[0]['x'].min(), fig.data[1]['x'].min())
+				main_max = min(fig.data[0]['x'].max(), fig.data[1]['x'].max())
+				main_span = main_max - main_min
+				diff_min = fig.data[2]['x'].min()
+				diff_max = fig.data[2]['x'].max()
+				diff_span = diff_max - diff_min
+				if diff_span < main_span * 0.01:
+					buffer = main_span * 0.005 - diff_span * 0.5
+					diff_range = (diff_min-buffer, diff_max+buffer)
+				else:
+					diff_range = None
 				for i in range(len(fig.data)):
 					if self._figures[measure].data[i].orientation == 'h':
 						self._figures[measure].data[i].x = fig.data[i]['x']
 					else:
 						self._figures[measure].data[i].y = fig.data[i]['y']
 				self._figures[measure].layout = fig.layout
+				if diff_range:
+					self._figures[measure].layout.xaxis2.range = diff_range
 		return self._figures[measure]
 
 	def get_figures(self, *measures, **kwargs):
+		if len(measures) == 1 and not isinstance(measures[0], str):
+			measures = measures[0]
 		w = [self.get_figure(m, **kwargs) for m in measures]
 		return widget.Box(w, layout=widget.Layout(flex_flow='row wrap'))
 
