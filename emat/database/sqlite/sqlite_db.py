@@ -1820,7 +1820,7 @@ class SQLiteDB(Database):
             self.write_experiment_measures(
                 scope_name,
                 source,
-                xlm_df[[z[0] for z in scp_m]],
+                xlm_df[[z[0] for z in scp_m if z[0] in xlm_df.columns]],
                 run_ids=run_ids,
             )
 
