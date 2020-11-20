@@ -230,14 +230,21 @@ def _in_box(x, boxlim):
     # TODO:: how to speed this up
     for column, values in x.select_dtypes(exclude=np.number).iteritems():
         entries = boxlim.loc[0, column]
+        try:
+            entries_set = set(entries)
+        except TypeError:
+            entries_set = set([entries])
         if isinstance(values, pd.Series) and values.dtype == 'bool':
-            not_present = {False, True} - entries
+            not_present = {False, True} - entries_set
         else:
-            not_present = set(values.cat.categories.values) - entries
+            not_present = set(values.cat.categories.values) - entries_set
 
         if not_present:
             # what other options do we have here....
-            l = pd.isnull(x[column].cat.remove_categories(list(entries)))
+            try:
+                l = pd.isnull(x[column].cat.remove_categories(list(entries_set)))
+            except AttributeError:
+                l = pd.isnull(x[column].astype('category').cat.remove_categories(list(entries_set)))
             logical = l & logical
     return logical
 
