@@ -226,7 +226,11 @@ class DistributedEvaluator(BaseEvaluator):
 
 			for b in batches:
 				self.futures.append(f(b))
-				self.futures_ilocs.append([i.experiment_id for i in b])
+				ilocs = []
+				for i in b:
+					if hasattr(i,'experiment_id'):
+						ilocs.append(i.experiment_id)
+				self.futures_ilocs.append(ilocs)
 
 		else:
 			# Dask no longer supports mapping over Iterators or Queues.
@@ -275,6 +279,7 @@ async def AsyncDistributedEvaluator(
 				threads_per_worker=1,
 				asynchronous=True,
 			)
+			_logger.info("completed initializing default DistributedEvaluator.client")
 		client = DistributedEvaluator._default_client
 
 	self = DistributedEvaluator(
