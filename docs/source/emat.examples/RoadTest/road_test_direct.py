@@ -2,16 +2,17 @@
 # ---
 # jupyter:
 #   jupytext:
+#     cell_metadata_json: true
 #     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
-#       format_version: '1.2'
-#       jupytext_version: 1.2.4
+#       format_version: '1.3'
+#       jupytext_version: 1.7.1
 #   kernelspec:
-#     display_name: EMAT
+#     display_name: Python 3
 #     language: python
-#     name: emat
+#     name: python3
 # ---
 
 # %% [raw] {"raw_mimetype": "text/restructuredtext"}
@@ -21,15 +22,11 @@
 # # Road Test
 
 # %%
-import emat
+import emat, os, numpy, pandas, functools, asyncio
 emat.versions()
 
 # %%
-import ema_workbench
-import os, numpy, pandas, functools
-
-# %%
-logger = emat.util.loggers.log_to_stderr(20, True)
+logger = emat.util.loggers.log_to_stderr(30, True)
 
 # %% [markdown]
 # ## Defining the Exploratory Scope
@@ -85,7 +82,7 @@ road_scope.get_measures()
 # store data to disk so that it can persist after this Python session ends).
 
 # %%
-emat_db = emat.SQLiteDB()
+emat_db = emat.SQLiteDB('tempfile')
 
 # %% [markdown]
 # An EMAT Scope can be stored in the database, to provide needed information about what the 
@@ -196,12 +193,10 @@ lhs_results.head()
 # users can refer to that package's [documentation](https://distributed.dask.org/).)
 
 # %%
-from emat.util.distributed import get_client
-distributed_eval = get_client(n_workers=4)
+lhs_large_async = m.async_experiments(large_design, max_n_workers=8, batch_size=157)
 
 # %%
-lhs_large_results = m.run_experiments(design_name='lhs_large', evaluator=distributed_eval)
-lhs_large_results.head()
+lhs_large_results = await lhs_large_async.final_results()
 
 # %% [markdown]
 # Once a particular design has been run once, the results can be recovered from the database without re-running the model itself.
@@ -277,23 +272,32 @@ display_experiments(road_scope, lhs_results, rows=['time_savings', 'net_benefits
 # ([Kwakkel and Jaxa-Rozen (2016)](https://www.sciencedirect.com/science/article/pii/S1364815215301092)).
 
 # %%
-from emat.analysis import prim
+from emat.analysis.prim import Prim
 
 # %%
-x = m.read_experiment_parameters(design_name='lhs_large')
-y = m.read_experiment_measures(design_name='lhs_large')['net_benefits']>0
+of_interest = lhs_large_results['net_benefits']>0
 
 # %%
-prim_alg = prim.Prim(x, y, threshold=0.4)
+discovery = Prim(
+    m.read_experiment_parameters(design_name='lhs_large'),
+    of_interest,
+    scope=road_scope,
+)
 
 # %%
-box1 = prim_alg.find_box()
+box1 = discovery.find_box()
 
 # %%
 box1.tradeoff_selector()
 
 # %%
 box1.inspect(45)
+
+# %%
+box1.select(45)
+
+# %%
+box1.splom()
 
 # %% [markdown]
 # ### CART
@@ -304,9 +308,12 @@ box1.inspect(45)
 # side of the newly added partition divider, subject to some constraints.
 
 # %%
-from ema_workbench.analysis import cart
+from emat.workbench.analysis import cart
 
-cart_alg = cart.CART(x,y)
+cart_alg = cart.CART(
+    m.read_experiment_parameters(design_name='lhs_large'),
+    of_interest,
+)
 cart_alg.build_tree()
 
 # %%
@@ -427,7 +434,8 @@ robust_results = m.robust_optimize(
         constraint_2,
         constraint_3,
     ],
-    evaluator=get_client(),
+    #evaluator=get_client(),
+    cache_file="./cache_road_test_robust_opt"
 )
 
 # %% [markdown]
@@ -462,14 +470,20 @@ mm
 # we set the `random_seed` argument to something other than the default value.
 
 # %%
-design2 = design_experiments(road_scope, db=emat_db, n_samples_per_factor=10, sampler='lhs', random_seed=2)
+design2 = design_experiments(
+    scope=road_scope, 
+    db=emat_db, 
+    n_samples_per_factor=10, 
+    sampler='lhs', 
+    random_seed=2,
+)
 
 # %%
 design2_results = mm.run_experiments(design2)
 design2_results.head()
 
 # %%
-mm.function.cross_val_scores()
+mm.cross_val_scores()
 
 # %% [markdown]
 # ### Compare Core vs Meta Model Results
@@ -478,33 +492,7 @@ mm.function.cross_val_scores()
 # on the new design against the original model's results.
 
 # %%
-from emat.viz.scatter import scatter_graph
-
-scatter_graph(
-    X=[ design2_results['input_flow'],
-        lhs_results['input_flow'] ],
-    Y=[ design2_results['time_savings'],
-        lhs_results['time_savings'],  ],
-    legend_labels=[ 'meta-model',
-                    'core model',  ]
-)
+from emat.analysis import contrast_experiments
+contrast_experiments(road_scope, lhs_results, design2_results)
 
 # %%
-scatter_graph(
-    X=[ design2_results['no_build_travel_time'],
-        lhs_results['no_build_travel_time'], ],
-    Y=[ design2_results['time_savings'],
-        lhs_results['time_savings'], ],
-    legend_labels=[ 'meta-model',
-                    'core model', ]
-)
-
-# %%
-scatter_graph(
-    X=[ design2_results['expand_capacity'],
-        lhs_results['expand_capacity'], ],
-    Y=[ design2_results['present_cost_expansion'],
-        lhs_results['present_cost_expansion'], ],
-    legend_labels=[ 'meta-model',
-                    'core model', ]
-)
