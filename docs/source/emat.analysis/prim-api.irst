@@ -1,0 +1,16 @@
+
+PRIM API
+--------
+
+.. py:currentmodule:: emat.analysis
+
+.. autoclass:: Prim
+    :show-inheritance:
+    :members:
+    :inherited-members:
+
+.. autoclass:: PrimBox
+    :show-inheritance:
+    :members:
+    :inherited-members:
+

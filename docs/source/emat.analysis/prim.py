@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.4.2
+#       jupytext_version: 1.7.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -88,7 +88,7 @@ emat.versions()
 import emat.examples
 scope, db, model = emat.examples.road_test()
 designed = model.design_experiments(n_samples=5000, sampler='mc', random_seed=42)
-results = model.run_experiments(design_name='mc')
+results = model.run_experiments(designed, db=False)
 
 # %% [markdown]
 # In order to use PRIM for scenario discovery, the analyst must
