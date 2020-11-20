@@ -1005,13 +1005,6 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         evaluator = prepare_evaluator(evaluator, self)
 
-        callback = None
-        if db is not None and hasattr(db, 'callback_factory'):
-            callback = db.callback_factory(
-                scope=self.scope,
-                design_name=design_name,
-            )
-
         if getattr(evaluator, 'asynchronous', False):
             # When the evaluator is in asynchronous mode, the core model runs will be
             # dispatched here but the function will not block waiting on the result, and
@@ -1024,20 +1017,27 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     policies=policies,
                     zip_over={'scenarios', 'policies'},
                     evaluator=evaluator,
-                    callback=callback,
                 )
             return
 
         else:
             with evaluator:
-                experiments, outcomes = perform_experiments(
-                    self,
-                    scenarios=scenarios,
-                    policies=policies,
-                    zip_over={'scenarios', 'policies'},
-                    evaluator=evaluator,
-                    callback=callback,
-                )
+                if db is False:
+                    _stored_db = self.db
+                    self.db = None
+                else:
+                    _stored_db = None
+                try:
+                    experiments, outcomes = perform_experiments(
+                        self,
+                        scenarios=scenarios,
+                        policies=policies,
+                        zip_over={'scenarios', 'policies'},
+                        evaluator=evaluator,
+                    )
+                finally:
+                    if _stored_db:
+                        self.db = _stored_db
             experiments.index = design.index
 
             outcomes = pd.DataFrame.from_dict(outcomes)
@@ -1115,6 +1115,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             experiment_stratification = None,
             suppress_converge_warnings = False,
             regressor = None,
+            find_best_metamodeltype=False,
     ):
         """
         Create a MetaModel from a set of input and output observations.
@@ -1149,6 +1150,15 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             regressor (Estimator, optional): A scikit-learn estimator implementing a
                 multi-target regression.  If not given, a detrended simple Gaussian
                 process regression is used.
+            find_best_metamodeltype (int, default 0):
+                Run a search to find the best metamodeltype for each
+                performance measure, repeating each cross-validation
+                step this many times.  For more stable results, choose
+                3 or more, although larger numbers will be slow.  If
+                domain knowledge about the normal expected range and
+                behavior of each performance measure is available,
+                it is better to give the metamodeltype explicitly in
+                the Scope.
 
         Returns:
             MetaModel:
@@ -1176,6 +1186,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             suppress_converge_warnings=suppress_converge_warnings,
             regressor=regressor,
             name=None,
+            find_best_metamodeltype=find_best_metamodeltype,
         )
 
     def create_metamodel_from_design(
@@ -1188,6 +1199,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             random_state=None,
             suppress_converge_warnings=False,
             regressor=None,
+            find_best_metamodeltype=False,
     ):
         """
         Create a MetaModel from a set of input and output observations.
@@ -1207,6 +1219,15 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             regressor (Estimator, optional): A scikit-learn estimator implementing a
                 multi-target regression.  If not given, a detrended simple Gaussian
                 process regression is used.
+            find_best_metamodeltype (int, default 0):
+                Run a search to find the best metamodeltype for each
+                performance measure, repeating each cross-validation
+                step this many times.  For more stable results, choose
+                3 or more, although larger numbers will be slow.  If
+                domain knowledge about the normal expected range and
+                behavior of each performance measure is available,
+                it is better to give the metamodeltype explicitly in
+                the Scope.
 
         Returns:
             MetaModel:
@@ -1246,6 +1267,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             random_state=random_state,
             suppress_converge_warnings=suppress_converge_warnings,
             regressor=regressor,
+            find_best_metamodeltype=find_best_metamodeltype,
         )
 
     def create_metamodel_from_designs(

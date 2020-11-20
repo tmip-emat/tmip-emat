@@ -21,6 +21,7 @@ class AsyncExperimentalDesign:
 			data='pending',
 			index=self._storage.index,
 		)
+		self._progress_bar = None
 
 	def __repr__(self):
 		return f"<emat.AsyncExperimentalDesign with {self.progress()}>"
@@ -32,6 +33,7 @@ class AsyncExperimentalDesign:
 			stagger_start=None,
 			batch_size=None,
 	):
+		_logger.info("AsyncExperimentalDesign.run start")
 		if stagger_start is not None:
 			self.stagger_start = stagger_start
 		if evaluator is None:
@@ -42,6 +44,7 @@ class AsyncExperimentalDesign:
 			)
 		self._evaluator = evaluator
 		self._client = self.evaluator.client
+		_logger.info("AsyncExperimentalDesign.run dispatching experiments")
 		self.model.run_experiments(
 			design=self._storage[self.params],
 			evaluator=evaluator,
@@ -56,13 +59,33 @@ class AsyncExperimentalDesign:
 			while hold < self.stagger_start:
 				await asyncio.sleep(1)
 				hold += 1
+		_logger.info("AsyncExperimentalDesign.run dispatching task complete")
 		return self._tasks
 
 	def _update_storage(self, fut):
+		ilocs = []
 		for i in fut.result():
-			y = pd.DataFrame(i[1], index=[self._storage.index[i[0]]])
-			self._storage.update(y)
+			ilocs.append(i[0])
+			for k,v in i[1].items():
+				self._storage[k].values[i[0]] = v
 			self._status.iloc[i[0]] = i[2] or 'done'
+		# SQLite DB handles are stripped from the model on the workers
+		# to prevent database locks from concurrent write attempts
+		# so we need to write results to the database when they return to
+		# the main process here
+		try:
+			db_readonly = self.model.db.readonly
+		except AttributeError:
+			db_readonly = True
+		if not db_readonly:
+			self.model.db.write_experiment_measures(
+				scope_name=self.model.scope.name,
+				source=self.model.metamodel_id or 0,
+				m_df=self._storage.iloc[ilocs],
+			)
+		if self._progress_bar:
+			n_done = (self._status == 'done').sum()
+			self._progress_bar.value = n_done
 
 	@property
 	def client(self):
@@ -78,7 +101,7 @@ class AsyncExperimentalDesign:
 		except AttributeError:
 			return
 
-	def results(self):
+	def current_results(self):
 		return self._storage.copy()
 
 	def status(self):
@@ -115,6 +138,28 @@ class AsyncExperimentalDesign:
 			return
 		result = await asyncio.gather(*_tasks)
 		return result
+
+	async def final_results(self, progress_bar=True):
+		if progress_bar:
+			from ipywidgets import IntProgress
+			self._progress_bar = IntProgress(
+				min=0, max=len(self._status),
+				value=(self._status == 'done').sum(),
+			)
+			from IPython.display import display
+			display(self._progress_bar)
+		def _is_running():
+			return (self._status == 'queued').any() or (self._status == 'pending').any()
+		while _is_running():
+			await asyncio.sleep(1)
+		if (self._status != 'done').any():
+			import warnings
+			warnings.warn(self.progress())
+			if progress_bar:
+				self._progress_bar.bar_style = 'danger'
+		elif progress_bar:
+			self._progress_bar.layout.display = 'none'
+		return self._storage
 
 def asynchronous_experiments(
 		model,

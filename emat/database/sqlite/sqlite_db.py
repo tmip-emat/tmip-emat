@@ -84,6 +84,10 @@ class SQLiteDB(Database):
             with open(tempfilename, "wb") as tmp:
                 shutil.copyfileobj(gzip.open(database_path), tmp)
             database_path = tempfilename
+        elif database_path == 'tempfile':
+            import tempfile, os
+            self._tempdir = tempfile.TemporaryDirectory()
+            database_path = os.path.join(self._tempdir.name, "emat-temp.db")
 
         self.database_path = database_path
 
