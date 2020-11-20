@@ -55,13 +55,13 @@ can use the :meth:`complete <Visualizer.complete>` method on the `viz` instance 
 create a set of histograms illustrating the data in the results computed above. There
 is one histogram for each policy lever, exogenous uncertainty, and performance measure.
 
-.. image:: interactive-gifs/complete1.png
+.. image:: _static/interactive-gifs/complete1.png
     :alt: policy levers from the "complete" set of histograms
 
-.. image:: interactive-gifs/complete2.png
+.. image:: _static/interactive-gifs/complete2.png
     :alt: uncertainties from the "complete" set of histograms
 
-.. image:: interactive-gifs/complete3.png
+.. image:: _static/interactive-gifs/complete3.png
     :alt: performance measures from the "complete" set of histograms
 
 A range of data in each histogram can be selected by dragging horizonatally across the
@@ -74,7 +74,7 @@ that bar is selected or not.  This allows non-contiguous selections in categorie
 have 3 or more possible values.  Like the other figures, any selection can be cleared
 by double-clicking.
 
-.. image:: interactive-gifs/select-from-histograms-.gif
+.. image:: _static/interactive-gifs/select-from-histograms-.gif
     :alt: selecting and deselecting from policy lever histograms
 
 Selections can be made simultaneously over any combination of uncertainties, policy levers,
@@ -90,7 +90,7 @@ This could be convenient, for example, if there are a very large number of perfo
 
     viz.selectors(['input_flow', 'expand_capacity', 'net_benefits'])
 
-.. image:: interactive-gifs/three-histograms.png
+.. image:: _static/interactive-gifs/three-histograms.png
     :alt: a limited display of histograms
 
 -------------------
@@ -129,7 +129,7 @@ smaller :meth:`status <Visualizer.status>` widget:
 
     viz.status()
 
-.. image:: interactive-gifs/viz-status-profitable.png
+.. image:: _static/interactive-gifs/viz-status-profitable.png
     :alt: the visualizer status display after creating the profitable box
 
 You can also programatically find and change the active box from Python.
@@ -197,7 +197,7 @@ figures.
     viz.set_active_selection_name("Profitable")
     viz.two_way(x='expand_capacity', y='time_savings')
 
-.. image:: interactive-gifs/two-way-profitable.png
+.. image:: _static/interactive-gifs/two-way-profitable.png
     :alt: two way widget
 
 One useful feature of the :meth:`two_way <Visualizer.two_way>` is the ability to manually "lasso" a selection of
@@ -209,7 +209,7 @@ The highlight color changes to signify that this is not an editable rectangular 
 and the selected data will be highlighted in *all* figures linked to this :class:`Visualizer`,
 including the histograms above.
 
-.. image:: interactive-gifs/lasso-selection-.gif
+.. image:: _static/interactive-gifs/lasso-selection-.gif
     :alt: lasso selection
 
 In addition to the `two_way`, which offers a feature-packed view of two dimensions at a time,
@@ -223,7 +223,7 @@ two dimensional views.
         cols='L',
     )
 
-.. image:: interactive-gifs/splom.png
+.. image:: _static/interactive-gifs/splom.png
     :alt: lasso selection
 
 -----------------------
@@ -242,7 +242,7 @@ thresholded inputs are automatically excluded from the scoring algorithm.
 
     viz.selection_feature_scores()
 
-.. image:: interactive-gifs/dyn-feature-scoring-.gif
+.. image:: _static/interactive-gifs/dyn-feature-scoring-.gif
     :alt: dynamic feature scoring
 
 ----------------
@@ -273,7 +273,7 @@ goals.
 
     prim.tradeoff_selector()
 
-.. image:: interactive-gifs/tradeoff-selector-.gif
+.. image:: _static/interactive-gifs/tradeoff-selector-.gif
     :alt: tradeoff selector
 
 We can also use PRIM to explore solutions based only on manipulating the
@@ -284,7 +284,7 @@ policy levers, and not the combination of all inputs (levers & uncertainties).
     prim_levers = viz.prim('levers', target="Profitable")
     prim_levers.tradeoff_selector()
 
-.. image:: interactive-gifs/tradeoff-selector-levers.png
+.. image:: _static/interactive-gifs/tradeoff-selector-levers.png
     :alt: tradeoff selector with only levers
 
 --------------
