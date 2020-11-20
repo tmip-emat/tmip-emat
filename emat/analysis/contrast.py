@@ -65,14 +65,17 @@ class AB_Contrast():
 			A name to use for this test, in setting the `design_name`
 			attribute of the results, and for use in database storage
 			of experimental results.
+		scope (emat.Scope, optional):
+			Override the model.scope with a replacement.
 
 	Returns:
 		pandas.DataFrame or 2-tuple of pandas.DataFrame
 	"""
 
-	def __init__(self, model, a, b, background, test_name=None):
+	def __init__(self, model, a, b, background, test_name=None, scope=None):
 
 		self.model = model
+		self.scope = scope or model.scope
 		self.a = a.copy()
 		self.b = b.copy()
 
@@ -86,7 +89,9 @@ class AB_Contrast():
 		self.test_name = test_name
 
 		if isinstance(background, int):
-			self.background = background = model.design_experiments(
+			from ..experiment import experimental_design
+			self.background = background = experimental_design.design_experiments(
+				self.scope,
 				n_samples=background,
 				design_name=test_name,
 			)
@@ -104,7 +109,7 @@ class AB_Contrast():
 		results_a = self.model.run_experiments(self.design_a)
 		results_b = self.model.run_experiments(self.design_b)
 
-		measure_names = model.scope.get_measure_names()
+		measure_names = self.scope.get_measure_names()
 		not_measures = [i for i in results_a.columns if i not in measure_names]
 		self.results_a = results_a.drop(columns=not_measures)
 		self.results_b = results_b.drop(columns=not_measures)
@@ -113,7 +118,7 @@ class AB_Contrast():
 		fig = create_violin(
 			self.results_a[measure],
 			self.results_b[measure],
-			label=self.model.scope.shortname(measure),
+			label=self.scope.shortname(measure),
 			points=False,
 			a_name=self.a_name(),
 			b_name=self.b_name(),
@@ -640,10 +645,12 @@ class AB_Viewer():
 			self,
 			model,
 			background=None,
+			scope=None,
 			figure_kwargs=None,
 	):
 		self.model = model
-		self.chooser = AB_Chooser(model.scope)
+		self.scope = scope or model.scope
+		self.chooser = AB_Chooser(self.scope)
 		a, b = self.chooser.get_ab()
 		ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
 		self._ab = ab
@@ -651,7 +658,9 @@ class AB_Viewer():
 			self.model,
 			a,
 			b,
-			background=background or DEFAULT_BACKGROUND)
+			background=background or DEFAULT_BACKGROUND,
+			scope=self.scope,
+		)
 		self._figures = {}
 		self._ab = None
 		self.figure_kwargs = figure_kwargs or {}

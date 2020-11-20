@@ -594,7 +594,7 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
             if 'gamma' in result:
                 return f"Pert Distribution (min={self.min}, peak={result.get('peak')}, max={self.max}, gamma={result.get('gamma')})"
             return f"Pert Distribution (min={self.min}, peak={result.get('peak')}, max={self.max})"
-        if result.get('name') == 'uniform':
+        if result.get('name') == 'uniform' or len(result)==0:
             return f"Uniform Distribution (min={self.min}, max={self.max})"
         if result.get('name') == 'triangle':
             return f"Trianglar Distribution (min={self.min}, peak={result.get('peak')}, max={self.max})"
