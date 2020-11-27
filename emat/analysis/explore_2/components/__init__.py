@@ -85,7 +85,7 @@ def compute_categorical_similarity(x,y):
 		y /= y.sum()
 	except TypeError:
 		return -1.0
-	return numpy.absolute(x - y).sum()
+	return numpy.absolute(x - y).sum()/2.0 # divide by two for double-counting
 
 
 def new_histogram_figure(
