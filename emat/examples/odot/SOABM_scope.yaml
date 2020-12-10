@@ -1,0 +1,155 @@
+---
+# EMAT Scope Definition
+# 
+
+scope:
+    name: SOABM
+    desc: EMAT Beta Test for SO-ABM 
+
+inputs:
+
+    ## UNCERTAINTIES ##
+
+    Freeway Capacity:
+        ptype: exogenous uncertainty
+        desc: Future Tech changes how many vehicles can use a given lane of freeway
+        dtype: real
+        default: 1900.0
+        min: 1500.0
+        max: 3000.0  
+
+    Auto Operating Costs:
+        ptype: exogenous uncertainty
+        desc: Change vehicle fuel cost
+        dtype: real
+        default: 12.4
+        min: 1.0
+        max: 25.0
+
+# Dropping because it's basically covered (and covered better by Auto Opperating Cost
+        
+#    Value of Travel Time:
+#        ptype: exogenous uncertainty
+#        dtype: real
+#        desc: Change attitude of value of time due to Vehicle Technology
+#        default: 1.0
+#        min: 0.5
+#        max: 1.2
+
+    Household Densification:
+        ptype: exogenous uncertainty
+        desc: Shifting Households closer to or father away from urban cores to represent different land use sceanrios
+        dtype: real
+        default: 1.0
+        min: 0.5
+        max: 1.5
+
+    Incomes:
+        ptype: exogenous uncertainty
+        desc: How have incomes (purchasing power) changed moving into the future
+        dtype: real
+        default: 1.0
+        min: 0.5
+        max: 1.5
+
+#        dtype: cat
+#        default: Normal
+#        values:
+#            - Bad
+#            - Normal
+#            - Good
+    
+    ## LEVERS ##  
+
+    Transit Everywhere:
+        ptype: policy lever
+        desc: Allows transit everywhere to approximate a public TNC versus typical routed and scheduled transit service
+        dtype: bool
+        default: False
+
+    Transit LOS:
+        ptype: policy lever
+        desc: The overall comfort, performance, and attitude toward transit has been successfully changed for better or worse
+        dtype: real
+        default: 0.0
+        min: -10.0
+        max: 10.0
+        
+    Parking Rates:
+        ptype: policy lever
+        desc: Varies the cost of Parking in Parking Zones
+        dtype: real
+        default: 1.0
+        min: 0.5 
+        max: 20
+        
+    Active Transport Speed:
+        ptype: policy lever
+        desc: Technologies that aid biking and walking may increase average speeds of these modes
+        dtype: real
+        default: 1
+        min: 1 
+        max: 2 
+
+
+# Performance Measures -------------------------------------------------------
+#
+
+outputs:
+
+    # Accessibility
+    
+    Percentage of Population with Access to 50k Jobs by Car within 20mins in PM:
+        kind: maximize
+    
+    # Mode Shifting    
+
+    Bike and Walk Mode Share:
+        kind: maximize
+    Transit with PNR and KNR Mode Share:
+        kind: maximize  
+        
+    # PMT
+    
+    Millions of Person Miles Traveled:
+        kind: minimize
+              
+    # VMT
+    
+    Millions of Vehicle Miles Traveled in PM:
+        kind: minimize
+    Millions of Auto Miles Traveled:
+        kind: minimize 
+    Millions of Truck Miles Traveled:
+        kind: minimize 
+    Millions of Vehicle Miles Traveled:
+        kind: minimize  
+        
+    # VHT
+    
+    Thousands of Vehicle Hours Traveled in PM:
+        kind: minimize
+    Thousands of Auto Hours Traveled:
+        kind: minimize 
+    Thousands of Truck Hours Traveled:
+        kind: minimize 
+    Thousands of Vehicle Hours Traveled:
+        kind: minimize     
+        
+    # V/C
+    
+    Percent of Interstate Miles over 90% V/C Ratio During the PM Peak:
+        kind: minimize          
+    Percent of Principal Arterial Miles over 90% V/C Ratio During the PM Peak:
+        kind: minimize
+    Percent of Minor Arterial Miles over 90% V/C Ratio During the PM Peak:
+        kind: minimize
+    
+    # Household Measures
+
+    Number of Autos Owned Per Household:
+        kind: maximize    
+    Percent of Non-Mandatory Tours:
+        kind: maximize
+        
+...
