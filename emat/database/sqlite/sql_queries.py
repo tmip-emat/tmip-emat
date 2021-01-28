@@ -134,6 +134,13 @@ INSERT_EXPERIMENT = '''
         FROM ema_scope WHERE ema_scope.name = ?
 '''
 
+INSERT_EXPERIMENT_WITH_ID = '''
+    INSERT INTO ema_experiment ( experiment_id, scope_id )
+        SELECT ?2, ema_scope.scope_id
+        FROM ema_scope WHERE ema_scope.name = ?1
+'''
+
+
 INSERT_DESIGN_EXPERIMENT = '''
     INSERT OR IGNORE INTO ema_design_experiment (experiment_id, design_id)
         SELECT ?3, d.design_id

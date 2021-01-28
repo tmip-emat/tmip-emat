@@ -336,6 +336,8 @@ class Database(abc.ABC):
             only_complete=False,
             only_with_measures=False,
             ensure_dtypes=True,
+            with_run_ids=False,
+            runs=None,
     ):
         """
         Read experiment definitions and results
@@ -377,6 +379,19 @@ class Database(abc.ABC):
                 of the database, and that scope file is used to
                 format experimental data consistently (i.e., as
                 float, integer, bool, or categorical).
+            with_run_ids (bool, default False): Whether to use a
+                two-level pd.MultiIndex that includes both the
+                experiment_id (which always appears in the index)
+                as well as the run_id (which only appears in the
+                index if this argument is set to True).
+            runs ({None, 'all', 'valid', 'invalid'}, default None):
+                By default, this method returns the one and only
+                valid model run matching the given `design_name`
+                and `source` (if any) for any experiment, and fails
+                if there is more than one such valid run. Set this to
+                'valid' or 'invalid' to get all valid or invalid model
+                runs (instead of raising an exception). Set to 'all' to get
+                everything, including both valid and invalidated results.
 
         Returns:
             emat.ExperimentalDesign:

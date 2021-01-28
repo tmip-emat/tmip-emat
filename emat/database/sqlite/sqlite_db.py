@@ -618,6 +618,7 @@ class SQLiteDB(Database):
             scope_name,
             design_name,
             xl_df,
+            force_ids=False,
     ):
         """
         Write experiment definitions the the database.
@@ -643,6 +644,12 @@ class SQLiteDB(Database):
                 The columns of this DataFrame are the experiment
                 parameters (i.e. policy levers, uncertainties, and
                 constants), and each row is an experiment.
+            force_ids (bool, default False):
+                For the experiment id's saved into the database to match
+                the id's in the index of `xl_df`, or raise an error if
+                this cannot be completed, either because that id is in
+                use for a different experiment, or because this experiment
+                is already saved with a different id.
 
         Returns:
             list: the experiment id's of the newly recorded experiments
@@ -651,6 +658,10 @@ class SQLiteDB(Database):
             UserWarning: If scope name does not exist
             TypeError: If not all scope variables are defined in the
                 exp_def
+            ValueError: If `force_ids` is True but the same experiment
+                already has a different id.
+            sqlite3.IntegrityError: If `force_ids` is True but a different
+                experiment is already using the given id.
         """
         if self.readonly:
             raise ReadOnlyDatabaseError
@@ -680,18 +691,23 @@ class SQLiteDB(Database):
                 existing_experiments,
                 xl_df.set_index(np.full(len(xl_df), -1, dtype=int)),
             ])
-            combined_experiments = reindex_duplicates(combined_experiments)
-            xl_df_ = combined_experiments.iloc[-len(xl_df):]
+            combined_experiments_reindexed = reindex_duplicates(combined_experiments)
+            xl_df_ = combined_experiments_reindexed.iloc[-len(xl_df):]
             novel_flag = xl_df_.index.isin([-1])
-            novel_experiments = xl_df_.loc[novel_flag]
+            novel_experiments = xl_df.loc[novel_flag]
             duplicate_experiments = xl_df_.loc[~novel_flag]
 
             ex_ids = []
 
-            for _, row in novel_experiments.iterrows():
-                # create new experiment and get id
-                fcur.execute(sq.INSERT_EXPERIMENT, [scope_name])
-                ex_id = fcur.lastrowid
+            for ex_id_, row in novel_experiments.iterrows():
+                if force_ids:
+                    # create new experiment and set id
+                    fcur.execute(sq.INSERT_EXPERIMENT_WITH_ID, [scope_name, ex_id_])
+                    ex_id = ex_id_
+                else:
+                    # create new experiment and get id
+                    fcur.execute(sq.INSERT_EXPERIMENT, [scope_name])
+                    ex_id = fcur.lastrowid
                 # set each from experiment defitinion
                 for xl in scp_xl:
                     try:
@@ -710,7 +726,9 @@ class SQLiteDB(Database):
                     _logger.error(f"scope_name, design_name, ex_id= {scope_name, design_name, ex_id}")
                     raise
 
-            for ex_id in duplicate_experiments.index:
+            for ex_id, ex_id_ in zip(duplicate_experiments.index, xl_df.loc[~novel_flag].index):
+                if force_ids and ex_id != ex_id_:
+                    raise ValueError(f"cannot change experiment id {ex_id_} to {ex_id}")
                 # Add this experiment id to this design
                 ex_ids.append(ex_id)
                 try:
@@ -783,6 +801,49 @@ class SQLiteDB(Database):
             parameters.update(kwargs)
             df = pd.DataFrame(parameters, index=[0])
             ex_id = self.write_experiment_parameters(scope_name, None, df)[0]
+        return ex_id
+
+    def set_experiment_id(self, scope_name=None, experiment_id=None, *args, **kwargs):
+        """
+        Set an experiment id in the database.
+
+        Args:
+            scope_name (str): scope name, used to identify experiments,
+                performance measures, and results associated with this run
+            parameters (dict): keys are experiment parameters, values are the
+                experimental values to look up.  Subsequent positional or keyword
+                arguments are used to update parameters.
+
+        Returns:
+            int: the experiment id of the identified experiment
+
+        Raises:
+            ValueError:
+                If scope name does not exist, or another experiments
+                already has this id, or this experiment already has a
+                different id.
+        """
+        scope_name = self._validate_scope(scope_name, 'design_name')
+        from ...exceptions import MissingIdWarning
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=MissingIdWarning)
+            ex_id = self.read_experiment_id(scope_name, *args, **kwargs)
+        if ex_id is None:
+            # check the id is not yet used
+            if experiment_id in self.read_all_experiment_ids(scope_name):
+                raise ValueError(f"experiment_id {experiment_id} already exists")
+
+            parameters = self.read_scope(scope_name).get_parameter_defaults()
+            for a in args:
+                if a is not None:
+                    parameters.update(a)
+            parameters.update(kwargs)
+            df = pd.DataFrame(parameters, index=[0])
+            ex_id = self.write_experiment_parameters(scope_name, None, df)[0]
+        else:
+            if ex_id != experiment_id:
+                raise ValueError(f"these parameters already have experiment_id "
+                                 f"{ex_id}, cannot change to {experiment_id}")
         return ex_id
 
     def new_run_id(
@@ -860,8 +921,12 @@ class SQLiteDB(Database):
         Args:
             scope_name (str): scope name, used to identify experiments,
                 performance measures, and results associated with this run
-            xl_df (pandas.DataFrame): columns are experiment parameters,
-                each row is a full experiment
+            xl_df (pandas.DataFrame):
+                The columns of this DataFrame are experiment parameters
+                to lookup, and each row is a full experiment.  It is
+                possible to include only a subset of the columns, and
+                matches will be returned if that subset matches only one
+                experiment.
 
         Returns:
             list: the experiment id's of the identified experiments
@@ -883,6 +948,8 @@ class SQLiteDB(Database):
                 raise ValueError('named scope {0} not found - experiment ids \
                                       not available'.format(scope_name))
 
+            scp_xl = [i[0] for i in scp_xl]
+            use_cols = set(c for c in xl_df.columns if c in scp_xl)
 
             for row in xl_df.itertuples(index=False, name=None):
 
@@ -890,6 +957,8 @@ class SQLiteDB(Database):
 
                 # get all ids by value
                 for par_name, par_value in zip(xl_df.columns, row):
+                    if par_name not in use_cols:
+                        continue
                     possible_ids = set([i[0] for i in fcur.execute(
                         sq.GET_EXPERIMENT_IDS_BY_VALUE,
                         [scope_name, par_name, par_value],
@@ -1310,6 +1379,14 @@ class SQLiteDB(Database):
                 experiment_id (which always appears in the index)
                 as well as the run_id (which only appears in the
                 index if this argument is set to True).
+            runs ({None, 'all', 'valid', 'invalid'}, default None):
+                By default, this method returns the one and only
+                valid model run matching the given `design_name`
+                and `source` (if any) for any experiment, and fails
+                if there is more than one such valid run. Set this to
+                'valid' or 'invalid' to get all valid or invalid model
+                runs (instead of raising an exception). Set to 'all' to get
+                everything, including both valid and invalidated results.
 
         Returns:
             emat.ExperimentalDesign:
@@ -1409,7 +1486,6 @@ class SQLiteDB(Database):
             design=None,
             runs=None,
             formulas=True,
-            _debug=False,
     ):
         """
         Read experiment results from the database.
@@ -1433,9 +1509,10 @@ class SQLiteDB(Database):
                 results from multiple sources, an error is raised.
             design (str): Deprecated, use `design_name`.
             runs ({None, 'all', 'valid', 'invalid'}, default None):
-                By default, this method fails if there is more than
-                one valid model run matching the given `design_name`
-                and `source` (if any) for any experiment.  Set this to
+                By default, this method returns the one and only
+                valid model run matching the given `design_name`
+                and `source` (if any) for any experiment, and fails
+                if there is more than one such valid run. Set this to
                 'valid' or 'invalid' to get all valid or invalid model
                 runs (instead of raising an exception). Set to 'all' to get
                 everything, including both valid and invalidated results.
@@ -1500,16 +1577,12 @@ class SQLiteDB(Database):
         )
 
         cur = self.conn.cursor()
-        if _debug == 'sql':
-            return sql, arg
         try:
             ex_m = pd.DataFrame(cur.execute(sql, arg).fetchall())
         except:
             _logger.error(f"ERROR ON READ MEASURES query=\n{sql}")
             _logger.error(f"ERROR ON READ MEASURES arg=\n{arg}")
             raise
-        if _debug:
-            return ex_m
         if ex_m.empty is False:
             if runs is None:
                 # by default, raise a value error if there are runs from multiple sources
