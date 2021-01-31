@@ -201,8 +201,9 @@ class PythonCoreModel(AbstractCoreModel, WorkbenchModel):
         """
 
         try:
-            if hasattr(self.function, item):
-                return getattr(self.function, item)
+            f = object.__getattribute__(self, 'function')
+            if hasattr(f, item):
+                return getattr(f, item)
         except:
             pass
         raise AttributeError(item)

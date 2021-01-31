@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.4.2
+#       jupytext_version: 1.7.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -32,7 +32,7 @@ emat.versions()
 # %%
 import numpy
 
-def demo(A=0,B=0,C=0):
+def demo(A=0,B=0,C=0,**unused):
     """
     Y = A/2 + sin(6πB) + ε
     """
@@ -85,7 +85,7 @@ demo_model = PythonCoreModel(demo, scope=demo_scope)
 experiments = demo_model.design_experiments(n_samples=5000)
 experiment_results = demo_model.run_experiments(experiments)
 
-# %% [markdown]
+# %% [raw] raw_mimetype="text/restructuredtext"
 # The :func:`feature_scores` method from the `emat.analysis` subpackage allows for
 # feature scoring based on the implementation found in the EMA Workbench.
 

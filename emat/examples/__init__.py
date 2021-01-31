@@ -9,6 +9,11 @@ def road_test(*args, yamlfile='road_test.yaml', **kwargs):
 		s.store_scope(db)
 	from ..model.core_python import Road_Capacity_Investment
 	m = PythonCoreModel(Road_Capacity_Investment, scope=s, db=db)
+	m.function_ = m.function
+	m.lane_width = 10
+	def corruptable(*args, **kwargs):
+		return m.function_(*args, **kwargs, lane_width=m.lane_width)
+	m.function = corruptable
 	return s, db, m
 
 def gbnrtc(*args, **kwargs):

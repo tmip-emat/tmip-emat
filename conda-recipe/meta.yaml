@@ -28,7 +28,7 @@ requirements:
     - appdirs
     - matplotlib
     - graphviz
-    - plotly::python-kaleido  # Plotly Static Image Export
+    - python-kaleido  # Plotly Static Image Export
     - ipywidgets
     - joblib
     - dask
@@ -56,6 +56,7 @@ test:
   requires:
     # Put any additional test requirements here.  For example
     - pytest
+    - pytest-regressions
 
 about:
   home: https://tmip-emat.github.io

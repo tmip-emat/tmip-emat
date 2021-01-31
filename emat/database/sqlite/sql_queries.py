@@ -152,8 +152,21 @@ INSERT_DESIGN_EXPERIMENT = '''
 '''
 
 NEW_EXPERIMENT_RUN = '''
-    INSERT INTO ema_experiment_run ( run_id, experiment_id, run_status, run_valid, run_location, run_source ) 
-    VALUES ( @run_id, @experiment_id, 'init', 1, @run_location, @run_source )
+    INSERT INTO 
+        ema_experiment_run ( 
+            run_id, 
+            experiment_id, 
+            run_status, 
+            run_valid, 
+            run_location, 
+            run_source ) 
+    VALUES ( 
+        @run_id, 
+        @experiment_id, 
+        'init', 
+        1, 
+        @run_location, 
+        @run_source )
 '''
 
 
@@ -196,6 +209,7 @@ INVALIDATE_RUN_ID = '''
         run_valid = 0
     WHERE 
         ema_experiment_run.run_id = @run_id
+        AND run_valid != 0
 '''
 
 

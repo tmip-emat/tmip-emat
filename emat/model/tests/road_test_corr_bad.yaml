@@ -77,7 +77,7 @@ inputs:
         ptype: policy lever
         desc: How much to expand capacity
         dtype: float
-        default: 0.0
+        default: 10.0
         min: 0
         max: 100
 

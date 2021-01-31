@@ -276,7 +276,10 @@ def update_histogram_figure(
 	data_column_missing_data = data_column.isna()
 	data_column_legit_data = ~data_column_missing_data
 	bar_heights, bar_x = numpy.histogram(data_column[data_column_legit_data], bins=bins)
-	bar_heights_select, bar_x = numpy.histogram(data_column[selection][data_column_legit_data], bins=bar_x)
+	bar_heights_select, bar_x = numpy.histogram(
+		data_column[selection][data_column_legit_data],
+		bins=bar_x,
+	)
 	if 'meta' in fig['layout']:
 		meta = fig['layout']['meta']
 		if meta is None:

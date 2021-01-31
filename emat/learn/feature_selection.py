@@ -2,10 +2,10 @@
 import numpy
 import pandas
 from sklearn.feature_selection import SelectKBest as _SelectKBest
-from sklearn.feature_selection.base import SelectorMixin, check_array, safe_mask
+from sklearn.utils import check_array, safe_mask
 
-from sklearn.base import BaseEstimator, clone
-from sklearn.feature_selection.base import SelectorMixin, TransformerMixin
+from sklearn.base import BaseEstimator, clone, TransformerMixin
+from sklearn.feature_selection import SelectorMixin
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import mutual_info_regression
 

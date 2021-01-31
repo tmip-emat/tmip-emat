@@ -915,6 +915,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             *,
             design_name=None,
             db=None,
+            allow_short_circuit=None,
     ):
         """
         Runs a design of combined experiments using this model.
@@ -1011,13 +1012,22 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             # instead depend on the model execution process to write the results into
             # the database when complete.
             with evaluator:
-                perform_experiments(
-                    self,
-                    scenarios=scenarios,
-                    policies=policies,
-                    zip_over={'scenarios', 'policies'},
-                    evaluator=evaluator,
-                )
+                if allow_short_circuit is not None:
+                    _stored_allow_short_circuit = self.allow_short_circuit
+                    self.allow_short_circuit = allow_short_circuit
+                else:
+                    _stored_allow_short_circuit = None
+                try:
+                    perform_experiments(
+                        self,
+                        scenarios=scenarios,
+                        policies=policies,
+                        zip_over={'scenarios', 'policies'},
+                        evaluator=evaluator,
+                    )
+                finally:
+                    if _stored_allow_short_circuit is not None:
+                        self.allow_short_circuit = _stored_allow_short_circuit
             return
 
         else:
@@ -1027,6 +1037,11 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     self.db = None
                 else:
                     _stored_db = None
+                if allow_short_circuit is not None:
+                    _stored_allow_short_circuit = self.allow_short_circuit
+                    self.allow_short_circuit = allow_short_circuit
+                else:
+                    _stored_allow_short_circuit = None
                 try:
                     experiments, outcomes = perform_experiments(
                         self,
@@ -1038,6 +1053,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 finally:
                     if _stored_db:
                         self.db = _stored_db
+                    if _stored_allow_short_circuit is not None:
+                        self.allow_short_circuit = _stored_allow_short_circuit
             experiments.index = design.index
 
             outcomes = pd.DataFrame.from_dict(outcomes)

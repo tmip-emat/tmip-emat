@@ -1,0 +1,2 @@
+experiment,alpha,beta,input_flow,value_of_time,unit_cost_expansion,interest_rate,yield_curve,expand_capacity,amortization_period,debt_type,interest_rate_lock,free_flow_time,initial_capacity,no_build_travel_time,build_travel_time,time_savings,value_of_time_savings,net_benefits,cost_of_capacity_expansion,present_cost_expansion
+111,0.14999999999999999,4,100,0.074999999999999997,100,0.029999999999999999,0.01,10,30,GO Bond,False,60,100,69,66.147121098285638,2.8528789017143623,21.396591762857717,-30.807345638966162,52.203937401823879,1000
