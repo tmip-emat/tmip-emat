@@ -8,7 +8,7 @@ args = parser.parse_args()
 
 import re
 
-duplicate_tag = '''(<script src="https://unpkg.com/@jupyter-widgets/html-manager@\^0.18.0/dist/embed-amd.js"></script>)'''
+duplicate_tag = '''(<script src="https://unpkg.com/@jupyter-widgets/html-manager@\^[0-9]*\.[0-9]*\.[0-9]*/dist/embed-amd.js"></script>)'''
 bad1 = re.compile(duplicate_tag)
 bad2 = re.compile(duplicate_tag+"(.*)"+duplicate_tag)
 

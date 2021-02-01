@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import numpy
+import numpy as np
 
 class Dummy():
 
@@ -38,8 +38,8 @@ def NoisyDummy(**kwargs):
     lever1 = kwargs.get('lever1', 0)
     lever2 = kwargs.get('lever2', 0)
     uncertain1 = kwargs.get('uncertain1', 3)
-    uncertain2 = numpy.exp(kwargs.get('uncertain2', -0.7))
-    uncertain3 = numpy.exp(kwargs.get('uncertain3', 0.7))
+    uncertain2 = np.exp(kwargs.get('uncertain2', -0.7))
+    uncertain3 = np.exp(kwargs.get('uncertain3', 0.7))
     certain4 = kwargs.get('certain4', 3)
 
     noise_amplitude = kwargs.get('noise_amplitude', 2.0)
@@ -48,31 +48,101 @@ def NoisyDummy(**kwargs):
     pm_1 = (
         - uncertain2 * lever1 * lever1
         + (uncertain1 + certain4) * (lever1 + lever2)
-        + noise_amplitude * numpy.sin(noise_frequency * lever1)
+        + noise_amplitude * np.sin(noise_frequency * lever1)
     )
 
-    pm_2 = numpy.minimum(
+    pm_2 = np.minimum(
         1.11e+111 * uncertain1,
-        numpy.exp(
+        np.exp(
             uncertain3 * lever1 * (lever1 + lever2)
             + uncertain1 * lever1
-            + noise_amplitude * numpy.cos(noise_frequency * lever2)
+            + noise_amplitude * np.cos(noise_frequency * lever2)
         )
     )
 
     pm_3 = (
-        noise_amplitude * numpy.cos(noise_frequency * lever1)
-        + noise_amplitude * numpy.sin(noise_frequency * lever2)
+        noise_amplitude * np.cos(noise_frequency * lever1)
+        + noise_amplitude * np.sin(noise_frequency * lever2)
         + certain4
     )
 
-    pm_4 = numpy.exp(
+    pm_4 = np.exp(
             uncertain1 + certain4
     )
 
     return {'pm_1':pm_1, 'pm_2': pm_2, 'pm_3': pm_3, 'pm_4':pm_4}
 
 
+def pmt(rate, nper, pv, fv=0, when='end'):
+    """
+    Compute the payment against loan principal plus interest.
+
+    Given:
+     * a present value, `pv` (e.g., an amount borrowed)
+     * a future value, `fv` (e.g., 0)
+     * an interest `rate` compounded once per period, of which
+       there are
+     * `nper` total
+     * and (optional) specification of whether payment is made
+       at the beginning (`when` = {'begin', 1}) or the end
+       (`when` = {'end', 0}) of each period
+
+    Return:
+       the (fixed) periodic payment.
+
+    Parameters
+    ----------
+    rate : array_like
+        Rate of interest (per period)
+    nper : array_like
+        Number of compounding periods
+    pv : array_like
+        Present value
+    fv : array_like,  optional
+        Future value (default = 0)
+    when : {{'begin', 1}, {'end', 0}}, {string, int}
+        When payments are due ('begin' (1) or 'end' (0))
+
+    Returns
+    -------
+    out : ndarray
+        Payment against loan plus interest.  If all input is scalar, returns a
+        scalar float.  If any input is array_like, returns payment for each
+        input element. If multiple inputs are array_like, they all must have
+        the same shape.
+
+    Notes
+    -----
+    This function is replicated from the numpy_financial package, under the same
+    LICENSE as the TMIP-EMAT repository.
+    Copyright (c) 2005-2019, NumPy Developers. All rights reserved.
+
+    """
+
+    _when_to_num = {'end': 0, 'begin': 1,
+                    'e': 0, 'b': 1,
+                    0: 0, 1: 1,
+                    'beginning': 1,
+                    'start': 1,
+                    'finish': 0}
+
+    def _convert_when(when):
+        # Test to see if when has already been converted to ndarray
+        # This will happen if one function calls another, for example ppmt
+        if isinstance(when, np.ndarray):
+            return when
+        try:
+            return _when_to_num[when]
+        except (KeyError, TypeError):
+            return [_when_to_num[x] for x in when]
+    when = _convert_when(when)
+    (rate, nper, pv, fv, when) = map(np.array, [rate, nper, pv, fv, when])
+    temp = (1 + rate)**nper
+    mask = (rate == 0)
+    masked_rate = np.where(mask, 1, rate)
+    fact = np.where(mask != 0, nper,
+                    (1 + masked_rate*when)*(temp - 1)/masked_rate)
+    return -(fv + pv*temp) / fact
 
 def Road_Capacity_Investment(
         # constant
@@ -171,8 +241,8 @@ def Road_Capacity_Investment(
     average_travel_time0 = free_flow_time * (1 + alpha*(input_flow/initial_capacity)**beta)
     capacity = initial_capacity + expand_capacity
     average_travel_time1 = free_flow_time * (1 + alpha*(input_flow/capacity)**beta)
-    oops = numpy.absolute(lane_width-10)
-    average_travel_time1 += (oops*1000)**0.5 + numpy.sin(input_flow)*oops*2
+    oops = np.absolute(lane_width-10)
+    average_travel_time1 += (oops*1000)**0.5 + np.sin(input_flow)*oops*2
     travel_time_savings = average_travel_time0 - average_travel_time1
     value_of_time_savings = value_of_time * travel_time_savings * input_flow
     present_cost_of_capacity_expansion = float(unit_cost_expansion * expand_capacity)
@@ -188,9 +258,11 @@ def Road_Capacity_Investment(
 
     effective_interest_rate = interest_rate + yield_curve * (amortization_period-15) / 35
 
-    cost_of_capacity_expansion = numpy.pmt(effective_interest_rate,
-                                           amortization_period,
-                                           present_cost_of_capacity_expansion, )
+    cost_of_capacity_expansion = pmt(
+        effective_interest_rate,
+        amortization_period,
+        present_cost_of_capacity_expansion,
+    )
 
     return dict(
         no_build_travel_time=average_travel_time0,
@@ -208,7 +280,7 @@ def _Road_Capacity_Investment_CmdLine():
     """
     This is a demo for calling a core model function on the command line.
     """
-    import argparse, pandas, os, numpy, sys, warnings
+    import argparse, pandas, os, sys, warnings
     parser = argparse.ArgumentParser()
     parser.add_argument('--levers', type=str, default='levers.yml', help='Levers Yaml File')
     parser.add_argument('--uncs', type=str, default="uncs.yml", help='Uncertainties Yaml File')
@@ -278,10 +350,10 @@ def _Road_Capacity_Investment_CmdLine():
 
         result1 = {str(k):float(result[k]) for k in ['no_build_travel_time','build_travel_time','time_savings']}
         result2 = pandas.DataFrame({
-            'value_of_time_savings': [numpy.exp(result['value_of_time_savings']/1000), numpy.nan],
-            'present_cost_expansion': [numpy.nan, result['present_cost_expansion']],
-            'cost_of_capacity_expansion': [numpy.exp(result['cost_of_capacity_expansion']/1000), numpy.nan],
-            'net_benefits': [numpy.nan,result['net_benefits']],
+            'value_of_time_savings': [np.exp(result['value_of_time_savings']/1000), np.nan],
+            'present_cost_expansion': [np.nan, result['present_cost_expansion']],
+            'cost_of_capacity_expansion': [np.exp(result['cost_of_capacity_expansion']/1000), np.nan],
+            'net_benefits': [np.nan,result['net_benefits']],
         }, index=['exp','plain'])
 
         with open('output.yaml', 'wt') as f:

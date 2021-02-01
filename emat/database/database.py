@@ -10,6 +10,7 @@ Abstract Base Class for data storage format
 
 import abc
 import pandas as pd
+from contextlib import contextmanager
 
 class Database(abc.ABC):
     
@@ -21,6 +22,19 @@ class Database(abc.ABC):
 
     def __init__(self, readonly=False):
         self.readonly = readonly
+        self.__locked = False
+
+    @property
+    @contextmanager
+    def lock(self):
+        """Context manager to temporarily mark this database as locked."""
+        self.__locked = True
+        yield
+        self.__locked = False
+
+    @property
+    def is_locked(self):
+        return self.readonly or self.__locked
 
     def get_db_info(self):
         """

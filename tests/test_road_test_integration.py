@@ -30,6 +30,10 @@ class TestRoadTest(unittest.TestCase):
 	# Tests
 	#
 	def test_road_test(self):
+		import os
+		test_dir = os.path.dirname(__file__)
+		os.chdir(test_dir)
+
 		road_test_scope_file = emat.package_file('model', 'tests', 'road_test.yaml')
 
 		road_scope = emat.Scope(road_test_scope_file)
@@ -310,8 +314,8 @@ class TestRoadTest(unittest.TestCase):
 		# %%
 
 		numpy.random.seed(42)
-
-		with MultiprocessingEvaluator(m) as evaluator:
+		os.chdir(test_dir)
+		with SequentialEvaluator(m) as evaluator:
 			r1 = m.robust_evaluate(
 				robustness_functions,
 				scenarios=20,
@@ -391,6 +395,10 @@ class TestRoadTest(unittest.TestCase):
 		import numpy
 		import emat.examples
 		scope, db, model = emat.examples.road_test()
+
+		import os
+		test_dir = os.path.dirname(__file__)
+		os.chdir(test_dir)
 
 		result = model.optimize(
 			nfe=10,

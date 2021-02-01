@@ -33,6 +33,9 @@ class TestMetaModelMethods(unittest.TestCase):
 
 
     def test_derive_meta(self):
+        import os
+        test_dir = os.path.dirname(__file__)
+        os.chdir(test_dir)
         from emat.examples import road_test
 
         s, db, m = road_test()
