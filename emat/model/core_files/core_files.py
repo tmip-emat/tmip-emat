@@ -120,6 +120,10 @@ class FilesCoreModel(AbstractCoreModel):
 		"""Path: The current local working directory for this model."""
 		return self._local_directory or self.config.get("local_directory", os.getcwd())
 
+	@local_directory.setter
+	def local_directory(self, value):
+		self._local_directory = value
+
 	def __getstate__(self):
 		state = super().__getstate__()
 		# The SQLite Database does not serialize for usage in other
@@ -336,6 +340,7 @@ class FilesCoreModel(AbstractCoreModel):
 				if a defined experiment variable is not supported
 				by the core model
 		"""
+		experiment_id = params.pop("_experiment_id_", None)
 
 		# Validate parameter names
 		scope_param_names = set(self.scope.get_parameter_names())
@@ -350,10 +355,13 @@ class FilesCoreModel(AbstractCoreModel):
 		# Get the experiment_id if stored
 		db = getattr(self, 'db', None)
 		if db is not None:
-			run_id, experiment_id = self.db.new_run_id(self.scope.name, params)
+			run_id, experiment_id = self.db.new_run_id(
+				self.scope.name, params, experiment_id=experiment_id
+			)
 		else:
 			import uuid
-			experiment_id = getattr(self, 'experiment_id', None)
+			if experiment_id is None:
+				experiment_id = getattr(self, 'experiment_id', None)
 			run_id = uuid.uuid4()
 
 		self.run_id = run_id

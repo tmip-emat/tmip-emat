@@ -12,7 +12,8 @@ def road_test(*args, yamlfile='road_test.yaml', **kwargs):
 	m.function_ = m.function
 	m.lane_width = 10
 	def corruptable(*args, **kwargs):
-		return m.function_(*args, **kwargs, lane_width=m.lane_width)
+		lane_width = kwargs.pop('lane_width', m.lane_width)
+		return m.function_(*args, **kwargs, lane_width=lane_width)
 	m.function = corruptable
 	return s, db, m
 

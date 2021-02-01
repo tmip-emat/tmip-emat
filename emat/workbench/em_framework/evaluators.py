@@ -253,14 +253,18 @@ class SequentialEvaluator(BaseEvaluator):
         models = NamedObjectMap(AbstractModel)
         models.extend(self._msis)
 
-        cwd = os.getcwd()
+        try:
+            cwd = os.getcwd()
+        except FileNotFoundError:
+            cwd = None
         runner = ExperimentRunner(models)
 
         for experiment in ex_gen:
             outcomes = runner.run_experiment(experiment)
             callback(experiment, outcomes)
         runner.cleanup()
-        os.chdir(cwd)
+        if cwd is not None:
+            os.chdir(cwd)
 
 
 class MultiprocessingEvaluator(BaseEvaluator):

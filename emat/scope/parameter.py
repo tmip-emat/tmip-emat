@@ -550,7 +550,7 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
             if self.corr != other.corr:
                 return False
             if self.distdef != other.distdef:
-                print("NO! distdef", self.distdef, other.distdef)
+                print(f"distdef not equal: {self.distdef} != {other.distdef}")
                 return False
         except AttributeError:
             return False

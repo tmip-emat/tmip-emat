@@ -76,7 +76,10 @@ def make_rv_frozen(name=None, discrete=False, min=None, max=None, **kwargs):
 def rv_frozen_as_dict(frozen, min=None, max=None):
 	if not isinstance(frozen, rv_frozen):
 		return frozen
-	x = {'name': frozen.dist.name}
+	if frozen.dist.name == 'Distribution':
+		x = {'name': frozen.dist.__class__.__name__.replace("_gen", "")}
+	else:
+		x = {'name': frozen.dist.name}
 	if frozen.args:
 		x['args'] = frozen.args
 	if frozen.kwds:

@@ -356,6 +356,10 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         """Path: The current local working directory for this model."""
         return self.config.get("local_directory", os.getcwd())
 
+    @local_directory.setter
+    def local_directory(self, value):
+        self.config["local_directory"] = value
+
     @property
     def resolved_model_path(self):
         """
@@ -837,15 +841,15 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             db (Database, required): The database to use for loading and saving experiments.
                 If none is given, the default database for this model is used.
                 If there is no default db, and none is given here,
-                these experiments will be aborted, as there won't be any way
-                to access the results.
+                these experiments will be aborted.
             design_name (str, optional): The name of a design of experiments to
                 load from the database.  This design is only used if
                 `design` is None.
             evaluator (emat.workbench.Evaluator, optional): Optionally give an
                 evaluator instance.  If not given, a default DistributedEvaluator
                 will be instantiated.  Passing any other kind of evaluator will
-                cause an error.
+                currently cause an error, although in the future other async
+                compatible evaluators may be provided.
             max_n_workers (int, optional):
                 The maximum number of workers that will be created for a default
                 dask.distributed LocalCluster.  If the number of cores available is
