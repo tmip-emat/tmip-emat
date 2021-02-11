@@ -1,9 +1,10 @@
 numpy
-pandas>=1.1
+pandas>=1.2
 appdirs
 pydot
-plotly
+plotly>=4.14
 scipy
+scikit-learn>=0.24
 seaborn
 pyyaml
 cloudpickle

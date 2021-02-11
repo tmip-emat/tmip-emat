@@ -24,7 +24,7 @@ requirements:
     - scipy
     - seaborn
     - pyyaml
-    - scikit-learn>=0.22.1
+    - scikit-learn>=0.24
     - appdirs
     - matplotlib
     - graphviz
