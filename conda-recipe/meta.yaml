@@ -18,13 +18,13 @@ requirements:
   run:
     - python
     - numpy
-    - pandas
+    - pandas>=1.2
     - pydot
-    - plotly
+    - plotly>=4.14
     - scipy
     - seaborn
     - pyyaml
-    - scikit-learn
+    - scikit-learn>=0.22.1
     - appdirs
     - matplotlib
     - graphviz
