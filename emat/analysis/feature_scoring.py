@@ -18,6 +18,7 @@ def feature_scores(
 		random_state=None,
 		cmap='viridis',
 		measures=None,
+		shortnames=None,
 ):
 	"""
 	Calculate feature scores based on a design of experiments.
@@ -41,6 +42,11 @@ def feature_scores(
 		measures (Collection, optional): The performance measures
 			on which feature scores are to be generated.  By default,
 			all measures are included.
+		shortnames (Scope or callable):
+			If given, use this function to convert the measure
+			names into more readable `shortname` values from the
+			scope, or by using a function that maps measures
+			names to something else.
 
 	Returns:
 		xmle.Elem or pandas.DataFrame:
@@ -110,6 +116,15 @@ def feature_scores(
 	drop_r = list(fs.index[(~pandas.isna(fs)).sum(axis=1) == 0])
 	fs = fs.drop(index=drop_r, columns=drop_c)
 
+	if shortnames is not None:
+		if shortnames is True:
+			shortnames = scope
+		from ..scope.scope import Scope
+		if isinstance(shortnames, Scope):
+			fs.columns = fs.columns.map(shortnames.shortname)
+		else:
+			fs.columns = fs.columns.map(shortnames)
+
 	# convert colormap to a light color palette for rendered outputs
 	if 'figure' in return_type.lower() or 'styled' in return_type.lower():
 		try:
@@ -126,7 +141,8 @@ def feature_scores(
 			cmap=cmap,
 		)
 	elif return_type.lower() == 'styled':
-		return fs.T.style.background_gradient(cmap=cmap, axis=1, text_color_threshold=0.5)
+		from ..util.styling import feature_score_styling
+		return feature_score_styling(fs.T, cmap=cmap)
 	else:
 		return fs.T
 

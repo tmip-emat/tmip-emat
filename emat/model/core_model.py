@@ -1393,6 +1393,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             random_state=None,
             cmap='viridis',
             measures=None,
+            shortnames=None,
     ):
         """
         Calculate feature scores based on a design of experiments.
@@ -1427,6 +1428,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         scores features using the "extra trees" regression approach.
         """
         from ..analysis.feature_scoring import feature_scores
+        if shortnames is True:
+            shortnames = self.scope
         return feature_scores(
             self.scope,
             design=design,
@@ -1435,6 +1438,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             random_state=random_state,
             cmap=cmap,
             measures=measures,
+            shortnames=shortnames,
         )
 
     def get_feature_scores(self, *args, **kwargs):

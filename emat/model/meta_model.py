@@ -521,6 +521,7 @@ class MetaModel:
             gpr_only=False,
             use_cache=True,
             return_type='styled',
+            shortnames=None,
             **kwargs,
     ):
         """
@@ -539,6 +540,11 @@ class MetaModel:
                 are ignored if a cached results if available.
             return_type ({'styled', 'raw'}):  How to return the
                 results.
+            shortnames (Scope or callable):
+                If given, use this function to convert the measure
+                names into more readable `shortname` values from the
+                scope, or by using a function that maps measures
+                names to something else.
 
         Returns:
             pandas.Series: The cross-validation scores, by output.
@@ -566,31 +572,15 @@ class MetaModel:
         if use_cache:
             self._cv_cache = result
 
-        if return_type == 'styled':
-            def _color(val):
-                """
-                Takes a scalar and returns a string with
-                the css property `'color: xxx'` for certain
-                values, black otherwise.
-                """
-                bgcolor = ''
-                if val == 'bad':
-                    return 'background-color: red'
-                if val < 0.75:
-                    bgcolor = 'yellow'
-                if val < 0.50:
-                    bgcolor = 'orange'
-                if val < 0.25:
-                    bgcolor = 'red'
-                if bgcolor:
-                    return 'background-color: %s' % bgcolor
-                return ''
-            def _fmt(val):
-                if val < -2:
-                    return "bad"
-                return "{:.4f}".format(val)
+        if shortnames is not None:
+            if isinstance(shortnames, Scope):
+                result.index = result.index.map(shortnames.shortname)
+            else:
+                result.index = result.index.map(shortnames)
 
-            return pandas.DataFrame(result).style.applymap(_color).format(_fmt)
+        if return_type == 'styled':
+            from ..util.styling import cross_validation_styling
+            return cross_validation_styling(result)
 
         return result
 
