@@ -9,14 +9,15 @@ source:
 
 build:
   noarch: python
-  number: 1
+  number: 0
   script: "python -m pip install . --no-deps -vv"
 
 requirements:
-  build:
-    - python
+  host:
+    - python>=3.7
+    - pip
   run:
-    - python
+    - python>=3.7
     - numpy
     - pandas>=1.2
     - pydot
