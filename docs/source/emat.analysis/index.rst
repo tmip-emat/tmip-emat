@@ -49,6 +49,7 @@ and execute *new* cases.
 
 .. toctree::
 
+    policy-compare
     optimization
 
 

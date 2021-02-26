@@ -18,3 +18,4 @@ except ImportError:
 	pass
 
 from .prim import Prim, PrimBox
+from .contrast import AB_Viewer

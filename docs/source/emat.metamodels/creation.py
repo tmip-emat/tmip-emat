@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.4.2
+#       jupytext_version: 1.9.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -39,7 +39,7 @@ results = model.run_experiments(design)
 # We can then create a meta-model automatically from these experiments.
 
 # %%
-mm = model.create_metamodel_from_design('lhs')
+mm = model.create_metamodel_from_design('lhs', suppress_converge_warnings=True)
 mm
 
 # %% [markdown]
@@ -59,6 +59,8 @@ mm.cross_val_scores()
 
 # %%
 design2 = mm.design_experiments(design_name='lhs_meta', n_samples=5000)
+
+# %%
 results2 = mm.run_experiments(design2)
 
 # %%

@@ -82,7 +82,7 @@ def db_setup():
 
     scope = emat.Scope(sheet, scope_yaml)
 
-    db_test.write_scope(
+    db_test._write_scope(
         scope_name, sheet, ex_xl, ex_m, scope,
     )
     yield Bunch(
@@ -313,7 +313,7 @@ def test_incomplete_experiment(db_setup):
 # try to overwrite existing scope
 def test_scope_overwrite(db_setup):
     with pytest.raises(KeyError):
-        db_setup.db_test.write_scope(
+        db_setup.db_test._write_scope(
             db_setup.scope_name, db_setup.sheet, db_setup.scp_xl, db_setup.scp_m,
         )
 
@@ -322,7 +322,7 @@ def test_scope_overwrite(db_setup):
 
 def test_scope_invalid_risk(db_setup):
     with pytest.raises(KeyError):
-        db_setup.db_test.write_scope(
+        db_setup.db_test._write_scope(
             "test2", db_setup.sheet, ["exp_var3"], db_setup.ex_m,
         )
     db_setup.db_test.delete_scope("test2")
@@ -331,7 +331,7 @@ def test_scope_invalid_risk(db_setup):
 # scope with invalid performance measures
 def test_scope_invalid_pm(db_setup):
     with pytest.raises(KeyError):
-        db_setup.db_test.write_scope(
+        db_setup.db_test._write_scope(
             "test2", db_setup.sheet, db_setup.ex_xl, ["pm_3"],
         )
     db_setup.db_test.delete_scope("test2")

@@ -12,6 +12,15 @@ from .. import styles
 
 DEFAULT_BACKGROUND = 100
 
+_plotly_blue = '#1f77b4'
+_plotly_orange = '#ff7f0e'
+_plotly_green = '#2ca02c'
+_plotly_red = '#d62728'
+_plotly_purple = '#9467bd'
+
+_left_top_color = _plotly_green
+_right_bottom_color = _plotly_purple
+
 class Timer:
 	def __init__(self, timeout, callback):
 		self._timeout = timeout
@@ -285,7 +294,7 @@ def create_violin(
 	kwargs_a = dict(
 		name=a_name,
 		side='positive',
-		line_color=colors.DEFAULT_BASE_COLOR,
+		line_color=_left_top_color,
 		pointpos=0.5,
 		**kwargs_common,
 	)
@@ -293,7 +302,7 @@ def create_violin(
 	kwargs_b = dict(
 		name=b_name,
 		side='negative',
-		line_color=colors.DEFAULT_HIGHLIGHT_COLOR,
+		line_color=_right_bottom_color,
 		pointpos=-0.5,
 		**kwargs_common,
 	)
@@ -552,12 +561,14 @@ class AB_Chooser(widget.Box):
 					options=param.values,
 					continuous_update=False,
 					orientation=_ox.get(orientation),
+					style=dict(handle_color=_left_top_color),
 				)
 				b = widget.SelectionSlider(
 					value=param.default,
 					options=param.values,
 					continuous_update=False,
 					orientation=_ox.get(orientation),
+					style=dict(handle_color=_right_bottom_color),
 				)
 			elif param.dtype == 'int':
 				a = widget.IntSlider(
@@ -566,6 +577,7 @@ class AB_Chooser(widget.Box):
 					max=param.max,
 					continuous_update=False,
 					orientation=_ox.get(orientation),
+					style=dict(handle_color=_left_top_color),
 				)
 				b = widget.IntSlider(
 					value=param.default,
@@ -573,6 +585,7 @@ class AB_Chooser(widget.Box):
 					max=param.max,
 					continuous_update=False,
 					orientation=_ox.get(orientation),
+					style=dict(handle_color=_right_bottom_color),
 				)
 
 			else:
@@ -583,6 +596,7 @@ class AB_Chooser(widget.Box):
 					step=(param.max - param.min)/20,
 					continuous_update=False,
 					orientation=_ox.get(orientation),
+					style=dict(handle_color=_left_top_color),
 				)
 				b = widget.FloatSlider(
 					value=param.default,
@@ -591,6 +605,7 @@ class AB_Chooser(widget.Box):
 					step=(param.max - param.min) / 20,
 					continuous_update=False,
 					orientation=_ox.get(orientation),
+					style=dict(handle_color=_right_bottom_color),
 				)
 			a_slides.append(a)
 			b_slides.append(b)
@@ -628,16 +643,6 @@ class AB_Chooser(widget.Box):
 				pass
 		return a, b
 
-# def _AB_Viewer_compute(self, payload=None):
-# 	a, b = self.chooser.get_ab()
-# 	ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
-# 	if self._ab == ab: return
-# 	self._ab = ab
-# 	background = getattr(self.contrast, 'background', DEFAULT_BACKGROUND)
-# 	self.contrast = AB_Contrast(self.model, a, b, background=background)
-# 	for measure in self._figures.keys():
-# 		self.get_figure(measure, **self.figure_kwargs)
-
 
 class AB_Viewer():
 
@@ -650,8 +655,8 @@ class AB_Viewer():
 	):
 		self.model = model
 		self.scope = scope or model.scope
-		self.chooser = AB_Chooser(self.scope)
-		a, b = self.chooser.get_ab()
+		self._chooser = AB_Chooser(self.scope)
+		a, b = self._chooser.get_ab()
 		ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
 		self._ab = ab
 		self.contrast = AB_Contrast(
@@ -671,7 +676,7 @@ class AB_Viewer():
 		self._compute_button.on_click(self.compute)
 		self.interface = widget.VBox(
 			[
-				self.chooser,
+				self._chooser,
 				self._compute_button,
 			],
 			layout=dict(
@@ -679,12 +684,8 @@ class AB_Viewer():
 				align_items = 'center',
 			),
 		)
-		# for row in self.chooser.children:
-		# 	row.a_widget.observe(self.compute)
-		# 	row.b_widget.observe(self.compute)
 
 	def compute(self, payload=None):
-		#return _AB_Viewer_compute(self, payload)
 		try:
 			if payload.get('name') != 'value':
 				print("NO ACTION -- ",payload)
@@ -695,9 +696,10 @@ class AB_Viewer():
 		self._compute_button.description = "running..."
 		self._compute_button.disabled = True
 		try:
-			a, b = self.chooser.get_ab()
+			a, b = self._chooser.get_ab()
 			ab = tuple(sorted(a.items())), tuple(sorted(b.items()))
-			if self._ab == ab and 'force' not in payload: return
+			if self._ab == ab and isinstance(payload, dict) and 'force' not in payload:
+				return
 			self._ab = ab
 			background = getattr(self.contrast, 'background', DEFAULT_BACKGROUND)
 			self.contrast = AB_Contrast(self.model, a, b, background=background)
