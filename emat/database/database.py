@@ -49,42 +49,52 @@ class Database(abc.ABC):
     def init_xlm(self, parameter_list, measure_list):
         """
         Initialize or extend set of experiment variables and measures
-        
-        Initialize database with universe of risk variables, 
+
+        Initialize database with universe of risk variables,
         policy variables, and performance measures. All variables and measures
         defined in scopes must be defined in this set.
         This method only needs to be run
         once after creating a new database.
 
         Args:
-            parameter_list (List[tuple]): Experiment variable tuples
-                (variable name, type)
+            parameter_list (List[tuple]):
+                Experiment variable tuples (variable name, type)
                 where variable name is a string and
                 type is 'uncertainty', 'lever', or 'constant'
-            measure_list (List[tuple]): Performance measure tuples
-                (performance measure name, type)
-                where type is 'regional', 'transit', 'corridor', etc.
-                See scope yaml file for all categories
+            measure_list (List[tuple]):
+                Performance measure tuples (name, transform), where
+                name is a string and transform is a defined transformation
+                used in metamodeling, currently supported include {'log', None}.
 
-        """   
+        """
     
     @abc.abstractmethod
-    def write_scope(self, scope_name, sheet, scp_xl, scp_m, content):
-        """Save the emat scope information to the database.
-          
+    def _write_scope(self, scope_name, sheet, scp_xl, scp_m, content):
+        """
+        Save the emat scope information to the database.
+
+        Generally users should not call this function directly,
+        use `store_scope` instead.
+
         Args:
-            scope_name (str): scope name, used to identify experiments,
-                performance measures, and results associated with this run
-            sheet (str): yaml file name with scope definition
-            scp_m (List[str]): scope variables - risk variables and 
-                strategy variables
-            m_list (List[str]): scope performance measures
-            content (Scope): scope object
+            scope_name (str):
+                The scope name, used to identify experiments,
+                performance measures, and results associated with this model.
+                Multiple scopes can be stored in the same database.
+            sheet (str):
+                Yaml file name with scope definition.
+            scp_xl (List[str]):
+                Scope parameter names - both uncertainties and policy levers
+            scp_m (List[str]):
+                Scope performance measure names
+            content (Scope, optional):
+                Scope object to be pickled and stored in the database.
         Raises:
-            KeyError: If scope name already exists, the scp_vars are not
+            KeyError:
+                If scope name already exists, the scp_vars are not
                 available, or the performance measures are not initialized
                 in the database.
-        
+
         """
 
     @abc.abstractmethod
@@ -109,18 +119,20 @@ class Database(abc.ABC):
 
     @abc.abstractmethod
     def read_scope(self, scope_name=None):
-        """Load the pickled scope from the database.
+        """
+        Load the pickled scope from the database.
 
         Args:
             scope_name (str, optional):
                 The name of the scope to load.  If not
                 given and there is only one scope stored
                 in the database, that scope is loaded. If not
-                given and  there are multiple scopes stored in
+                given and there are multiple scopes stored in
                 the database, a KeyError is raised.
 
         Returns:
             Scope
+
         Raises:
             KeyError: If a name is given but is not found in
                 the database, or if no name is given but there

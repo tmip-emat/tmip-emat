@@ -207,7 +207,7 @@ class Scope:
         )
 
         # write scope definitions
-        db.write_scope(
+        db._write_scope(
             self.name,
             self.scope_file,
             [xl for xl in self.xl_di],

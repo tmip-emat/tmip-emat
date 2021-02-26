@@ -71,6 +71,9 @@ class SQLiteDB(Database):
             workers that run code in a separate thread from the model class object,
             so setting this to False is necessary to enable SQLite connections on
             the workers.
+        update (bool, default True):
+            Whether to attempt a database schema update if the open file appears
+            to be an out-of-date database format.
     """
 
     def __init__(
@@ -214,9 +217,22 @@ class SQLiteDB(Database):
                     _logger.error(f"Unexpected output in database script {filename}:\n{q}\n{z}")
 
     def vacuum(self):
+        """
+        Vacuum the SQLite database.
+
+        SQLite files grow over time, and may have inefficient allocation of data
+        as more rows are added.  This command may make the database file run faster
+        or be smaller on disk.
+        """
         self.conn.cursor().execute('VACUUM')
 
     def update_database_for_run_ids(self):
+        """
+        Add run_id to runs that do not have one.
+
+        This command is for updating older files, and  should not be needed
+        on recently created database files.
+        """
 
         # add run_id to runs that do not have one
 
@@ -300,7 +316,7 @@ class SQLiteDB(Database):
 
     def update_database(self, queries, on_error='ignore'):
         """
-        Update database for compatability with tmip-emat 0.4
+        Update database for compatability with tmip-emat 0.4 and later
         """
         if self.readonly:
             raise DatabaseVersionError("cannot open or update an old database in readonly")
@@ -377,8 +393,27 @@ class SQLiteDB(Database):
         """
         return f"SQLite @ {self.database_path}"
 
-    @copydoc(Database.init_xlm)
-    def init_xlm(self, parameter_list: List[tuple], measure_list: List[tuple]):
+    def init_xlm(self, parameter_list, measure_list):
+        """
+        Initialize or extend set of experiment variables and measures
+
+        Initialize database with universe of risk variables,
+        policy variables, and performance measures. All variables and measures
+        defined in scopes must be defined in this set.
+        This method only needs to be run
+        once after creating a new database.
+
+        Args:
+            parameter_list (List[tuple]):
+                Experiment variable tuples (variable name, type)
+                where variable name is a string and
+                type is 'uncertainty', 'lever', or 'constant'
+            measure_list (List[tuple]):
+                Performance measure tuples (name, transform), where
+                name is a string and transform is a defined transformation
+                used in metamodeling, currently supported include {'log', None}.
+
+        """
 
         with self.conn:
             cur = self.conn.cursor()
@@ -392,8 +427,33 @@ class SQLiteDB(Database):
                 cur.execute(sq.CONDITIONAL_INSERT_M, m)
 
 
-    @copydoc(Database.write_scope)
-    def write_scope(self, scope_name, sheet, scp_xl, scp_m, content=None):
+    def _write_scope(self, scope_name, sheet, scp_xl, scp_m, content=None):
+        """
+        Save the emat scope information to the database.
+
+        Generally users should not call this function directly,
+        use `store_scope` instead.
+
+        Args:
+            scope_name (str):
+                The scope name, used to identify experiments,
+                performance measures, and results associated with this model.
+                Multiple scopes can be stored in the same database.
+            sheet (str):
+                Yaml file name with scope definition.
+            scp_xl (List[str]):
+                Scope parameter names - both uncertainties and policy levers
+            scp_m (List[str]):
+                Scope performance measure names
+            content (Scope, optional):
+                Scope object to be pickled and stored in the database.
+        Raises:
+            KeyError:
+                If scope name already exists, the scp_vars are not
+                available, or the performance measures are not initialized
+                in the database.
+
+        """
         if self.readonly:
             raise ReadOnlyDatabaseError
         with self.conn:
@@ -422,8 +482,13 @@ class SQLiteDB(Database):
                     raise KeyError('Performance measure {0} not present in database'
                                    .format(m))
 
-    @copydoc(Database.update_scope)
     def update_scope(self, scope):
+        """
+        Update the emat scope information in the database.
+
+        Args:
+            scope (Scope): scope to update
+        """
         if self.readonly:
             raise ReadOnlyDatabaseError
         from ...scope.scope import Scope
@@ -467,12 +532,39 @@ class SQLiteDB(Database):
 
     @copydoc(Database.store_scope)
     def store_scope(self, scope):
+        """
+        Save an emat.Scope directly to the database.
+
+        Args:
+            scope (Scope): The scope object to store.
+
+        Raises:
+            KeyError: If scope name already exists.
+        """
         if self.readonly:
             raise ReadOnlyDatabaseError
         return scope.store_scope(self)
 
-    @copydoc(Database.read_scope)
     def read_scope(self, scope_name=None):
+        """
+        Load the pickled scope from the database.
+
+        Args:
+            scope_name (str, optional):
+                The name of the scope to load.  If not
+                given and there is only one scope stored
+                in the database, that scope is loaded. If not
+                given and there are multiple scopes stored in
+                the database, a KeyError is raised.
+
+        Returns:
+            Scope
+
+        Raises:
+            KeyError: If a name is given but is not found in
+                the database, or if no name is given but there
+                is more than one scope stored.
+        """
 
         cur = self.conn.cursor()
 
