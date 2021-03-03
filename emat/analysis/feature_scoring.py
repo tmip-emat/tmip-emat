@@ -378,6 +378,7 @@ def threshold_feature_scores(
 				- 'styled' gives a colorized pandas.DataFrame,
 				- 'figure' gives a plotly violin plot,
 				- 'ridge figure' gives a plotly ridgeline figure.
+
 			Either plotly result can optionally have ".svg"
 			or ".png" added to render a static image in those
 			formats.
