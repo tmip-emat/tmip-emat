@@ -209,7 +209,7 @@ def design_experiments(
 
     if not isinstance(sampler, AbstractSampler):
         if sampler not in samplers:
-            raise ValueError(f"unknown sampler {sampler}")
+            raise ValueError(f"unknown sampler {sampler}, choose from (uni, ref, {', '.join(samplers.keys())})")
         else:
             sample_generator = samplers[sampler]()
     else:
