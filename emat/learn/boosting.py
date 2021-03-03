@@ -476,6 +476,8 @@ def LinearInteractRangeAndGaussian(
 def LinearPossibleInteractAndGaussian(
 		cv=5,
 		n_jobs=-1,
+		k_search=(0,3,None),
+		degree_search=(1,2),
 		**kwargs,
 ):
 
@@ -486,8 +488,10 @@ def LinearPossibleInteractAndGaussian(
 		GridSearchCV(
 			LinearInteractAndGaussian(single_target=True,**kwargs),
 			cv=cv,
-			param_grid={'lr__KBestPoly__k': [0,None]},
-			iid=False,
+			param_grid={
+				'lr__KBestPoly__k': k_search,
+				'lr__KBestPoly__degree': degree_search,
+			},
 		),
 		n_jobs=n_jobs,
 	)

@@ -68,17 +68,17 @@ class VarianceThreshold(_VarianceThreshold):
 			try:
 				pd.testing.assert_series_equal(
 					self.invariant_values,
-					X.iloc[0].loc[~mask],
+					X.iloc[0].loc[~mask].astype(self.invariant_values.dtype),
 					check_names=False,
 					check_series_type=False, # Allow when checking Series vs ExperimentalDesignSeries
 				)
 			except AssertionError:
 				raise ValueError(
 					"unexpected change in invariant inputs:\n"
-					"invariant_values = {}\n"
-					"X {}: {}\n"
-					"X[Masked]: {}\n"
-					"MASK: {}".format(
+					"invariant_values = \n{}\n\n"
+					"X {}: \n{}\n\n"
+					"X[Masked]: \n{}\n\n"
+					"MASK: \n{}".format(
 						self.invariant_values,
 						X.iloc[0].dtypes, X.iloc[0],
 						X.iloc[0].loc[~mask],
