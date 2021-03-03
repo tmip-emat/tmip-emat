@@ -482,10 +482,27 @@ class MetaModel:
         """
         if len(args) == 1:
             if isinstance(args[0], pandas.DataFrame):
-                return args[0].apply(
-                    lambda x: pandas.Series(self.predict(**x, trend_only=trend_only, residual_only=residual_only)),
-                    axis=1,
-                )
+
+                input_row = args[0][self.raw_input_columns]
+                input_row = self.preprocess_raw_input(input_row, to_type=numpy.float64)
+
+                if trend_only:
+                    result = self.regression.lr.predict(input_row)
+                elif residual_only:
+                    result = self.regression.gpr.predict(input_row)
+                else:
+                    result = self.regression.predict(input_row)
+
+                # undo the output transforms
+                for k, (_, v_func) in self.output_transforms.items():
+                    result[k] = v_func(result[k])
+
+                if self.disabled_outputs:
+                    drop_cols = [i for i in self.disabled_outputs if i in result.columns]
+                    result = result.drop(drop_cols, axis=1)
+
+                return result
+
             else:
                 raise TypeError(f'predict() optionally takes a DataFrame as a '
                                 f'positional argument, not {type(args[0])}')
@@ -494,7 +511,7 @@ class MetaModel:
                             f'positional argument, not {len(args)}')
 
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float)
+        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float64)
 
         if trend_only:
             output_row = self.regression.detrend_predict(input_row)

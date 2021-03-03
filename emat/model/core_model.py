@@ -1004,6 +1004,22 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         if design.empty:
             raise ValueError(f"no experiments available")
 
+        # catch metamodels here and run them as a batch, which is much faster
+        function = getattr(self, 'function', None)
+        from .meta_model import MetaModel
+        if isinstance(function, MetaModel):
+            outcomes = function.predict(design)
+            result = self.ensure_dtypes(pd.concat([
+                design,
+                outcomes
+            ], axis=1, sort=False))
+            from ..experiment.experimental_design import ExperimentalDesign
+            result = ExperimentalDesign(result)
+            result.scope = self.scope
+            result.name = getattr(design, 'name', None)
+            result.sampler_name = getattr(design, 'sampler_name', None)
+            return result
+
         scenarios = []
         scenario_cols = self.scope._get_uncertainty_and_constant_names()
         design_scenarios = design[scenario_cols]
