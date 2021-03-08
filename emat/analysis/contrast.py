@@ -672,7 +672,10 @@ class AB_Viewer():
 		self.figure_kwargs.setdefault('orientation', 'v')
 		self.figure_kwargs.setdefault('orientation_raw', 'h')
 		self.figure_kwargs.setdefault('orientation_diff', 'h')
-		self._compute_button = widget.Button(description="Recompute")
+		self._compute_button = widget.Button(
+			description="Recompute",
+			layout=widget.Layout(margin="10px 0px 0px 0px"), # top right bottom left
+		)
 		self._compute_button.on_click(self.compute)
 		self.interface = widget.VBox(
 			[
@@ -681,7 +684,7 @@ class AB_Viewer():
 			],
 			layout=dict(
 				justify_content = 'space-between',
-				align_items = 'center',
+				align_items = 'stretch',
 			),
 		)
 
@@ -746,3 +749,16 @@ class AB_Viewer():
 		w = [self.get_figure(m, **kwargs) for m in measures]
 		return widget.Box(w, layout=widget.Layout(flex_flow='row wrap'))
 
+	def set_parameter(self, name, value, side='b', unlink=True, recompute=True):
+		for row in self._chooser.children:
+			if getattr(row, 'tag', None) == name:
+				if not unlink:
+					row.link_status_box.value = True
+				else:
+					row.link_status_box.value = False
+				if side.lower() in ('a', 'left', 'l'):
+					row.a_widget.value = value
+				elif side.lower() in ('b', 'right', 'r'):
+					row.b_widget.value = value
+		if recompute:
+			self.compute()
