@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.7.1
+#       jupytext_version: 1.9.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -28,7 +28,7 @@ emat.versions()
 # analytical environment, that typically means using models to find 
 # optimal outcomes for performance measures.
 #
-# Transportation models as used in the TMIP-EMAT frawework are 
+# Transportation models as used in the TMIP-EMAT framework are 
 # generally characterized by two important features: they are 
 # subject to significant exogenous uncertainties about the future
 # state of the world, and they include numerous performance measures
@@ -87,7 +87,7 @@ emat.versions()
 # To conceptualize this, let us consider a decision where there are four
 # possible policies to choose among, a single exogenous uncertainty that
 # will impact the future, and a single performance measure that we would
-# like to mimimize.  We have a model that can forecast the performance 
+# like to minimize.  We have a model that can forecast the performance 
 # measure, conditional on the chosen policy and the future value of the
 # exogenous uncertainty, and which gives us a forecasts as shown below.
 
@@ -133,7 +133,7 @@ plt.show()
 #
 # We can see from the figure that, depending on the ultimate value for 
 # the exogenous uncertainty, either Policy 1 or Policy 3 might yield the
-# best possible value of the performace measure.  However, both of these
+# best possible value of the performance measure.  However, both of these
 # policies come with substantial risks as well -- in each Policy there are
 # some futures where the results are optimal, but there are also some 
 # futures where the results are exceptionally poor.
@@ -338,7 +338,7 @@ result.scenario
 # column of data in the results DataFrame.  Each row of the DataFrame is
 # represented by a chord that connects across each of the vertical axes.
 #
-# By default, the axes representing performace measures to be minimized are
+# By default, the axes representing performance measures to be minimized are
 # inverted in the parallel coordinates, such that moving up along any 
 # performance measure axis results in a "better" outcome for that performance
 # measure.
@@ -352,7 +352,7 @@ result.scenario
 # in yellow) will maximize net benefits and minimize the cost of the project,
 # but they will also fail to provide much travel time savings.  Conversely,
 # larger levels of capacity expansion will provide better travel time savings, 
-# but will not perform as well on costs.  It is left up the the analysts and
+# but will not perform as well on costs.  It is left up to the analysts and
 # decision makers to judge what tradeoffs to make between these conflicting
 # goals.
 
@@ -375,11 +375,7 @@ result.result.query("amortization_period != 50")
 # exactly zero, all of the remaining policy levers have no effect -- the details of debt
 # financing are irrelevant when there is no debt at all, and thus no values of the other
 # levers result in a Pareto-optimal solution that would dominate any other such solution.
-# On the other hand other solution shown is a different edge case, with a capacity 
-# expansion at the maximum (100). Here, the numerical difference between an amortization
-# period of 49 years and 50 years may be two small for the algorithm to catch (i.e., it 
-# may be swallowed by a rounding error somewhere inside the calculations).  In each case,
-# an analyst with domain knowledge, who understands the underlying system being modeled,
+# In cases such as these, an analyst with domain knowledge, who understands the underlying system being modeled,
 # will be able to bring a more nuanced understanding of the results than can be achieved
 # merely by applying the mathematical algorithms in TMIP-EMAT, and correctly infer
 # that the 50 year amortization is always an optimal solution, and that the outlier
@@ -456,7 +452,7 @@ worst.par_coords()
 # outcomes, instead of for just one particular future scenario.
 #
 # A robust measure is created in TMIP-EMAT using the same `Measure` class
-# used for performace measures that are direct model outputs.  Like any 
+# used for performance measures that are direct model outputs.  Like any 
 # other measure, they have a `name` and `kind` (minimize, maximize, or info).
 # The names used for robust measures must be unique new names that are 
 # not otherwise used in the model's scope, so you cannot use the same name
@@ -526,7 +522,7 @@ pct5_net_benefit = Measure(
 # We can also capture robustness measures that are not statistical versions
 # of the performance measure (that can be contrasted directly with the 
 # performance measure outputs, like the mean or median), but rather more abstract 
-# measures, like the percentage of scenarios where the performace measure 
+# measures, like the percentage of scenarios where the performance measure 
 # meets some target value.  For example, we can compute the percentage of scenarios
 # for the road test example where the net benefits are negative.  To do so,
 # we will use the `percentileofscore` function from the `scipy.stats` package.
