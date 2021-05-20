@@ -4,25 +4,23 @@
 name: EMAT-DEV
 
 channels:
-- tmip
 - conda-forge
-- plotly
 
 dependencies:
-- python=3.7
+- python=3.9
 
 # Math
 - numpy>=1.16
-- pandas>=0.23.4
+- pandas>=1.2
 - scipy>=1.2
-- scikit-learn>=0.20.1
+- scikit-learn>=0.24
 - appdirs>=1.4.3
 - matplotlib>=3.0.1
 - seaborn>=0.9
 - pydot
 - graphviz
-- plotly>=3.2.1
-- plotly::python-kaleido  # Plotly Static Image Export
+- plotly>=4.14
+- python-kaleido  # Plotly Static Image Export
 - ipywidgets>=7.2
 - joblib>=0.13.2
 - dask>=1.0
@@ -42,8 +40,10 @@ dependencies:
 - salib
 - sqlalchemy
 - webcolors
+- datashader
+- altair
 
-- sphinx>=1.8.2,<2
+- sphinx
 - sphinxcontrib>=1.0
 - pygments>=2.2.0
 - docutils>=0.14
