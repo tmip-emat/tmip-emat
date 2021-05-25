@@ -421,7 +421,7 @@ class PrimBox(prim.PrimBox):
 						activate=False,
 					)
 					if explorer.active_selection_name() not in (name_t, name_s):
-						explorer.set_active_selection_name(name_s)
+						explorer.set_active_selection_name(name_t)
 					else:
 						explorer.set_active_selection_name(
 							explorer.active_selection_name(),

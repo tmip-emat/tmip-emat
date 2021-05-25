@@ -11,6 +11,11 @@ group of instructions for what inputs and outputs a model
 provides, and what ranges and/or distributions of these inputs
 will be considered in an exploratory analysis.
 
+The :class:`Scope` API outlined below provides the framework for
+interacting with an existing scope in Python. However, the process
+of defining a *new* scope is generally done by using
+a :doc:`scope definition YAML file<scope.file>`.
+
 .. autoclass:: Scope
 
 Read / Write

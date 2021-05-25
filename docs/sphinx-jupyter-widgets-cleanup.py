@@ -26,7 +26,7 @@ def dedupe_jupyter_widgets_manager(filename):
 		print(f"PASSED [{n}]:",filename)
 
 def fixing_walker(filename):
-	directory = os.path.dirname(os.path.abspath(filename))
+	directory = (os.path.abspath(filename))
 	for dirpath, dirnames, filenames in os.walk(directory):
 		for f in filenames:
 			if f[-5:]==".html":

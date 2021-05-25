@@ -1,0 +1,16 @@
+
+CART API
+--------
+
+.. py:currentmodule:: emat.analysis
+
+.. autoclass:: CART
+    :show-inheritance:
+    :members:
+    :inherited-members:
+
+.. autoclass:: CartBox
+    :show-inheritance:
+    :members:
+    :inherited-members:
+

@@ -18,4 +18,5 @@ except ImportError:
 	pass
 
 from .prim import Prim, PrimBox
+from .cart import CART
 from .contrast import AB_Viewer

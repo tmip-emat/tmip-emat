@@ -27,12 +27,60 @@ Inputs
 
 The **inputs:** section contains the scoped inputs including uncertainties, levers, and
 constants that are to be set in the core model. Depending on the input types, there are
-slightly different parameters to be set.
+slightly different parameters to be set. Below we outline some of the more common
+uses cases.  For a full set of input options, see the :ref:`Parameters <input_parameters>` documentation.
 
-For a full set of input options, see the :ref:`Parameters <input_parameters>` documentation.
+All inputs regardless of type share a common base set of settings:
 
-All inputs are defined by a string name and **ptype:** set where the name is a string value
-and the parameter is either *uncertainty*, *lever*, or *constant*.
+**name**
+    The name of a parameter is a string with a unique value
+    not shared by any other model input or output.  It is not
+    required but it is generally advisable for parameter names
+    to be a valid Python identifier (i.e. no spaces, starts with a
+    letter or underscore, contains only letters, numbers, and
+    underscores.)
+
+**ptype**
+    The ptype is one of *uncertainty*, *lever*, or *constant*,
+    and describes what kind of controls and tools might be used in
+    exploratory modeling.
+
+**dtype**
+    The dtype is one of *float*, *integer*, *bool* (for True/False
+    values), or *cat* (for discrete categorical values).
+
+**default**
+    A default value for the parameter. The default value is not
+    needed for many exploratory modeling applications, but it
+    is useful when TMIP-EMAT is used for sensitivity testing and
+    similar applications, or to illustrate a "reference" default
+    scenario if that is desired.
+
+**min, max**
+    A lower and upper bound for the parameter. This is not applicable
+    for constants.
+
+**dist**
+    By default, uncertainties and policy levers are evaluated using
+    a uniform distribution between the lower and upper bounds, as is
+    typical for exploratory modeling under deep uncertainty. However,
+    if a modeler wished to include a non-uniform distribution, that
+    can be given here as a sub-dictionary, giving the name of the
+    desired distribution (e.g. triangular, pert) as well as any
+    required shape parameters.  See below for examples.
+
+**desc**
+    A brief description of the parameter can be provided.  The
+    description is not used in mathematical modeling, but it can
+    be accessed to provide context in certain visualizations (e.g.
+    as a tooltip).
+
+**corr**
+    If modeling well-characterized uncertainties, it is possible that
+    some correlation across uncertainties is desired.  This correlation
+    can be asserted in the scope, and random draws with approximately
+    this level of correlation can be generated.
+
 
 Uncertainties
 #############
@@ -51,7 +99,7 @@ focus (i.e., when examining single-variable sensitivity on other parameters).
 
 ::
 
-    Uncertainty Variable 1:
+    Uncertainty_Variable_1:
         ptype: uncertainty
         desc: A test uncertainty variable
         dtype: float
@@ -63,13 +111,13 @@ focus (i.e., when examining single-variable sensitivity on other parameters).
             rel_peak: 0.33
             gamma: 4
         corr:
-            Uncertainty Variable 2: 0.5
-            Uncertainty Variable 3: -0.25
+            Uncertainty_Variable_2: 0.5
+            Uncertainty_Variable_3: -0.25
 
 Notes on Correlations
 ~~~~~~~~~~~~~~~~~~~~~
 
-Correlations are by definition bi-directional -- if 'Uncertainty Variable 1' is
+Correlations are by definition bi-directional -- if 'Uncertainty_Variable_1' is
 set to be correlated at +0.5 with 'Uncertainty Variable 2', then that same correlation
 automatically applies in reverse as well, and it is not necessary to give it explicitly
 for both parameters (and, if they are both given but at different values, an error is generated
@@ -94,13 +142,13 @@ several categorical values, and the third has a continuous value.
 
 ::
 
-    boolean lever:
+    boolean_lever:
         ptype: policy lever
         desc: Example boolean lever input
         dtype: bool
         default: False
 
-    categorical lever:
+    categorical_lever:
         ptype: policy lever
         desc: Example lever with categorical value
         dtype: cat
@@ -110,7 +158,7 @@ several categorical values, and the third has a continuous value.
             - category 2
             - category 3
 
-    continuous value lever:
+    continuous_value_lever:
         ptype: policy lever
         desc: Example lever with a continuous value
         dtype: int
@@ -122,7 +170,13 @@ Constants
 #########
 
 Constants are inputs with a fixed value in the analysis. This input option is provided to allow the
-modeler to fix a set of inputs. This may also be useful as a placeholder in the scoping file. Note
+modeler to fix a set of inputs. If a constant is to be set in a manner that it
+will really never change, then it may be more convenient to simply ignore the
+constant in the exploratory scope and simply code the constant value directly
+into the model itself. By providing this functionality in the scope file, TMIP-EMAT
+allows for use cases where an input is fixed in the current exploratory scope,
+but it may be changed or even treated as a variable input in other exploratory
+scopes that otherwise use the exact same underlying model. Note
 that both the ptype and the dist need to be set to 'constant' in the definition.
 
 ::

@@ -17,6 +17,7 @@ _logger = logging.getLogger('EMAT.widget')
 
 from .explore_base import DataFrameExplorer
 from ..prim import PrimBox
+from ..cart import CartBox
 from ...exceptions import ScopeError
 
 
@@ -181,7 +182,7 @@ class Visualizer(DataFrameExplorer):
 	def __get_plain_box(self):
 		if self.active_selection_deftype() == 'box':
 			box = self._selection_defs[self.active_selection_name()]
-		elif self.active_selection_deftype() == 'primbox':
+		elif self.active_selection_deftype() in ('primbox', 'cartbox'):
 			box = self._selection_defs[self.active_selection_name()].to_emat_box()
 		else:
 			box = None
@@ -901,7 +902,7 @@ class Visualizer(DataFrameExplorer):
 		if self.active_selection_deftype() == 'box':
 			name = self.active_selection_name()
 			box = self._selection_defs[name]
-		elif self.active_selection_deftype() == 'primbox':
+		elif self.active_selection_deftype() in ('primbox', 'cartbox'):
 			name = self.active_selection_name()
 			box = self._selection_defs[name].to_emat_box()
 
@@ -940,7 +941,7 @@ class Visualizer(DataFrameExplorer):
 		if self.active_selection_deftype() == 'box':
 			name = self.active_selection_name()
 			box = self._selection_defs[name]
-		elif self.active_selection_deftype() == 'primbox':
+		elif self.active_selection_deftype() in ('primbox', 'cartbox'):
 			name = self.active_selection_name()
 			box = self._selection_defs[name].to_emat_box()
 		for fig in self._splom.values():
@@ -1023,7 +1024,7 @@ class Visualizer(DataFrameExplorer):
 		if self.active_selection_deftype() == 'box':
 			name = self.active_selection_name()
 			box = self._selection_defs[name]
-		elif self.active_selection_deftype() == 'primbox':
+		elif self.active_selection_deftype() in ('primbox', 'cartbox'):
 			name = self.active_selection_name()
 			box = self._selection_defs[name].to_emat_box()
 
@@ -1051,7 +1052,7 @@ class Visualizer(DataFrameExplorer):
 		if self.active_selection_deftype() == 'box':
 			name = self.active_selection_name()
 			box = self._selection_defs[name]
-		elif self.active_selection_deftype() == 'primbox':
+		elif self.active_selection_deftype() in ('primbox', 'cartbox'):
 			name = self.active_selection_name()
 			box = self._selection_defs[name].to_emat_box()
 		for fig in self._hmm.values():
@@ -1164,7 +1165,7 @@ class Visualizer(DataFrameExplorer):
 			color = colors.DEFAULT_EXPRESSION_COLOR
 		elif isinstance(value, pandas.Series):
 			color = colors.DEFAULT_LASSO_COLOR
-		elif isinstance(value, PrimBox):
+		elif isinstance(value, (PrimBox, CartBox)):
 			color = colors.DEFAULT_PRIMTARGET_COLOR
 		super().new_selection(value, name=name, color=color, activate=activate)
 

@@ -36,7 +36,7 @@ visualizations.
 
     refpoint = model.run_reference_experiment()
 
-The interactive visualizer class can be imported from the :module:`emat.analysis` package.
+The interactive visualizer class can be imported from the :mod:`emat.analysis` package.
 To use it, we create an :class:`Visualizer` instance, giving a scope and a set of
 experimental results, as well as the reference point.
 

@@ -631,7 +631,7 @@ class TwoWayFigure(HBox, BaseTwoWayFigure):
 
 		if self._dfv.active_selection_deftype() == 'box':
 			box = self._dfv._selection_defs[self._dfv.active_selection_name()]
-		elif self._dfv.active_selection_deftype() == 'primbox':
+		elif self._dfv.active_selection_deftype() in ('primbox', 'cartbox'):
 			box = self._dfv._selection_defs[self._dfv.active_selection_name()].to_emat_box()
 
 		if box is not None:

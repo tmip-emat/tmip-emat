@@ -6,6 +6,7 @@ from emat.viz import colors
 from emat.scope.box import GenericBox
 from emat import styles
 from ..prim import PrimBox
+from ..cart import CartBox
 
 from plotly import graph_objs as go
 
@@ -88,6 +89,13 @@ class DataFrameExplorerBase():
 			)
 			self._selection_defs[name] = values
 			values = proposal
+		elif isinstance(values, CartBox):
+			proposal = pandas.Series(
+				data=numpy.asarray(values.cart_alg.y),
+				index=self.data.index,
+			)
+			self._selection_defs[name] = values
+			values = proposal
 		elif isinstance(values, GenericBox):
 			proposal = values.inside(self.data)
 			self._selection_defs[name] = values
@@ -98,7 +106,7 @@ class DataFrameExplorerBase():
 			values = proposal
 		assert isinstance(values, pandas.Series)
 		self._selections[name] = values
-		if self._selections[name].dtype != numpy.bool:
+		if self._selections[name].dtype != bool:
 			self._selections[name] = self._selections[name].fillna(0).astype(bool)
 		if color is not None:
 			self._colors[name] = color
@@ -182,6 +190,8 @@ class DataFrameExplorerBase():
 			return 'explicit'
 		if isinstance(self._selection_defs[name], PrimBox):
 			return 'primbox'
+		if isinstance(self._selection_defs[name], CartBox):
+			return 'cartbox'
 		if isinstance(self._selection_defs[name], GenericBox):
 			return 'box'
 		if isinstance(self._selection_defs[name], str):

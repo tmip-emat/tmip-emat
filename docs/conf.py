@@ -71,7 +71,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinxcontrib.restbuilder',
     'nbsphinx',
-    'jupyter_sphinx.execute',
+    'jupyter_sphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

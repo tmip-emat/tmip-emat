@@ -235,10 +235,17 @@ class CART(sdutil.OutputFormatterMixin):
 
         y_in_box = self.y[indices]
         box_coi = np.sum(y_in_box)
+        density = box_coi / y_in_box.shape[0]
+        gini = 1-((density ** 2) + ((1-density) ** 2))
+        entropy = -((density * np.log2(density)) + ((1-density) * np.log2(1-density)))
 
         boxstats = {'coverage': box_coi / np.sum(self.y),
-                    'density': box_coi / y_in_box.shape[0],
+                    'density': density,
+                    'gini': gini,
+                    'entropy': entropy,
                     'res dim': sdutil._determine_nr_restricted_dims(box,
+                                                                    box_init),
+                    'res dim names': sdutil._determine_restricted_dims(box,
                                                                     box_init),
                     'mass': y_in_box.shape[0] / self.y.shape[0]}
         return boxstats
@@ -251,7 +258,10 @@ class CART(sdutil.OutputFormatterMixin):
         boxstats = {'mean': np.mean(y_in_box),
                     'mass': y_in_box.shape[0] / self.y.shape[0],
                     'res dim': sdutil._determine_nr_restricted_dims(box,
-                                                                    box_init)}
+                                                                    box_init),
+                    'res dim names': sdutil._determine_restricted_dims(box,
+                                                                       box_init),
+                    }
         return boxstats
 
     def _classification_stats(self, box, box_init):
@@ -272,7 +282,10 @@ class CART(sdutil.OutputFormatterMixin):
                     'mass': y_in_box.shape[0] / self.y.shape[0],
                     'box_composition': counts,
                     'res dim': sdutil._determine_nr_restricted_dims(box,
-                                                                    box_init)}
+                                                                    box_init),
+                    'res dim names': sdutil._determine_restricted_dims(box,
+                                                                    box_init),
+                    }
 
         return boxstats
 
@@ -280,15 +293,40 @@ class CART(sdutil.OutputFormatterMixin):
                         sdutil.RuleInductionType.REGRESSION: _regression_stats,
                         sdutil.RuleInductionType.CLASSIFICATION: _classification_stats}
 
-    def build_tree(self):
+    def build_tree(
+            self,
+            criterion="gini",
+            max_depth=None,
+            mass_min=None,
+            min_samples_split=2,
+    ):
         '''train CART on the data'''
+        assert criterion in ["gini", "entropy"]
+        if mass_min is not None:
+            self.mass_min = mass_min
+
         min_samples = int(self.mass_min * self.x.shape[0])
 
         if self.mode == sdutil.RuleInductionType.REGRESSION:
-            self.clf = tree.DecisionTreeRegressor(min_samples_leaf=min_samples)
+            self.clf = tree.DecisionTreeRegressor(
+                min_samples_leaf=min_samples,
+            )
         else:
             self.clf = tree.DecisionTreeClassifier(
-                min_samples_leaf=min_samples)
+                criterion=criterion,
+                min_samples_split=min_samples_split,
+                splitter="best",
+                max_depth=max_depth,
+                min_samples_leaf=min_samples,
+                min_weight_fraction_leaf=0.,
+                max_features=None,
+                random_state=None,
+                max_leaf_nodes=None,
+                min_impurity_decrease=0.,
+                min_impurity_split=None,
+                class_weight=None,
+                ccp_alpha=0.0,
+            )
         self.clf.fit(self._x, self.y)
 
     def show_tree(self, mplfig=True, format='png'):
@@ -310,8 +348,11 @@ class CART(sdutil.OutputFormatterMixin):
             import pydot  # dirty hack for read the docs
 
         dot_data = StringIO()
-        tree.export_graphviz(self.clf, out_file=dot_data,
-                             feature_names=self.feature_names)
+        tree.export_graphviz(
+            self.clf, out_file=dot_data,
+            feature_names=self.feature_names,
+            filled=True,
+        )
         dot_data = dot_data.getvalue()  # .encode('ascii') # @UndefinedVariable
         graphs = pydot.graph_from_dot_data(dot_data)
         
@@ -327,7 +368,7 @@ class CART(sdutil.OutputFormatterMixin):
         if format == 'png':
             img = graph.create_png()
             if mplfig:
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(16,16))
                 ax.imshow(mpimg.imread(io.BytesIO(img)))
                 ax.axis('off')
                 return fig
@@ -338,6 +379,40 @@ class CART(sdutil.OutputFormatterMixin):
 
         return img
 
+    def build_and_show_tree(self, **kwargs):
+        self._boxes = None
+        self._stats = None
+        self.build_tree(**kwargs)
+        return self.show_tree()
+
+    def tree_chooser(self):
+        """
+        An interactive chooser for setting decision tree hyperparameters.
+
+        This method returns an interactive widget that allows an analyst
+        to manipulate selected hyperparameters for the decision tree used
+        by CART.  The analyst can set the branch splitting criteria
+        (gini impurity or entropy reduction), the maximum tree depth, and
+        the minimum fraction of observations in any leaf node.
+
+        Returns
+        -------
+        ipywidgets.widgets.interaction.interactive
+        """
+        from ipywidgets import interactive, FloatSlider, Dropdown
+        return interactive(
+            self.build_and_show_tree,
+            criterion=Dropdown(
+                options=['gini', 'entropy'], value='gini',
+            ),
+            max_depth=Dropdown(
+                options=[1, 2, 3, 4, 5, 6], value=3,
+            ),
+            mass_min=FloatSlider(
+                min=0.001, max=0.1, step=0.001, value=0.05,
+                continuous_update=False,
+            ),
+        )
 
 # if __name__ == '__main__':
 #     from test import test_utilities

@@ -35,6 +35,7 @@ We illustrate a few here.
 
     feature-scoring
     prim
+    cart
 
 
 Directed Search

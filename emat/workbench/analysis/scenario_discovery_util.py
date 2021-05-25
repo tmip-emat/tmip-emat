@@ -221,14 +221,14 @@ def _in_box(x, boxlim):
 
     '''
 
-    x_numbered = x.select_dtypes(np.number)
-    boxlim_numbered = boxlim.select_dtypes(np.number)
+    x_numbered = x.select_dtypes([np.number, bool])
+    boxlim_numbered = boxlim.select_dtypes([np.number, bool])
     logical = (boxlim_numbered.loc[0, :].values <= x_numbered.values) &\
         (x_numbered.values <= boxlim_numbered.loc[1, :].values)
     logical = logical.all(axis=1)
 
     # TODO:: how to speed this up
-    for column, values in x.select_dtypes(exclude=np.number).iteritems():
+    for column, values in x.select_dtypes(exclude=[np.number, bool]).iteritems():
         entries = boxlim.loc[0, column]
         try:
             entries_set = set(entries)
@@ -776,14 +776,20 @@ class OutputFormatterMixin(object):
         box_lims, uncs = _get_sorted_box_lims(boxes, _make_box(self.x))
         nr_boxes = len(boxes)
         dtype = float
-        index = ["box {}".format(i + 1) for i in range(nr_boxes)]
+        index = ["box {}".format(i) for i in range(nr_boxes)]
         for value in box_lims[0].dtypes:
             if value == object:
                 dtype = object
                 break
 
-        columns = pd.MultiIndex.from_product([index,
-                                              ['min', 'max', ]])
+        columns = pd.MultiIndex.from_product([
+            index,
+            pd.CategoricalIndex(
+                ['min', 'max'],
+                ['min', 'max'],
+                ordered=True,
+            ),
+        ])
         df_boxes = pd.DataFrame(np.zeros((len(uncs), nr_boxes * 2)),
                                 index=uncs,
                                 dtype=dtype,
@@ -794,7 +800,14 @@ class OutputFormatterMixin(object):
             for unc in uncs:
                 values = box.loc[:, unc]
                 values = values.rename({0: 'min', 1: 'max'})
-                df_boxes.loc[unc][index[i]] = values
+                if values['min'] == self.x[unc].min():
+                    df_boxes.loc[unc][(index[i], 'min')] = np.nan
+                else:
+                    df_boxes.loc[unc][(index[i], 'min')] = values['min']
+                if values['max'] == self.x[unc].max():
+                    df_boxes.loc[unc][(index[i], 'max')] = np.nan
+                else:
+                    df_boxes.loc[unc][(index[i], 'max')] = values['max']
 
         if include_stats:
             df_stats = self.stats_to_dataframe()
@@ -808,9 +821,9 @@ class OutputFormatterMixin(object):
 
         stats = self.stats
 
-        index = pd.Index(['box {}'.format(i + 1) for i in range(len(stats))])
+        index = pd.Index(['box {}'.format(i) for i in range(len(stats))])
 
-        return pd.DataFrame(stats, index=index)
+        return pd.DataFrame(stats, index=index).drop(columns=['res dim names'])
 
     def show_boxes(self, together=False):
         '''display boxes
