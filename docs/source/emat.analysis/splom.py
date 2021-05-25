@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.4.2
+#       jupytext_version: 1.11.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -69,7 +69,7 @@ display_experiments(scope, results)
 display_experiments(
     scope, results, 
     rows=['input_flow', 'expand_capacity', 'build_travel_time'], 
-    columns=['net_benefits', 'time_savings', 'no_build_travel_time'],
+    columns=['net_benefits', 'time_savings', 'no_build_travel_time', 'yield_curve', 'expand_capacity'],
 )
 
 # %% [markdown]
@@ -97,7 +97,7 @@ display_experiments(
 # 5,000 experiments to create a set of meta-model results to visualize.
 
 # %%
-mm = model.create_metamodel_from_design('lhs')
+mm = model.create_metamodel_from_design('lhs', suppress_converge_warnings=True)
 mm_design = mm.design_experiments(n_samples=5000)
 mm_results = mm.run_experiments(mm_design)
 
