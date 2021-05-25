@@ -112,3 +112,4 @@ roadtest.db
 build-docs
 docs/source/emat.models/interface-walkthrough.ipynb
 feature-scoring.ipynb
+cart.ipynb
