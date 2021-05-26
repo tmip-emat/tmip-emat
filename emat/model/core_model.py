@@ -932,7 +932,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
     def run_experiments(
             self,
-            design:pd.DataFrame=None,
+            design=None,
             evaluator=None,
             *,
             design_name=None,
@@ -957,7 +957,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         Args:
             design (pandas.DataFrame, optional): experiment definitions
-                given as a DataFrame, where each exogenous uncertainties and
+                given as a DataFrame, where each exogenous uncertainty and
                 policy levers is given as a column, and each row is an experiment.
             evaluator (emat.workbench.Evaluator, optional): Optionally give an
                 evaluator instance.  If not given, a default SequentialEvaluator
@@ -1018,6 +1018,11 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             result.scope = self.scope
             result.design_name = getattr(design, 'design_name', None)
             result.sampler_name = getattr(design, 'sampler_name', None)
+            if db:
+                metamodel_id = self.metamodel_id
+                if metamodel_id is None:
+                    metamodel_id = db.get_new_metamodel_id(self.scope.name)
+                db.write_experiment_measures(self.scope.name, metamodel_id, outcomes)
             return result
 
         scenarios = []

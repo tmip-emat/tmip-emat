@@ -32,6 +32,7 @@ dependencies:
 - jupyter
 - notebook
 - pytest>=4.0.1
+- pytest-regressions
 - pyscaffold
 - ipyparallel
 - pyzmq

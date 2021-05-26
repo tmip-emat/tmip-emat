@@ -5,12 +5,51 @@ Introduction to EMAT
 TMIP-EMAT is a methodological approach to exploratory modeling and analysis.
 It provides a window to rigorous analytical methods for handling uncertainty
 and making well informed decisions using travel forecasting models of all
-types. It is designed to integrate with an **existing transportation model** or
+types. It is designed to integrate with and enhance an **existing transportation model** or
 tool to perform exploratory analysis of a range of possible scenarios.  In the
 documentation of TMIP-EMAT, we refer to the existing model or tool as the
 "core model".
 
-The core model should take a collection of inputs and generate one or more
+TMIP-EMAT provides the following features to enhance the functionality of the
+underlying core model:
+
+- A structure to formalize and distill an exploratory **scope**, in a manner
+  suitable for translating the abstraction of the "XLRM" robust decision making
+  framework into a concrete, application-specific form,
+- A systematic process for **designing experiments** to be evaluated
+  using the core model, and support for running those experiments in an
+  automated fashion.
+- A **database** structure to organize and store the results from a large
+  number of experiments.
+- A facility to automatically create a **metamodel** from experimental
+  results, which uses machine learning techniques to rapidly approximate
+  new outputs of the core model for without actually running it for every
+  relevant combination of inputs.
+- A suite a **analytical and visualization tools** to explore the relationships
+  between modeled inputs and outputs, and develop robust policy strategies that
+  might be effective across a range of possible future scenarios.
+
+To be clear, TMIP-EMAT is *not* a standalone model or tool by itself, it *must*
+be integrated with a separate core model.  Moreover, the quality of any analysis undertaken
+with TMIP-EMAT depends on the quality and capabilities of the underlying core
+model.  If the core model does not contain an explicit representation of the
+transportation network, then TMIP-EMAT will not allow an analyst to study policy
+questions that hinge on the microscopic details of traffic congestion.
+
+TMIP-EMAT is presented as a flexible, methodological approach applicable to many
+different core models. It is not a fully-developed end-to-end software solution.
+Because of this, developing a new implementation of TMIP-EMAT to connect with a
+new core model will require at least one developer with some technical expertise.
+The documentation and code published with TMIP-EMAT is meant as guide and a start,
+but someone with detailed knowledge of the technical operation of the core model
+and at least basic Python skills will need to write a connector between the core
+model and the TMIP-EMAT tools.
+
+The Core Model
+--------------
+
+The core model itself does not need to be in Python, it can be created and run in
+any computer language. It should take a collection of inputs and generate one or more
 outputs, or "performance metrics", of interest.  Inputs can include variable
 inputs (e.g., fuel cost) as well as model parameter inputs (e.g., the elasticity
 of vehicle travel with respect to fuel cost).  Examples of a core model include,
@@ -60,8 +99,8 @@ starting from manual operation of the core model, that process tends to be
 error-prone, and automating the execution of the core model will both reduce
 errors and increase overall modeling efficiency.
 
-Deploying TMIP-EMAT on a programmatically executable core model requires the
-existence or development of an application programming interface (API) to the
+As noted above, deploying TMIP-EMAT on a programmatically executable core model requires
+the existence or development of an application programming interface (API) to the
 existing core model.  The API enables TMIP-EMAT to programmatically define
 scenarios, launch and run the core model, retrieve errors and status, and
 import metrics from the core model.  This API must also have a Python-facing

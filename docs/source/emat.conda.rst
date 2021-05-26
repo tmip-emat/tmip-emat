@@ -8,7 +8,7 @@ Quick Start
 
 To get started with TMIP-EMAT, you'll need to follow a few simple steps.
 
-1. Install `Anaconda Python 3.7 <https://www.anaconda.com/download>`_.
+1. Install `Anaconda Python 3.9 <https://www.anaconda.com/download>`_.
 2. Open the 'Anaconda Prompt' that was installed and run the following
    commands:
 
