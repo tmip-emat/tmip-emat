@@ -1,0 +1,11 @@
+source/emat.examples/GBNRTC/gbnrtc_example.ipynb
+source/emat.analysis/cart.ipynb
+source/emat.analysis/corruption.ipynb
+source/emat.analysis/feature-scoring.ipynb
+source/emat.analysis/interactive-explorer-v2-nb.ipynb
+source/emat.analysis/optimization.ipynb
+source/emat.analysis/policy-contrast.ipynb
+source/emat.analysis/prim.ipynb
+source/emat.analysis/splom.ipynb
+source/emat.design/emat.design.ipynb
+source/emat.models/interface-walkthrough.ipynb
