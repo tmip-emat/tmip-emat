@@ -44,6 +44,7 @@ you can view our TMIP Webinars:
    source/emat.intro
    source/emat.install
    source/emat.scope/index
+   source/emat.design/emat.design
    source/emat.models/index
    source/emat.metamodels/index
    source/emat.database/index

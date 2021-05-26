@@ -537,6 +537,10 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
     def max(self):
         return self.upper_bound
 
+    @property
+    def range(self):
+        return self.lower_bound, self.upper_bound
+
     def __eq__(self, other):
         try:
             if type(self) != type(other):

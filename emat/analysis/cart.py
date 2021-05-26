@@ -5,6 +5,31 @@ from ..workbench.analysis import cart
 from ..workbench.analysis import scenario_discovery_util as sdutil
 
 class CART(cart.CART):
+    """
+    Classification and Regression Tree Algorithm
+
+    CART can be used in a manner similar to PRIM. It provides access
+    to the underlying tree, but it can also show the boxes described by the
+    tree in a table or graph form similar to prim.
+
+    Args:
+        x (DataFrame):
+            The independent variables, generally the experimental
+            design inputs.
+        y (array-like, 1 dimension):
+            The dependent variable of interest.
+        mass_min (float, default 0.05):
+            A value between 0 and 1 indicating the minimum fraction
+            of data points in a terminal leaf.
+        mode ({BINARY, CLASSIFICATION, REGRESSION}):
+            Indicates the mode in which CART is used. Binary indicates
+            binary classification, classification is multiclass, and regression
+            is regression.
+        scope (Scope):
+            The EMAT exploratory scope, used primarily to facilitate
+            visualization.
+
+    """
 
     def __init__(self, x, y, mass_min=0.05, mode=sdutil.RuleInductionType.BINARY, scope=None, explorer=None):
         super().__init__(x, y, mass_min, mode=mode)
@@ -30,8 +55,7 @@ class CART(cart.CART):
         well as update the `explorer`, if one is attached to this CART.
 
         Args:
-            i (int):
-                The index of the box to select.
+            i (int): The index of the box to select.
         """
         out = CartBox(self, i)
 
@@ -85,8 +109,7 @@ class _CartEntry(object):
 
 class CartBox():
     """
-    Information for a specific CART box.
-
+    Information for a specific CART box, corresponding to a leaf of the tree.
     """
 
     coverage = _CartEntry()
@@ -157,6 +180,19 @@ class CartBox():
         return self._explorer
 
     def splom(self, rows=None, cols=None):
+        """
+        Generate a scatter plot matrix showing this CartBox.
+
+        Args:
+            rows, cols (list-like, optional):
+                The dimensions to display as rows and columns of the
+                resulting scatter plot matrix.  If not provided, each
+                defaults to the set of restricted dimensions on the
+                current CartBox.
+
+        Returns:
+            plotly.FigureWidget
+        """
         if rows is None:
             rows = sorted(self.to_emat_box().demanded_features)
         if cols is None:
@@ -169,6 +205,19 @@ class CartBox():
         return fig
 
     def hmm(self, rows=None, cols=None):
+        """
+        Generate a heatmap matrix showing this CartBox.
+
+        Args:
+            rows, cols (list-like, optional):
+                The dimensions to display as rows and columns of the
+                resulting heatmap matrix.  If not provided, each
+                defaults to the set of restricted dimensions on the
+                current CartBox.
+
+        Returns:
+            plotly.FigureWidget
+        """
         if rows is None:
             rows = sorted(self.to_emat_box().demanded_features)
         if cols is None:

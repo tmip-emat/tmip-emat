@@ -1016,7 +1016,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             from ..experiment.experimental_design import ExperimentalDesign
             result = ExperimentalDesign(result)
             result.scope = self.scope
-            result.name = getattr(design, 'name', None)
+            result.design_name = getattr(design, 'design_name', None)
             result.sampler_name = getattr(design, 'sampler_name', None)
             return result
 
@@ -1119,7 +1119,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             from ..experiment.experimental_design import ExperimentalDesign
             result = ExperimentalDesign(result)
             result.scope = self.scope
-            result.name = getattr(design, 'name', None)
+            result.design_name = getattr(design, 'design_name', None)
             result.sampler_name = getattr(design, 'sampler_name', None)
             return result
 

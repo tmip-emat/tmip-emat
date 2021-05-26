@@ -27,23 +27,24 @@ Inputs
 
 The **inputs:** section contains the scoped inputs including uncertainties, levers, and
 constants that are to be set in the core model. Depending on the input types, there are
-slightly different parameters to be set. Below we outline some of the more common
+slightly different parameter settings available. Below we outline some of the more common
 uses cases.  For a full set of input options, see the :ref:`Parameters <input_parameters>` documentation.
 
-All inputs regardless of type share a common base set of settings:
+Within the inputs section, individual inputs are defined by names.
+The name of a parameter is a string with a unique value
+not shared by any other model input or output.  It is not
+required but it is generally advisable for parameter names
+to be a valid Python identifier (i.e. no spaces, starts with a
+letter or underscore, contains only letters, numbers, and
+underscores.)
 
-**name**
-    The name of a parameter is a string with a unique value
-    not shared by any other model input or output.  It is not
-    required but it is generally advisable for parameter names
-    to be a valid Python identifier (i.e. no spaces, starts with a
-    letter or underscore, contains only letters, numbers, and
-    underscores.)
+For each defined, name, a number of related settings can be given in the
+scope file. Not all of these settings are applicable to all input types.
 
 **ptype**
     The ptype is one of *uncertainty*, *lever*, or *constant*,
     and describes what kind of controls and tools might be used in
-    exploratory modeling.
+    exploratory modeling. This should be set for every input.
 
 **dtype**
     The dtype is one of *float*, *integer*, *bool* (for True/False
@@ -67,7 +68,20 @@ All inputs regardless of type share a common base set of settings:
     if a modeler wished to include a non-uniform distribution, that
     can be given here as a sub-dictionary, giving the name of the
     desired distribution (e.g. triangular, pert) as well as any
-    required shape parameters.  See below for examples.
+    required shape parameters. In general, bounded distributions are
+    preferred for exploratory modeling, as the long tails of unbounded
+    distributions can cause numerical instability when extreme values
+    are generated.  Note that the upper and lower bounds for each
+    input are defined by the min and max, and only any *other*
+    distributional shape parameters (e.g. the relative location of the
+    peak for skewed distrivutions, or the gamma shape parameter for PERT
+    distributions) need be given inside the "dist" definition.
+    See below for examples.
+
+**values**
+    For categorical distributions only, give a list of particular
+    discrete values that the factor can take on.  These can be given as
+    strings or numerical values.
 
 **desc**
     A brief description of the parameter can be provided.  The

@@ -1,0 +1,12 @@
+
+Experimental Design API
+-----------------------
+
+.. py:currentmodule:: emat.experiment.experimental_design
+
+.. autofunction:: design_experiments
+
+.. autofunction:: design_sensitivity_tests
+
+.. autofunction:: design_refpoint_test
+

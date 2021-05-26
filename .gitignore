@@ -119,3 +119,8 @@ corruption.ipynb
 interactive-explorer-v2-nb.ipynb
 optimization.ipynb
 policy-contrast.ipynb
+robust_example.png
+robust_measures.png
+cache_road_test_robust_opt
+cache_road_test_robust_opt.info.txt
+emat.design.ipynb
