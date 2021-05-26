@@ -237,7 +237,9 @@ class CART(sdutil.OutputFormatterMixin):
         box_coi = np.sum(y_in_box)
         density = box_coi / y_in_box.shape[0]
         gini = 1-((density ** 2) + ((1-density) ** 2))
-        entropy = -((density * np.log2(density)) + ((1-density) * np.log2(1-density)))
+        with np.errstate(all='ignore'):
+            entropy = -((density * np.log2(density)) + ((1-density) * np.log2(1-density)))
+        entropy = np.nan_to_num(entropy)
 
         boxstats = {'coverage': box_coi / np.sum(self.y),
                     'density': density,

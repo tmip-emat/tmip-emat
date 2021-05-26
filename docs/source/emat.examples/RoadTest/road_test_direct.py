@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.7.1
+#       jupytext_version: 1.11.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -461,7 +461,7 @@ robust_results.par_coords()
 # :meth:`create_metamodel_from_data <emat.AbstractCoreModel.create_metamodel_from_data>`.
 
 # %%
-mm = m.create_metamodel_from_design('lhs')
+mm = m.create_metamodel_from_design('lhs', suppress_converge_warnings=True)
 mm
 
 # %% [markdown]
@@ -494,5 +494,3 @@ mm.cross_val_scores()
 # %%
 from emat.analysis import contrast_experiments
 contrast_experiments(road_scope, lhs_results, design2_results)
-
-# %%

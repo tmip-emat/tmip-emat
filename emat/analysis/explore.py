@@ -26,6 +26,10 @@ def _try_set_value(where, value, describe):
 class Explore(GenericBox):
 
 	def __init__(self, scope, data, box=None):
+		warnings.warn(
+			"emat.analysis.Explore is deprecated, "
+			"use emat.analysis.Visualizer instead",
+			DeprecationWarning, stacklevel=2)
 		super().__init__()
 		self.scope = scope
 		self.data = data

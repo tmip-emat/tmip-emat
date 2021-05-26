@@ -359,7 +359,7 @@ def threshold_feature_scores(
 		break_spacing='linear',
 ):
 	"""
-	Compute and display thresold feature scores for a performance measure.
+	Compute and display threshold feature scores for a performance measure.
 
 	This function is useful to detect and understand non-linear relationships
 	between performance measures and various input parameters.
@@ -374,11 +374,10 @@ def threshold_feature_scores(
 			results.
 		return_type (str):
 			The format to return:
-				- 'dataframe' gives a plain pandas.DataFrame,
-				- 'styled' gives a colorized pandas.DataFrame,
-				- 'figure' gives a plotly violin plot,
-				- 'ridge figure' gives a plotly ridgeline figure.
-
+			- 'dataframe' gives a plain pandas.DataFrame,
+			- 'styled' gives a colorized pandas.DataFrame,
+			- 'figure' gives a plotly violin plot,
+			- 'ridge figure' gives a plotly ridgeline figure.
 			Either plotly result can optionally have ".svg"
 			or ".png" added to render a static image in those
 			formats.
@@ -408,7 +407,7 @@ def threshold_feature_scores(
 			threshold breakpoints to test within the min-max range.
 
 	Returns:
-		plotly.graph_objs.Figure or DataFrame or styled DataFrame
+		plotly.Figure or DataFrame or styled DataFrame
 
 	"""
 
