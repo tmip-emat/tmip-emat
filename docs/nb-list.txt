@@ -10,3 +10,4 @@ source/emat.analysis/splom.ipynb
 source/emat.design/emat.design.ipynb
 source/emat.models/interface-walkthrough.ipynb
 source/emat.database/database-walkthrough.ipynb
+source/emat.metamodels/creation.ipynb
