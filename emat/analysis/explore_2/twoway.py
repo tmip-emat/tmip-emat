@@ -326,6 +326,7 @@ class TwoWayFigure(HBox, BaseTwoWayFigure):
 			showlegend=False,
 			margin=dict(l=10, r=10, t=10, b=10),
 			dragmode="lasso",
+			plot_bgcolor=colors.DEFAULT_PLOT_BACKGROUND_COLOR,
 		)
 
 		self.x_axis_choose.observe(self._observe_change_column_x, names='value')

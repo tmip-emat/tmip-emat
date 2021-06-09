@@ -152,6 +152,7 @@ def contrast_experiments(
 		rows='measures',
 		columns='infer',
 		mass=1000,
+		colors=None,
 		use_gl=True,
 		return_figures=False,
 ):
@@ -202,6 +203,8 @@ def contrast_experiments(
 			each scatter point partially transparent, which will help
 			visually convey relative density when there are a very large
 			number of points.
+		colors (2-tuple, optional):
+			A pair of colors for the experiments.
 		return_figures (bool, default False):
 			Set this to True to return the figures instead of
 			simply displaying them within a Jupyter notebook.
@@ -255,6 +258,7 @@ def contrast_experiments(
 				use_gl=use_gl,
 				mass=mass,
 				contrast=columns,
+				colors=colors,
 			)
 			if return_figures:
 				figures[row] = fig

@@ -56,6 +56,7 @@ DEFAULT_BOX_BG_COLOR = '#2ca02c'    # Green
 DEFAULT_BOX_BG_BORDER_COLOR = '#217821'  # Green, 25% darker
 DEFAULT_BOX_LINE_COLOR = '#2ca02c'  # Green
 DEFAULT_REF_LINE_COLOR = '#000000'  # Black
+DEFAULT_PLOT_BACKGROUND_COLOR = '#E5ECF6'
 
 DEFAULT_REF_LINE_STYLE = dict(
 	line=dict(
@@ -127,3 +128,25 @@ def get_colour_name(requested_colour, case=None):
 	return case(name)
 
 
+def high_contrast_mode(toggle=True):
+	global DEFAULT_BASE_COLOR_RGB
+	global DEFAULT_HIGHLIGHT_COLOR_RGB
+	global DEFAULT_BASE_COLOR
+	global DEFAULT_HIGHLIGHT_COLOR
+	global DEFAULT_LASSO_COLOR
+	global DEFAULT_PLOT_BACKGROUND_COLOR
+
+	if toggle:
+		DEFAULT_BASE_COLOR_RGB = Color(9, 56, 89)  # Dark Blue
+		DEFAULT_HIGHLIGHT_COLOR_RGB = Color(255, 161, 79)  # Orange
+		DEFAULT_BASE_COLOR = 'rgb(9, 56, 89)'  # Dark Blue
+		DEFAULT_HIGHLIGHT_COLOR = 'rgb(255, 161, 79)'  # Light Orange
+		DEFAULT_LASSO_COLOR = 'rgb(255, 89, 244)'  # Light Pink
+		DEFAULT_PLOT_BACKGROUND_COLOR = '#f5f6f7'
+	else:
+		DEFAULT_BASE_COLOR_RGB = Color(31, 119, 180)  # Blue
+		DEFAULT_HIGHLIGHT_COLOR_RGB = Color(255, 127, 14)  # Orange
+		DEFAULT_BASE_COLOR = 'rgb(31, 119, 180)'  # Blue
+		DEFAULT_HIGHLIGHT_COLOR = 'rgb(255, 127, 14)'  # Orange
+		DEFAULT_LASSO_COLOR = 'rgb(255, 46, 241)'  # Hot Pink
+		DEFAULT_PLOT_BACKGROUND_COLOR = '#E5ECF6'

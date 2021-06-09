@@ -9,6 +9,7 @@ from typing import Mapping
 
 from .widget import FigureWidget
 from .common import get_name, any_names
+from .colors import DEFAULT_PLOT_BACKGROUND_COLOR
 
 
 class ScatterMass:
@@ -591,7 +592,7 @@ def scatter_graph_row(
 		yaxis= {i[2:]:j for i,j in kwargs.items() if i[:2]=='y_'},
 		showlegend= showlegend,
 		paper_bgcolor=paper_bgcolor,
-		plot_bgcolor=plot_bgcolor,
+		plot_bgcolor=plot_bgcolor or DEFAULT_PLOT_BACKGROUND_COLOR,
 		**xaxis_dicts,
 		**layout_kwds,
 	)

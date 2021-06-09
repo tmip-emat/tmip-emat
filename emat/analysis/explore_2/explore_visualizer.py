@@ -775,6 +775,7 @@ class Visualizer(DataFrameExplorer):
 			x=None,
 			y=None,
 			use_gl=True,
+			minimum_marker_opacity=0.25,
 	):
 		"""
 		Create or display a two-way widget.
@@ -799,6 +800,10 @@ class Visualizer(DataFrameExplorer):
 			use_gl (bool, default True):
 				Use Plotly's `Scattergl` instead of `Scatter`, which may
 				provide some performance benefit for large data sets.
+			minimum_marker_opacity (float, default 0.25):
+				This is the minimum marker opacity used,
+				notwithstanding any transparency level implied
+				by `target_marker_opacity`.
 
 		Returns:
 			TwoWayFigure
@@ -810,7 +815,9 @@ class Visualizer(DataFrameExplorer):
 			return self._two_way[key]
 
 		from .twoway import TwoWayFigure
-		self._two_way[key] = TwoWayFigure(self, use_gl=use_gl)
+		self._two_way[key] = TwoWayFigure(
+			self, use_gl=use_gl, minimum_marker_opacity=minimum_marker_opacity
+		)
 		self._two_way[key].selection_choose.value = self.active_selection_name()
 
 		def _try_set_value(where, value, describe):

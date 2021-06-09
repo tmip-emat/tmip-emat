@@ -1046,9 +1046,12 @@ def new_splom_figure(
 							ticktext=x_ticktext,
 							tickvals=x_tickvals,
 						)
-	fig.update_layout(margin=dict(
-		l=10, r=10, t=30 if row_titles_top else 10, b=10,
-	))
+	fig.update_layout(
+		margin=dict(
+			l=10, r=10, t=30 if row_titles_top else 10, b=10,
+		),
+		plot_bgcolor=colors.DEFAULT_PLOT_BACKGROUND_COLOR,
+	)
 	metadata = dict(
 		rows=rows,
 		cols=cols,
