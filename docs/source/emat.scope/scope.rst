@@ -2,6 +2,7 @@
 
 .. py:currentmodule:: emat
 
+.. _methodology-scoping:
 
 Scope
 =====

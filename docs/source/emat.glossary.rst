@@ -96,6 +96,12 @@ that are specifically tailored to the TMIP-EMAT approach demonstrated here.
         |levers|, and
         |measures| under consideration.
 
+    SPLOM
+        The Scatter Plot Matrix, or |SPLOM|, is a visualization method. It is
+        a collection of two-dimensional scatter plots arranged in a matrix, where each
+        column of plots shares a common x-axis defintion, and each row shares a common
+        y-axis definition.
+
     uncertainty
         The *X* in |XLRM|, and uncertainty is a single exogenous risk factor that
         represents an unknown and uncontrolled future
@@ -128,3 +134,4 @@ that are specifically tailored to the TMIP-EMAT approach demonstrated here.
 .. |model| replace:: :term:`model`
 .. |XLRM| replace:: :term:`XLRM`
 .. |scope| replace:: :term:`scope`
+.. |SPLOM| replace:: :term:`SPLOM`

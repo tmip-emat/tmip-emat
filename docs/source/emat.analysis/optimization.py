@@ -37,6 +37,9 @@ emat.versions()
 # flexible to consider *multiple objectives*,
 # as well as be *robust* against uncertainty.
 
+# %% [raw] {"raw_mimetype": "text/restructuredtext"}
+# .. _methodology-multiobjective-optimization:
+
 # %% [markdown]
 # ## Multi-Objective Optimization
 
@@ -74,6 +77,9 @@ emat.versions()
 # policy to adopt, and exactly which is the best is left as a subjective judgement
 # to decision makers, instead of being a concretely objective evaluation based 
 # on mathematics alone.
+
+# %% [raw] {"raw_mimetype": "text/restructuredtext"}
+# .. _methodology-robust-optimization:
 
 # %% [markdown]
 # ## Robust Optimization
@@ -264,6 +270,9 @@ plt.show()
 # %% [markdown]
 # # Mechanics of Using Optimization
 
+# %% [raw] {"raw_mimetype": "text/restructuredtext"}
+# .. _methodology-search-over-levers:
+
 # %% [markdown]
 # ## Policy Optimization: Search over Levers
 
@@ -398,6 +407,9 @@ result.result.query("amortization_period != 50")
 # other desirable outcome is a high level of travel time savings.  It is left entirely
 # up to the analyst and policy makers to judge whether this outcome is "bad" or not,
 # relative to the other possible outcomes.
+
+# %% [raw] {"raw_mimetype": "text/restructuredtext"}
+# .. _methodology-worst-case-discovery:
 
 # %% [markdown]
 # ## Worst Case Discovery: Search over Uncertainties

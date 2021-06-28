@@ -19,6 +19,9 @@
 import emat
 emat.versions()
 
+# %% [raw] {"raw_mimetype": "text/restructuredtext"}
+# .. _methodology-prim:
+
 # %% [markdown]
 # # PRIM
 #

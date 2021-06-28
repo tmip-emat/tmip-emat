@@ -14,6 +14,13 @@
 #     name: python3
 # ---
 
+# %%
+import emat
+emat.versions()
+
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-experimental-design:
+
 # %% [markdown]
 # # Experimental Designs
 
@@ -30,6 +37,9 @@
 # %%
 import emat.examples
 scope, db, model = emat.examples.road_test()
+
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-univariate-sensitivity:
 
 # %% [markdown]
 # ## Univariate Sensitivity Tests
@@ -73,6 +83,9 @@ ust.sampler_name
 
 # %%
 ust.design_name
+
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-latin-hypercube:
 
 # %% [markdown]
 # ## Efficient Designs
@@ -157,6 +170,9 @@ ax.set_yticks([]);
 # %%
 lhs
 
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-monte-carlo-design:
+
 # %% [markdown]
 # In addition to the default Latin Hypercube sampler, TMIP-EMAT also includes several other samplers,
 # which can be invoked through the `sampler` argument of the `design_experiments` function:
@@ -170,6 +186,9 @@ lhs
 #   simulations
 #   
 #
+
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-reference-design:
 
 # %% [markdown]
 # ## Reference Designs

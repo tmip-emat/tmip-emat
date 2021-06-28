@@ -17,6 +17,9 @@
 import emat
 emat.versions()
 
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-splom:
+
 # %% [markdown]
 # # Scatter Plot Matrix
 
@@ -43,7 +46,11 @@ results = model.run_experiments(design)
 # showing a contrast between two factors, typically an input parameter (i.e. 
 # an uncertainty or a policy lever) and an output performance measure, although
 # it is also possible to plot inputs against inputs or outputs against outputs.
-#
+
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-display-experiments:
+
+# %% [markdown]
 # The `display_experiments` function in the `emat.analysis` sub-package can 
 # automatically create a scatter plot matrix that crosses every parameter with
 # every measure, simply by providing the scope and the results.  By default, 
@@ -82,6 +89,9 @@ display_experiments(
 # Observing non-monotonic relationships where we don't expect them is a red flag for
 # the analyst to closely review model outputs, and perhaps the underlying model
 # coding as well, to identify and correct errors. 
+
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-contrast-experiments:
 
 # %% [markdown]
 # ## Contrasting Sets of Experiments

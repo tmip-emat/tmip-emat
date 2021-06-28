@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath('..\\.'))
 project = 'TMIP-EMAT'
 copyright = ''
 html_show_copyright = False
-author = 'Cambridge Systematics, Inc.'
+author = 'TMIP-EMAT Developers'
 
 def version(path):
     """Obtain the packge version from a python file e.g. pkg/__init__.py
@@ -113,14 +113,6 @@ intersphinx_mapping = {
 
 
 rst_prolog = """
-
-.. warning:: This is **DRAFT** documentation under development.  The interfaces
-    documented are shown for illustration and are not guaranteed to be stable 
-    in future releases of TMIP-EMAT.
-    
-    The views expressed in this draft documentation do not necessarily 
-    represent the opinions of FHWA, and do not constitute an endorsement, 
-    recommendation, or specification by FHWA.
 
 """
 

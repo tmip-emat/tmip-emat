@@ -17,6 +17,9 @@
 import emat
 emat.versions()
 
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-interactive-explorer:
+
 # %% [markdown]
 # # Interactive Explorer
 #

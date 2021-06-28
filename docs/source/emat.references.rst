@@ -21,5 +21,9 @@ References
     Long-term Policy Analysis. <https://www.rand.org/pubs/monograph_reports/MR1626.html>`_
     Santa Monica, CA, RAND Corporation.
 
+.. _Loeppky2009:
 
+*   Loeppky, J., Sacks, J., & Welch, W.J. (2009)
+    `Choosing the sample size of a computer experiment: A practical guide. <https://www.tandfonline.com/doi/abs/10.1198/TECH.2009.08040>`_
+    Technometrics, 366-376.
 

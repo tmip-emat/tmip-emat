@@ -115,8 +115,8 @@ class AB_Contrast():
 		for k, v in b.items():
 			self.design_b[k] = v
 
-		results_a = self.model.run_experiments(self.design_a)
-		results_b = self.model.run_experiments(self.design_b)
+		results_a = self.model.run_experiments(self.design_a, db=False)
+		results_b = self.model.run_experiments(self.design_b, db=False)
 
 		measure_names = self.scope.get_measure_names()
 		not_measures = [i for i in results_a.columns if i not in measure_names]

@@ -21,6 +21,9 @@
 import emat
 emat.versions()
 
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-feature-scoring:
+
 # %% [markdown]
 # # Feature Scoring
 #
@@ -271,6 +274,9 @@ ax = road_test_results.plot.scatter(
 # *a priori*, it may be difficult to discover it by looking through various
 # combinations of three-way relationships.  To uncover this kind of relationship,
 # threshold scoring may be useful.
+
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-threshold-scoring:
 
 # %% [markdown]
 # ## Threshold Scoring

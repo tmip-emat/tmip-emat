@@ -13,6 +13,13 @@
 #     name: python3
 # ---
 
+# %%
+import emat
+emat.versions()
+
+# %% [raw] raw_mimetype="text/restructuredtext"
+# .. _methodology-policy-contrast:
+
 # %% [markdown]
 # # Policy Contrast
 #
