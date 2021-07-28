@@ -9,3 +9,6 @@ seaborn
 pyyaml
 cloudpickle
 packaging
+addicty
+yamllint
+pathspec
