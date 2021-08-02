@@ -440,6 +440,8 @@ class Database(abc.ABC):
             source=None,
             design=None,
             runs=None,
+            formulas=True,
+            with_validity=False,
     ):
         """
         Read experiment results from the database.

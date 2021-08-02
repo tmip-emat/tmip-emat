@@ -205,7 +205,17 @@ class Storage(Database):
     ):
         raise NotImplementedError
 
-    def read_experiment_measures(self):
+    def read_experiment_measures(
+            self,
+            scope_name,
+            design_name=None,
+            experiment_id=None,
+            source=None,
+            design=None,
+            runs=None,
+            formulas=True,
+            with_validity=False,
+    ):
         raise NotImplementedError
 
     def read_experiment_parameters(
