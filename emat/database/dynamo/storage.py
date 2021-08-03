@@ -15,7 +15,7 @@ from ..database import Database
 from ...exceptions import ReadOnlyDatabaseError
 from ...util.deduplicate import reindex_duplicates
 from ...util.loggers import get_module_logger
-from ..sqlite.sqlite_db import _to_uuid
+from ...util.uid import uuid_time, uuid6
 
 _logger = get_module_logger(__name__)
 
@@ -622,7 +622,7 @@ class DynamoDB(Database):
             # if parameters is None:
             #     raise ValueError('must give experiment_id or parameters')
             # experiment_id = self.get_experiment_id(scope_name, parameters)
-        run_id = uuid.uuid1()
+        run_id = uuid6()
         if location is True:
             import platform
             location = platform.node()
@@ -879,8 +879,7 @@ class DynamoDB(Database):
 
         if runs is None:
             df = result.reset_index()
-            from ...util.uid import uuid1_time
-            df["_run_timestamp_"] = df[["run_id"]].applymap(uuid1_time)
+            df["_run_timestamp_"] = df[["run_id"]].applymap(uuid_time)
             df = df.sort_values(by="_run_timestamp_")
             df = df.drop_duplicates(subset="experiment_id", keep='last')
             df = df.set_index(['experiment_id', 'run_id'])
@@ -1077,7 +1076,7 @@ class DynamoDB(Database):
             # generate new run_ids if none is given
             run_ids = []
             for experiment_id in m_df.index:
-                run_ids.append(uuid.uuid1())
+                run_ids.append(uuid6())
 
         scope = self.read_scope(scope_name)
         scp_m = scope.get_measure_names()
