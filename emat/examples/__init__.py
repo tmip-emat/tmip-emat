@@ -1,10 +1,11 @@
 
 from .. import package_file, Scope, PythonCoreModel, SQLiteDB
 
-def road_test(*args, yamlfile='road_test.yaml', **kwargs):
+def road_test(*args, yamlfile='road_test.yaml', db=None, **kwargs):
 	road_test_scope_file = package_file('model', 'tests', yamlfile)
 	s = Scope(road_test_scope_file)
-	db = SQLiteDB(*args, **kwargs)
+	if db is None:
+		db = SQLiteDB(*args, **kwargs)
 	if s.name not in db.read_scope_names():
 		s.store_scope(db)
 	from ..model.core_python import Road_Capacity_Investment

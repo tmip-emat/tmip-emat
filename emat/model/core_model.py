@@ -491,6 +491,11 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
             else:
                 _logger.debug(f"NO DATABASE experiment_id {experiment_id}")
 
+            def set_status(msg):
+                run_id = getattr(self, 'run_id', None)
+                if run_id is not None and experiment_id:
+                    self.db.write_experiment_run_status(self.scope.name, run_id, experiment_id, msg)
+
             xl = {}
             xl.update(scenario)
             xl.update(policy)
@@ -543,6 +548,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     # probably fail anyway.
                     self.log(f"run_core_model ABORT {experiment_id}", level=logging.ERROR)
                     self.comment_on_run = f"FAILED EXPERIMENT {experiment_id}: {str(err)}"
+                    set_status("FAILED")
                     return
                 else:
                     _logger.error(f"run_core_model CONTINUE AFTER ERROR {experiment_id}")
@@ -553,10 +559,12 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     # did not actually terminate correctly, so we do not want to
                     # post-process or store these results in the database.
                     self.comment_on_run = f"NON-SUCCESSFUL EXPERIMENT {experiment_id}: success_indicator missing"
+                    set_status("NON-SUCCESS")
                     raise ValueError(f"success_indicator missing: {success_indicator}")
 
                 if killed_indicator and os.path.exists(killed_indicator):
                     self.comment_on_run = f"KILLED EXPERIMENT {experiment_id}: killed_indicator present"
+                    set_status("KILLED")
                     raise ValueError(f"killed_indicator present: {killed_indicator}")
 
                 _logger.debug(f"run_core_model post_process {experiment_id}")
@@ -575,6 +583,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 _logger.error(f"proceeding directly to archive attempt {experiment_id}")
                 if not self.comment_on_run:
                     self.comment_on_run = f"PROBLEM IN EXPERIMENT {experiment_id}: {str(err)}"
+                    set_status(f"PROBLEM: {str(err)}")
             else:
                 # only write to database if there was no error in post_process, load_measures or outcome processing
                 if experiment_id and hasattr(self, 'db') and self.db is not None and not self.db.readonly:
@@ -594,6 +603,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                         _logger.exception(f"error in writing results to database: {str(err)}")
                     else:
                         _logger.debug(f"run_core_model OK write db {experiment_id} {self.metamodel_id} {run_id}\n{m_df}")
+                        set_status("COMPLETE")
                 else:
                     _logger.debug(f"run_core_model no db to write to {experiment_id}")
 

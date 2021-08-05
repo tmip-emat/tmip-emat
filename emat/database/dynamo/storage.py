@@ -1,5 +1,6 @@
 import time
 import uuid
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -9,6 +10,7 @@ import gzip
 from botocore.exceptions import ClientError
 from addicty import Dict
 from typing import Mapping
+from datetime import datetime
 from ..kvstore.stores import DictStore, ScopeStore
 from ..kvstore.storage import SubkeyStore, Storage
 from ..database import Database
@@ -98,10 +100,7 @@ class DynamoDB(Database):
                         'KeyType': 'HASH',
                     },
                 ],
-                ProvisionedThroughput={
-                    'ReadCapacityUnits': 5,
-                    'WriteCapacityUnits': 5,
-                },
+                BillingMode='PAY_PER_REQUEST',
                 TableName=tablename,
             )
 
@@ -136,10 +135,7 @@ class DynamoDB(Database):
                         'KeyType': 'RANGE',
                     },
                 ],
-                ProvisionedThroughput={
-                    'ReadCapacityUnits': 5,
-                    'WriteCapacityUnits': 5,
-                },
+                BillingMode='PAY_PER_REQUEST',
                 TableName=tablename,
             )
 
@@ -175,16 +171,95 @@ class DynamoDB(Database):
                         'KeyType': 'RANGE',
                     },
                 ],
-                ProvisionedThroughput={
-                    'ReadCapacityUnits': 5,
-                    'WriteCapacityUnits': 5,
-                },
+                BillingMode='PAY_PER_REQUEST',
                 TableName=tablename,
             )
 
         except ClientError as error:
             if _aws_error_code(error) != 'ResourceInUseException':
                 raise
+
+
+    def init_logger(self, tablename='emat_logs'):
+        """
+        Initialize the logs table in DynamoDB.
+        """
+        self.logs_tablename = tablename
+        try:
+            response = self._dynamo_client.create_table(
+                AttributeDefinitions=[
+                    {
+                        'AttributeName': 'tag_name',
+                        'AttributeType': 'S',
+                    },
+                    {
+                        'AttributeName': 'msg_time',
+                        'AttributeType': 'N',
+                    },
+                ],
+                KeySchema=[
+                    {
+                        'AttributeName': 'tag_name',
+                        'KeyType': 'HASH',
+                    },
+                    {
+                        'AttributeName': 'msg_time',
+                        'KeyType': 'RANGE',
+                    },
+                ],
+                BillingMode='PAY_PER_REQUEST',
+                TableName=tablename,
+            )
+
+        except ClientError as error:
+            if _aws_error_code(error) != 'ResourceInUseException':
+                raise
+
+    def log(self, msg, level=20, tag=None):
+        if level >= self.log_level:
+            if tag is None:
+                tag = self.default_log_tag
+            response = self._dynamo_client.put_item(
+                TableName=self.logs_tablename,
+                Item={
+                    'tag_name': {'S': str(tag)},
+                    'msg_time': {'N': str(time.time())},
+                    'msg': {'S': str(msg)}
+                },
+            )
+
+    def print_log(self, tail=50, tag=None):
+        if tag is None:
+            tag = self.default_log_tag
+
+        print(f"LOG: {tag}")
+
+        query_args = dict(
+            TableName=self.logs_tablename,
+            Limit=tail,
+            ScanIndexForward=False,
+            KeyConditionExpression="tag_name = :tag_name",
+            ExpressionAttributeValues={":tag_name": {"S": tag}},
+        )
+        lines = []
+
+        while True:
+            # get next page
+            response = self._dynamo_client.query(**query_args)
+            # handle returned log lines
+            for i in response.get('Items', []):
+                lines.insert(
+                    0,
+                    datetime.fromtimestamp(float(i['msg_time']['N'])).strftime("%I:%M:%S.%f")[:-3]
+                    +" - "+ i['msg']['S']
+                )
+            LastEvaluatedKey = response.get("LastEvaluatedKey", None)
+            if LastEvaluatedKey:
+                query_args['ExclusiveStartKey'] = LastEvaluatedKey
+            else:
+                break
+
+        print("\n".join(lines))
 
 
     def _dynamo_experiment_key(self, scope_name, experiment_id):
@@ -374,10 +449,7 @@ class DynamoDB(Database):
                         'KeyType': 'RANGE',
                     },
                 ],
-                ProvisionedThroughput={
-                    'ReadCapacityUnits': 5,
-                    'WriteCapacityUnits': 5,
-                },
+                BillingMode='PAY_PER_REQUEST',
                 TableName=tablename,
             )
 
@@ -475,7 +547,15 @@ class DynamoDB(Database):
             return x
 
 
-    def __init__(self, local_port=8123, retries=10, *, bucket=None):
+    def __init__(
+            self,
+            local_port=8123,
+            retries=10,
+            *,
+            bucket=None,
+            log_level=20,
+            log_tag=None,
+    ):
 
         from botocore.config import Config
 
@@ -497,7 +577,10 @@ class DynamoDB(Database):
         self.init_designs()
         self.init_experiments()
         self.init_results()
+        self.init_logger()
         self.bucket = bucket
+        self.log_level = log_level
+        self.default_log_tag = log_tag
 
     def _write_scope(self, scope_name, sheet, scp_xl, scp_m, content):
         raise NotImplementedError
@@ -629,6 +712,7 @@ class DynamoDB(Database):
         attrs = dict(
             run_location=location,
             run_source=source,
+            run_status='started',
         )
         self._put_experiment_result(scope_name, experiment_id, run_id, attrs, bucket=self.bucket)
         return run_id, experiment_id
@@ -878,14 +962,17 @@ class DynamoDB(Database):
             result.design_name = design_name
 
         if runs is None:
-            df = result.reset_index()
-            df["_run_timestamp_"] = df[["run_id"]].applymap(uuid_time)
-            df = df.sort_values(by="_run_timestamp_")
-            df = df.drop_duplicates(subset="experiment_id", keep='last')
-            df = df.set_index(['experiment_id', 'run_id'])
-            df = df.drop(columns=['_run_timestamp_'])
-            result = ExperimentalDesign(df)
-            result.design_name = design_name
+            try:
+                df = result.reset_index()
+                df["_run_timestamp_"] = df[["run_id"]].applymap(uuid_time)
+                df = df.sort_values(by="_run_timestamp_")
+                df = df.drop_duplicates(subset="experiment_id", keep='last')
+                df = df.set_index(['experiment_id', 'run_id'])
+                df = df.drop(columns=['_run_timestamp_'])
+                result = ExperimentalDesign(df)
+                result.design_name = design_name
+            except KeyError as err:
+                warnings.warn(str(err))
 
         return result
 
@@ -1013,6 +1100,135 @@ class DynamoDB(Database):
     def write_experiment_all(self):
         raise NotImplementedError
 
+    def write_experiment_run_status(
+            self,
+            scope_name,
+            run_id,
+            experiment_id,
+            msg,
+    ):
+        """
+        Write experiment status to the database.
+
+        Parameters
+        ----------
+        scope_name : str
+        run_id : UUID
+        experiment_id : int
+        msg : str
+            The status to write.
+        """
+        self._put_experiment_result(scope_name, experiment_id, run_id, {'run_status': msg})
+
+    def read_experiment_run_status(
+            self,
+            scope_name,
+            design_name=None,
+            *,
+            experiment_id=None,
+            experiment_ids=None,
+    ):
+        """
+        Read experiment definitions from the database.
+
+        Read the values for each experiment parameter per experiment.
+
+        Args:
+            scope_name (str):
+                A scope name, used to identify experiments,
+                performance measures, and results associated with this
+                exploratory analysis.
+            design_name (str, optional): If given, only experiments
+                associated with both the scope and the named design
+                are returned, otherwise all experiments associated
+                with the scope are returned.
+            experiment_ids (int, optional):
+                A single experiment id to check.  If given,
+                `design_name` is ignored.
+            experiment_ids (int or Collection[int], optional):
+                A collection of experiment id's to check.  If given,
+                `design_name` is ignored.
+
+        Returns:
+            emat.ExperimentalDesign:
+                The experiment run statuses are returned in a subclass
+                of a normal pandas.DataFrame, which allows attaching
+                the `design_name` as meta-data to the DataFrame.
+
+        Raises:
+            ValueError: if `scope_name` is not stored in this database
+        """
+        if not isinstance(scope_name, str):
+            scope_name = scope_name.name
+
+        if experiment_ids is not None and experiment_id is not None:
+            raise ValueError("only give one of `experiment_id` or `experiment_ids`")
+
+        if experiment_id is not None:
+            experiment_ids = [experiment_id]
+
+        if experiment_ids is None and design_name is not None:
+            # TODO: this is not very efficient, pinging the Dynamo for every row.
+            # maybe batch it?
+            experiment_ids = self._get_design(scope_name, design_name)
+
+        experiment_list = []
+
+        from .serialization import TypeDeserializer
+        deserialize = TypeDeserializer().deserialize
+
+
+        for experiment_id in experiment_ids:
+            query_args = dict(
+                TableName=self.experiment_results_tablename,
+                KeyConditionExpression="scope_name = :scope_name",
+                ExpressionAttributeValues={":scope_name": {"S": scope_name}},
+                ProjectionExpression="ex_run_id, run_status",
+            )
+
+            if experiment_id is not None:
+                key_cond = query_args['KeyConditionExpression']
+                key_cond = key_cond + " AND ex_run_id BETWEEN :ex_id_low AND :ex_id_high"
+                query_args['KeyConditionExpression'] = key_cond
+                attr_vals = {}
+                attr_vals.update(query_args['ExpressionAttributeValues'])
+                experiment_id_bytes = int(experiment_id).to_bytes(4, 'big')
+                attr_vals[":ex_id_low"] = {'B': experiment_id_bytes + bytes(16)}
+                attr_vals[":ex_id_high"] = {'B': experiment_id_bytes + b'\xFF'*16}
+                query_args['ExpressionAttributeValues'] = attr_vals
+
+            while True:
+                # get next page
+                response = self._dynamo_client.query(**query_args)
+                # handle returned experiments
+                for i in response.get('Items',[]):
+                    x = deserialize({'M':i})
+                    x.pop("scope_name", None)
+                    x_ids = bytes(x.pop("ex_run_id"))
+                    x['experiment_id'] = int(x_ids[:4].hex(), 16)
+                    x['run_id'] = uuid.UUID(bytes=x_ids[4:])
+                    experiment_list.append(x)
+                LastEvaluatedKey = response.get("LastEvaluatedKey", None)
+                if LastEvaluatedKey:
+                    query_args['ExclusiveStartKey'] = LastEvaluatedKey
+                else:
+                    break
+
+        from ...experiment.experimental_design import ExperimentalDesign
+        if experiment_list:
+
+            xl_df = pd.DataFrame(experiment_list)
+            xl_df = xl_df.set_index(["experiment_id", "run_id"]).sort_index()
+            result = ExperimentalDesign(xl_df)
+            result.design_name = design_name
+
+        else:
+            result = ExperimentalDesign()
+            result.design_name = design_name
+
+        return result
+
+
     def write_experiment_measures(
             self,
             scope_name,
@@ -1089,7 +1305,7 @@ class DynamoDB(Database):
                     m_df[measure_name] = m_df.eval(formula).rename(measure_name)
 
         for run_id, (ex_id, row) in zip(run_ids, m_df.iterrows()):
-            _logger.critical(f"put {ex_id}.{run_id} results")
+            _logger.debug(f"put {ex_id}.{run_id} results")
             self._put_experiment_result(scope_name, ex_id, run_id, dict(**row), bucket=self.bucket)
 
 
@@ -1161,13 +1377,13 @@ class DynamoDB(Database):
 
         ### split experiments into novel and duplicate ###
         # first join to existing experiments
-        _logger.critical("read_experiment_parameters")
+        _logger.debug("read_experiment_parameters")
         existing_experiments = self.read_experiment_parameters(scope_name)
         combined_experiments = pd.concat([
             existing_experiments,
             xl_df.set_index(np.full(len(xl_df), -1, dtype=int)),
         ])
-        _logger.critical("reindex_duplicates")
+        _logger.debug("reindex_duplicates")
         from .serialization import TypeSerializer, TypeDeserializer
         combined_experiments = combined_experiments.applymap(
             lambda x: TypeDeserializer().deserialize(TypeSerializer().serialize(x))
@@ -1178,7 +1394,7 @@ class DynamoDB(Database):
         novel_experiments = xl_df.loc[novel_flag]
         duplicate_experiments = xl_df_.loc[~novel_flag]
 
-        _logger.critical("novel_ids")
+        _logger.debug("identify novel_ids")
         novel_id_start = self._check_max_experiment_id(scope_name)+1
         novel_ids = pd.RangeIndex(novel_id_start, novel_id_start+len(novel_experiments))
         novel_experiments.index = novel_ids
@@ -1189,11 +1405,11 @@ class DynamoDB(Database):
 
         # write experiment id's to S3
         # using the id's as provided in the experiments dataframe
-        _logger.critical("write experiment_ids to dynamo designs")
+        _logger.debug("write experiment_ids to dynamo designs")
         self._put_design(scope_name, design_name, ex_ids)
 
         for ex_id_as_input, row in novel_experiments.iterrows():
-            _logger.critical(f"put {ex_id_as_input}")
+            _logger.debug(f"put {ex_id_as_input}")
             self._put_experiment(scope_name, ex_id_as_input, dict(**row))
 
         return ex_ids
