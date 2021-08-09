@@ -7,7 +7,7 @@ def road_test(*args, yamlfile='road_test.yaml', db=None, **kwargs):
 	if db is None:
 		db = SQLiteDB(*args, **kwargs)
 	if s.name not in db.read_scope_names():
-		s.store_scope(db)
+		db.store_scope(s)
 	from ..model.core_python import Road_Capacity_Investment
 	m = PythonCoreModel(Road_Capacity_Investment, scope=s, db=db)
 	m.function_ = m.function
