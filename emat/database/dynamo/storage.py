@@ -368,6 +368,8 @@ class DynamoDB(Database):
             TableName=self.scopes_tablename,
             Key=key,
         ).get('Item')
+        if x is None:
+            raise KeyError(f"No scope named {scope_name!r} in DynamoDB")
         try:
             content = TypeDeserializer().deserialize({'M':x})['content']
             from ...scope.scope import Scope
@@ -392,6 +394,7 @@ class DynamoDB(Database):
 
     def _get_design(self, scope_name, design_name):
         """
+        Get the experiment id's for a given scope and design.
 
         Parameters
         ----------
@@ -1018,12 +1021,40 @@ class DynamoDB(Database):
             of a normal pandas.DataFrame, which allows attaching
             the `design_name` as meta-data to the DataFrame.
         """
+        query_args = dict(
+            TableName=self.experiments_tablename,
+            KeyConditionExpression="scope_name = :scope_name AND experiment_id > :zero",
+            ExpressionAttributeValues={":scope_name": {"S": scope_name}, ":zero": {"N": "0"}},
+        )
 
         if design_name is not None:
-            raise NotImplementedError
+            if experiment_ids is None:
+                experiment_ids = self._get_design(scope_name, design_name)
+            else:
+                raise ValueError("give design_name or experiment_ids not both")
 
         if experiment_ids is not None:
-            raise NotImplementedError
+            # TODO this is slow, can we batch or filter to be faster?
+            if len(experiment_ids) == 1:
+                query_args = dict(
+                    TableName=self.experiments_tablename,
+                    KeyConditionExpression="scope_name = :scope_name AND experiment_id = :exid",
+                    ExpressionAttributeValues={":scope_name": {"S": scope_name}, ":exid": {"N": str(experiment_ids[0])}},
+                )
+            else:
+                result = pd.concat([
+                    self.read_experiment_parameters(
+                        scope_name,
+                        only_pending=only_pending,
+                        experiment_ids=[i],
+                        ensure_dtypes=False,
+                    )
+                    for i in experiment_ids
+                ])
+                if ensure_dtypes:
+                    scope = self.read_scope(scope_name)
+                    result = scope.ensure_dtypes(result)
+                return result
 
         if only_pending:
             raise NotImplementedError
@@ -1032,12 +1063,6 @@ class DynamoDB(Database):
 
         from .serialization import TypeDeserializer
         deserialize = TypeDeserializer().deserialize
-
-        query_args = dict(
-            TableName=self.experiments_tablename,
-            KeyConditionExpression="scope_name = :scope_name AND experiment_id > :zero",
-            ExpressionAttributeValues={":scope_name": {"S": scope_name}, ":zero": {"N": "0"}},
-        )
 
         while True:
             # get next page
