@@ -126,6 +126,7 @@ class Storage(Database):
             location=None,
             experiment_id=None,
             source=0,
+            **extra_attrs,
     ):
         raise NotImplementedError
 

@@ -944,6 +944,7 @@ class Database(abc.ABC):
             location=None,
             experiment_id=None,
             source=0,
+            **extra_attrs,
     ):
         """
         Create a new run_id in the database.

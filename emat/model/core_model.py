@@ -710,8 +710,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
         return self.ensure_dtypes(
             db.read_experiment_parameters(
-                self.scope.name,
-                design_name,
+                scope_name=self.scope.name,
+                design_name=design_name,
                 only_pending=only_pending,
                 experiment_ids=experiment_ids,
             )

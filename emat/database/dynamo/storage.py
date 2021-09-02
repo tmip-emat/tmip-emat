@@ -484,6 +484,11 @@ class DynamoDB(Database):
         bucket : str, optional
             Also backup results storage to s3 in this bucket
         """
+        if len(results) == 0:
+            _logger.error(f"No actual results are ready to store for "
+                          f"{scope_name}/{experiment_id}/{run_id}")
+            return
+
         from .serialization import TypeSerializer
 
         if bucket is not None:
@@ -524,14 +529,15 @@ class DynamoDB(Database):
                 expr_names[f"#AK{n}"] = ik
                 expr_values[f":av{n}"] = iv
                 update_str.append(f"#AK{n} = :av{n}")
-            kwds = dict(
-                TableName=self.experiment_results_tablename,
-                Key=key,
-                ExpressionAttributeNames=expr_names,
-                ExpressionAttributeValues=expr_values,
-                UpdateExpression="SET "+", ".join(update_str)
-            )
-            response = self._dynamo_client.update_item(**kwds)
+            if len(expr_names):
+                kwds = dict(
+                    TableName=self.experiment_results_tablename,
+                    Key=key,
+                    ExpressionAttributeNames=expr_names,
+                    ExpressionAttributeValues=expr_values,
+                    UpdateExpression="SET "+", ".join(update_str)
+                )
+                response = self._dynamo_client.update_item(**kwds)
 
     def _get_experiment_result(self, scope_name, experiment_id, run_id):
         from .serialization import TypeDeserializer
@@ -673,6 +679,7 @@ class DynamoDB(Database):
             location=None,
             experiment_id=None,
             source=0,
+            **extra_attrs,
     ):
         """
         Create a new run_id in the database.
@@ -716,6 +723,7 @@ class DynamoDB(Database):
             run_location=location,
             run_source=source,
             run_status='started',
+            **extra_attrs,
         )
         self._put_experiment_result(scope_name, experiment_id, run_id, attrs, bucket=self.bucket)
         return run_id, experiment_id
@@ -1208,7 +1216,7 @@ class DynamoDB(Database):
                 TableName=self.experiment_results_tablename,
                 KeyConditionExpression="scope_name = :scope_name",
                 ExpressionAttributeValues={":scope_name": {"S": scope_name}},
-                ProjectionExpression="ex_run_id, run_status",
+                ProjectionExpression="ex_run_id, run_status, dispatch_time",
             )
 
             if experiment_id is not None:
