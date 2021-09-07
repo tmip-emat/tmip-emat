@@ -670,7 +670,13 @@ class DynamoDB(Database):
         raise NotImplementedError
 
     def init_xlm(self, parameter_list, measure_list):
-        raise NotImplementedError
+        """
+        Initialize or extend set of experiment variables and measures
+
+        This method is not needed for this NOSQL database design, and
+        calling it does nothing.
+        """
+        pass
 
     def new_run_id(
             self,
