@@ -583,7 +583,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                 _logger.error(f"proceeding directly to archive attempt {experiment_id}")
                 if not self.comment_on_run:
                     self.comment_on_run = f"PROBLEM IN EXPERIMENT {experiment_id}: {str(err)}"
-                    set_status(f"PROBLEM: {str(err)}")
+                    set_status(f"PROBLEM: {repr(err)}")
             else:
                 # only write to database if there was no error in post_process, load_measures or outcome processing
                 if experiment_id and hasattr(self, 'db') and self.db is not None and not self.db.readonly:
