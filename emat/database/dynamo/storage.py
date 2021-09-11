@@ -378,12 +378,18 @@ class DynamoDB(Database):
             _logger.exception(str(err))
             return x
 
-    def _put_design(self, scope_name, design_name, experiment_ids):
+    def _put_design(self, scope_name, design_name, experiment_ids, overwrite=False):
         x = {
             'scope_name': str(scope_name),
             'design_name': str(design_name),
             'experiment_ids': set(experiment_ids),
         }
+        if not overwrite:
+            try:
+                existing_keys = self._get_design(scope_name, design_name)
+            except KeyError:
+                existing_keys = set()
+            x['experiment_ids'] = x['experiment_ids'] | existing_keys
         from .serialization import TypeSerializer
         x = TypeSerializer().serialize(x)['M']
         response = self._dynamo_client.put_item(
@@ -978,7 +984,7 @@ class DynamoDB(Database):
             result = ExperimentalDesign()
             result.design_name = design_name
 
-        if runs is None:
+        if runs is None and len(result):
             try:
                 df = result.reset_index()
                 df["_run_timestamp_"] = df[["run_id"]].applymap(uuid_time)
@@ -989,7 +995,7 @@ class DynamoDB(Database):
                 result = ExperimentalDesign(df)
                 result.design_name = design_name
             except KeyError as err:
-                warnings.warn(str(err))
+                warnings.warn(repr(err))
 
         return result
 
@@ -1050,10 +1056,11 @@ class DynamoDB(Database):
         if experiment_ids is not None:
             # TODO this is slow, can we batch or filter to be faster?
             if len(experiment_ids) == 1:
+                exid = next(iter(experiment_ids))
                 query_args = dict(
                     TableName=self.experiments_tablename,
                     KeyConditionExpression="scope_name = :scope_name AND experiment_id = :exid",
-                    ExpressionAttributeValues={":scope_name": {"S": scope_name}, ":exid": {"N": str(experiment_ids[0])}},
+                    ExpressionAttributeValues={":scope_name": {"S": scope_name}, ":exid": {"N": str(exid)}},
                 )
             else:
                 result = pd.concat([

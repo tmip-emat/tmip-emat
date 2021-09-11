@@ -600,7 +600,7 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
                     except ReadOnlyDatabaseError:
                         warnings.warn("database is read-only, not storing model outcomes")
                     except Exception as err:
-                        _logger.exception(f"error in writing results to database: {str(err)}")
+                        _logger.exception(f"error in writing results to database: {repr(err)}")
                     else:
                         _logger.debug(f"run_core_model OK write db {experiment_id} {self.metamodel_id} {run_id}\n{m_df}")
                         set_status("COMPLETE")
