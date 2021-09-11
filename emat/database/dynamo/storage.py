@@ -1188,7 +1188,7 @@ class DynamoDB(Database):
                 associated with both the scope and the named design
                 are returned, otherwise all experiments associated
                 with the scope are returned.
-            experiment_ids (int, optional):
+            experiment_id (int, optional):
                 A single experiment id to check.  If given,
                 `design_name` is ignored.
             experiment_ids (int or Collection[int], optional):
@@ -1272,6 +1272,13 @@ class DynamoDB(Database):
             result = ExperimentalDesign()
             result.design_name = design_name
 
+        try:
+            df = result.reset_index()
+            if 'run_id' in df.columns:
+                df['run_start_time'] = df['run_id'].apply(uuid_time)
+            result = df.set_index(result.index.names)
+        except:
+            pass
         return result
 
 
