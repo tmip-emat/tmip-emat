@@ -531,19 +531,40 @@ class DynamoDB(Database):
             expr_names = {}
             expr_values = {}
             update_str = []
-            for n, (ik, iv) in enumerate(x.items()):
+            n = 1
+
+            def send_now(expr_names, expr_values, update_str):
+                print("sending")
+                print(update_str)
+                print("=========")
+                if len(expr_names):
+                    update_expression = "SET " + ", ".join(update_str)
+                    kwds = dict(
+                        TableName=self.experiment_results_tablename,
+                        Key=key,
+                        ExpressionAttributeNames=expr_names,
+                        ExpressionAttributeValues=expr_values,
+                        UpdateExpression=update_expression
+                    )
+                    response = self._dynamo_client.update_item(**kwds)
+
+            for ik, iv in x.items():
                 expr_names[f"#AK{n}"] = ik
                 expr_values[f":av{n}"] = iv
                 update_str.append(f"#AK{n} = :av{n}")
-            if len(expr_names):
-                kwds = dict(
-                    TableName=self.experiment_results_tablename,
-                    Key=key,
-                    ExpressionAttributeNames=expr_names,
-                    ExpressionAttributeValues=expr_values,
-                    UpdateExpression="SET "+", ".join(update_str)
-                )
-                response = self._dynamo_client.update_item(**kwds)
+                update_expression = "SET " + ", ".join(update_str)
+                if len(update_expression) > 3500:
+                    # update_expression limited to 4KB in a single query
+                    # see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Limits.html#limits-expression-parameters
+                    send_now(expr_names, expr_values, update_str)
+                    expr_names = {}
+                    expr_values = {}
+                    update_str = []
+                    n = 1
+                else:
+                    n += 1
+
+            send_now(expr_names, expr_values, update_str)
 
     def _get_experiment_result(self, scope_name, experiment_id, run_id):
         from .serialization import TypeDeserializer
