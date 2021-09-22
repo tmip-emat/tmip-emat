@@ -534,10 +534,8 @@ class DynamoDB(Database):
             n = 1
 
             def send_now(expr_names, expr_values, update_str):
-                print("sending")
-                print(update_str)
-                print("=========")
                 if len(expr_names):
+                    _logger.debug(f"sending {len(expr_names)} values to DynamoDB")
                     update_expression = "SET " + ", ".join(update_str)
                     kwds = dict(
                         TableName=self.experiment_results_tablename,
