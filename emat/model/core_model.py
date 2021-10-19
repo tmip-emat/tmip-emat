@@ -719,9 +719,9 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
 
     def read_experiment_measures(
             self,
-            design_name,
-            experiment_id=None,
+            *args,
             db=None,
+            **kwargs,
     ):
         """
         Reads performance measures from a design of experiments from the database.
@@ -750,9 +750,8 @@ class AbstractCoreModel(abc.ABC, AbstractWorkbenchModel):
         measures =  self.ensure_dtypes(
             db.read_experiment_measures(
                 self.scope.name,
-                design_name,
-                experiment_id,
-                source=self.metamodel_id,
+                *args,
+                **kwargs,
             )
         )
         

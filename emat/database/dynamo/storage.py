@@ -80,6 +80,43 @@ def _aws_error_code(error):
 
 class DynamoDB(Database):
 
+    domain = 'sdomain' # 'scope_name'
+    scopename = 'scope_name' # 'scope_id'
+
+    def init_domains(self, tablename='emat_domains'):
+        """
+        Initialize the experiments table in DynamoDB.
+        """
+        self.domains_tablename = tablename
+        try:
+            response = self._dynamo_client.create_table(
+                AttributeDefinitions=[
+                    {
+                        'AttributeName': self.domain,
+                        'AttributeType': 'S',
+                    },
+                    {
+                        'AttributeName': self.scopename,
+                        'AttributeType': 'S',
+                    },
+                ],
+                KeySchema=[
+                    {
+                        'AttributeName': self.domain,
+                        'KeyType': 'HASH',
+                    },
+                    {
+                        'AttributeName': self.scopename,
+                        'KeyType': 'RANGE',
+                    },
+                ],
+                BillingMode='PAY_PER_REQUEST',
+                TableName=tablename,
+            )
+
+        except ClientError as error:
+            if _aws_error_code(error) != 'ResourceInUseException':
+                raise
 
     def init_scopes(self, tablename='emat_scopes'):
         """
@@ -90,13 +127,13 @@ class DynamoDB(Database):
             response = self._dynamo_client.create_table(
                 AttributeDefinitions=[
                     {
-                        'AttributeName': 'scope_name',
+                        'AttributeName': self.domain,
                         'AttributeType': 'S',
                     },
                 ],
                 KeySchema=[
                     {
-                        'AttributeName': 'scope_name',
+                        'AttributeName': self.domain,
                         'KeyType': 'HASH',
                     },
                 ],
@@ -117,7 +154,7 @@ class DynamoDB(Database):
             response = self._dynamo_client.create_table(
                 AttributeDefinitions=[
                     {
-                        'AttributeName': 'scope_name',
+                        'AttributeName': self.domain,
                         'AttributeType': 'S',
                     },
                     {
@@ -127,7 +164,7 @@ class DynamoDB(Database):
                 ],
                 KeySchema=[
                     {
-                        'AttributeName': 'scope_name',
+                        'AttributeName': self.domain,
                         'KeyType': 'HASH',
                     },
                     {
@@ -153,7 +190,7 @@ class DynamoDB(Database):
             response = self._dynamo_client.create_table(
                 AttributeDefinitions=[
                     {
-                        'AttributeName': 'scope_name',
+                        'AttributeName': self.domain,
                         'AttributeType': 'S',
                     },
                     {
@@ -163,7 +200,7 @@ class DynamoDB(Database):
                 ],
                 KeySchema=[
                     {
-                        'AttributeName': 'scope_name',
+                        'AttributeName': self.domain,
                         'KeyType': 'HASH',
                     },
                     {
@@ -264,7 +301,7 @@ class DynamoDB(Database):
 
     def _dynamo_experiment_key(self, scope_name, experiment_id):
         return {
-            'scope_name': {'S': str(scope_name)},
+            self.domain: {'S': str(scope_name)},
             'experiment_id': {'N': str(experiment_id)},
         }
 
@@ -311,7 +348,7 @@ class DynamoDB(Database):
         ).get('Item')
         try:
             experiment = TypeDeserializer().deserialize({'M':x})
-            experiment.pop('scope_name')
+            experiment.pop(self.domain)
             experiment.pop('experiment_id')
             return experiment
         except Exception as err:
@@ -335,8 +372,9 @@ class DynamoDB(Database):
             TableName=self.experiments_tablename,
             Limit=1,
             ScanIndexForward=False,
-            KeyConditionExpression="scope_name = :scope_name",
-            ExpressionAttributeValues={":scope_name": {"S": scope_name}},
+            KeyConditionExpression="#dom = :domain_name",
+            ExpressionAttributeValues={":domain_name": {"S": scope_name}},
+            ExpressionAttributeNames={"#dom": self.domain},
         )
         items = response.get('Items', [])
         if items:
@@ -344,28 +382,33 @@ class DynamoDB(Database):
             max_id = TypeDeserializer().deserialize(items[0].get('experiment_id'))
         return max_id
 
-    def _put_scope(self, scope, scope_name=None):
+    def _put_scope(self, scope, scope_name=None, domain=None):
         if scope_name is None:
             scope_name = scope.name
+        if domain is None:
+            domain = scope.domain
 
         x = {
-            'scope_name': {'S': str(scope_name)},
+            self.domain: {'S': str(domain)},
+            self.scopename: {'S': str(scope_name)},
             'content': {'B': gzip.compress(scope.dump().encode())},
         }
-        x.update(self._dynamo_experiment_key(scope_name, 0))
         response = self._dynamo_client.put_item(
-            TableName=self.scopes_tablename,
+            TableName=self.domains_tablename,
             Item=x,
         )
         return response
 
-    def _get_scope(self, scope_name):
+    def _get_scope(self, scope_name, domain=None):
+        if domain is None:
+            domain = scope_name
         from .serialization import TypeDeserializer
         key = {
-            'scope_name': {'S': str(scope_name)},
+            self.domain: {'S': str(domain)},
+            self.scopename: {'S': str(scope_name)},
         }
         x = self._dynamo_client.get_item(
-            TableName=self.scopes_tablename,
+            TableName=self.domains_tablename,
             Key=key,
         ).get('Item')
         if x is None:
@@ -380,7 +423,7 @@ class DynamoDB(Database):
 
     def _put_design(self, scope_name, design_name, experiment_ids, overwrite=False):
         x = {
-            'scope_name': str(scope_name),
+            self.domain: str(scope_name),
             'design_name': str(design_name),
             'experiment_ids': set(experiment_ids),
         }
@@ -413,7 +456,7 @@ class DynamoDB(Database):
             The experiment id's in this design
         """
         x = {
-            'scope_name': str(scope_name),
+            self.domain: str(scope_name),
             'design_name': str(design_name),
         }
         from .serialization import TypeSerializer
@@ -440,7 +483,7 @@ class DynamoDB(Database):
             response = self._dynamo_client.create_table(
                 AttributeDefinitions=[
                     {
-                        'AttributeName': 'scope_name',
+                        'AttributeName': self.domain,
                         'AttributeType': 'S',
                     },
                     {
@@ -450,7 +493,7 @@ class DynamoDB(Database):
                 ],
                 KeySchema=[
                     {
-                        'AttributeName': 'scope_name',
+                        'AttributeName': self.domain,
                         'KeyType': 'HASH',
                     },
                     {
@@ -472,7 +515,7 @@ class DynamoDB(Database):
         else:
             run_id_bytes = bytes(run_id)
         return {
-            'scope_name': {'S': scope_name},
+            self.domain: {'S': scope_name},
             'ex_run_id': {'B': int(experiment_id).to_bytes(4, 'big') + run_id_bytes},
         }
 
@@ -573,7 +616,7 @@ class DynamoDB(Database):
         ).get('Item')
         try:
             result = TypeDeserializer().deserialize({'M':x})
-            result.pop('scope_name')
+            result.pop(self.domain)
             result.pop('ex_run_id')
             return result
         except Exception as err:
@@ -607,7 +650,7 @@ class DynamoDB(Database):
         self._dynamo_client = boto3.client('dynamodb', **boto_client_kwds)
 
         super().__init__()
-        self.init_scopes()
+        self.init_domains()
         self.init_designs()
         self.init_experiments()
         self.init_results()
@@ -633,7 +676,7 @@ class DynamoDB(Database):
     def add_scope_meas(self, scope_name, scp_m):
         raise NotImplementedError
 
-    def read_scope_names(self, design_name=None):
+    def read_scope_names(self, design_name=None, domain=None):
         """
         A list of all available scopes in the database.
 
@@ -653,7 +696,7 @@ class DynamoDB(Database):
         deserialize = TypeDeserializer().deserialize
 
         scan_args = dict(
-            TableName=self.scopes_tablename,
+            TableName=self.domains_tablename,
         )
 
         while True:
@@ -662,8 +705,10 @@ class DynamoDB(Database):
             # handle returned experiments
             for i in response.get('Items',[]):
                 x = deserialize({'M':i})
-                s = x.pop("scope_name")
-                scope_names.append(s)
+                s = x.pop(self.scopename)
+                d = x.pop(self.domain)
+                if domain is None or d == domain:
+                    scope_names.append(s)
             LastEvaluatedKey = response.get("LastEvaluatedKey", None)
             if LastEvaluatedKey:
                 scan_args['ExclusiveStartKey'] = LastEvaluatedKey
@@ -671,16 +716,16 @@ class DynamoDB(Database):
                 break
         return scope_names
 
-    def read_scope(self, scope_name=None):
+    def read_scope(self, scope_name=None, domain=None):
         if scope_name is None:
-            scope_names = self.read_scope_names()
+            scope_names = self.read_scope_names(domain)
             if len(scope_names) == 1:
                 scope_name = scope_names[0]
             elif len(scope_names) == 0:
                 raise ValueError("no scopes are stored")
             else:
                 raise ValueError("must give scope_name when more than one scope is stored")
-        return self._get_scope(scope_name)
+        return self._get_scope(scope_name, domain)
 
     def delete_experiment_measures(self, experiment_ids=None):
         raise NotImplementedError
@@ -777,14 +822,14 @@ class DynamoDB(Database):
     def read_constants(self, scope_name:str):
         raise NotImplementedError
 
-    def read_design_names(self, scope_name):
+    def read_design_names(self, domain):
         """
-        A list of all available designs for a given scope.
+        A list of all available designs for a given domain.
 
         Parameters
         ----------
-        scope_name : str
-            The scope name used to identify experiments, performance measures,
+        domain : str
+            The domain used to identify experiments, performance measures,
             and results.
 
         Returns
@@ -795,12 +840,17 @@ class DynamoDB(Database):
         design_names = []
 
         from .serialization import TypeDeserializer
+        from boto3.dynamodb.conditions import Key
         deserialize = TypeDeserializer().deserialize
 
         query_args = dict(
             TableName=self.designs_tablename,
-            KeyConditionExpression="scope_name = :scope_name",
-            ExpressionAttributeValues={":scope_name": {"S": scope_name}, },
+            # KeyConditionExpression=f"{self.domain} = :{self.domain}",
+            # ExpressionAttributeValues={f":{self.domain}": {"S": domain}, },
+            KeyConditionExpression=f"#dom = :domain_name",
+            ExpressionAttributeValues={f":domain_name": {"S": domain}, },
+            ExpressionAttributeNames={"#dom": self.domain},
+            ####KeyConditionExpression=Key(self.domain).eq({"S": domain}),
         )
 
         while True:
@@ -817,20 +867,6 @@ class DynamoDB(Database):
                 break
         return design_names
 
-
-
-        # prefix = f"design/{scope_name}/"
-        # response = self.client.list_objects_v2(
-        #     Bucket=self.bucket,
-        #     Prefix=prefix,
-        # )
-        # if response.get('Contents'):
-        #     return [
-        #         i.get('Key').replace(prefix, "")
-        #         for i in response.get('Contents')
-        #     ]
-        # else:
-        #     return []
 
     def read_experiment_all(
             self,
@@ -951,8 +987,9 @@ class DynamoDB(Database):
 
         query_args = dict(
             TableName=self.experiment_results_tablename,
-            KeyConditionExpression="scope_name = :scope_name",
-            ExpressionAttributeValues={":scope_name": {"S": scope_name}},
+            KeyConditionExpression="#dom = :domain_name",
+            ExpressionAttributeValues={":domain_name": {"S": scope_name}},
+            ExpressionAttributeNames={"#dom": self.domain},
         )
 
         if runs == 'valid':
@@ -977,7 +1014,7 @@ class DynamoDB(Database):
             # handle returned experiments
             for i in response.get('Items',[]):
                 x = deserialize({'M':i})
-                x.pop("scope_name")
+                x.pop(self.domain)
                 x_ids = bytes(x.pop("ex_run_id"))
                 x['experiment_id'] = int(x_ids[:4].hex(), 16)
                 x['run_id'] = uuid.UUID(bytes=x_ids[4:])
@@ -1062,8 +1099,9 @@ class DynamoDB(Database):
         """
         query_args = dict(
             TableName=self.experiments_tablename,
-            KeyConditionExpression="scope_name = :scope_name AND experiment_id > :zero",
-            ExpressionAttributeValues={":scope_name": {"S": scope_name}, ":zero": {"N": "0"}},
+            KeyConditionExpression="#dom = :domain_name AND experiment_id > :zero",
+            ExpressionAttributeValues={":domain_name": {"S": scope_name}, ":zero": {"N": "0"}},
+            ExpressionAttributeNames={"#dom": self.domain},
         )
 
         if design_name is not None:
@@ -1078,8 +1116,9 @@ class DynamoDB(Database):
                 exid = next(iter(experiment_ids))
                 query_args = dict(
                     TableName=self.experiments_tablename,
-                    KeyConditionExpression="scope_name = :scope_name AND experiment_id = :exid",
-                    ExpressionAttributeValues={":scope_name": {"S": scope_name}, ":exid": {"N": str(exid)}},
+                    KeyConditionExpression="#dom = :domain_name AND experiment_id = :exid",
+                    ExpressionAttributeValues={":domain_name": {"S": scope_name}, ":exid": {"N": str(exid)}},
+                    ExpressionAttributeNames={"#dom": self.domain},
                 )
             else:
                 result = pd.concat([
@@ -1110,7 +1149,7 @@ class DynamoDB(Database):
             # handle returned experiments
             for i in response.get('Items',[]):
                 x = deserialize({'M':i})
-                x.pop("scope_name")
+                x.pop(self.domain)
                 experiment_list.append(x)
             LastEvaluatedKey = response.get("LastEvaluatedKey", None)
             if LastEvaluatedKey:
@@ -1246,9 +1285,10 @@ class DynamoDB(Database):
         for experiment_id in experiment_ids:
             query_args = dict(
                 TableName=self.experiment_results_tablename,
-                KeyConditionExpression="scope_name = :scope_name",
-                ExpressionAttributeValues={":scope_name": {"S": scope_name}},
+                KeyConditionExpression="#dom = :domain_name",
+                ExpressionAttributeValues={":domain_name": {"S": scope_name}},
                 ProjectionExpression="ex_run_id, run_status, dispatch_time",
+                ExpressionAttributeNames={"#dom": self.domain},
             )
 
             if experiment_id is not None:
@@ -1268,7 +1308,7 @@ class DynamoDB(Database):
                 # handle returned experiments
                 for i in response.get('Items',[]):
                     x = deserialize({'M':i})
-                    x.pop("scope_name", None)
+                    x.pop(self.domain, None)
                     x_ids = bytes(x.pop("ex_run_id"))
                     x['experiment_id'] = int(x_ids[:4].hex(), 16)
                     x['run_id'] = uuid.UUID(bytes=x_ids[4:])

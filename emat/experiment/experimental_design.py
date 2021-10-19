@@ -202,8 +202,8 @@ def design_experiments(
         db = None
 
     if db is not None and design_name is not None:
-        if design_name in db.read_design_names(scope.name):
-            raise ValueError(f'the design "{design_name}" already exists for scope "{scope.name}"')
+        if design_name in db.read_design_names(scope.domain):
+            raise ValueError(f'the design "{design_name}" already exists for domain "{scope.domain}"')
 
     max_corr_ = np.inf
     existing_design_names = None
@@ -216,7 +216,7 @@ def design_experiments(
             proposed_design_name = str(sampler.name)
         else:
             proposed_design_name = str(sampler)
-        existing_design_names = set(db.read_design_names(scope.name))
+        existing_design_names = set(db.read_design_names(scope.domain))
         if proposed_design_name not in existing_design_names:
             design_name = proposed_design_name
         else:
@@ -299,7 +299,7 @@ def design_experiments(
 
     if db is not None and sample_from is 'all':
         try:
-            experiment_ids = db.write_experiment_parameters(scope.name, design_name, design_)
+            experiment_ids = db.write_experiment_parameters(scope.domain, design_name, design_)
         except DatabaseError:
             pass
         else:
@@ -371,7 +371,7 @@ def design_sensitivity_tests(
     design.reset_index(inplace=True, drop=True)
     
     if db is not None:
-        experiment_ids = db.write_experiment_parameters(scope.name, design_name, design)
+        experiment_ids = db.write_experiment_parameters(scope.domain, design_name, design)
         design.index = experiment_ids
         design.index.name = 'experiment'
 
@@ -403,7 +403,7 @@ def design_refpoint_test(
     design = pd.DataFrame({p.name: p.default for p in scope.get_parameters()}, index=[0])
 
     if db is not None:
-        experiment_ids = db.write_experiment_parameters(scope.name, design_name, design)
+        experiment_ids = db.write_experiment_parameters(scope.domain, design_name, design)
         design.index = experiment_ids
         design.index.name = 'experiment'
 
