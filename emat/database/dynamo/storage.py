@@ -7,10 +7,13 @@ import pandas as pd
 import boto3
 import secrets
 import gzip
+
+import yaml
 from botocore.exceptions import ClientError
 from addicty import Dict
 from typing import Mapping
 from datetime import datetime
+from pathlib import Path
 from ..kvstore.stores import DictStore, ScopeStore
 from ..kvstore.storage import SubkeyStore, Storage
 from ..database import Database
@@ -80,8 +83,9 @@ def _aws_error_code(error):
 
 class DynamoDB(Database):
 
-    domain = 'sdomain' # 'scope_name'
+    domain = 'domain' # 'scope_name'
     scopename = 'scope_name' # 'scope_id'
+    exid = 'experiment_id'
 
     def init_domains(self, tablename='emat_domains'):
         """
@@ -194,7 +198,7 @@ class DynamoDB(Database):
                         'AttributeType': 'S',
                     },
                     {
-                        'AttributeName': 'experiment_id',
+                        'AttributeName': self.exid,
                         'AttributeType': 'N',
                     },
                 ],
@@ -204,7 +208,7 @@ class DynamoDB(Database):
                         'KeyType': 'HASH',
                     },
                     {
-                        'AttributeName': 'experiment_id',
+                        'AttributeName': self.exid,
                         'KeyType': 'RANGE',
                     },
                 ],
@@ -299,10 +303,67 @@ class DynamoDB(Database):
         print("\n".join(lines))
 
 
+    def dump(self, tablename, to_yaml=None):
+        """
+        Retrieve the entire contents of a DynamoDB table as a list.
+
+        Parameters
+        ----------
+        tablename : str
+        to_yaml : Path-like or File-like, optional
+            If given, write the dumped values to yaml in this file or stream.
+
+        Returns
+        -------
+        list
+        """
+        from .serialization import TypeDeserializer
+        deserialize = TypeDeserializer().deserialize
+        scan_args = dict(
+            TableName=tablename,
+        )
+        result = []
+        while True:
+            # get next page
+            response = self._dynamo_client.scan(**scan_args)
+            # handle returned experiments
+            for i in response.get('Items',[]):
+                x = deserialize({'M':i})
+                result.append(x)
+            LastEvaluatedKey = response.get("LastEvaluatedKey", None)
+            if LastEvaluatedKey:
+                scan_args['ExclusiveStartKey'] = LastEvaluatedKey
+            else:
+                break
+        if isinstance(to_yaml, (str, Path)):
+            with open(to_yaml, 'wt') as f:
+                yaml.safe_dump(result, f)
+        elif to_yaml:
+            yaml.safe_dump(result, to_yaml)
+        return result
+
+    def pump(self, tablename, content=None, from_yaml=None):
+        if content is None:
+            if from_yaml is None:
+                raise ValueError("must give content directly or from_yaml")
+            if isinstance(from_yaml, (str, Path)):
+                with open(from_yaml, 'rt') as f:
+                    content = yaml.safe_load(f)
+            elif from_yaml:
+                content = yaml.safe_load(from_yaml)
+
+        from .serialization import TypeSerializer
+        for row in content:
+            kwds = dict(
+                TableName=tablename,
+                Item=TypeSerializer().serialize(row)['M'],
+            )
+            response = self._dynamo_client.put_item(**kwds)
+
     def _dynamo_experiment_key(self, scope_name, experiment_id):
         return {
             self.domain: {'S': str(scope_name)},
-            'experiment_id': {'N': str(experiment_id)},
+            self.exid: {'N': str(experiment_id)},
         }
 
     def _put_experiment(self, scope_name, experiment_id, experiment):
@@ -349,7 +410,7 @@ class DynamoDB(Database):
         try:
             experiment = TypeDeserializer().deserialize({'M':x})
             experiment.pop(self.domain)
-            experiment.pop('experiment_id')
+            experiment.pop(self.exid)
             return experiment
         except Exception as err:
             _logger.exception(str(err))
@@ -379,7 +440,7 @@ class DynamoDB(Database):
         items = response.get('Items', [])
         if items:
             from .serialization import TypeDeserializer
-            max_id = TypeDeserializer().deserialize(items[0].get('experiment_id'))
+            max_id = TypeDeserializer().deserialize(items[0].get(self.exid))
         return max_id
 
     def _put_scope(self, scope, scope_name=None, domain=None):
@@ -1016,7 +1077,7 @@ class DynamoDB(Database):
                 x = deserialize({'M':i})
                 x.pop(self.domain)
                 x_ids = bytes(x.pop("ex_run_id"))
-                x['experiment_id'] = int(x_ids[:4].hex(), 16)
+                x[self.exid] = int(x_ids[:4].hex(), 16)
                 x['run_id'] = uuid.UUID(bytes=x_ids[4:])
                 # 'ex_run_id': {'B': experiment_id.to_bytes(4, 'big') + run_id_bytes}
                 experiment_list.append(x)
@@ -1032,7 +1093,7 @@ class DynamoDB(Database):
             scope = self.read_scope(scope_name)
             column_order = scope.get_measure_names()
             xl_df = pd.DataFrame(experiment_list)
-            xl_df = xl_df.set_index(["experiment_id", "run_id"])
+            xl_df = xl_df.set_index([self.exid, "run_id"])
             result = ExperimentalDesign(xl_df[[i for i in column_order if i in xl_df.columns]])
             result.design_name = design_name
 
@@ -1045,8 +1106,8 @@ class DynamoDB(Database):
                 df = result.reset_index()
                 df["_run_timestamp_"] = df[["run_id"]].applymap(uuid_time)
                 df = df.sort_values(by="_run_timestamp_")
-                df = df.drop_duplicates(subset="experiment_id", keep='last')
-                df = df.set_index(['experiment_id', 'run_id'])
+                df = df.drop_duplicates(subset=self.exid, keep='last')
+                df = df.set_index([self.exid, 'run_id'])
                 df = df.drop(columns=['_run_timestamp_'])
                 result = ExperimentalDesign(df)
                 result.design_name = design_name
@@ -1166,7 +1227,7 @@ class DynamoDB(Database):
                     + scope.get_uncertainty_names()
                     + scope.get_lever_names()
             )
-            xl_df = pd.DataFrame(experiment_list).set_index("experiment_id")
+            xl_df = pd.DataFrame(experiment_list).set_index(self.exid)
             result = ExperimentalDesign(xl_df[[i for i in column_order if i in xl_df.columns]])
             result.design_name = design_name
             if ensure_dtypes:
@@ -1310,7 +1371,7 @@ class DynamoDB(Database):
                     x = deserialize({'M':i})
                     x.pop(self.domain, None)
                     x_ids = bytes(x.pop("ex_run_id"))
-                    x['experiment_id'] = int(x_ids[:4].hex(), 16)
+                    x[self.exid] = int(x_ids[:4].hex(), 16)
                     x['run_id'] = uuid.UUID(bytes=x_ids[4:])
                     experiment_list.append(x)
                 LastEvaluatedKey = response.get("LastEvaluatedKey", None)
@@ -1323,7 +1384,7 @@ class DynamoDB(Database):
         if experiment_list:
 
             xl_df = pd.DataFrame(experiment_list)
-            xl_df = xl_df.set_index(["experiment_id", "run_id"]).sort_index()
+            xl_df = xl_df.set_index([self.exid, "run_id"]).sort_index()
             result = ExperimentalDesign(xl_df)
             result.design_name = design_name
 

@@ -1,10 +1,12 @@
-import numpy as np
 import decimal
-from boto3.dynamodb.types import NUMBER, STRING, BOOLEAN, \
-    TypeSerializer as _TypeSerializer, TypeDeserializer as _TypeDeserializer
+
+import numpy as np
+from boto3.dynamodb.types import BOOLEAN, NUMBER, STRING
+from boto3.dynamodb.types import TypeDeserializer as _TypeDeserializer
+from boto3.dynamodb.types import TypeSerializer as _TypeSerializer
+
 
 class TypeSerializer(_TypeSerializer):
-
     def __init__(self, precision=8):
         super().__init__()
         self.precision = precision
@@ -25,7 +27,7 @@ class TypeSerializer(_TypeSerializer):
                 elif np.isnan(value):
                     value = "float:NaN"
                 else:
-                    raise TypeError('Unknown non-finite float not supported')
+                    raise TypeError("Unknown non-finite float not supported")
         if self._is_np_int(value):
             dynamodb_type = NUMBER
             value = decimal.Decimal(f"{value:d}")
@@ -69,13 +71,11 @@ class TypeSerializer(_TypeSerializer):
             A dictionary that represents a dynamoDB data type.
         """
         dynamodb_type, value = self._get_dynamodb_type_and_value(value)
-        serializer = getattr(self, '_serialize_%s' % dynamodb_type.lower())
+        serializer = getattr(self, "_serialize_%s" % dynamodb_type.lower())
         return {dynamodb_type: serializer(value)}
 
 
-
 class TypeDeserializer(_TypeDeserializer):
-
     def _deserialize_s(self, value):
         if value == "float:+Infinity":
             return np.inf
@@ -92,3 +92,6 @@ class TypeDeserializer(_TypeDeserializer):
             return int(value)
         else:
             return float(value)
+
+    def _deserialize_b(self, value):
+        return bytes(value)
