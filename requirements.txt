@@ -12,3 +12,4 @@ packaging
 addicty
 yamllint
 pathspec
+tqdm
