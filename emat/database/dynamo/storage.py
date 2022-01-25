@@ -87,7 +87,7 @@ class DynamoDB(Database):
     scopename = 'scope_name' # 'scope_id'
     exid = 'experiment_id'
 
-    def init_domains(self, tablename='emat_domains'):
+    def init_domains(self, tablename='EMAT-Domains'):
         """
         Initialize the experiments table in DynamoDB.
         """
@@ -124,7 +124,9 @@ class DynamoDB(Database):
 
     def init_scopes(self, tablename='emat_scopes'):
         """
-        Initialize the experiments table in DynamoDB.
+        Initialize the scope table in DynamoDB.
+
+        DEPRECATED - don't use this table, prefer domains
         """
         self.scopes_tablename = tablename
         try:
@@ -149,9 +151,9 @@ class DynamoDB(Database):
             if _aws_error_code(error) != 'ResourceInUseException':
                 raise
 
-    def init_designs(self, tablename='emat_designs'):
+    def init_designs(self, tablename='EMAT-Designs'):
         """
-        Initialize the experiments table in DynamoDB.
+        Initialize the design table in DynamoDB.
         """
         self.designs_tablename = tablename
         try:
@@ -185,7 +187,7 @@ class DynamoDB(Database):
                 raise
 
 
-    def init_experiments(self, tablename='emat_experiments'):
+    def init_experiments(self, tablename='EMAT-Experiments'):
         """
         Initialize the experiments table in DynamoDB.
         """
@@ -220,8 +222,42 @@ class DynamoDB(Database):
             if _aws_error_code(error) != 'ResourceInUseException':
                 raise
 
+    def init_results(self, tablename='EMAT-ExperimentResults'):
+        """
+        Initialize the experiment results table in DynamoDB.
+        """
+        self.experiment_results_tablename = tablename
+        try:
+            response = self._dynamo_client.create_table(
+                AttributeDefinitions=[
+                    {
+                        'AttributeName': self.domain,
+                        'AttributeType': 'S',
+                    },
+                    {
+                        'AttributeName': 'ex_run_id',
+                        'AttributeType': 'B',
+                    },
+                ],
+                KeySchema=[
+                    {
+                        'AttributeName': self.domain,
+                        'KeyType': 'HASH',
+                    },
+                    {
+                        'AttributeName': 'ex_run_id',
+                        'KeyType': 'RANGE',
+                    },
+                ],
+                BillingMode='PAY_PER_REQUEST',
+                TableName=tablename,
+            )
 
-    def init_logger(self, tablename='emat_logs'):
+        except ClientError as error:
+            if _aws_error_code(error) != 'ResourceInUseException':
+                raise
+
+    def init_logger(self, tablename='EMAT-Logs'):
         """
         Initialize the logs table in DynamoDB.
         """
@@ -535,40 +571,6 @@ class DynamoDB(Database):
             return TypeDeserializer().deserialize(content)
 
 
-    def init_results(self, tablename='emat_experiment_results'):
-        """
-        Initialize the experiment results table in DynamoDB.
-        """
-        self.experiment_results_tablename = tablename
-        try:
-            response = self._dynamo_client.create_table(
-                AttributeDefinitions=[
-                    {
-                        'AttributeName': self.domain,
-                        'AttributeType': 'S',
-                    },
-                    {
-                        'AttributeName': 'ex_run_id',
-                        'AttributeType': 'B',
-                    },
-                ],
-                KeySchema=[
-                    {
-                        'AttributeName': self.domain,
-                        'KeyType': 'HASH',
-                    },
-                    {
-                        'AttributeName': 'ex_run_id',
-                        'KeyType': 'RANGE',
-                    },
-                ],
-                BillingMode='PAY_PER_REQUEST',
-                TableName=tablename,
-            )
-
-        except ClientError as error:
-            if _aws_error_code(error) != 'ResourceInUseException':
-                raise
 
     def _dynamo_experiment_result_key(self, scope_name, experiment_id, run_id):
         if isinstance(run_id, uuid.UUID):
@@ -693,6 +695,11 @@ class DynamoDB(Database):
             bucket=None,
             log_level=20,
             log_tag=None,
+            domain_table='EMAT-Domains',
+            design_table='EMAT-Designs',
+            experiment_table='EMAT-Experiments',
+            results_table='EMAT-ExperimentResults',
+            log_table='EMAT-Logs'
     ):
 
         from botocore.config import Config
@@ -711,11 +718,11 @@ class DynamoDB(Database):
         self._dynamo_client = boto3.client('dynamodb', **boto_client_kwds)
 
         super().__init__()
-        self.init_domains()
-        self.init_designs()
-        self.init_experiments()
-        self.init_results()
-        self.init_logger()
+        self.init_domains(domain_table)
+        self.init_designs(design_table)
+        self.init_experiments(experiment_table)
+        self.init_results(results_table)
+        self.init_logger(log_table)
         self.bucket = bucket
         self.log_level = log_level
         self.default_log_tag = log_tag
@@ -778,6 +785,29 @@ class DynamoDB(Database):
         return scope_names
 
     def read_scope(self, scope_name=None, domain=None):
+        """
+        Load the pickled scope from the database.
+
+        Args:
+            scope_name (str, optional):
+                The name of the scope to load.  If not
+                given and there is only one scope stored
+                in the database, that scope is loaded. If not
+                given and there are multiple scopes stored in
+                the database, a KeyError is raised.
+            domain (str, optional):
+                If not provided, the domain is the same as the
+                name of the scope.  The caller must provide
+                at least one of scope or domain.
+
+        Returns:
+            Scope
+
+        Raises:
+            KeyError: If a name is given but is not found in
+                the database, or if no name is given but there
+                is more than one scope stored.
+        """
         if scope_name is None:
             scope_names = self.read_scope_names(domain)
             if len(scope_names) == 1:
