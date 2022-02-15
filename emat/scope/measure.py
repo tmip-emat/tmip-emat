@@ -74,7 +74,7 @@ class Measure(ScalarOutcome, ShortnameMixin, TaggableMixin):
 
     Attributes:
         name (str): Name of the measure.
-        kind (int): {MINIMIZE, MAXIMIZE, INFO}
+        kind (int): {MINIMIZE, MAXIMIZE, INFO, TEMP}
         transform (str): The name of the transform function, if any.
         address (obj): The address or instruction for how to
             extract this measure from the model.
@@ -108,6 +108,8 @@ class Measure(ScalarOutcome, ShortnameMixin, TaggableMixin):
                 kind = ScalarOutcome.MAXIMIZE
             elif kind.lower() == 'info':
                 kind = ScalarOutcome.INFO
+            elif kind.lower() == 'temp':
+                kind = ScalarOutcome.TEMP
             else:
                 raise TypeError(f'invalid kind {kind}')
 
@@ -191,6 +193,7 @@ class Measure(ScalarOutcome, ShortnameMixin, TaggableMixin):
             ScalarOutcome.MINIMIZE: 'minimize',
             ScalarOutcome.MAXIMIZE: 'maximize',
             ScalarOutcome.INFO: 'info',
+            ScalarOutcome.TEMP: 'temp',
         }.get(self.kind)
         print(f"  kind: {kind}", file=f)
         if self.address:
