@@ -491,10 +491,19 @@ def scatter_graph_row(
 		showlegend = (len(X) > 1)
 
 	max_S = 0
+	
+	def _get_val(i, df):
+		if df is not None:
+			if isinstance(i, str):
+				if i in df.columns:
+					return df[i]
+				else:
+					return [None] * len(df)
+		return i
 
-	X_data = [(df[i] if isinstance(i, str) and df is not None else i) for i in X]
-	Y_data = [(df[i] if isinstance(i, str) and df is not None else i) for i in Y]
-	S_data = [(df[i] if isinstance(i, str) and df is not None else i) for i in S]
+	X_data = [_get_val(i, df) for i in X]
+	Y_data = [_get_val(i, df) for i in Y]
+	S_data = [_get_val(i, df) for i in S]
 
 	if sizeref is None:
 		try:

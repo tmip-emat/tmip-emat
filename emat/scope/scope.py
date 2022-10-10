@@ -688,12 +688,23 @@ class Scope:
             if formula:
                 if measure.name in df.columns and not overwrite:
                     if df[measure.name].isna().sum():
-                        dataseries = df.eval(formula).rename(measure.name)
+                        dataseries = pandas.eval(formula, resolvers=[df, queue])
+                        try:
+                            dataseries = dataseries.rename(measure.name)
+                        except AttributeError:
+                            pass
                         queue[measure.name] = df[measure.name].fillna(dataseries)
                 else:
-                    dataseries = df.eval(formula).rename(measure.name)
+                    dataseries = pandas.eval(formula, resolvers=[df, queue])
+                    try:
+                        dataseries = dataseries.rename(measure.name)
+                    except AttributeError:
+                        pass
                     queue[measure.name] = dataseries
         if queue:
+            for measure in self.get_measures():
+                if measure.kind == ScalarOutcome.TEMP:
+                    queue.pop(measure.name, None)
             df = df.assign(**queue)
         return df
 
@@ -777,7 +788,7 @@ class Scope:
         for c in categorical_columns:
             ordering = getattr(self[c],'values',None)
             if ordering:
-                data[c].cat.reorder_categories(ordering, inplace=True)
+                data[c] = data[c].cat.reorder_categories(ordering)
         if not inplace:
             if base_was_series:
                 return data.iloc[:,0]

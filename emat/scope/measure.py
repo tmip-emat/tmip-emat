@@ -99,6 +99,7 @@ class Measure(ScalarOutcome, ShortnameMixin, TaggableMixin):
             formula=None,
             tags=None,
             parser=None,
+            meta=None,
     ):
 
         if isinstance(kind, str):
@@ -151,6 +152,8 @@ class Measure(ScalarOutcome, ShortnameMixin, TaggableMixin):
                 tags = [tags]
             for tag in tags:
                 self.add_tag(tag)
+
+        self.meta = meta
 
     def __repr__(self):
         return super().__repr__()
