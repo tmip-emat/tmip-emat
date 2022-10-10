@@ -568,9 +568,12 @@ class Scope:
         """Get a dict of default values of model parameters (uncertainties+levers+constants)."""
         return {p.name:p.default for p in self.get_parameters()}
 
-    def get_measures(self):
+    def get_measures(self, tag=None):
         """Get a list of performance measures."""
-        return [i for i in self._m_list]
+        if tag is None:
+            return [i for i in self._m_list]
+        else:
+            return [i for i in self._m_list if tag in i.tags]
 
     def get_measure_tags(self):
         """
