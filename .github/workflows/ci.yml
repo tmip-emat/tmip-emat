@@ -53,7 +53,7 @@ jobs:
         # are in the conda environment defined above.  Also, this avoids pip getting
         # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install -e . --no-deps
+          python -m pip install . --no-deps
 
       - name: Conda checkup
         run: |
@@ -72,5 +72,5 @@ jobs:
 
       - name: Test EMAT
         run: |
-          python -m pytest --pyargs emat
+          python -m pytest .
 
