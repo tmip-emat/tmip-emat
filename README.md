@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/tmip-emat/tmip-emat.svg?branch=master)](https://travis-ci.org/tmip-emat/tmip-emat)
-
 # TMIP-EMAT: Exploratory Modeling and Analysis Tool
 
 TMIP-EMAT is a *methodological approach* to exploratory modeling and analysis.

@@ -23,6 +23,9 @@ with open('requirements.txt') as f:
     requirements_lines = f.readlines()
 install_requires = [r.strip() for r in requirements_lines]
 
+with open('README.md') as f:
+    README = f.read()
+
 def recursive_glob(front, back):
     return [os.path.join(front, *(['*']*i), back) for i in range(10)]
 
@@ -47,6 +50,8 @@ setup(
         'console_scripts': [
             'emat-road-test-demo = emat.model.core_python.core_python_examples:_Road_Capacity_Investment_CmdLine',
         ],
-    }
+    },
+    long_description_content_type="text/markdown",
+    long_description=README,
 )
 
