@@ -325,7 +325,6 @@ class CART(sdutil.OutputFormatterMixin):
                 random_state=None,
                 max_leaf_nodes=None,
                 min_impurity_decrease=0.,
-                min_impurity_split=None,
                 class_weight=None,
                 ccp_alpha=0.0,
             )
