@@ -6,7 +6,6 @@ import numpy as np
 import pytest
 from sklearn.utils import Bunch
 
-from pandas.core.computation.ops import UndefinedVariableError
 from emat.database.sqlite.sqlite_db import SQLiteDB
 from emat._pkg_constants import *
 
@@ -274,7 +273,7 @@ def test_write_partial_measures(db_setup):
         formulas=False, # must be false because partial measures only
     )
     pd.testing.assert_frame_equal(exp_with_ids, xlm_readback)
-    with pytest.raises(UndefinedVariableError):
+    with pytest.raises(Exception):
         db_setup.db_test.read_experiment_all(
             db_setup.scope_name,
             design,
@@ -394,7 +393,17 @@ def test_read_db_gz():
     assert type(s1) == type(s)
 
     for k in ("_x_list", "_l_list", "_c_list", "_m_list", "name", "desc"):
-        assert getattr(s, k) == getattr(s1, k), k
+        left = getattr(s, k)
+        right = getattr(s1, k)
+        if isinstance(left, (list, tuple)):
+            for l,r in zip(left,right):
+                try:
+                    explain = l.explain_neq(r)
+                except AttributeError:
+                    explain = "no explanation"
+                assert l == r, f"{k}: {explain}"
+        else:
+            assert getattr(s, k) == getattr(s1, k), k
 
     assert s == s1
 

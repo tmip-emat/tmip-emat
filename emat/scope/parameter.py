@@ -568,7 +568,6 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
             if self.corr != other.corr:
                 return False
             if self.distdef != other.distdef:
-                print(f"distdef not equal: {self.distdef} != {other.distdef}")
                 return False
         except AttributeError:
             return False
@@ -597,6 +596,46 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
 
             else:
                 return True
+
+    def explain_neq(self, other):
+        try:
+            if type(self) != type(other):
+                return f"not same type: {type(self)} != {type(other)}"
+            if self.address != other.address:
+                return f"not same address: {self.address} != {other.address}"
+            if self.dtype != other.dtype:
+                return f"not same dtype: {self.dtype} != {other.dtype}"
+            if self.ptype != other.ptype:
+                return f"not same ptype: {self.ptype} != {other.ptype}"
+            if self.corr != other.corr:
+                return f"not same corr: {self.corr} != {other.corr}"
+            if self.distdef != other.distdef:
+                return f"not same distdef: {self.distdef} != {other.distdef}"
+        except AttributeError:
+            return f"key attributes not all defined"
+        if not isinstance(self, other.__class__):
+            return f"not nested classes {self.__class__} is not {other.__class__}"
+        self_keys = set(self.__dict__.keys())
+        other_keys = set(other.__dict__.keys())
+        if self_keys - other_keys:
+            return f"misaligned keys {self_keys - other_keys}"
+        else:
+            for key in self_keys:
+                if key == 'dist_def':
+                    continue
+                if key != 'dist':
+                    if getattr(self, key) != getattr(other, key):
+                        return f"not same attr {key}: {getattr(self, key)} != {getattr(other, key)}"
+                else:
+                    # name, parameters
+                    self_dist = getattr(self, key)
+                    other_dist = getattr(other, key)
+                    if self_dist.dist.name != other_dist.dist.name:
+                        return f"not same dist.name: {self_dist.dist.name} != {other_dist.dist.name}"
+                    if self_dist.args != other_dist.args:
+                        return f"not same dist.args: {self_dist.args} != {other_dist.args}"
+            else:
+                return None
 
     @property
     def distdef(self):

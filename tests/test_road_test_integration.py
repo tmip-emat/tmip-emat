@@ -18,10 +18,10 @@ from emat.model.core_python import PythonCoreModel
 from emat.model.core_python import Road_Capacity_Investment
 from emat.workbench import SequentialEvaluator
 
-def stable_df(filename, df):
+def stable_df(filename, df, rtol=1e-3):
 	if not os.path.exists(filename):
 		df.to_pickle(filename)
-	return pandas.testing.assert_frame_equal(df, pandas.read_pickle(filename))
+	return pandas.testing.assert_frame_equal(df, pandas.read_pickle(filename), rtol=rtol)
 
 
 class TestRoadTest(unittest.TestCase):
@@ -111,7 +111,7 @@ class TestRoadTest(unittest.TestCase):
 			[13.4519273, 26.34172999, 12.48385198, 15.10165981, 15.48056139])
 
 		scores = m.get_feature_scores('lhs', random_state=123)
-		stable_df("./road_test_feature_scores.pkl.gz", scores.data)
+		stable_df("./road_test_feature_scores.pkl.gz", scores.data, rtol=0.2)
 
 		from emat.workbench.analysis import prim
 
