@@ -48,7 +48,6 @@ dependencies:
 - yamllint
 
 - sphinx
-- sphinxcontrib>=1.0
 - pygments>=2.2.0
 - docutils>=0.14
 - sphinx_rtd_theme
