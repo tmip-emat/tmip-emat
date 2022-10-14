@@ -714,6 +714,9 @@ class DynamoDB(Database):
         )
         if local_port is not None:
             boto_client_kwds['endpoint_url'] = f'http://localhost:{local_port}'
+            boto_client_kwds['aws_access_key_id'] = "anything"
+            boto_client_kwds['aws_secret_access_key'] = "anything"
+            boto_client_kwds['region_name'] = "us-west-2"
 
         self._dynamo_client = boto3.client('dynamodb', **boto_client_kwds)
 
