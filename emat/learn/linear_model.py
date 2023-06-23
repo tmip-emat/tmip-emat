@@ -25,14 +25,6 @@ class LinearRegression(_LinearRegression, FrameableMixin, CrossValMixin):
 		to False, no intercept will be used in calculations
 		(e.g. data is expected to be already centered).
 
-	normalize : boolean, optional, default False
-		This parameter is ignored when ``fit_intercept`` is set to False.
-		If True, the regressors X will be normalized before regression by
-		subtracting the mean and dividing by the l2-norm.
-		If you wish to standardize, please use
-		:class:`sklearn.preprocessing.StandardScaler` before calling ``fit`` on
-		an estimator with ``normalize=False``.
-
 	copy_X : boolean, optional, default True
 		If True, X will be copied; else, it may be overwritten.
 
@@ -58,14 +50,12 @@ class LinearRegression(_LinearRegression, FrameableMixin, CrossValMixin):
 	def __init__(
 			self,
 			fit_intercept=True,
-			normalize=False,
 			copy_X=True,
 			n_jobs=None,
 			stats_on_fit=True,
 	):
 		super().__init__(
 			fit_intercept=fit_intercept,
-			normalize=normalize,
 			copy_X=copy_X,
 			n_jobs=n_jobs
 		)
@@ -209,7 +199,6 @@ def LinearRegression_KBestPoly(
 		k=None,
 		degree=2,
 		fit_intercept=True,
-		normalize=False,
 		copy_X=True,
 		n_jobs=None,
 		stats_on_fit=True,
@@ -229,7 +218,6 @@ def LinearRegression_KBestPoly(
 			('Uniques',   SelectUniqueColumns()),
 			('LR',        LinearRegression(
 							fit_intercept=fit_intercept,
-							normalize=normalize,
 							copy_X=copy_X,
 							stats_on_fit=stats_on_fit,
 			              )
@@ -243,7 +231,6 @@ def LinearRegression_KRangeBestPoly(
 		k_max=8,
 		degree=2,
 		fit_intercept=True,
-		normalize=False,
 		copy_X=True,
 		n_jobs=None,
 		stats_on_fit=True,
@@ -262,7 +249,6 @@ def LinearRegression_KRangeBestPoly(
 				('Uniques',   SelectUniqueColumns()),
 				('LR',        LinearRegression(
 								fit_intercept=fit_intercept,
-								normalize=normalize,
 								copy_X=copy_X,
 								stats_on_fit=stats_on_fit,
 							  )
