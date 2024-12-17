@@ -539,6 +539,7 @@ class MetaModel:
             use_cache=True,
             return_type='styled',
             shortnames=None,
+            suppress_converge_warnings=False,
             **kwargs,
     ):
         """
@@ -583,7 +584,15 @@ class MetaModel:
                 # residuals = self.regression.residual_predict(self.input_sample)
                 # regression = multitarget.MultipleTargetRegression()
                 # return regression.cross_val_scores(self.input_sample, residuals, cv=cv)
-            result = self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv, **kwargs)
+
+            if suppress_converge_warnings:
+                from sklearn.exceptions import ConvergenceWarning
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=ConvergenceWarning)
+                    result = self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv, **kwargs)
+            else:
+                result = self.regression.cross_val_scores(self.input_sample, self.output_sample, cv=cv, **kwargs)
             result.name = "Cross Validation Score"
 
         if use_cache:

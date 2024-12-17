@@ -350,6 +350,65 @@ class Database(abc.ABC):
             UserWarning: If scope name does not exist        
         """         
 
+    def write_experiment_run_status(
+            self,
+            scope_name,
+            run_id,
+            experiment_id,
+            msg,
+    ):
+        """
+        Write experiment status to the database.
+
+        Parameters
+        ----------
+        scope_name : str
+        run_id : UUID
+        experiment_id : int
+        msg : str
+            The status to write.
+        """
+
+    def read_experiment_run_status(
+            self,
+            scope_name,
+            design_name=None,
+            *,
+            experiment_id=None,
+            experiment_ids=None,
+    ):
+        """
+        Read experiment definitions from the database.
+
+        Read the values for each experiment parameter per experiment.
+
+        Args:
+            scope_name (str):
+                A scope name, used to identify experiments,
+                performance measures, and results associated with this
+                exploratory analysis.
+            design_name (str, optional): If given, only experiments
+                associated with both the scope and the named design
+                are returned, otherwise all experiments associated
+                with the scope are returned.
+            experiment_ids (int, optional):
+                A single experiment id to check.  If given,
+                `design_name` is ignored.
+            experiment_ids (int or Collection[int], optional):
+                A collection of experiment id's to check.  If given,
+                `design_name` is ignored.
+
+        Returns:
+            emat.ExperimentalDesign:
+                The experiment run statuses are returned in a subclass
+                of a normal pandas.DataFrame, which allows attaching
+                the `design_name` as meta-data to the DataFrame.
+
+        Raises:
+            ValueError: if `scope_name` is not stored in this database
+        """
+        raise NotImplementedError
+
     @abc.abstractmethod
     def read_experiment_all(
             self,
@@ -440,6 +499,8 @@ class Database(abc.ABC):
             source=None,
             design=None,
             runs=None,
+            formulas=True,
+            with_validity=False,
     ):
         """
         Read experiment results from the database.
@@ -883,6 +944,7 @@ class Database(abc.ABC):
             location=None,
             experiment_id=None,
             source=0,
+            **extra_attrs,
     ):
         """
         Create a new run_id in the database.

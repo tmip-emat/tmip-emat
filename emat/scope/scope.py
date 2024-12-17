@@ -56,6 +56,7 @@ class Scope:
 
     scope_file = ''
     name = ''
+    domain = ''
     random_seed = 1234
     desc = ''
     xl_di = {}
@@ -96,6 +97,7 @@ class Scope:
                 raise ScopeFormatError(f'scope file must include "{k}" as a top level key')
 
         self.name = str(scope['scope']['name'])
+        self.domain = scope['scope'].get('domain', self.name)
         self.desc = scope['scope'].get('desc', '')
         self.xl_di = scope['inputs']
         self.m_di = scope['outputs']
@@ -165,7 +167,7 @@ class Scope:
                 else:
                     if i != j:
                         return False
-        for k in ('_m_list', 'name', 'desc'):
+        for k in ('_m_list', 'name', 'domain', 'desc'):
             if getattr(self,k) != getattr(other,k):
                 return False
         return True
@@ -183,7 +185,7 @@ class Scope:
                 else:
                     if i != j:
                         raise AssertionError(f"mismatch item: {i} != {j}")
-        for k in ('_m_list', 'name', 'desc'):
+        for k in ('_m_list', 'name', 'domain', 'desc'):
             if getattr(self,k) != getattr(other,k):
                 raise AssertionError(f"mismatch {k}: {getattr(self,k)} != {getattr(other,k)}")
 
@@ -334,6 +336,7 @@ class Scope:
         s = dict()
         s['scope'] = dict()
         s['scope']['name'] = self.name
+        s['scope']['domain'] = self.domain
         s['scope']['desc'] = self.desc
         s['inputs'] = {}
         s['outputs'] = {}
@@ -454,6 +457,7 @@ class Scope:
             ),
         )
         subscope.name = name or self.name
+        subscope.domain = self.domain
         if add_measure_formulas is not None:
             for mname, formula in add_measure_formulas.items():
                 subscope.add_measure(Measure(mname, formula=formula))
@@ -474,6 +478,7 @@ class Scope:
             f = None
 
         print(f'name: {self.name}', file=f)
+        print(f'domain: {self.domain}', file=f)
         print(f'desc: {self.desc}', file=f)
         if self._c_list:
             print('constants:', file=f)
@@ -563,9 +568,12 @@ class Scope:
         """Get a dict of default values of model parameters (uncertainties+levers+constants)."""
         return {p.name:p.default for p in self.get_parameters()}
 
-    def get_measures(self):
+    def get_measures(self, tag=None):
         """Get a list of performance measures."""
-        return [i for i in self._m_list]
+        if tag is None:
+            return [i for i in self._m_list]
+        else:
+            return [i for i in self._m_list if tag in i.tags]
 
     def get_measure_tags(self):
         """
@@ -683,12 +691,23 @@ class Scope:
             if formula:
                 if measure.name in df.columns and not overwrite:
                     if df[measure.name].isna().sum():
-                        dataseries = df.eval(formula).rename(measure.name)
+                        dataseries = pandas.eval(formula, resolvers=[df, queue])
+                        try:
+                            dataseries = dataseries.rename(measure.name)
+                        except AttributeError:
+                            pass
                         queue[measure.name] = df[measure.name].fillna(dataseries)
                 else:
-                    dataseries = df.eval(formula).rename(measure.name)
+                    dataseries = pandas.eval(formula, resolvers=[df, queue])
+                    try:
+                        dataseries = dataseries.rename(measure.name)
+                    except AttributeError:
+                        pass
                     queue[measure.name] = dataseries
         if queue:
+            for measure in self.get_measures():
+                if measure.kind == ScalarOutcome.TEMP:
+                    queue.pop(measure.name, None)
             df = df.assign(**queue)
         return df
 
@@ -772,7 +791,7 @@ class Scope:
         for c in categorical_columns:
             ordering = getattr(self[c],'values',None)
             if ordering:
-                data[c].cat.reorder_categories(ordering, inplace=True)
+                data[c] = data[c].cat.reorder_categories(ordering)
         if not inplace:
             if base_was_series:
                 return data.iloc[:,0]

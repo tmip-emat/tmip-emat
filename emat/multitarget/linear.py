@@ -22,14 +22,6 @@ class LinearRegression(_sklearn_LinearRegression, FrameableMixin):
 		to False, no intercept will be used in calculations
 		(e.g. data is expected to be already centered).
 
-	normalize : boolean, optional, default False
-		This parameter is ignored when ``fit_intercept`` is set to False.
-		If True, the regressors X will be normalized before regression by
-		subtracting the mean and dividing by the l2-norm.
-		If you wish to standardize, please use
-		:class:`sklearn.preprocessing.StandardScaler` before calling ``fit`` on
-		an estimator with ``normalize=False``.
-
 	copy_X : boolean, optional, default True
 		If True, X will be copied; else, it may be overwritten.
 
@@ -55,13 +47,11 @@ class LinearRegression(_sklearn_LinearRegression, FrameableMixin):
 	def __init__(
 			self,
 			fit_intercept=True,
-			normalize=False,
 			copy_X=True,
 			n_jobs=None,
 			frame_out=False,
 	):
 		self.fit_intercept = fit_intercept
-		self.normalize = normalize
 		self.copy_X = copy_X
 		from ..util import n_jobs_cap
 		self.n_jobs = n_jobs_cap(n_jobs)
@@ -206,7 +196,6 @@ class LinearRegressionInteract(LinearRegression):
 	def __init__(
 			self,
 			fit_intercept=True,
-			normalize=False,
 			copy_X=True,
 			n_jobs=None,
 			frame_out=True,
@@ -214,7 +203,6 @@ class LinearRegressionInteract(LinearRegression):
 	):
 		super().__init__(
 			fit_intercept=fit_intercept,
-			normalize=normalize,
 			copy_X=copy_X,
 			n_jobs=n_jobs,
 			frame_out=frame_out,

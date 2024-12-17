@@ -58,6 +58,7 @@ class AbstractOutcome(Variable):
     MINIMIZE = -1
     MAXIMIZE = 1
     INFO = 0
+    TEMP = None
 
     def __init__(self, name, kind=INFO, variable_name=None,
                  function=None, expected_range=None,

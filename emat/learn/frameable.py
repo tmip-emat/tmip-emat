@@ -25,6 +25,9 @@ class FrameableMixin:
 		else:
 			idx = None
 
+		if Yhat.ndim == 3 and Yhat.shape[0] == 1:
+			Yhat = Yhat.squeeze(0)
+
 		cols = None
 		if self._Y_columns is not None:
 			if isinstance(self._Y_columns, str):

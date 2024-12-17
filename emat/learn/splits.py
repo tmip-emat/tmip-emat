@@ -61,7 +61,7 @@ class ExogenouslyStratifiedKFold(StratifiedKFold):
 	"""
 
 	def __init__(self, exo_data=None, n_splits=3, shuffle=False, random_state=None):
-		super().__init__(n_splits, shuffle, random_state)
+		super().__init__(n_splits, shuffle=shuffle, random_state=random_state)
 		self.exo_data = exo_data
 
 	def _make_test_folds(self, X, y=None):

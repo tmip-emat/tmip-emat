@@ -656,6 +656,8 @@ class Visualizer(DataFrameExplorer):
 
 		viz_widgets = []
 		for i in include:
+			if not isinstance(i, str):
+				i = i.name
 			if i not in self.scope:
 				warnings.warn(f'{i} not in scope')
 			elif i not in self.data.columns:

@@ -1,28 +1,25 @@
 
 # To use this file::
-#  conda env create -f EMAT-DEV.yml
+#  mamba env update -f EMAT-DEV.yml
 name: EMAT-DEV
 
 channels:
 - conda-forge
 
 dependencies:
-- python=3.9
-
-# Math
-- numpy>=1.16
-- pandas>=1.2
-- scipy>=1.2
-- scikit-learn>=0.24
+- numpy>=1.23
+- pandas>=1.5
+- scipy>=1.9
+- scikit-learn>=1.1.2
 - appdirs>=1.4.3
 - matplotlib>=3.0.1
-- seaborn>=0.9
+- seaborn>=0.12
 - pydot
 - graphviz
 - plotly>=4.14
 - python-kaleido  # Plotly Static Image Export
-- ipywidgets>=7.2
-- joblib>=0.13.2
+- ipywidgets>=8.0.2
+- joblib>=1.2
 - dask>=1.0
 - distributed>=1.25
 - cloudpickle>=0.6.1
@@ -43,9 +40,11 @@ dependencies:
 - webcolors
 - datashader
 - altair
+- boto3
+- addicty
+- yamllint
 
 - sphinx
-- sphinxcontrib>=1.0
 - pygments>=2.2.0
 - docutils>=0.14
 - sphinx_rtd_theme

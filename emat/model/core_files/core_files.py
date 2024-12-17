@@ -354,17 +354,19 @@ class FilesCoreModel(AbstractCoreModel):
 
 		# Get the experiment_id if stored
 		db = getattr(self, 'db', None)
-		if db is not None:
-			run_id, experiment_id = self.db.new_run_id(
-				self.scope.name, params, experiment_id=experiment_id
-			)
-		else:
-			import uuid
-			if experiment_id is None:
-				experiment_id = getattr(self, 'experiment_id', None)
-			run_id = uuid.uuid4()
+		run_id = getattr(self, 'run_id', None)
+		if run_id is None:
+			if db is not None:
+				run_id, experiment_id = self.db.new_run_id(
+					self.scope.name, params, experiment_id=experiment_id
+				)
+			else:
+				import uuid
+				if experiment_id is None:
+					experiment_id = getattr(self, 'experiment_id', None)
+				run_id = uuid.uuid4()
 
-		self.run_id = run_id
+			self.run_id = run_id
 		self.experiment_id = experiment_id
 
 		# Rename any existing archive directories

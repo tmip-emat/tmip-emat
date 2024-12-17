@@ -969,6 +969,7 @@ class SQLiteDB(Database):
             location=None,
             experiment_id=None,
             source=0,
+            **extra_attrs,
     ):
         """
         Create a new run_id in the database.

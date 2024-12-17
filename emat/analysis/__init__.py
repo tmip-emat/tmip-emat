@@ -11,12 +11,22 @@ try:
 except ImportError:
 	pass
 
-
 try:
 	from .explore_2 import Visualizer, TwoWayFigure
 except ImportError:
 	pass
 
-from .prim import Prim, PrimBox
-from .cart import CART
-from .contrast import AB_Viewer
+try:
+	from .prim import Prim, PrimBox
+except ImportError:
+	pass
+
+try:
+	from .cart import CART
+except ImportError:
+	pass
+
+try:
+	from .contrast import AB_Viewer
+except ImportError:
+	pass

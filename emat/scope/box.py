@@ -47,6 +47,7 @@ class GenericBox(MutableMapping, ABC):
 		"""
 		within = pandas.Series(True, index=df.index)
 		for label, bounds in self.thresholds.items():
+			if label not in df.columns: continue
 			if isinstance(bounds, set):
 				within &= numpy.in1d(df[label], list(bounds))
 			else:

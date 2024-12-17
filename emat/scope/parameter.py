@@ -94,6 +94,7 @@ def make_parameter(
         resolution=None,
         shortname=None,
         abbrev=None,
+        meta=None,
 ):
     """
     Factory method to build a Parameter or Constant for a model.
@@ -148,6 +149,8 @@ def make_parameter(
         abbrev (Mapping, optional):
             A set of abbreviations used for values, especially useful when the names of
             values are long strings that may not display neatly in figures.
+        meta (Any, optional):
+            Meta-data to attach to this parameter
 
     Returns:
         Parameter or Constant
@@ -276,9 +279,9 @@ def make_parameter(
     # Create the Parameter
     if ptype == 'constant':
         if dtype == 'cat':
-            p = Constant(name, default, desc=desc, address=address, dtype='cat')
+            p = Constant(name, default, desc=desc, address=address, dtype='cat', meta=meta)
         else:
-            p = Constant(name, default, desc=desc, address=address)
+            p = Constant(name, default, desc=desc, address=address, meta=meta)
     elif dtype == 'cat':
         p = CategoricalParameter(
             name,
@@ -290,6 +293,7 @@ def make_parameter(
             corr=corr,
             abbrev=abbrev,
             shortname=shortname,
+            meta=meta,
         )
     elif dtype == 'int':
         rv_gen = rv_gen or make_rv_frozen(**dist_for_maker, discrete=True)
@@ -312,6 +316,7 @@ def make_parameter(
                 corr=corr,
                 abbrev=abbrev,
                 shortname=shortname,
+                meta=meta,
             )
     elif dtype == 'real':
         rv_gen = rv_gen or make_rv_frozen(**dist_for_maker)
@@ -334,6 +339,7 @@ def make_parameter(
                 corr=corr,
                 abbrev=abbrev,
                 shortname=shortname,
+                meta=meta,
             )
 
     elif dtype == 'bool':
@@ -353,6 +359,7 @@ def make_parameter(
                 corr=corr,
                 abbrev=abbrev,
                 shortname=shortname,
+                meta=meta,
             )
     else:
         raise ValueError(f"invalid dtype {dtype}")
@@ -366,7 +373,7 @@ class Constant(workbench_param.Constant):
     ptype = 'constant'
     """str: Parameter type, for compatibility with Parameter."""
 
-    def __init__(self, name, value, desc="", address=None, dtype=None):
+    def __init__(self, name, value, desc="", address=None, dtype=None, meta=None):
 
         if value is None:
             raise ValueError("Constant.value cannot be None")
@@ -396,6 +403,9 @@ class Constant(workbench_param.Constant):
 
         self.dtype = dtype
         """str: The dtype for the value, as a string."""
+
+        self.meta = meta
+        """Any: meta-data that is attached to this constant."""
 
     @property
     def default(self):
@@ -443,6 +453,7 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
             shortname=None,
             abbrev=None,
             tags=None,
+            meta=None,
     ):
 
         # The default constructor for ema_workbench parameters uses no distribution
@@ -529,6 +540,9 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
             for tag in tags:
                 self.add_tag(tag)
 
+        self.meta = meta
+        """Any: meta-data that is attached to this object."""
+
     @property
     def min(self):
         return self.lower_bound
@@ -554,7 +568,6 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
             if self.corr != other.corr:
                 return False
             if self.distdef != other.distdef:
-                print(f"distdef not equal: {self.distdef} != {other.distdef}")
                 return False
         except AttributeError:
             return False
@@ -583,6 +596,46 @@ class Parameter(workbench_param.Parameter, ShortnameMixin, TaggableMixin):
 
             else:
                 return True
+
+    def explain_neq(self, other):
+        try:
+            if type(self) != type(other):
+                return f"not same type: {type(self)} != {type(other)}"
+            if self.address != other.address:
+                return f"not same address: {self.address} != {other.address}"
+            if self.dtype != other.dtype:
+                return f"not same dtype: {self.dtype} != {other.dtype}"
+            if self.ptype != other.ptype:
+                return f"not same ptype: {self.ptype} != {other.ptype}"
+            if self.corr != other.corr:
+                return f"not same corr: {self.corr} != {other.corr}"
+            if self.distdef != other.distdef:
+                return f"not same distdef: {self.distdef} != {other.distdef}"
+        except AttributeError:
+            return f"key attributes not all defined"
+        if not isinstance(self, other.__class__):
+            return f"not nested classes {self.__class__} is not {other.__class__}"
+        self_keys = set(self.__dict__.keys())
+        other_keys = set(other.__dict__.keys())
+        if self_keys - other_keys:
+            return f"misaligned keys {self_keys - other_keys}"
+        else:
+            for key in self_keys:
+                if key == 'dist_def':
+                    continue
+                if key != 'dist':
+                    if getattr(self, key) != getattr(other, key):
+                        return f"not same attr {key}: {getattr(self, key)} != {getattr(other, key)}"
+                else:
+                    # name, parameters
+                    self_dist = getattr(self, key)
+                    other_dist = getattr(other, key)
+                    if self_dist.dist.name != other_dist.dist.name:
+                        return f"not same dist.name: {self_dist.dist.name} != {other_dist.dist.name}"
+                    if self_dist.args != other_dist.args:
+                        return f"not same dist.args: {self_dist.args} != {other_dist.args}"
+            else:
+                return None
 
     @property
     def distdef(self):
@@ -645,7 +698,8 @@ class RealParameter(Parameter, workbench_param.RealParameter):
 
     def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
-                 desc="", address=None, ptype=None, corr=None, shortname=None, abbrev=None):
+                 desc="", address=None, ptype=None, corr=None, shortname=None, abbrev=None,
+                 meta=None):
 
         if dist is None and (lower_bound is None or upper_bound is None):
             raise ValueError("must give lower_bound and upper_bound, or dist")
@@ -669,6 +723,7 @@ class RealParameter(Parameter, workbench_param.RealParameter):
             dist_def=dist_def,
             shortname=shortname,
             abbrev=abbrev,
+            meta=meta,
         )
         
 
@@ -687,7 +742,8 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
 
     def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
-                 desc="", address=None, ptype=None, corr=None, shortname=None, abbrev=None):
+                 desc="", address=None, ptype=None, corr=None, shortname=None, abbrev=None,
+                 meta=None):
 
         if dist is None and (lower_bound is None or upper_bound is None):
             raise ValueError("must give lower_bound and upper_bound, or dist")        
@@ -706,6 +762,7 @@ class IntegerParameter(Parameter, workbench_param.IntegerParameter):
             dist_def=dist_def,
             shortname=shortname,
             abbrev=abbrev,
+            meta=meta,
         )
 
         if self.resolution is not None:
@@ -730,7 +787,8 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
 
     def __init__(self, name, *, lower_bound=None, upper_bound=None, resolution=None,
                  default=None, variable_name=None, pff=False, dist=None, dist_def=None,
-                 desc="", address=None, ptype=None, corr=None, shortname=None, abbrev=None):
+                 desc="", address=None, ptype=None, corr=None, shortname=None, abbrev=None,
+                 meta=None):
 
         Parameter.__init__(
             self,
@@ -742,6 +800,7 @@ class BooleanParameter(Parameter, workbench_param.BooleanParameter):
             dist_def=dist_def,
             shortname=shortname,
             abbrev=abbrev,
+            meta=meta,
         )
 
         cats = [workbench_param.create_category(cat) for cat in [False, True]]
@@ -774,7 +833,8 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
     def __init__(self, name, categories, *, default=None, variable_name=None,
                  pff=False, multivalue=False,
                  desc="", address=None, ptype=None, corr=None,
-                 dist=None, singleton_ok=False, shortname=None, abbrev=None):
+                 dist=None, singleton_ok=False, shortname=None, abbrev=None,
+                 meta=None):
         lower_bound = 0
         upper_bound = len(categories) - 1
 
@@ -793,6 +853,7 @@ class CategoricalParameter(Parameter, workbench_param.CategoricalParameter):
             desc=desc, address=address, ptype=ptype, corr=corr,
             shortname=shortname,
             abbrev=abbrev,
+            meta=meta,
         )
 
         cats = [workbench_param.create_category(cat) for cat in categories]

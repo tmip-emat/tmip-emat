@@ -61,6 +61,9 @@ def make_rv_frozen(name=None, discrete=False, min=None, max=None, **kwargs):
 		elif name == 'randint':
 			kwargs['low'] = min
 			kwargs['high'] = max+1
+		elif name == 'loguniform':
+			kwargs['a'] = min
+			kwargs['b'] = max
 
 	try:
 		frozen = gen(**kwargs)
