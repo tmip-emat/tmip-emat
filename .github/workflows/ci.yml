@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - '*'
-
   pull_request:
     branches:
       - '*'
@@ -25,6 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v2
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
