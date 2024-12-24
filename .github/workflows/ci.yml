@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - '*'
-
   pull_request:
     branches:
       - '*'
@@ -26,39 +25,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
         with:
-            miniforge-variant: Mambaforge
-            miniforge-version: latest
-            activate-environment: asim-test
-            use-mamba: true
-            python-version: ${{ matrix.python-version }}
+          # Install a specific version of uv.
+          version: "0.5.11"
 
-      - name: Set cache date for year and month
-        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
-
-      - uses: actions/cache@v2
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          path: /usr/share/miniconda3/envs/asim-test
-          key: linux-64-conda-${{ hashFiles('conda-envs/EMAT-DEV.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache
-
-      - name: Update environment
-        run: mamba env update -n asim-test -f conda-envs/EMAT-DEV.yml
-        if: steps.cache.outputs.cache-hit != 'true'
+          python-version-file: "pyproject.toml"
 
       - name: Install emat
-        # installing without dependencies is faster, we trust that all needed dependencies
-        # are in the conda environment defined above.  Also, this avoids pip getting
-        # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install . --no-deps
-
-      - name: Conda checkup
-        run: |
-          mamba info -a
-          mamba list
+          uv sync --all-extras --dev
 
       - name: Setup DynamoDB Local
         uses: rrainn/dynamodb-action@v2.0.1
@@ -72,5 +55,5 @@ jobs:
 
       - name: Test EMAT
         run: |
-          python -m pytest .
+          uv run pytest .
 

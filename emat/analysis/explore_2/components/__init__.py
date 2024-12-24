@@ -57,8 +57,8 @@ def compute_earth_mover_distance(x, y):
 		float or None
 	"""
 
-	x_cum = numpy.asanyarray(x, dtype=numpy.float).cumsum()
-	y_cum = numpy.asanyarray(y, dtype=numpy.float).cumsum()
+	x_cum = numpy.asanyarray(x, dtype=float).cumsum()
+	y_cum = numpy.asanyarray(y, dtype=float).cumsum()
 	if x_cum[-1] == 0 or y_cum[-1] == 0:
 		return None
 	try:
@@ -78,8 +78,8 @@ def compute_categorical_similarity(x,y):
 	Returns:
 		float
 	"""
-	x = numpy.asarray(x, dtype=numpy.float).copy()
-	y = numpy.asarray(y, dtype=numpy.float).copy()
+	x = numpy.asarray(x, dtype=float).copy()
+	y = numpy.asarray(y, dtype=float).copy()
 	try:
 		x /= x.sum()
 		y /= y.sum()
@@ -346,7 +346,7 @@ def pseudo_bar_data(x_bins, y, gap=0):
 		width = 0
 
 	if gap:
-		x_doubled = numpy.zeros(((x_bins.shape[0] - 1) * 4), dtype=numpy.float)
+		x_doubled = numpy.zeros(((x_bins.shape[0] - 1) * 4), dtype=float)
 		x_doubled[::4] = x_bins[:-1]
 		x_doubled[1::4] = x_bins[:-1]
 		x_doubled[2::4] = x_bins[1:] - gap

@@ -1,5 +1,0 @@
-#!/bin/bash
-export NODE_OPTIONS=--max-old-space-size=4096
-jupyter labextension install @jupyterlab/toc @jupyter-widgets/jupyterlab-manager jupyterlab-plotly plotlywidget
-unset NODE_OPTIONS
-

@@ -406,7 +406,7 @@ class MetaModel:
                             f'positional argument, not {len(args)}')
 
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float)
+        input_row = self.preprocess_raw_input(input_row, to_type=float)
 
         output_row = self.regression.predict(input_row)
         result = dict(output_row.iloc[0])
@@ -449,7 +449,7 @@ class MetaModel:
                             f'positional argument, not {len(args)}')
 
         input_row = pandas.DataFrame.from_dict(kwargs, orient='index').T[self.raw_input_columns]
-        input_row = self.preprocess_raw_input(input_row, to_type=numpy.float)
+        input_row = self.preprocess_raw_input(input_row, to_type=float)
 
         output_row, output_std = self.regression.predict(input_row, return_std=True)
 
