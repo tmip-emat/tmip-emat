@@ -111,7 +111,7 @@ class ExogenouslyStratifiedKFold(StratifiedKFold):
 				  random_state=rng).split(np.zeros(max(count, self.n_splits)))
 			for count in y_counts]
 
-		test_folds = np.zeros(n_samples, dtype=np.int)
+		test_folds = np.zeros(n_samples, dtype=int)
 		for test_fold_indices, per_cls_splits in enumerate(zip(*per_cls_cvs)):
 			for cls, (_, test_split) in zip(unique_y, per_cls_splits):
 				cls_test_folds = test_folds[y == cls]

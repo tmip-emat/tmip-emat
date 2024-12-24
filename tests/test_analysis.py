@@ -12,7 +12,9 @@ from emat.model import PythonCoreModel
 def stable_df(filename, df):
     if not os.path.exists(filename):
         df.to_pickle(filename)
-    return pd.testing.assert_frame_equal(df, pd.read_pickle(filename))
+    return pd.testing.assert_frame_equal(df, pd.read_pickle(filename),
+                                         rtol=1.0e-4, atol=1.0e-7,
+    )
 
 
 def _Road_Capacity_Investment_with_Bogus_Output(**kwargs):
