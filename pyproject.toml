@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "emat"
-version = "0.6.0"  # Update this with the actual version from emat/__init__.py
+version = "0.6.1"  # Update this with the actual version from emat/__init__.py
 description = "Add a short description here"
 authors = [
     { name = "Jeff Newman", email = "jeff@driftless.xyz" }
