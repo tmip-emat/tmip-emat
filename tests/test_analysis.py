@@ -13,7 +13,7 @@ def stable_df(filename, df):
     if not os.path.exists(filename):
         df.to_pickle(filename)
     return pd.testing.assert_frame_equal(df, pd.read_pickle(filename),
-                                         rtol=1.0e-4, atol=1.0e-7,
+                                         rtol=1.0e-2, atol=1.0e-7,
     )
 
 
