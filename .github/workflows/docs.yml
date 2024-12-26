@@ -37,7 +37,7 @@ jobs:
 
       - name: Get Version
         run: |
-          python docs/get_version.py VERSION.txt
+          uv run python docs/get_version.py VERSION.txt
           cat VERSION.txt >> $GITHUB_ENV
 
       - name: Set version major-minor
