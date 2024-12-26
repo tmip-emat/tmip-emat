@@ -8,15 +8,15 @@ Quick Start
 
 To get started with TMIP-EMAT, you'll need to follow a few simple steps.
 
-1. Install `Anaconda Python 3.9 <https://www.anaconda.com/download>`_.
-2. Open the 'Anaconda Prompt' that was installed and run the following
+1. Install `Miniforge <https://github.com/conda-forge/miniforge?tab=readme-ov-file#install>`_.
+2. Open the 'Miniforge Prompt' that was installed and run the following
    commands:
 
 .. code-block:: console
 
-    conda env create TMIP/EMAT
+    conda env create -n EMAT -f https://raw.githubusercontent.com/tmip-emat/tmip-emat/refs/heads/main/conda-envs/EMAT.yml
     conda activate EMAT
-    jupyter-notebook
+    jupyter lab
 
 More detailed instructions appear below.
 
@@ -94,14 +94,14 @@ analysis, you can create a new environment for EMAT with one line.
 
 .. code-block:: console
 
-    conda env create TMIP/EMAT
+    conda env create -f https://raw.githubusercontent.com/tmip-emat/tmip-emat/refs/heads/main/conda-envs/EMAT.yml
 
 If you've already installed the *EMAT* environment and want to update it to the latest
 version, you can use:
 
 .. code-block:: console
 
-    conda env update TMIP/EMAT --prune
+    conda env update -f https://raw.githubusercontent.com/tmip-emat/tmip-emat/refs/heads/main/conda-envs/EMAT.yml --prune
 
 The *prune* option here will remove packages that are not ordinarily included in the
 *EMAT* environment; omit that function if you've installed extra packages that you
@@ -113,15 +113,14 @@ Installing TMIP-EMAT in an Existing Environment
 
 If you already have an existing environment you want to use, or if you'd like to
 skip the advice above and install TMIP-EMAT into the base environment, you can
-do so using the regular `conda install` tool.  Activate the environment you want
+do so using the regular `pip install` tool.  Activate the environment you want
 to install into, and then run:
 
 .. code-block:: console
 
-    conda install emat -c tmip -c defaults -c conda-forge
+    pip install emat
 
-The extra channels (`-c channel_name`) here are required as TMIP-EMAT depends on
-other packages from a variety of places.  Because of these dependencies, there
+Because TMIP-EMAT has a bunch of specific dependencies, there
 is a fair chance that installing TMIP-EMAT into an existing environment may
 cause incompatibilities with other tools, so installing in this manner is not
 recommended.
