@@ -1,0 +1,71 @@
+name: tmip-emat documentation
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+
+  docs-publish:
+    name: publish docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          # Install a specific version of uv.
+          version: "0.5.11"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install emat
+        run: uv sync --all-extras --dev
+
+      - name: Get Version
+        run: |
+          python docs/get_version.py VERSION.txt
+          cat VERSION.txt >> $GITHUB_ENV
+
+      - name: Set version major-minor
+        id: version-major-minor
+        run: |
+          VERSION_MINOR=$(cut -d '.' -f 1,2 <<< ${EMAT_VERSION})
+          echo "VERSION_MINOR=$VERSION_MINOR"
+          echo "VERSION_MINOR=$VERSION_MINOR" >> $GITHUB_OUTPUT
+
+      - name: Build documentation
+        run: |
+          cd docs
+          uv run make html
+
+      - name: Push Release Docs to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: "github.event_name == 'release'"
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Token is created automatically by Github Actions, no other config needed
+          publish_dir: ./docs/_build/html
+          destination_dir: v${{ steps.version-major-minor.outputs.VERSION_MINOR }}
+
+      - name: Push Dev Docs to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: "github.event_name != 'release'"
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Token is created automatically by Github Actions, no other config needed
+          publish_dir: ./docs/_build/html
+          destination_dir: dev
