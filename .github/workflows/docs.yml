@@ -54,6 +54,9 @@ jobs:
 
       - name: Build documentation
         run: |
+          uv add sphinx "pygments>=2.2.0" "docutils>=0.14" sphinx_rtd_theme \
+                 sphinxcontrib-restbuilder nbsphinx jupyter_sphinx packaging \
+                 jupytext
           cd docs
           uv run make html
 
