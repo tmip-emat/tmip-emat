@@ -58,6 +58,7 @@ jobs:
                  sphinxcontrib-restbuilder nbsphinx jupyter_sphinx packaging \
                  jupytext
           cd docs
+          uv run jupytext --to notebook source/**/*.py
           uv run make html
 
       - name: Push Release Docs to GitHub Pages
