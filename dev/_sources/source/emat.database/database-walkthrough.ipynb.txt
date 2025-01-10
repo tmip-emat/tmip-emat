@@ -1,0 +1,925 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "f831781d",
+   "metadata": {},
+   "source": [
+    "# Database Walkthrough"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "403962ff",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import seaborn; seaborn.set_theme()\n",
+    "import plotly.io; plotly.io.templates.default = \"seaborn\"\n",
+    "import emat\n",
+    "import yaml\n",
+    "from emat.util.show_dir import show_dir\n",
+    "from emat.analysis import display_experiments\n",
+    "emat.versions()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3a9a796f",
+   "metadata": {},
+   "source": [
+    "For this walkthrough of database features, we'll work in a temporary directory. \n",
+    "(In real projects you'll likely want to save your data somewhere less ephemeral,\n",
+    "so don't just copy this tempfile code into your work.)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d9779d16",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import tempfile\n",
+    "tempdir = tempfile.TemporaryDirectory()\n",
+    "os.chdir(tempdir.name)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e4236af0",
+   "metadata": {},
+   "source": [
+    "We begin our example by populating a database with some experimental data, by creating and\n",
+    "running a single design of experiments for the Road Test model."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "63f22fe8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import emat.examples\n",
+    "scope, db, model = emat.examples.road_test()\n",
+    "design = model.design_experiments()\n",
+    "model.run_experiments(design);"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "584df955",
+   "metadata": {},
+   "source": [
+    "## Single-Design Datasets"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2bec921e",
+   "metadata": {},
+   "source": [
+    "### Writing Out Raw Data\n",
+    "\n",
+    "When the database has only a single design of experiments, or if we\n",
+    "don't care about any differentiation between multiple designs that we\n",
+    "may have created and ran, we can dump the entire set of model runs,\n",
+    "including uncertainties, policy levers, and performance measures, all\n",
+    "consolidated into a single pandas DataFrame using the \n",
+    "`read_experiment_all` function.  The constants even appear in this DataFrame\n",
+    "too, for good measure."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8dd6eb5f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = db.read_experiment_all(scope.name)\n",
+    "df"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1c4481bc",
+   "metadata": {},
+   "source": [
+    "Exporting this data is simply a matter of using the usual pandas \n",
+    "methods to save the dataframe to a format of your choosing.  We'll\n",
+    "save our data into a gzipped CSV file, which is somewhat compressed\n",
+    "(we're not monsters here) but still widely compatible for a variety of uses."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3395c208",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df.to_csv(\"road_test_1.csv.gz\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "97e02e39",
+   "metadata": {},
+   "source": [
+    "This table contains most of the information we want to export from\n",
+    "our database, but not everything.  We also probably want to have access\n",
+    "to all of the information in the exploratory scope as well.  Our example\n",
+    "generator gives us a `Scope` reference directly, but if we didn't have that\n",
+    "we can still extract it from the database, using the `read_scope` method."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e6e07da5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "s = db.read_scope()\n",
+    "s"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e289882e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "s.dump(filename=\"road_test_scope.yaml\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "828bfe82",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "show_dir('.')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e674bece",
+   "metadata": {},
+   "source": [
+    "### Reading In Raw Data\n",
+    "\n",
+    "Now, we're ready to begin anew, constructing a fresh database from scratch,\n",
+    "using only the raw formatted files.\n",
+    "\n",
+    "First, let's load our scope from the yaml file, and initialize a clean database\n",
+    "using that scope."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c3fe2b05",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "s2 = emat.Scope(\"road_test_scope.yaml\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "74a12e36",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db2 = emat.SQLiteDB(\"road_test_2.sqldb\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3459c82a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db2.store_scope(s2)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7d6e0abe",
+   "metadata": {},
+   "source": [
+    "Just as we used pandas to save out our consolidated DataFrame of experimental results,\n",
+    "we can use it to read in a consolidated table of experiments."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "08576d48",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df2 = pd.read_csv(\"road_test_1.csv.gz\", index_col='experiment')\n",
+    "df2"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f547c6ed",
+   "metadata": {},
+   "source": [
+    "Writing experiments to a database is not quite as simple as reading them.  There\n",
+    "is a parallel `write_experiment_all` method for the `Database` class, but to use \n",
+    "it we need to provide not only the DataFrame of actual results, but also a name for\n",
+    "the design of experiments we are writing (all experiments exist within designs) and\n",
+    "the source of the performance measure results (zero means actual results from a \n",
+    "core model run, and non-zero values are ID numbers for metamodels). This allows many\n",
+    "different possible sets of performance measures to be stored for the same set\n",
+    "of input parameters."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "75d03a0e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db2.write_experiment_all(\n",
+    "    scope_name=s2.name, \n",
+    "    design_name='general',\n",
+    "    source=0,\n",
+    "    xlm_df=df2,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "07c2b92b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "display_experiments(s2, 'general', db=db2, rows=['time_savings'])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b30580f0",
+   "metadata": {},
+   "source": [
+    "## Multiple-Design Datasets\n",
+    "\n",
+    "The EMAT database is not limited to storing a single design of experiments.  Multiple designs \n",
+    "can be stored for the same scope.  We'll add a set of univariate sensitivity test to our\n",
+    "database, and a \"ref\" design that contains a single experiment with all inputs set to their\n",
+    "default values."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "88a25f85",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "design_uni = model.design_experiments(sampler='uni')\n",
+    "model.run_experiments(design_uni)\n",
+    "model.run_reference_experiment();"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "575cd418",
+   "metadata": {},
+   "source": [
+    "We now have three designs stored in our database. We can confirm this\n",
+    "by reading out the set of design names."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "50e1ff97",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db.read_design_names(s.name)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1dcca992",
+   "metadata": {},
+   "source": [
+    "The design names we se here are the default names given when designs are created with each of the given samplers.  When creating new designs, we can override the default names with other names of our choice using the `design_name` argument.  The names can be any string not already in use."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "bb33e387",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "design_b = model.design_experiments(sampler='lhs', design_name='bruce')\n",
+    "db.read_design_names(s.name)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e9d7de66",
+   "metadata": {},
+   "source": [
+    "If you try to re-use a name you'll get an error, as having multiple designs with the same name does not allow you to make it clear which design you are referring to."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "904ecbbf",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "try:\n",
+    "    model.design_experiments(sampler='lhs', design_name='bruce')\n",
+    "except ValueError as err:\n",
+    "    print(err)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "42015ab8",
+   "metadata": {},
+   "source": [
+    "As noted above, the design name, which can be any string, is separate from the sampler method. A default design name based on the name of the sampler method is used if no design name is given.  The selected sampler must be one available in EMAT, as the sampler defines a particular logic about how to generate the design."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e869cbda",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "try:\n",
+    "    model.design_experiments(sampler='uni')\n",
+    "except ValueError as err:\n",
+    "    print(err)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1cb108f3",
+   "metadata": {},
+   "source": [
+    "Note that there \n",
+    "can be some experiments that are in more than one design.  This is\n",
+    "not merely duplicating the experiment and results, but actually \n",
+    "assigning the same experiment to both designs.  We can see this\n",
+    "for the 'uni' and 'ref' designs -- both contain the all-default \n",
+    "parameters experiment, and when we read these designs out of the \n",
+    "database, the same experiment number is reported out in both \n",
+    "designs."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6a1a63e4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db.read_experiment_all(scope.name, design_name='uni').head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d968fdb3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db.read_experiment_all(scope.name, design_name='ref')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8b51be92",
+   "metadata": {},
+   "source": [
+    "One \"gotcha\" to be wary of is unintentionally replicating experiments.  By default, the `random_seed` for randomly generated experiemnts is set to 0 for reproducibility.  This means that, for example, the 'bruce' design is actually the same as the original 'lhs' design:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "57c4dd5b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db.read_experiment_all(scope.name, design_name='lhs').equals(\n",
+    "    db.read_experiment_all(scope.name, design_name='bruce')\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "87ab6d97",
+   "metadata": {},
+   "source": [
+    "If we want a new set of random experiments with the same sampler and other parameters, we'll need to provide a different `random_seed`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "02cec1fb",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "design_b = model.design_experiments(sampler='lhs', design_name='new_bruce', random_seed=42)\n",
+    "db.read_experiment_all(scope.name, design_name='lhs').equals(design_b)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "4c69bf13",
+   "metadata": {},
+   "source": [
+    "### Writing Out Raw Data\n",
+    "\n",
+    "We can read a single dataframe containing all the experiments associated with\n",
+    "this scope by omitting the `design_name` argument, just as if there was only\n",
+    "one design."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b7313a19",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = db.read_experiment_all(scope.name)\n",
+    "df"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6ac57775",
+   "metadata": {},
+   "source": [
+    "This dataframe is different than the one we saw earlier with the same command, as we have since added a few more experiments to the database in a few different designs.  If we don't give a `design_name` argument, we'll retrieve every (unique) experiment from every design currently stored in the database.  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "97650fa9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df.to_csv(\"road_test_2.csv.gz\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a17edac2",
+   "metadata": {},
+   "source": [
+    "If we want to be able to reconstruct the various designs of experiments later, \n",
+    "we'll also need to write out instructions for that.  The `read_all_experiment_ids`\n",
+    "method can give us a dictionary of all the relevant information."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f326a493",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "design_experiments = db.read_all_experiment_ids(scope.name, design_name='*',grouped=True)\n",
+    "design_experiments"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1b653c81",
+   "metadata": {},
+   "source": [
+    "We can write this dictionary to a file in 'yaml' format."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d83ef574",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "with open(\"road_test_design_experiments.yaml\", 'wt') as f:\n",
+    "    yaml.dump(design_experiments, f)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3aef591e",
+   "metadata": {},
+   "source": [
+    "### Reading In Raw Data"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "179a77e1",
+   "metadata": {},
+   "source": [
+    "To construct a new emat Database with multiple designs of experients,..."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a4b7dd9f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db3 = emat.SQLiteDB(\"road_test_3.sqldb\")\n",
+    "db3.store_scope(s2)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2b1d8dea",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df3 = pd.read_csv(\"road_test_2.csv.gz\", index_col='experiment')\n",
+    "df3"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3d73b936",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "with open(\"road_test_design_experiments.yaml\", 'rt') as f:\n",
+    "    design_experiments2 = yaml.safe_load(f)\n",
+    "design_experiments2"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9b30cebb",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db3.write_experiment_all(\n",
+    "    scope_name=s2.name, \n",
+    "    design_name=design_experiments2,\n",
+    "    source=0,\n",
+    "    xlm_df=df3,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3e427f47",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db3.read_design_names(s.name)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9c9fd9f5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db3.read_all_experiment_ids(scope.name, design_name='*',grouped=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "eb8d3a53",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db3.read_experiment_all(scope.name, design_name='uni').head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2d958190",
+   "metadata": {},
+   "source": [
+    "## Re-running Experiments"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "aa08c1db",
+   "metadata": {},
+   "source": [
+    "This section provides a short walkthrough of how to handle mistakes \n",
+    "in an EMAT database.  By \"mistakes\" we are referring to incorrect\n",
+    "values that have been written into the database by accident, generally \n",
+    "arising from core model runs that were misconfigured or suffered \n",
+    "non-fatal errors that caused the results to be invalid.\n",
+    "\n",
+    "One approach to handling such problems is to simply start over with a\n",
+    "brand new clean database file.  However, this may be inconvenient if\n",
+    "the database already includes a number of valid results, especially if\n",
+    "those valid results were expensive to generate.  It may also be desirable\n",
+    "to keep prior invalid results on hand, so as to easily recognized when\n",
+    "errors recur."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e17c25d9",
+   "metadata": {},
+   "source": [
+    "We begin this example by populating our database with some more experimental data, by creating and\n",
+    "running a single design of experiments for the Road Test model, except these experiments will be\n",
+    "created with a misconfigured model (lane_width = 11, it should be 10), so the results will be bad.\n",
+    "(In general, you probably won't intentionally create corrupt data, but we're doing so here for \n",
+    "expository purposes, so we'll give this design a name of 'oops' so we can readily recall what we've done.)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6a403cf1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model.lane_width = 10.3\n",
+    "oops = model.design_experiments(design_name='oops', random_seed=12345)\n",
+    "model.run_experiments(oops);"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3f7aad91",
+   "metadata": {},
+   "source": [
+    "We can review a dataframe of results as before, using the `read_experiment_all`\n",
+    "method. This time we will add `with_run_ids=True`, which will add an extra\n",
+    "column to the index, showing a universally unique id attached to each row\n",
+    "of results."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0298f177",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "oops_result1 = db.read_experiment_all(scope.name, 'oops', with_run_ids=True)\n",
+    "oops_result1.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0bdedfdb",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "display_experiments(scope, oops_result1, rows=['time_savings'])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6c987d59",
+   "metadata": {},
+   "source": [
+    "Some of these results are obviously problematic.  Increasing capacity cannot possibly\n",
+    "result in a negative travel time savings. (Braess paradox doesn't apply here because \n",
+    "it's just one link, not a network.)  So those negative values are clearly wrong.  We \n",
+    "can fix the model so they won't be wrong, but by default the `run_experiments` method\n",
+    "won't actually re-run models when the results are already available in the database.\n",
+    "To solve this conundrum, we can mark the incorrect results as invalid, using a query\n",
+    "to pull out the rows that can be flagged as wrong."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c1a01ab6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db.invalidate_experiment_runs(\n",
+    "    queries=['time_savings < 0']\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "df1e4e8d",
+   "metadata": {},
+   "source": [
+    "The `[73]` returned here indicates that 73 sets of results were invalidated by this command.\n",
+    "The invalidation command actually sets a \"valid\" flag in the database to False for these\n",
+    "experiment runs, so that a persistant record that they are bad is stored in the database.\n",
+    "Now we can fix our model, and then use the `run_experiments` method to get new model runs for\n",
+    "the invalidated results."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "89a64c9a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model.lane_width = 10\n",
+    "oops_result2 = model.run_experiments(oops)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "cfd79700",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "display_experiments(scope, 'oops', db=db, rows=['time_savings'])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "db5e9d15",
+   "metadata": {},
+   "source": [
+    "The re-run fixed the negative values, although it left in place the other \n",
+    "experimental runs in the database. By the way we constructed this example, \n",
+    "we know those are wrong too, and it's evident in the apparent discontinuity\n",
+    "in the input flow graph, which we can zoom in on."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c73238d8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ax = oops_result2.plot.scatter(x='input_flow', y='time_savings', color='r')\n",
+    "ax.plot([109,135], [0,35], '--',color='y');"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5ec2bd6b",
+   "metadata": {},
+   "source": [
+    "Those original results are bad too, and we want to invalidate them as well.\n",
+    "In addition to giving conditional queries to the `invalidate_experiment_runs`\n",
+    "method, we can also give a dataframe of results that have run ids attached, \n",
+    "and those unique ids will be used to to find and invalidate results in the \n",
+    "database.  Here, we pass in the dataframe of all the results, which contains\n",
+    "all 110 runs, but only 37 runs are newly invalidated (77 were invalidated \n",
+    "previously)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "053cb266",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db.invalidate_experiment_runs(\n",
+    "    oops_result1\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bda30067",
+   "metadata": {},
+   "source": [
+    "Now when we run the experiments again, those 37 experiments are re-run."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "54808ecc",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "oops_result3 = model.run_experiments(oops)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8c4b002f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "display_experiments(scope, 'lhs', db=db, rows=['time_savings'])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2e6f7dff",
+   "metadata": {},
+   "source": [
+    "### Writing Out All Runs\n",
+    "\n",
+    "By default, the `read_experiment_all` method returns the most recent valid set of \n",
+    "performance measures for each experiment, but we can override this behavior to\n",
+    "ask for `'all'` run results, or all `'valid'` or `'invalid'` results, by setting the \n",
+    "`runs` argument to those literal values.  This allows us to easily\n",
+    "write out data files containing all the results stored in the database."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2d3ed6d1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "db.read_experiment_all(scope.name, with_run_ids=True, runs='all')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "cf4132dd",
+   "metadata": {},
+   "source": [
+    "In the resulting dataframe above, we can see that we have retrieved two different runs for some of the experiments.\n",
+    "Only one of them is valid for each. If we want to get all the stored runs and also mark the valid and invalid runs, we can read them \n",
+    "seperately and attach a tag to the two dataframes."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "369df443",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "runs_1 = db.read_experiment_all(scope.name, with_run_ids=True, runs='valid')\n",
+    "runs_1['is_valid'] = True\n",
+    "runs_0 = db.read_experiment_all(scope.name, with_run_ids=True, runs='invalid', only_with_measures=True)\n",
+    "runs_0['is_valid'] = False\n",
+    "all_runs = pd.concat([runs_1, runs_0])\n",
+    "all_runs.sort_index()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ab5fe1fb",
+   "metadata": {},
+   "source": [
+    "These mechanisms can be use to write out results of multiple runs, \n",
+    "and to repopulate a database with both valid\n",
+    "and invalid raw results. This can be done multiple ways (seperate\n",
+    "files, one combined file, keeping track of invalidation queries, etc.).\n",
+    "The particular implementations of each are left as an exercise for\n",
+    "the reader."
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "formats": "ipynb,py:percent"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

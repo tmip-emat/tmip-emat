@@ -1,0 +1,570 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uniform Distribution &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Performance Measures" href="measures.html" />
+    <link rel="prev" title="Parameters" href="parameters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Exploratory Scoping</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="scope.html">Scope</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="parameters.html">Parameters</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="parameters.html#emat.make_parameter"><code class="docutils literal notranslate"><span class="pre">make_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="parameters.html#emat.Parameter"><code class="docutils literal notranslate"><span class="pre">Parameter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="parameters.html#emat.Constant"><code class="docutils literal notranslate"><span class="pre">Constant</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="parameters.html#float-valued-parameters">Float-Valued Parameters</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="parameters.html#emat.scope.parameter.RealParameter"><code class="docutils literal notranslate"><span class="pre">RealParameter</span></code></a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="parameters.html#continuous-distributions">Continuous Distributions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="parameters.html#integer-parameters">Integer Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parameters.html#boolean-parameters">Boolean Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parameters.html#categorical-parameters">Categorical Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="measures.html">Performance Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boxes.html">Boxes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scope.file.html">Scope File</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Exploratory Scoping</a></li>
+          <li class="breadcrumb-item"><a href="parameters.html">Parameters</a></li>
+      <li class="breadcrumb-item active">Uniform Distribution</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.scope/continuous_distributions.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">emat</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">emat.util.distributions</span><span class="w"> </span><span class="kn">import</span> <span class="n">pert</span><span class="p">,</span> <span class="n">triangle</span><span class="p">,</span> <span class="n">uniform</span><span class="p">,</span> <span class="n">get_bounds</span>
+</pre></div>
+</div>
+</div>
+<p>This page reviews some common continuous distributions used for exploratory and risk analysis.
+EMAT can also use any named continuous distribution from the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/stats.html#module-scipy.stats" title="(in SciPy v1.15.0)"><code class="xref any docutils literal notranslate"><span class="pre">scipy.stats</span></code></a> module.</p>
+<section id="Uniform-Distribution">
+<h1>Uniform Distribution<a class="headerlink" href="#Uniform-Distribution" title="Link to this heading">¶</a></h1>
+<p>The uniform distribution is defined by a probability density function that is a rectangle. It is parameterized using two parameters (minimum, maximum). It is a simple distribution that is easy to understand and explain, and is often assumed as the implied default distribution for exploratory analysis.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;---</span>
+<span class="s2">scope:</span>
+<span class="s2">    name: demonstration</span>
+<span class="s2">inputs:</span>
+<span class="s2">    uncertain_variable_name:</span>
+<span class="s2">        ptype: uncertainty</span>
+<span class="s2">        desc: Slightly More Verbose Description</span>
+<span class="s2">        default: 4</span>
+<span class="s2">        min: 1</span>
+<span class="s2">        max: 4</span>
+<span class="s2">        dist: uniform</span>
+<span class="s2">        dtype: float</span>
+<span class="s2">outputs:</span>
+<span class="s2">    performance_measure_name:</span>
+<span class="s2">        kind: maximize</span>
+<span class="s2">...</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">Scope</span><span class="p">(</span><span class="s1">&#39;t.yaml&#39;</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">bounds</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_4_0.png" src="../../_images/source_emat.scope_continuous_distributions_4_0.png" />
+</div>
+</div>
+<p>It is also valid to include the <code class="docutils literal notranslate"><span class="pre">min</span></code> and <code class="docutils literal notranslate"><span class="pre">max</span></code> values under the <code class="docutils literal notranslate"><span class="pre">dist</span></code> key, instead of as top level keys for the parameter definition.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;---</span>
+<span class="s2">scope:</span>
+<span class="s2">    name: demonstration</span>
+<span class="s2">inputs:</span>
+<span class="s2">    uncertain_variable_name:</span>
+<span class="s2">        ptype: uncertainty</span>
+<span class="s2">        desc: Slightly More Verbose Description</span>
+<span class="s2">        default: 4</span>
+<span class="s2">        dist:</span>
+<span class="s2">            name: uniform</span>
+<span class="s2">            min: 1</span>
+<span class="s2">            max: 4</span>
+<span class="s2">        dtype: float</span>
+<span class="s2">outputs:</span>
+<span class="s2">    performance_measure_name:</span>
+<span class="s2">        kind: maximize</span>
+<span class="s2">...</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">Scope</span><span class="p">(</span><span class="s1">&#39;t.yaml&#39;</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">bounds</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_6_0.png" src="../../_images/source_emat.scope_continuous_distributions_6_0.png" />
+</div>
+</div>
+</section>
+<section id="Triangle-Distribution">
+<h1>Triangle Distribution<a class="headerlink" href="#Triangle-Distribution" title="Link to this heading">¶</a></h1>
+<p>The triangle distribution is defined by a probability density function that is a triangle. It is parameterized using three parameters (minimum, peak, maximum). It is a simple distribution that is easy to understand and explain, and unlike the uniform distribution, it allow more likelihood to be directed towards some particular value.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">triangle</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Peak=0.0&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">triangle</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Peak=0.5&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">triangle</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Peak=1.0&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">triangle</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="mf">2.5</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Peak=2.5&#39;</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_9_0.png" src="../../_images/source_emat.scope_continuous_distributions_9_0.png" />
+</div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="emat.util.distributions.triangle">
+<span class="sig-prename descclassname"><span class="pre">emat.util.distributions.</span></span><span class="sig-name descname"><span class="pre">triangle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_peak</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/util/distributions.html#triangle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.util.distributions.triangle" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a frozen scipy.stats.triang distribution.</p>
+<p>This function provides the same actual distribution as <code class="docutils literal notranslate"><span class="pre">triang</span></code>,
+but offers multiple intuitive ways to identify the peak and upper bound of the
+distribution, while <code class="docutils literal notranslate"><span class="pre">triang</span></code> is less flexible and intuitive (it must be defined
+using arguments labeled as ‘c’, ‘loc’, and ‘scale’).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lower_bound</strong> (<em>numeric</em>) – The lower bound of the distribution.</p></li>
+<li><p><strong>upper_bound</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The upper bound of the distribution.  Can be inferred
+from <cite>width</cite> if not given.</p></li>
+<li><p><strong>rel_peak</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The relative position of the peak of the triangle.  Must
+be in the range (0,1).  If neither <cite>peak</cite> nor <cite>rel_peak</cite>
+is given, a default value of 0.5 is used.</p></li>
+<li><p><strong>peak</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The location of the peak of the triangle, given as a particular
+value, which must be between the lower and upper bounds inclusive.</p></li>
+<li><p><strong>width</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The distance between the lower and upper bounds.
+Can be inferred from those values if not given.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>scipy.stats.rv_frozen</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;---</span>
+<span class="s2">scope:</span>
+<span class="s2">    name: demonstration</span>
+<span class="s2">inputs:</span>
+<span class="s2">    uncertain_variable_name:</span>
+<span class="s2">        ptype: uncertainty</span>
+<span class="s2">        desc: Slightly More Verbose Description</span>
+<span class="s2">        default: 4</span>
+<span class="s2">        min: 0</span>
+<span class="s2">        max: 5</span>
+<span class="s2">        dist:</span>
+<span class="s2">            name: triangle</span>
+<span class="s2">            peak: 4</span>
+<span class="s2">outputs:</span>
+<span class="s2">    performance_measure_name:</span>
+<span class="s2">        kind: maximize</span>
+<span class="s2">...</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">Scope</span><span class="p">(</span><span class="s1">&#39;t.yaml&#39;</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">bounds</span> <span class="o">=</span> <span class="n">get_bounds</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">])</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">bounds</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_11_0.png" src="../../_images/source_emat.scope_continuous_distributions_11_0.png" />
+</div>
+</div>
+<p>It is also valid to include the <code class="docutils literal notranslate"><span class="pre">min</span></code> and <code class="docutils literal notranslate"><span class="pre">max</span></code> values under the <code class="docutils literal notranslate"><span class="pre">dist</span></code> key, instead of as top level keys for the parameter definition.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;---</span>
+<span class="s2">scope:</span>
+<span class="s2">    name: demonstration</span>
+<span class="s2">inputs:</span>
+<span class="s2">    uncertain_variable_name:</span>
+<span class="s2">        ptype: uncertainty</span>
+<span class="s2">        desc: Slightly More Verbose Description</span>
+<span class="s2">        default: 4</span>
+<span class="s2">        dist:</span>
+<span class="s2">            name: triangle</span>
+<span class="s2">            min: 0</span>
+<span class="s2">            peak: 4</span>
+<span class="s2">            max: 5</span>
+<span class="s2">outputs:</span>
+<span class="s2">    performance_measure_name:</span>
+<span class="s2">        kind: maximize</span>
+<span class="s2">...</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">Scope</span><span class="p">(</span><span class="s1">&#39;t.yaml&#39;</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">bounds</span> <span class="o">=</span> <span class="n">get_bounds</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">])</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">bounds</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_13_0.png" src="../../_images/source_emat.scope_continuous_distributions_13_0.png" />
+</div>
+</div>
+</section>
+<section id="PERT-Distribution">
+<h1>PERT Distribution<a class="headerlink" href="#PERT-Distribution" title="Link to this heading">¶</a></h1>
+<p>The PERT distrubution (“PERT” is an acronym for “project evaluation and review techniques”) is a generally bell-shaped curve that, unlike the normal distribution, has finite minimum and maximum values. It can be parameterized similar to the triangular distribution, using three parameters (minimum, peak, maximum). This allows a skew to be introduced, by setting the peak value to be other-than the midpoint between maximum and minimum values.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Peak=0.0&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Peak=0.5&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Peak=1.0&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="mf">2.5</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Peak=2.5&#39;</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_15_0.png" src="../../_images/source_emat.scope_continuous_distributions_15_0.png" />
+</div>
+</div>
+<p>The relative peakiness (i.e., kurtosis) of the distribution can be controlled using the gamma parameter. The default value of gamma for a PERT distrubution is 4.0, but other positive numbers can be used as well, with higher numbers for a distribution that more favors outcomes near the peak, or smaller numbers for a distribution that gives less pronounced weight to value near the peak, and relatively more weight to the tails. In the limit, setting gamma to zero results in a uniform distribution.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gamma=1&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gamma=2&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gamma=3&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gamma=4&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gamma=5&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pert</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gamma=10&#39;</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_17_0.png" src="../../_images/source_emat.scope_continuous_distributions_17_0.png" />
+</div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="emat.util.distributions.pert">
+<span class="sig-prename descclassname"><span class="pre">emat.util.distributions.</span></span><span class="sig-name descname"><span class="pre">pert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_peak</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/util/distributions.html#pert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.util.distributions.pert" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a frozen scipy.stats.beta PERT distribution.</p>
+<p>For details on the PERT distribution see
+<a class="reference external" href="https://en.wikipedia.org/wiki/PERT_distribution">wikipedia</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lower_bound</strong> (<em>numeric</em>) – The lower bound of the distribution.</p></li>
+<li><p><strong>upper_bound</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The upper bound of the distribution.  Can be inferred
+from <cite>width</cite> if not given.</p></li>
+<li><p><strong>rel_peak</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The relative position of the peak of the triangle.  Must
+be in the range (0,1).  If neither <cite>peak</cite> nor <cite>rel_peak</cite>
+is given, a default value of 0.5 is used.</p></li>
+<li><p><strong>peak</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The location of the peak of the triangle, given as a particular
+value, which must be between the lower and upper bounds inclusive.</p></li>
+<li><p><strong>width</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The distance between the lower and upper bounds.
+Can be inferred from those values if not given.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>scipy.stats.rv_frozen</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The PERT distribution can be indicated in a yaml scope file using the name “pert”, with optional values for other named arguments outlined in the function docstring shown above.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;---</span>
+<span class="s2">scope:</span>
+<span class="s2">    name: demonstration</span>
+<span class="s2">inputs:</span>
+<span class="s2">    uncertain_variable_name:</span>
+<span class="s2">        ptype: uncertainty</span>
+<span class="s2">        desc: Slightly More Verbose Description</span>
+<span class="s2">        default: 1.0</span>
+<span class="s2">        min: 0</span>
+<span class="s2">        max: 5</span>
+<span class="s2">        dist:</span>
+<span class="s2">            name: pert</span>
+<span class="s2">            peak: 4</span>
+<span class="s2">            gamma: 3</span>
+<span class="s2">outputs:</span>
+<span class="s2">    performance_measure_name:</span>
+<span class="s2">        kind: maximize</span>
+<span class="s2">...</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">Scope</span><span class="p">(</span><span class="s1">&#39;t.yaml&#39;</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">bounds</span> <span class="o">=</span> <span class="n">get_bounds</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">])</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">bounds</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_20_0.png" src="../../_images/source_emat.scope_continuous_distributions_20_0.png" />
+</div>
+</div>
+<p>It is also valid to include the <code class="docutils literal notranslate"><span class="pre">min</span></code> and <code class="docutils literal notranslate"><span class="pre">max</span></code> values under the <code class="docutils literal notranslate"><span class="pre">dist</span></code> key, instead of as top level keys for the parameter definition.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;---</span>
+<span class="s2">scope:</span>
+<span class="s2">    name: demonstration</span>
+<span class="s2">inputs:</span>
+<span class="s2">    uncertain_variable_name:</span>
+<span class="s2">        ptype: uncertainty</span>
+<span class="s2">        desc: Slightly More Verbose Description</span>
+<span class="s2">        default: 1.0</span>
+<span class="s2">        dist:</span>
+<span class="s2">            name: pert</span>
+<span class="s2">            min: 0</span>
+<span class="s2">            max: 5</span>
+<span class="s2">            peak: 4</span>
+<span class="s2">            gamma: 3</span>
+<span class="s2">outputs:</span>
+<span class="s2">    performance_measure_name:</span>
+<span class="s2">        kind: maximize</span>
+<span class="s2">...</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">Scope</span><span class="p">(</span><span class="s1">&#39;t.yaml&#39;</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">bounds</span> <span class="o">=</span> <span class="n">get_bounds</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">])</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">bounds</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_22_0.png" src="../../_images/source_emat.scope_continuous_distributions_22_0.png" />
+</div>
+</div>
+</section>
+<section id="Other-Distributions">
+<h1>Other Distributions<a class="headerlink" href="#Other-Distributions" title="Link to this heading">¶</a></h1>
+<p>It is possible to use any other continuous distribution provided in the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/stats.html#module-scipy.stats" title="(in SciPy v1.15.0)"><code class="xref any docutils literal notranslate"><span class="pre">scipy.stats</span></code></a> module.
+As a demonstration, below we define a trapezoidal distribution for an uncertainty.  Instead of
+using the more intuitively named keys shown above, it is necessary to fall back to the standard
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/stats.html#module-scipy.stats" title="(in SciPy v1.15.0)"><code class="xref any docutils literal notranslate"><span class="pre">scipy.stats</span></code></a> names for each of the distribution parameters, and they must all be defined within
+the <cite>dist</cite> key, which may be less intuitive than the suggested distributions above.  For example,
+note in the example below that the upper bound of the distribution is implictly set to 7 based
+on the parameters, and that upper bound is not explicitly identified in the yaml file.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;---</span>
+<span class="s2">scope:</span>
+<span class="s2">    name: demonstration</span>
+<span class="s2">inputs:</span>
+<span class="s2">    uncertain_variable_name:</span>
+<span class="s2">        ptype: uncertainty</span>
+<span class="s2">        desc: Slightly More Verbose Description</span>
+<span class="s2">        default: 1.0</span>
+<span class="s2">        dist:</span>
+<span class="s2">            name: trapz</span>
+<span class="s2">            c: 0.2</span>
+<span class="s2">            d: 0.5</span>
+<span class="s2">            loc: 2</span>
+<span class="s2">            scale: 5</span>
+<span class="s2">outputs:</span>
+<span class="s2">    performance_measure_name:</span>
+<span class="s2">        kind: maximize</span>
+<span class="s2">...</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">Scope</span><span class="p">(</span><span class="s1">&#39;t.yaml&#39;</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="n">bounds</span> <span class="o">=</span> <span class="n">get_bounds</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">])</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">bounds</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;uncertain_variable_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">_</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.scope_continuous_distributions_25_0.png" src="../../_images/source_emat.scope_continuous_distributions_25_0.png" />
+</div>
+</div>
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"02963eb5378d4d46b02cf2ad2e7da439": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": "250px"}}, "f776c6f85aef4880b2bb3d50efed2d11": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}}, "version_major": 2, "version_minor": 0}
+</script></section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="parameters.html" class="btn btn-neutral float-left" title="Parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="measures.html" class="btn btn-neutral float-right" title="Performance Measures" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

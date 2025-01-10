@@ -1,0 +1,198 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installing from Source &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+      <script src="../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Exploratory Scoping" href="emat.scope/index.html" />
+    <link rel="prev" title="Installing using Anaconda" href="emat.conda.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="emat.install.html">Installation and Configuration</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="emat.conda.html">Installing using Anaconda</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Installing from Source</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-github-to-fork-tmip-emat">Using Github to Fork TMIP-EMAT</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#configuring-your-fork-to-also-use-tmip-emat-as-a-remote">Configuring Your Fork to Also Use TMIP-EMAT as a Remote</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="emat.install.html">Installation and Configuration</a></li>
+      <li class="breadcrumb-item active">Installing from Source</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/emat.git.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installing-from-source">
+<h1>Installing from Source<a class="headerlink" href="#installing-from-source" title="Link to this heading">¶</a></h1>
+<p>Instructions for installing TMIP-EMAT directly from source code will
+be published soon.</p>
+<section id="using-github-to-fork-tmip-emat">
+<h2>Using Github to Fork TMIP-EMAT<a class="headerlink" href="#using-github-to-fork-tmip-emat" title="Link to this heading">¶</a></h2>
+<p>When developing an implementation of TMIP-EMAT, you may find it useful
+to “fork” the TMIP-EMAT repository using Github.  This will create a
+clean copy of the entire repository, which you can edit and add to
+as necessary for your own project.  Refer to Github for further
+instructions on
+<a class="reference external" href="https://help.github.com/en/articles/fork-a-repo">how to fork a repository</a>.</p>
+<section id="configuring-your-fork-to-also-use-tmip-emat-as-a-remote">
+<h3>Configuring Your Fork to Also Use TMIP-EMAT as a Remote<a class="headerlink" href="#configuring-your-fork-to-also-use-tmip-emat-as-a-remote" title="Link to this heading">¶</a></h3>
+<p>If you want to keep your fork in sync with future changes
+to the master TMIP-EMAT repository, you can do so by making
+the master TMIP-EMAT repository an “upstream remote”.</p>
+<p>To do so, open ‘Git Bash’ (Windows) or a Terminal (Linux/MacOS),
+and navigate to the location of the forked repository on your
+local machine.</p>
+<p>You can view the currently configured remote repositories for
+your fork like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git remote -v
+&gt; origin  https://github.com/YOUR_USERNAME/tmip-emat.git (fetch)
+&gt; origin  https://github.com/YOUR_USERNAME/tmip-emat.git (push)
+</pre></div>
+</div>
+<p>To specify that you want to sync the TMIP repository with your fork:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git remote add tmip https://github.com/tmip-emat/tmip-emat.git
+</pre></div>
+</div>
+<p>Then, each time you want to download new content from the upstream
+master repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git fetch tmip
+&gt; remote: Enumerating objects: 11, done.
+&gt; remote: Counting objects: 100% (11/11), done.
+&gt; remote: Compressing objects: 100% (2/2), done.
+&gt; remote: Total 11 (delta 9), reused 11 (delta 9), pack-reused 0
+&gt; Unpacking objects: 100% (11/11), done.
+&gt; From https://github.com/tmip-emat/tmip-emat
+&gt;    7b8c800..a9eeb0c  dev        -&gt; tmip/dev
+&gt;    91255d5..a9eeb0c  master     -&gt; tmip/master
+</pre></div>
+</div>
+<p>To sync with your local work, first make sure you have checked out
+the branch you want to merge into (if you have more than one branch):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git checkout master
+&gt; Switched to branch &#39;master&#39;
+</pre></div>
+</div>
+<p>Then you can merge the upstream changes into your local fork, which
+will make your local fork’s branch in sync with the TMIP repository,
+without losing your local changes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git merge tmip/master
+&gt; Updating a422352..5fdff0f
+&gt; Fast-forward
+&gt;  README                    |    9 -------
+&gt;  README.md                 |    7 ++++++
+&gt;  2 files changed, 7 insertions(+), 9 deletions(-)
+&gt;  delete mode 100644 README
+&gt;  create mode 100644 README.md
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="emat.conda.html" class="btn btn-neutral float-left" title="Installing using Anaconda" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="emat.scope/index.html" class="btn btn-neutral float-right" title="Exploratory Scoping" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

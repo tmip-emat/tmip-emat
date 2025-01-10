@@ -1,0 +1,339 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.scope.measure &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.scope.measure</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.scope.measure</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScalarOutcome</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.names</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShortnameMixin</span><span class="p">,</span> <span class="n">TaggableMixin</span>
+
+<div class="viewcode-block" id="Measure">
+<a class="viewcode-back" href="../../../source/emat.scope/measures.html#emat.Measure">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Measure</span><span class="p">(</span><span class="n">ScalarOutcome</span><span class="p">,</span> <span class="n">ShortnameMixin</span><span class="p">,</span> <span class="n">TaggableMixin</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Measure represents an outcome measure of the model.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): Name of the measure.</span>
+<span class="sd">        kind (str or int, optional): one of {&#39;info&#39;, &#39;minimize&#39;, &#39;maximize&#39;},</span>
+<span class="sd">            defaults to &#39;info&#39; if not given. This represents the</span>
+<span class="sd">            generally preferred direction of the measure.</span>
+<span class="sd">        min (number, optional): An expected minimum value that</span>
+<span class="sd">            might be observed under any policy and scenario.  This</span>
+<span class="sd">            value is currently only used by the HyperVolume convergence</span>
+<span class="sd">            metric.</span>
+<span class="sd">        max (number, optional): An expected maximum value that</span>
+<span class="sd">            might be observed under any policy and scenario.  This</span>
+<span class="sd">            value is currently only used by the HyperVolume convergence</span>
+<span class="sd">            metric.</span>
+<span class="sd">        address (obj, optional): The address or instruction for how to</span>
+<span class="sd">            extract this measure from the model. This is model-specific</span>
+<span class="sd">            and can potentially be any Python object. For example, if the</span>
+<span class="sd">            model is an Excel model, this can be a cell reference given</span>
+<span class="sd">            as a `str`.</span>
+<span class="sd">        dtype ({&#39;real&#39;,&#39;int&#39;,&#39;bool&#39;,&#39;cat&#39;}, default &#39;real&#39;): The desired</span>
+<span class="sd">            dtype to be enforced for this measure.</span>
+<span class="sd">        function (callable, optional): A callable function that will be</span>
+<span class="sd">            used to transform the raw measure as returned by a core model.</span>
+<span class="sd">            This transformation will be applied to core model results by</span>
+<span class="sd">            the evaluator before they are returned to the user or stored</span>
+<span class="sd">            in a database. It is recommended that EMAT analysis work with the</span>
+<span class="sd">            original untransformed raw values, and employ the `metamodeltype`</span>
+<span class="sd">            functionality as required for non-linear responses.</span>
+<span class="sd">        transform (str, optional): As an alternative to passing a callable</span>
+<span class="sd">            object, use this argument to pass the name of a `numpy` function.</span>
+<span class="sd">            This argument is ignored if `function` is given.</span>
+<span class="sd">        variable_name (str, optional): The name of the raw measure as</span>
+<span class="sd">            output by the underlying core model. If not given, this name is</span>
+<span class="sd">            assumed to be the same as `name`.  If no `transform` is set,</span>
+<span class="sd">            it is strongly recommended to not give this argument either.</span>
+<span class="sd">            A principal use of this argument is to descriptively rename</span>
+<span class="sd">            measures that have been transformed, for example if the raw</span>
+<span class="sd">            output measure is &#39;Total VMT&#39; and a log transform function is</span>
+<span class="sd">            applied, the result can be more descriptively renamed</span>
+<span class="sd">            as &#39;log(Total VMT)&#39;.</span>
+<span class="sd">        metamodeltype (str, optional): The transformation type to use for</span>
+<span class="sd">            metamodel estimation.  This transformation is applied only</span>
+<span class="sd">            internally within the metamodel, and all inputs and outputs</span>
+<span class="sd">            passed to or from the metamodel will not appear in a transformed</span>
+<span class="sd">            state, including measure values stored within the database.</span>
+<span class="sd">            Available metamodel types include:</span>
+
+<span class="sd">            + *log*: The natural log of the performance measure is taken before</span>
+<span class="sd">              fitting the regression model.  This is appropriate only when the performance</span>
+<span class="sd">              measure will always give a strictly positive outcome. If the performance</span>
+<span class="sd">              measure can take on non-positive values, this may result in errors.</span>
+
+<span class="sd">            + *log1p*: The natural log of 1 plus the performance measure is taken before</span>
+<span class="sd">              fitting the regression model.  This is preferred to log-linear when the</span>
+<span class="sd">              performance measure is only guaranteed to be non-negative, rather than</span>
+<span class="sd">              strictly positive.</span>
+
+<span class="sd">            + *logxp(X)*: The natural log of X plus the performance measure is taken before</span>
+<span class="sd">              fitting the regression model.  This allows shifting the position of the</span>
+<span class="sd">              regression intercept to a point other than 0.</span>
+
+<span class="sd">            + *linear*: No transforms are made.  This is the default.</span>
+
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        name (str): Name of the measure.</span>
+<span class="sd">        kind (int): {MINIMIZE, MAXIMIZE, INFO, TEMP}</span>
+<span class="sd">        transform (str): The name of the transform function, if any.</span>
+<span class="sd">        address (obj): The address or instruction for how to</span>
+<span class="sd">            extract this measure from the model.</span>
+<span class="sd">        metamodeltype (str): The transformation type to use for</span>
+<span class="sd">            metamodel estimation.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">kind</span><span class="o">=</span><span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+            <span class="nb">min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="nb">max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">address</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">metamodeltype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">shortname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">formula</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">kind</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;minimize&#39;</span><span class="p">:</span>
+                <span class="n">kind</span> <span class="o">=</span> <span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">MINIMIZE</span>
+            <span class="k">elif</span> <span class="n">kind</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;maximize&#39;</span><span class="p">:</span>
+                <span class="n">kind</span> <span class="o">=</span> <span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">MAXIMIZE</span>
+            <span class="k">elif</span> <span class="n">kind</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;info&#39;</span><span class="p">:</span>
+                <span class="n">kind</span> <span class="o">=</span> <span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">INFO</span>
+            <span class="k">elif</span> <span class="n">kind</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;temp&#39;</span><span class="p">:</span>
+                <span class="n">kind</span> <span class="o">=</span> <span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">TEMP</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid kind </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="n">function</span>
+            <span class="k">if</span> <span class="n">function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">transform</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39; at 0x[0-9a-fA-F]*&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;f:</span><span class="si">{</span><span class="n">function</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">numpy</span><span class="p">,</span> <span class="n">transform</span><span class="p">):</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">numpy</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">transform</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,):</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid transform </span><span class="si">{</span><span class="n">transform</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">expected_range</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">expected_range</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
+                         <span class="n">expected_range</span><span class="o">=</span><span class="n">expected_range</span><span class="p">,</span>
+                         <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span> <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;none&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span> <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;real&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metamodeltype</span> <span class="o">=</span> <span class="n">metamodeltype</span> <span class="k">if</span> <span class="n">metamodeltype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;linear&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shortname</span> <span class="o">=</span> <span class="n">shortname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: Human readable description of this performance measure, for reference only&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">formula</span> <span class="o">=</span> <span class="n">formula</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: An eval-able expression to compute this performance measure from other measures&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">parser</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;dict: Instructions for how to parse this performance measure from raw output files&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">tags</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hash_it</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..util.hasher</span><span class="w"> </span><span class="kn">import</span> <span class="n">hash_it</span>
+        <span class="k">return</span> <span class="n">hash_it</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_expected_range</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_name</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shortname</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metamodeltype</span><span class="p">,</span>
+            <span class="n">ha</span><span class="o">=</span><span class="n">ha</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Measure.info">
+<a class="viewcode-back" href="../../../source/emat.scope/measures.html#emat.Measure.info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_string</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print some information about this measure</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            return_string (bool): Defaults False (print to stdout) but if given as True</span>
+<span class="sd">                then this function returns the string instead of printing it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">return_string</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shortname</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  shortname: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_shortname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">MINIMIZE</span><span class="p">:</span> <span class="s1">&#39;minimize&#39;</span><span class="p">,</span>
+            <span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">MAXIMIZE</span><span class="p">:</span> <span class="s1">&#39;maximize&#39;</span><span class="p">,</span>
+            <span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">INFO</span><span class="p">:</span> <span class="s1">&#39;info&#39;</span><span class="p">,</span>
+            <span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">TEMP</span><span class="p">:</span> <span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  kind: </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  address: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="s1">&#39;real&#39;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  dtype: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metamodeltype</span> <span class="o">!=</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  metamodeltype: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">metamodeltype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">expected_range</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expected_range</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">expected_range</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">expected_range</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  min: </span><span class="si">{</span><span class="n">expected_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  max: </span><span class="si">{</span><span class="n">expected_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_string</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

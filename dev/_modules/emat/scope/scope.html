@@ -1,0 +1,1194 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.scope.scope &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.scope.scope</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.scope.scope</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScalarOutcome</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..workbench.em_framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">Category</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats._distn_infrastructure</span><span class="w"> </span><span class="kn">import</span> <span class="n">rv_frozen</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..database.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.parameter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">standardize_parameter_type</span><span class="p">,</span> <span class="n">make_parameter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Measure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.docstrings</span><span class="w"> </span><span class="kn">import</span> <span class="n">copydoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">rv_frozen_as_dict</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.loggers</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_module_logger</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">get_module_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_name_or_dict</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">rv_frozen</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">rv_frozen_as_dict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_float</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+<div class="viewcode-block" id="Scope">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Scope</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Definitions for the relevant inputs and outputs for a model.</span>
+
+<span class="sd">    A Scope provides a structure to define the nature of the inputs</span>
+<span class="sd">    and outputs for exploratory modeling.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scope_file (str): path to scope file</span>
+<span class="sd">        scope_def (str, optional): The content of the scope file, if it has</span>
+<span class="sd">            already been read into a string.  If this value is given, it is</span>
+<span class="sd">            assumed to be the contents of the file and the file is not actually</span>
+<span class="sd">            read again.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">scope_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">random_seed</span> <span class="o">=</span> <span class="mi">1234</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">xl_di</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">m_di</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope_file</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scope_file</span> <span class="o">=</span> <span class="n">scope_file</span>
+
+        <span class="k">if</span> <span class="n">scope_file</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">scope_def</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">scope_def</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            scope:</span>
+<span class="s2">              name: Empty-Scope</span>
+<span class="s2">            inputs:</span>
+<span class="s2">            outputs:</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;list of Measure: A list of performance measures that are output by the model.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__parse_scope</span><span class="p">(</span><span class="n">scope_def</span><span class="o">=</span><span class="n">scope_def</span><span class="p">)</span>
+         
+    <span class="k">def</span><span class="w"> </span><span class="nf">__parse_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;parser to read scope yaml file&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">scope_def</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scope_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+                <span class="n">scope</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">scope</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">scope_def</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;scope&#39;</span><span class="p">,</span> <span class="s1">&#39;inputs&#39;</span><span class="p">,</span> <span class="s1">&#39;outputs&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ScopeFormatError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;scope file must include &quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&quot; as a top level key&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">scope</span><span class="p">[</span><span class="s1">&#39;scope&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;scope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;scope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;desc&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xl_di</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m_di</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_di</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m_di</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">ScopeFormatError</span><span class="p">(</span>
+                    <span class="s1">&#39;outputs must be a dictionary with (name: attributes) key:value pairs&#39;</span>
+                <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">m_name</span><span class="p">,</span> <span class="n">m_attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_di</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m_attr</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Measure</span><span class="p">(</span><span class="n">m_name</span><span class="p">,</span> <span class="o">**</span><span class="n">m_attr</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;for </span><span class="si">{</span><span class="n">m_name</span><span class="si">}</span><span class="s1"> cannot process list </span><span class="si">{</span><span class="n">m_attr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Measure</span><span class="p">(</span><span class="n">m_name</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="s1">&#39;random_seed&#39;</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;random_seed&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xl_di</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span>  <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xl_di</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">ScopeFormatError</span><span class="p">(</span>
+                    <span class="s1">&#39;inputs must be a dictionary with (name: attributes) key:value pairs&#39;</span>
+                <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">x_name</span><span class="p">,</span> <span class="n">x_attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">xl_di</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_attr</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;for </span><span class="si">{</span><span class="n">x_name</span><span class="si">}</span><span class="s1"> cannot process list </span><span class="si">{</span><span class="n">x_attr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">x_attr_type</span> <span class="o">=</span> <span class="n">x_attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ptype&#39;</span><span class="p">,</span> <span class="s1">&#39;missing&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">x_attr_type</span> <span class="o">==</span> <span class="s1">&#39;missing&#39;</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ScopeFormatError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;inputs:</span><span class="si">{</span><span class="n">x_name</span><span class="si">}</span><span class="s1"> is missing ptype, must be uncertainty, lever, or constant&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_attr_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">ScopeFormatError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;inputs:</span><span class="si">{</span><span class="n">x_name</span><span class="si">}</span><span class="s1"> has invalid ptype </span><span class="si">{</span><span class="n">x_attr_type</span><span class="si">}</span><span class="s1">, it must be uncertainty, lever, or constant&#39;</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">x_attr_type</span> <span class="o">=</span> <span class="n">standardize_parameter_type</span><span class="p">(</span><span class="n">x_attr_type</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ScopeFormatError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;inputs:</span><span class="si">{</span><span class="n">x_name</span><span class="si">}</span><span class="s1"> has invalid ptype </span><span class="si">{</span><span class="n">x_attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ptype&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">, it must be uncertainty, lever, or constant&#39;</span><span class="p">)</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">p</span> <span class="o">=</span> <span class="n">make_parameter</span><span class="p">(</span><span class="n">x_name</span><span class="p">,</span> <span class="o">**</span><span class="n">x_attr</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ScopeFormatError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;in making parameter &#39;</span><span class="si">{</span><span class="n">x_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">x_attr_type</span> <span class="o">==</span> <span class="s1">&#39;uncertainty&#39;</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">x_attr_type</span> <span class="o">==</span> <span class="s1">&#39;lever&#39;</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">x_attr_type</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="n">ScopeFormatError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;inputs:</span><span class="si">{</span><span class="n">x_name</span><span class="si">}</span><span class="s1"> has invalid ptype </span><span class="si">{</span><span class="n">x_attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ptype&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_x_list&#39;</span><span class="p">,</span> <span class="s1">&#39;_l_list&#39;</span><span class="p">,</span> <span class="s1">&#39;_c_list&#39;</span><span class="p">,</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">k</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">k</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">rv_frozen</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">rv_frozen_as_dict</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">!=</span> <span class="n">rv_frozen_as_dict</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_m_list&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;domain&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">k</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_assert_equal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;not same type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_x_list&#39;</span><span class="p">,</span> <span class="s1">&#39;_l_list&#39;</span><span class="p">,</span> <span class="s1">&#39;_c_list&#39;</span><span class="p">,</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">k</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mismatch length </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">k</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">rv_frozen</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">rv_frozen_as_dict</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">!=</span> <span class="n">rv_frozen_as_dict</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mismatch rv_frozen: </span><span class="si">{</span><span class="n">rv_frozen_as_dict</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">rv_frozen_as_dict</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mismatch item: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_m_list&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;domain&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">k</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mismatch </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Scope.store_scope">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.store_scope">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">store_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">:</span> <span class="n">Database</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Write variables and scope definition to database.</span>
+<span class="sd">        </span>
+<span class="sd">        Writing the scope to the database is required</span>
+<span class="sd">        prior to running a experiments that will be</span>
+<span class="sd">        stored.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            db (Database): database object</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># write experiment variables and performance measures</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">init_xlm</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">xl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xl_di</span><span class="p">[</span><span class="n">xl</span><span class="p">][</span><span class="s1">&#39;ptype&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">xl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">xl_di</span><span class="p">],</span>
+            <span class="p">[(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># write scope definitions</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">_write_scope</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scope_file</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">xl</span> <span class="k">for</span> <span class="n">xl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">xl_di</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">],</span>
+            <span class="n">content</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Scope.delete_scope">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.delete_scope">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">:</span> <span class="n">Database</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Deletes scope from database.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            db (Database): The database from which to delete this Scope.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Only the `name` attribute is used to identify the scope</span>
+<span class="sd">            to delete.  If some other different scope is stored in</span>
+<span class="sd">            the database with the same name as this scope, it will</span>
+<span class="sd">            be deleted.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">delete_scope</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Scope.n_factors">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.n_factors">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_factors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Number of input factors defined in this scope.&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Scope.n_sample_factors">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.n_sample_factors">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_sample_factors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Number of non-constant input factors defined in this scope.&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">xl_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">xlc_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">):</span>
+            <span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> constants&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">):</span>
+            <span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> uncertainties&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">):</span>
+            <span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> levers&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">):</span>
+            <span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> measures&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">content</span><span class="p">:</span>
+            <span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;no content&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;emat.Scope with &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span>
+
+
+<div class="viewcode-block" id="Scope.duplicate">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.duplicate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">duplicate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">strip_measure_transforms</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">include_measures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">exclude_measures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a duplicate scope, optionally stripping some features.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            strip_measure_transforms (bool, default False):</span>
+<span class="sd">                Remove the &#39;transform&#39; values from all measures.</span>
+<span class="sd">            include_measures (Collection[str], optional): If provided, only</span>
+<span class="sd">                output performance measures with names in this set will be included.</span>
+<span class="sd">            exclude_measures (Collection[str], optional): If provided, only</span>
+<span class="sd">                output performance measures with names not in this set will be included.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Scope</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">strip_measure_transforms</span><span class="o">=</span><span class="n">strip_measure_transforms</span><span class="p">,</span>
+                      <span class="n">include_measures</span><span class="o">=</span><span class="n">include_measures</span><span class="p">,</span>
+                      <span class="n">exclude_measures</span><span class="o">=</span><span class="n">exclude_measures</span><span class="p">,)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">scope_file</span><span class="p">,</span> <span class="n">scope_def</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;scope dump</span><span class="se">\n</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="Scope.dump">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.dump">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dump</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">stream</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">strip_measure_transforms</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">include_measures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">exclude_measures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serialize this scope into a YAML stream.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            stream (file-like or None): Serialize into this stream. If None,</span>
+<span class="sd">                return the produced string instead, unless `filename` is given.</span>
+<span class="sd">            filename (path-like or None): If given and `stream` is None,</span>
+<span class="sd">                then write the serialized result into this file.</span>
+<span class="sd">            strip_measure_transforms (bool, default False): Remove the</span>
+<span class="sd">                &#39;transform&#39; values from all measures in the output.</span>
+<span class="sd">            include_measures (Collection[str], optional): If provided, only</span>
+<span class="sd">                output performance measures with names in this set will be included.</span>
+<span class="sd">            exclude_measures (Collection[str], optional): If provided, only</span>
+<span class="sd">                output performance measures with names not in this set will be included.</span>
+<span class="sd">            default_flow_style (bool, default False): Use the default_flow_style,</span>
+<span class="sd">                see yaml.dump for details.</span>
+<span class="sd">            **kwargs:</span>
+<span class="sd">                All other keyword arguments are forwarded as-is to `yaml.dump`</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str:</span>
+<span class="sd">                If both `stream` and `filename` are None, the serialized YAML</span>
+<span class="sd">                content is returned as a string.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            FileExistsError: If `filename` already exists.</span>
+<span class="sd">            ValueError: If both `stream` and `filename` are given.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">stream</span> <span class="ow">and</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;only one of stream or filename can be given.&#39;</span><span class="p">)</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">s</span><span class="p">[</span><span class="s1">&#39;scope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">s</span><span class="p">[</span><span class="s1">&#39;scope&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">s</span><span class="p">[</span><span class="s1">&#39;scope&#39;</span><span class="p">][</span><span class="s1">&#39;domain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span>
+        <span class="n">s</span><span class="p">[</span><span class="s1">&#39;scope&#39;</span><span class="p">][</span><span class="s1">&#39;desc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">desc</span>
+        <span class="n">s</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">s</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">const_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ptype&#39;</span><span class="p">,</span><span class="s1">&#39;desc&#39;</span><span class="p">,</span><span class="s1">&#39;dtype&#39;</span><span class="p">,</span><span class="s1">&#39;default&#39;</span><span class="p">]</span>
+        <span class="n">parameter_keys</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+            <span class="c1"># (&#39;shortname&#39;, lambda x: x or None), # processed separately</span>
+            <span class="p">(</span><span class="s1">&#39;ptype&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;desc&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;dtype&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">),</span>
+            <span class="c1"># (&#39;dist&#39;, lambda x: _name_or_dict(x) or None), # processed separately</span>
+            <span class="p">(</span><span class="s1">&#39;corr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;values&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;abbrev&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">])</span>
+        <span class="n">measure_keys</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># &#39;shortname&#39;: lambda x: x or None,  # processed separately</span>
+            <span class="s1">&#39;kind&#39;</span><span class="p">:</span>  <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="s1">&#39;minimize&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="s1">&#39;info&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="s1">&#39;maximize&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">x</span><span class="p">),</span>
+            <span class="s1">&#39;desc&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+            <span class="s1">&#39;transform&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+            <span class="s1">&#39;metamodeltype&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;linear&#39;</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">x</span><span class="p">,</span>
+            <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;formula&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="k">if</span> <span class="n">x</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;parser&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">strip_measure_transforms</span><span class="p">:</span>
+            <span class="n">measure_keys</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">:</span>
+            <span class="n">s</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">][</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">const_keys</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">s</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">][</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">:</span>
+            <span class="n">s</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">][</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">shortname_if_any</span><span class="p">:</span>
+                <span class="n">s</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">][</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;shortname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">shortname_if_any</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">parameter_keys</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">parameter_keys</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">s</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">][</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">distdef</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">s</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">][</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;dist&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_name_or_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">include_measures</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">include_measures</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">exclude_measures</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">exclude_measures</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">s</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">shortname_if_any</span><span class="p">:</span>
+                <span class="n">s</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;shortname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">shortname_if_any</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">measure_keys</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">measure_keys</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">s</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+        <span class="kn">import</span><span class="w"> </span><span class="nn">yaml.representer</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">add_representer</span><span class="p">(</span><span class="nb">dict</span><span class="p">,</span>
+                             <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">yaml</span><span class="o">.</span><span class="n">representer</span><span class="o">.</span><span class="n">SafeRepresenter</span><span class="o">.</span><span class="n">represent_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="n">default_flow_style</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="n">default_flow_style</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">subscope</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">include_measures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">exclude_measures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">add_measure_formulas</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a limited version of an existing scope.</span>
+
+<span class="sd">        This method can limit the number of performance measures</span>
+<span class="sd">        included in the scope, or create a curated set of formulaic</span>
+<span class="sd">        performance measures.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str, optional): A new name for this sub-scope.</span>
+<span class="sd">                If not provided, the subscope uses the same name</span>
+<span class="sd">                as the original scope.</span>
+<span class="sd">            include_measures (Collection[str], optional):</span>
+<span class="sd">                If provided, only performance measures with names in</span>
+<span class="sd">                this set will be included.</span>
+<span class="sd">            exclude_measures (Collection[str], optional):</span>
+<span class="sd">                If provided, only performance measures with names not</span>
+<span class="sd">                in this set will be included.</span>
+<span class="sd">            add_measure_formulas (Mapping[str,str], optional):</span>
+<span class="sd">                If provided, these formulaic performance measures</span>
+<span class="sd">                will be added to the subscope (but not to the original</span>
+<span class="sd">                scope).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Scope</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">subscope</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span>
+            <span class="s2">&quot;modified.yaml&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span>
+                <span class="n">include_measures</span><span class="o">=</span><span class="n">include_measures</span><span class="p">,</span>
+                <span class="n">exclude_measures</span><span class="o">=</span><span class="n">exclude_measures</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">subscope</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">subscope</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span>
+        <span class="k">if</span> <span class="n">add_measure_formulas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">mname</span><span class="p">,</span> <span class="n">formula</span> <span class="ow">in</span> <span class="n">add_measure_formulas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">subscope</span><span class="o">.</span><span class="n">add_measure</span><span class="p">(</span><span class="n">Measure</span><span class="p">(</span><span class="n">mname</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="n">formula</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">subscope</span>
+
+<div class="viewcode-block" id="Scope.info">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_string</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print a summary of this Scope.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            return_string (bool): Defaults False (print to stdout) but if given as True</span>
+<span class="sd">                then this function returns the string instead of printing it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">return_string</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;name: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;domain: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;desc: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;constants:&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">default</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;uncertainties:&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">,</span><span class="s1">&#39;real&#39;</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">min</span><span class="si">}</span><span class="s1"> to </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">max</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">i</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;bool&#39;</span><span class="p">,):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> = boolean&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">i</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;cat&#39;</span><span class="p">,):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> = categorical&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;levers:&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">,</span><span class="s1">&#39;real&#39;</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">min</span><span class="si">}</span><span class="s1"> to </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">max</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">i</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;bool&#39;</span><span class="p">,):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> = boolean&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">i</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;cat&#39;</span><span class="p">,):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> = categorical&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;measures:&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_string</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Scope.get_uncertainty_names">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_uncertainty_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_uncertainty_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of exogenous uncertainty names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_uncertainty_and_constant_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of exogenous uncertainty and constant names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_uncertainty_names</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_constant_names</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Scope.get_lever_names">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_lever_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_lever_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of policy lever names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Scope.get_constant_names">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_constant_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_constant_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of model constant names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Scope.get_parameter_names">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_parameter_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_constants</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a list of model parameter (uncertainty+lever+constant) names.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            include_constants (bool, default True): Include constants.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">include_constants</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_constant_names</span><span class="p">()</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">get_uncertainty_names</span><span class="p">()</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">get_lever_names</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_uncertainty_names</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lever_names</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Scope.get_all_names">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_all_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of all (uncertainty+lever+constant+measure) model names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter_names</span><span class="p">()</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Scope.get_measure_names">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_measure_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_measure_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of performance measure names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Scope.get_uncertainties">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_uncertainties">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_uncertainties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of exogenous uncertainties.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Scope.get_levers">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_levers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_levers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of policy levers.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Scope.get_constants">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_constants">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_constants</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of model constants.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Scope.get_parameters">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of model parameters (uncertainties+levers+constants).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_constants</span><span class="p">()</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">get_uncertainties</span><span class="p">()</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">get_levers</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a dict of default values of model parameters (uncertainties+levers+constants).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="n">p</span><span class="o">.</span><span class="n">default</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()}</span>
+
+<div class="viewcode-block" id="Scope.get_measures">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_measures">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_measures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of performance measures.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">tags</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_measure_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the set of all performance measure tags.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">:</span>
+            <span class="n">tags</span> <span class="o">|=</span> <span class="n">i</span><span class="o">.</span><span class="n">tags</span>
+        <span class="k">return</span> <span class="n">tags</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a parameter or measure by name.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">item</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">i</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">item</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Scope.ensure_dtypes">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.ensure_dtypes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ensure_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert columns of dataframe to correct dtype as needed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pandas.DataFrame): A dataframe with column names</span>
+<span class="sd">                that are uncertainties, levers, or measures.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame:</span>
+<span class="sd">                The same data as input, but with dtypes as appropriate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">correct_dtypes</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+
+        <span class="n">correct_dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="s1">&#39;values&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()})</span>
+        <span class="n">correct_dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="s1">&#39;values&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_measures</span><span class="p">()})</span>
+
+        <span class="n">copy_made</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">correct_dtypes</span><span class="p">:</span>
+                <span class="n">correct_dtype</span><span class="p">,</span> <span class="n">cat_values</span> <span class="o">=</span> <span class="n">correct_dtypes</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">correct_dtype</span> <span class="o">==</span> <span class="s1">&#39;real&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">pandas</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_float_dtype</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">copy_made</span><span class="p">:</span> <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                        <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">correct_dtype</span> <span class="o">==</span> <span class="s1">&#39;int&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">pandas</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_integer_dtype</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">copy_made</span><span class="p">:</span> <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                        <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">correct_dtype</span> <span class="o">==</span> <span class="s1">&#39;bool&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">pandas</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_bool_dtype</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">copy_made</span><span class="p">:</span> <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                        <span class="n">t</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">z</span><span class="p">:</span> <span class="n">z</span><span class="o">.</span><span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">Category</span><span class="p">)</span> <span class="k">else</span> <span class="n">z</span><span class="p">)</span>
+                        <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">correct_dtype</span> <span class="o">==</span> <span class="s1">&#39;cat&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">pandas</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">copy_made</span><span class="p">:</span> <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                        <span class="n">t</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">z</span><span class="p">:</span> <span class="n">z</span><span class="o">.</span><span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">Category</span><span class="p">)</span> <span class="k">else</span> <span class="n">z</span><span class="p">)</span>
+                        <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="n">cat_values</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">correct_dtype</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;O&#39;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">copy_made</span><span class="p">:</span> <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">formula_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The set of all measure names used as inputs to other measure formulas.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">tokenize</span><span class="w"> </span><span class="kn">import</span> <span class="n">tokenize</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">token</span>
+        <span class="n">math</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;sin&quot;</span><span class="p">,</span> <span class="s2">&quot;cos&quot;</span><span class="p">,</span> <span class="s2">&quot;exp&quot;</span><span class="p">,</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;expm1&quot;</span><span class="p">,</span> <span class="s2">&quot;log1p&quot;</span><span class="p">,</span> <span class="s2">&quot;sqrt&quot;</span><span class="p">,</span> <span class="s2">&quot;sinh&quot;</span><span class="p">,</span> <span class="s2">&quot;cosh&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tanh&quot;</span><span class="p">,</span> <span class="s2">&quot;arcsin&quot;</span><span class="p">,</span> <span class="s2">&quot;arccos&quot;</span><span class="p">,</span> <span class="s2">&quot;arctan&quot;</span><span class="p">,</span> <span class="s2">&quot;arccosh&quot;</span><span class="p">,</span> <span class="s2">&quot;arcsinh&quot;</span><span class="p">,</span> <span class="s2">&quot;arctanh&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="s2">&quot;arctan2&quot;</span><span class="p">,</span> <span class="s2">&quot;log10&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">measure</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_measures</span><span class="p">():</span>
+            <span class="n">formula</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">measure</span><span class="p">,</span> <span class="s1">&#39;formula&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+                <span class="n">stream</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+                <span class="n">stream</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">tokentype</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">readline</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">tokentype</span> <span class="o">==</span> <span class="n">token</span><span class="o">.</span><span class="n">NAME</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">math</span><span class="p">:</span>
+                            <span class="n">names</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">names</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_formulas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute formulaic measures as needed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pandas.DataFrame): A dataframe with column names</span>
+<span class="sd">                that are uncertainties, levers, or measures.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame:</span>
+<span class="sd">                The same data as input, but with added results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">queue</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">measure</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_measures</span><span class="p">():</span>
+            <span class="n">formula</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">measure</span><span class="p">,</span> <span class="s1">&#39;formula&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">measure</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">df</span><span class="p">[</span><span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">():</span>
+                        <span class="n">dataseries</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">resolvers</span><span class="o">=</span><span class="p">[</span><span class="n">df</span><span class="p">,</span> <span class="n">queue</span><span class="p">])</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">dataseries</span> <span class="o">=</span> <span class="n">dataseries</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                        <span class="n">queue</span><span class="p">[</span><span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">dataseries</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dataseries</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">resolvers</span><span class="o">=</span><span class="p">[</span><span class="n">df</span><span class="p">,</span> <span class="n">queue</span><span class="p">])</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">dataseries</span> <span class="o">=</span> <span class="n">dataseries</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                    <span class="n">queue</span><span class="p">[</span><span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataseries</span>
+        <span class="k">if</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">measure</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_measures</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">measure</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">ScalarOutcome</span><span class="o">.</span><span class="n">TEMP</span><span class="p">:</span>
+                    <span class="n">queue</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">queue</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span>
+
+<div class="viewcode-block" id="Scope.get_dtype">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_dtype">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the dtype for a parameter or measure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str):</span>
+<span class="sd">                The name of the parameter or measure</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str:</span>
+<span class="sd">                {&#39;real&#39;, &#39;int&#39;, &#39;bool&#39;, &#39;cat&#39;}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">correct_dtypes</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+
+        <span class="n">correct_dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()})</span>
+        <span class="n">correct_dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_measures</span><span class="p">()})</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">correct_dtypes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">correct_dtypes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ptype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the ptype for a parameter or measure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str):</span>
+<span class="sd">                The name of the parameter or measure</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str:</span>
+<span class="sd">                {&#39;X&#39;, &#39;L&#39;, &#39;C&#39;, &#39;M&#39;, &#39;&#39;}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">():</span> <span class="k">return</span> <span class="s1">&#39;M&#39;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_uncertainty_names</span><span class="p">():</span> <span class="k">return</span> <span class="s1">&#39;X&#39;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lever_names</span><span class="p">():</span> <span class="k">return</span> <span class="s1">&#39;L&#39;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_constant_names</span><span class="p">():</span> <span class="k">return</span> <span class="s1">&#39;C&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+<div class="viewcode-block" id="Scope.get_cat_values">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.get_cat_values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cat_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the category values for a parameter or measure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str):</span>
+<span class="sd">                The name of the parameter or measure</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">correct_dtypes</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">correct_dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="s1">&#39;values&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()})</span>
+        <span class="n">correct_dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="s1">&#39;values&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_measures</span><span class="p">()})</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">correct_dtypes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">correct_dtypes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">ensure_cat_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensure that all categorical columns have correctly ordered values.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pandas.DataFrame or pandas.Series):</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame or pandas.Series</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">base_was_series</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_was_series</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">categorical_columns</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="s1">&#39;category&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">columns</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">categorical_columns</span><span class="p">:</span>
+            <span class="n">ordering</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">c</span><span class="p">],</span><span class="s1">&#39;values&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ordering</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">reorder_categories</span><span class="p">(</span><span class="n">ordering</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">base_was_series</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">data</span>
+
+<div class="viewcode-block" id="Scope.design_experiments">
+<a class="viewcode-back" href="../../../source/emat.scope/scope.html#emat.Scope.design_experiments">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">design_experiments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a design of experiments based on this Scope.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n_samples_per_factor (int, default 10): The number of samples in the</span>
+<span class="sd">                design per random factor.</span>
+<span class="sd">            n_samples (int or tuple, optional): The total number of samples in the</span>
+<span class="sd">                design.  If `jointly` is False, this is the number of samples in each</span>
+<span class="sd">                of the uncertainties and the levers, the total number of samples will</span>
+<span class="sd">                be the square of this value.  Give a 2-tuple to set values for</span>
+<span class="sd">                uncertainties and levers respectively, to set them independently.</span>
+<span class="sd">                If this argument is given, it overrides `n_samples_per_factor`.</span>
+<span class="sd">            random_seed (int or None, default 1234): A random seed for reproducibility.</span>
+<span class="sd">            db (Database, optional): If provided, this design will be stored in the</span>
+<span class="sd">                database indicated.</span>
+<span class="sd">            design_name (str, optional): A name for this design, to identify it in the</span>
+<span class="sd">                database. If not given, a unique name will be generated based on the</span>
+<span class="sd">                selected sampler.  Has no effect if no `db` is given.</span>
+<span class="sd">            sampler (str or AbstractSampler, default &#39;lhs&#39;): The sampler to use for this</span>
+<span class="sd">                design.  Available pre-defined samplers include:</span>
+<span class="sd">                    - &#39;lhs&#39;: Latin Hypercube sampling</span>
+<span class="sd">                    - &#39;ulhs&#39;: Uniform Latin Hypercube sampling, which ignores defined</span>
+<span class="sd">                        distribution shapes from the scope and samples everything</span>
+<span class="sd">                        as if it was from a uniform distribution</span>
+<span class="sd">                    - &#39;mc&#39;: Monte carlo sampling</span>
+<span class="sd">                    - &#39;uni&#39;: Univariate sensitivity testing, whereby experiments are</span>
+<span class="sd">                        generated setting each parameter individually to minimum and</span>
+<span class="sd">                        maximum values (for numeric dtypes) or all possible values</span>
+<span class="sd">                        (for boolean and categorical dtypes).  Note that designs for</span>
+<span class="sd">                        univariate sensitivity testing are deterministic and the number</span>
+<span class="sd">                        of samples given is ignored.</span>
+<span class="sd">            sample_from (&#39;all&#39;, &#39;uncertainties&#39;, or &#39;levers&#39;): Which scope components</span>
+<span class="sd">                from which to sample.  Components not sampled are set at their default</span>
+<span class="sd">                values in the design.</span>
+<span class="sd">            jointly (bool, default True): Whether to sample jointly all uncertainties</span>
+<span class="sd">                and levers in a single design, or, if False, to generate separate samples</span>
+<span class="sd">                for levers and uncertainties, and then combine the two in a full-factorial</span>
+<span class="sd">                manner.  This argument has no effect unless `sample_from` is &#39;all&#39;.</span>
+<span class="sd">                Note that setting `jointly` to False may produce a very large design,</span>
+<span class="sd">                as the total number of experiments will be the product of the number of</span>
+<span class="sd">                experiments for the levers and the number of experiments for the</span>
+<span class="sd">                uncertainties, which are set separately (i.e. if `n_samples` is given,</span>
+<span class="sd">                the total number of experiments is the square of that value).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame: The resulting design.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;scope&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;scope&#39;</span><span class="p">)</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..experiment</span><span class="w"> </span><span class="kn">import</span> <span class="n">experimental_design</span>
+        <span class="k">return</span> <span class="n">experimental_design</span><span class="o">.</span><span class="n">design_experiments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_any_correlated_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">corr</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the parametric density at any point.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_any_correlated_parameters</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;density with correlated parameters is coming soon&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+
+        <span class="n">density</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">():</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+            <span class="n">density</span> <span class="o">*=</span> <span class="n">p</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">density</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">shortname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a shortname, if available, for any named parameter or measure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: str</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">shortname</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">tagged_shortname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">wrap_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line_sep</span><span class="o">=</span><span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a label, for any named parameter or measure.</span>
+
+<span class="sd">        The label is the shortname, if available, and a circled letter</span>
+<span class="sd">        symbol indicating the ptype of the parameter or measure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: str</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">L</span><span class="o">=</span><span class="s2">&quot;Ⓛ &quot;</span><span class="p">,</span>
+            <span class="n">X</span><span class="o">=</span><span class="s2">&quot;Ⓧ &quot;</span><span class="p">,</span>
+            <span class="n">M</span><span class="o">=</span><span class="s2">&quot;Ⓜ &quot;</span><span class="p">,</span>
+            <span class="n">C</span><span class="o">=</span><span class="s2">&quot;Ⓒ &quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">tags</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ptype</span><span class="p">(</span><span class="n">name</span><span class="p">),</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">shortname</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wrap_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">textwrap</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">line_sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">wrap_width</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a description, if available, for any named parameter or measure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: str</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">desc</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">default_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The default settings for policy levers.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs:</span>
+<span class="sd">                Override the defaults given in the scope</span>
+<span class="sd">                with these values.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            emat.workbench.Policy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">Policy</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="n">l</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">l</span><span class="o">.</span><span class="n">default</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_levers</span><span class="p">()}</span>
+        <span class="n">values</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Policy</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">default_scenario</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The default settings for exogenous uncertainties.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs:</span>
+<span class="sd">                Override the defaults given in the scope</span>
+<span class="sd">                with these values.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            emat.workbench.Scenario</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scenario</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">default</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_uncertainties</span><span class="p">()}</span>
+        <span class="n">values</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Scenario</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_measure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measure</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precompute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a performance measure to this scope.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            measure (str or emat.Measure):</span>
+<span class="sd">                A measure to add.  If given as a string, a measure</span>
+<span class="sd">                is created with this name and the default settings, and</span>
+<span class="sd">                other keyword arguments given will be forwarded to the</span>
+<span class="sd">                `Measure` constructor.</span>
+<span class="sd">            db (emat.Database, optional):</span>
+<span class="sd">                If given, the scope in this database is updated to include</span>
+<span class="sd">                the new measure (and any other prior changes to this</span>
+<span class="sd">                scope).</span>
+<span class="sd">            precompute (bool, default False):</span>
+<span class="sd">                Whether to pre-compute formula-based measures and store</span>
+<span class="sd">                them in the database.  This will result in a larger file</span>
+<span class="sd">                size, but faster reading, especially for complex measures.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">measure</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">measure</span> <span class="o">=</span> <span class="n">Measure</span><span class="p">(</span><span class="n">measure</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">measure</span><span class="p">,</span> <span class="n">Measure</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;must add `Measure`, or give a name to create one&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;duplicate measure name &#39;</span><span class="si">{</span><span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_m_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">measure</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">Database</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;db must be an emat.Database&quot;</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">update_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">precompute</span> <span class="ow">and</span> <span class="n">measure</span><span class="o">.</span><span class="n">formula</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df_m</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">read_experiment_measures</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">df_n</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df_m</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">measure</span><span class="o">.</span><span class="n">formula</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">measure</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">write_experiment_measures</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">df_n</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

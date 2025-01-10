@@ -1,0 +1,34 @@
+
+@import url("theme.css");
+
+
+.wy-nav-content {
+    max-width: 1200px !important;
+}
+
+.wy-nav-content div[role=main] p,
+.wy-nav-content div[role=main] ul,
+.wy-nav-content div[role=main] dd,
+.wy-nav-content div[role=main] dl,
+.wy-nav-content div.admonition,
+.wy-nav-content div.line-block,
+.wy-nav-content div.highlight-default,
+.wy-nav-content div.highlight-console
+{
+    max-width: 600px;
+}
+
+.rst-content table.field-list td li p {
+    font-size: 100%;
+    line-height: 24px;
+}
+
+
+img.banner {
+    float: none !important;
+}
+
+img.screencap {
+    float: none !important;
+    max-width: 800px;
+}

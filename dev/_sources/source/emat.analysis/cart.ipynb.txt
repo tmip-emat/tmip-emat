@@ -1,0 +1,293 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f9e341b8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import emat\n",
+    "emat.versions()"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "bd9efa71",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. _methodology-cart:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e658573f",
+   "metadata": {},
+   "source": [
+    "# CART\n",
+    "\n",
+    "Classification and Regression Trees (CART) can be used for scenario discovery. \n",
+    "They partition the explored space (i.e., the scope) into a number of sections, with each partition\n",
+    "being added in such a way as to maximize the difference between observations on each \n",
+    "side of the newly added partition divider, subject to some constraints."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "57ecd05c",
+   "metadata": {},
+   "source": [
+    "## The Mechanics of using CART"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "53b65f2d",
+   "metadata": {},
+   "source": [
+    "In order to use CART for scenario discovery, the analyst must\n",
+    "first conduct a set of experiments.  This includes having both\n",
+    "the inputs and outputs of the experiments (i.e., you've already\n",
+    "run the model or meta-model)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c1125c69",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import emat.examples\n",
+    "scope, db, model = emat.examples.road_test()\n",
+    "designed = model.design_experiments(n_samples=5000, sampler='mc', random_seed=42)\n",
+    "results = model.run_experiments(designed, db=False)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a065d06f",
+   "metadata": {},
+   "source": [
+    "In order to use CART for scenario discovery, the analyst must\n",
+    "also identify what constitutes a case that is \"of interest\".\n",
+    "This is essentially generating a True/False label for every \n",
+    "case, using some combination of values of the output performance \n",
+    "measures as well as (possibly) the values of the inputs.\n",
+    "Some examples of possible definitions of \"of interest\" might\n",
+    "include:\n",
+    "\n",
+    "- Cases where total predicted VMT (a performance measure) is below some threshold.\n",
+    "- Cases where transit farebox revenue (a performance measure) is above some threshold.\n",
+    "- Cases where transit farebox revenue (a performance measure) is above above 50% of\n",
+    "  budgeted transit operating cost (a policy lever).\n",
+    "- Cases where the average speed of tolled lanes (a performance measure) is less \n",
+    "  than free-flow speed but greater than 85% of free-flow speed (i.e., bounded both\n",
+    "  from above and from below).\n",
+    "- Cases that meet all of the above criteria simultaneously.\n",
+    "\n",
+    "The salient features of a definition for \"of interest\" is that\n",
+    "(a) it can be calculated for each case if given the set \n",
+    "of inputs and outputs, and (b) that the result is a True or False value.\n",
+    "\n",
+    "For this example, we will define \"of interest\" as cases from the \n",
+    "Road Test example that have positive net benefits."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "77aed0ea",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "of_interest = results['net_benefits']>0"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "315f8b2e",
+   "metadata": {},
+   "source": [
+    "Having defined the cases of interest, to use CART we pass the\n",
+    "explanatory data (i.e., the inputs) and the 'of_interest' variable\n",
+    "to the `CART` object, and then we can invoke the `tree_chooser` method."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8bce98f9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from emat.analysis import CART\n",
+    "\n",
+    "cart = CART(\n",
+    "    model.read_experiment_parameters(design_name='mc'),\n",
+    "    of_interest,\n",
+    "    scope=scope,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9032ca23",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "chooser = cart.tree_chooser()\n",
+    "chooser"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ed9736ea",
+   "metadata": {},
+   "source": [
+    "The CART algorithm develops a tree that seeks to make the \"best\" split\n",
+    "at each decision point, generating two datasets that are subsets of the original\n",
+    "data and which provides the best (weighted) improvement in the target criterion,\n",
+    "which can either be gini impurity or information gain (i.e., entropy reduction).\n",
+    "\n",
+    "The `tree_chooser` method returns an interactive widget that allows an analyst\n",
+    "to manipulate selected hyperparameters for the decision tree used\n",
+    "by CART.  The analyst can set the branch splitting criteria\n",
+    "(gini impurity or information gain / entropy reduction), the maximum tree depth, and\n",
+    "the minimum fraction of observations in any leaf node.\n",
+    "\n",
+    "The display shows the decision tree created by CART, including the branching \n",
+    "rule at each step, and a short summary of the data in each branch.  The coloration\n",
+    "of each tree node highlights the progress, with increasing saturation representing\n",
+    "improvements in the branching criterion (gini or entropy) and the hue indicating \n",
+    "the dominant result in each node.  In the example above, the \"of interest\" cases \n",
+    "are most densely collected in the blue nodes.\n",
+    "\n",
+    "It is also possible to review the collection leaf nodes in a tabular display, \n",
+    "by accessing the `boxes_to_dataframe` method, which reports out the total dimensional \n",
+    "restrictions for each box.  Here, we provide a `True` argument to include box statistics as well."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1ed64fd9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "cart.boxes_to_dataframe(True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3feaff23",
+   "metadata": {},
+   "source": [
+    "This table shows various leaf node \"boxes\" as well as the trade-offs \n",
+    "between coverage and density in each.\n",
+    "\n",
+    "- **Coverage** is percentage of the cases of interest that are in each box\n",
+    "  (i.e., number of cases of interest in the box divided by total number of \n",
+    "  cases of interest).\n",
+    "- **Density** is the share of cases in each box that are case of interest\n",
+    "  (i.e., number of cases of interest in the box divided by the total \n",
+    "  number of cases in the box). \n",
+    "\n",
+    "For the statistically minded, this tradeoff can also be interpreted as\n",
+    "the tradeoff between Type I (false positive) and Type II (false negative)\n",
+    "error.  High coverage minimizes the false negatives, while high density\n",
+    "minimizes false positives.\n",
+    "\n",
+    "As we can for PRIM, we can make a selection of a particular box, and then\n",
+    "generate a number of visualizations around that selection."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "db5e9bc9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "box = cart.select(6)\n",
+    "box"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8afe268c",
+   "metadata": {},
+   "source": [
+    "To help visualize these restricted dimensions better, we can \n",
+    "generate a plot of the resulting box,\n",
+    "overlaid on a 'pairs' scatter plot matrix (`splom`) of the various restricted \n",
+    "dimensions.\n",
+    "\n",
+    "In the figure below, each of the three restricted dimensions represents\n",
+    "both a row and a column of figures.  Each of the off-diagonal charts show \n",
+    "bi-dimensional distribution of the data across two of the actively\n",
+    "restricted dimensions.  These charts are overlaid with a green rectangle\n",
+    "denoting the selected box.  The on-diagonal charts show the relative\n",
+    "distribution of cases that are and are not of interest (unconditional\n",
+    "on the selected box)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1f2c7f12",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "box.splom()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "06577802",
+   "metadata": {},
+   "source": [
+    "Depending on the number of experiments in the data and the number \n",
+    "and distribution of the cases of interest, it may be clearer to\n",
+    "view these figures as a heat map matrix (`hmm`) instead of a splom."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "43df4bb2",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "box.hmm()"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "4e9c31b2",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. include:: cart-api.irst"
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_metadata_json": true,
+   "encoding": "# -*- coding: utf-8 -*-",
+   "formats": "ipynb,py:percent"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

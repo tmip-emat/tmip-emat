@@ -1,0 +1,854 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.model.core_files.gbnrtc_model &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/thebelab.css" />
+
+  
+      <script src="../../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.model.core_files.gbnrtc_model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.model.core_files.gbnrtc_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">copyfile</span><span class="p">,</span> <span class="n">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...scope.scope</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scope</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...database.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.core_files</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilesCoreModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="n">TableParser</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">iloc</span><span class="p">,</span> <span class="n">loc_sum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...util.docstrings</span><span class="w"> </span><span class="kn">import</span> <span class="n">copydoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.core_files</span><span class="w"> </span><span class="kn">import</span> <span class="n">copy_model_outputs_1</span><span class="p">,</span> <span class="n">copy_model_outputs_ext</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">emat.model.core_files.caliper</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">cp</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">...util.loggers</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_module_logger</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">get_module_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="GBNRTCModel">
+<a class="viewcode-back" href="../../../../source/emat.models/gbnrtc.html#emat.model.GBNRTCModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GBNRTCModel</span><span class="p">(</span><span class="n">FilesCoreModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Setup connections and paths to GBNRTC core model</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        configuration:</span>
+<span class="sd">            The configuration for this</span>
+<span class="sd">            core model. This can be passed as a dict, or as a str</span>
+<span class="sd">            which gives the filename of a YAML file that will be</span>
+<span class="sd">            loaded.</span>
+<span class="sd">        scope:</span>
+<span class="sd">            The exploration scope, as a Scope object or as</span>
+<span class="sd">            a str which gives the filename of a YAML file that will be</span>
+<span class="sd">            loaded.</span>
+<span class="sd">        safe:</span>
+<span class="sd">            Load the configuration YAML file in &#39;safe&#39; mode.</span>
+<span class="sd">            This can be disabled if the configuration requires</span>
+<span class="sd">            custom Python types or is otherwise not compatible with</span>
+<span class="sd">            safe mode. Loading configuration files with safe mode</span>
+<span class="sd">            off is not secure and should not be done with files from</span>
+<span class="sd">            untrusted sources.</span>
+<span class="sd">        db:</span>
+<span class="sd">            An optional Database to store experiments and results.</span>
+<span class="sd">        name:</span>
+<span class="sd">            A name for this model, given as an alphanumeric string.</span>
+<span class="sd">            The name is required by ema_workbench operations.</span>
+<span class="sd">            If not given, &quot;GBNRTC&quot; is used.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tc</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">configuration</span><span class="p">:</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="n">Mapping</span><span class="p">],</span>
+                 <span class="n">scope</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Scope</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+                 <span class="n">safe</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">db</span><span class="p">:</span><span class="n">Database</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;GBNRTC&#39;</span><span class="p">,</span>
+                 <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+                 <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="p">,</span>
+                 <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span>
+                 <span class="n">safe</span><span class="o">=</span><span class="n">safe</span><span class="p">,</span>
+                 <span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">,</span>
+                 <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;exp_param_ui&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tdm_ui</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;tdm_ui&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_meas_ui</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;perf_meas_ui&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc_ver_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;tc_version_path&#39;</span><span class="p">]</span>
+
+        <span class="c1"># build reverse hash table to lookup post-processing macros given a performance measure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__TRANSCAD_MACRO_BY_PM</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__PM_BY_TRANSCAD_MACRO</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__TRANSCAD_MACRO_BY_PM</span><span class="p">[</span><span class="n">pm</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k</span>
+
+        <span class="c1"># TransCAD&#39;s path formatting requirements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mod_path_tc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\\\\</span><span class="s2">&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parsers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__MEASURE_PARSERS</span>
+
+
+<div class="viewcode-block" id="GBNRTCModel.start_transcad">
+<a class="viewcode-back" href="../../../../source/emat.models/gbnrtc.html#emat.model.GBNRTCModel.start_transcad">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_transcad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Launch TransCAD and call methods to reset scenario</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># wack transCAD if it is open (cannot restart model)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;[(re)starting TransCAD instances]&quot;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;TASKKILL /F /IM tcw.exe&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tc_ver_path</span> <span class="o">+</span> <span class="s1">&#39;tcw.exe&#39;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Gisdk</span><span class="p">(</span>
+            <span class="s2">&quot;TransCAD&quot;</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span> <span class="o">+</span> <span class="s2">&quot;TC_log.txt&quot;</span><span class="p">,</span>
+            <span class="n">search_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tc_ver_path</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ERROR: failed to attach to a TransCAD instance&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="GBNRTCModel.setup">
+<a class="viewcode-back" href="../../../../source/emat.models/gbnrtc.html#emat.model.GBNRTCModel.setup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configure the core model with the experiment variable values</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (dict): experiment variables including both exogenous</span>
+<span class="sd">                uncertainty and policy levers</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: if experiment variable defined is not supported</span>
+<span class="sd">                by the core model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_transcad</span><span class="p">()</span>
+        <span class="c1"># initilize scenario output space</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;Restore Defaults&quot;</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">mod_path_tc</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s2">&quot;Error in restore defaults </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span>
+
+        <span class="n">variables_done</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;constant&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">xl</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="c1"># skip if variable handled as part of a combined setting</span>
+            <span class="k">if</span> <span class="n">xl</span> <span class="ow">in</span> <span class="n">variables_done</span><span class="p">:</span> <span class="k">continue</span>
+
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Setting experiment variable for </span><span class="si">{</span><span class="n">xl</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="n">xl</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">macro</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__METHOD_MACRO_BY_EVAR</span><span class="p">[</span><span class="n">xl</span><span class="p">]</span>
+                <span class="n">variables_done</span> <span class="o">+=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">macro</span><span class="p">,</span> <span class="n">xl</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Experiment variable method not available&quot;</span><span class="p">)</span>
+                <span class="k">raise</span></div>
+
+          
+<div class="viewcode-block" id="GBNRTCModel.run">
+<a class="viewcode-back" href="../../../../source/emat.models/gbnrtc.html#emat.model.GBNRTCModel.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Launches TransCAD and runs the model</span>
+
+<span class="sd">        Model should be prepared using `setup` first.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            UserWarning: If model is not properly setup.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting model run at </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y_%m_</span><span class="si">%d</span><span class="s2"> %H%M%S&quot;</span><span class="p">)))</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">UserWarning</span><span class="p">(</span><span class="s2">&quot;ERROR: failed to attach to a TransCAD instance&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;G30 File Close All&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tdm_ui</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;GBNRTC Model - AutoRun 2050&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tdm_ui</span><span class="p">)</span>   </div>
+
+        
+<div class="viewcode-block" id="GBNRTCModel.post_process">
+<a class="viewcode-back" href="../../../../source/emat.models/gbnrtc.html#emat.model.GBNRTCModel.post_process">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                     <span class="n">measure_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                     <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs post processors associated with measures.</span>
+
+<span class="sd">        For the GBNRTC model, this method calls</span>
+<span class="sd">        TransCAD macros to generate output files.</span>
+
+<span class="sd">        The model should have previously been executed using</span>
+<span class="sd">        the `run` method.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (dict):</span>
+<span class="sd">                Dictionary of experiment variables - indices</span>
+<span class="sd">                are variable names, values are the experiment settings</span>
+<span class="sd">            measure_names (List[str]):</span>
+<span class="sd">                List of measures to be processed</span>
+<span class="sd">            output_path (str):</span>
+<span class="sd">                Path to model outputs - if set to none</span>
+<span class="sd">                will use local values</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError:</span>
+<span class="sd">                If post process is not available for specified</span>
+<span class="sd">                measure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running post process scripts at </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y_%m_</span><span class="si">%d</span><span class="s2"> %H%M%S&quot;</span><span class="p">)))</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_transcad</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">output_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span>
+            
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">output_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\\\\</span><span class="s2">&quot;</span>
+        
+        <span class="n">pm_done</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="n">measure_names</span><span class="p">:</span>
+            <span class="c1"># skip if performance measure handled by other macro</span>
+            <span class="k">if</span> <span class="n">pm</span> <span class="ow">in</span> <span class="n">pm_done</span><span class="p">:</span> <span class="k">continue</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">macro</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__TRANSCAD_MACRO_BY_PM</span><span class="p">[</span><span class="n">pm</span><span class="p">]</span>
+                <span class="n">pm_done</span> <span class="o">+=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">macro</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Post process method for pm </span><span class="si">{</span><span class="n">pm</span><span class="si">}</span><span class="s2"> not available&quot;</span><span class="p">)</span>
+                <span class="k">raise</span></div>
+
+    
+<div class="viewcode-block" id="GBNRTCModel.archive">
+<a class="viewcode-back" href="../../../../source/emat.models/gbnrtc.html#emat.model.GBNRTCModel.archive">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">archive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Copies TransCAD settings, outputs and common input files</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (dict): Dictionary of experiment variables</span>
+<span class="sd">            model_results_path (str): archive path</span>
+<span class="sd">            experiment_id (int, optional): The id number for this experiment.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Archiving model runs at </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y_%m_</span><span class="si">%d</span><span class="s2"> %H%M%S&quot;</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_transcad</span><span class="p">()</span>        
+
+        <span class="c1"># create output folder</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">model_results_path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">model_results_path</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;TAZ&quot;</span><span class="p">))</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;Network&quot;</span><span class="p">))</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;Inputs&quot;</span><span class="p">))</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;Inputs</span><span class="se">\\</span><span class="s2">Model&quot;</span><span class="p">))</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;Outputs&quot;</span><span class="p">))</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># record experiment definitions</span>
+        <span class="n">xl_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;variable&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+        <span class="n">xl_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">model_results_path</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span>
+            <span class="s2">&quot;G30 File Close All&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">)</span>  <span class="c1"># good idea incase TransCAD is holding any cards</span>
+
+        <span class="c1"># copy model settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;Copy Model Parameters&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">mod_path_tc</span> <span class="o">+</span><span class="s2">&quot;</span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">,</span>
+                         <span class="n">model_results_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">copy_model_outputs_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;AM_LinkVolumes&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;PM_LinkVolumes&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;MD_LinkVolumes&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;NT_LinkVolumes&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;TASN_ONO_pkwk&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;TASN_ONO_opwk&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;TASN_ONO_pkdr&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;TASN_ONO_opdr&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;pktrips&quot;</span><span class="p">)</span>
+
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;pkdr.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;pkwk.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;opdr.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;opwk.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;skim_walk.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;skim_hwypk.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;skim_hwyop.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;AM_hwytrips.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;PM_hwytrips.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;ModeChoice_Daily_Sum_Trips_pk.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;ModeChoice_Daily_Sum_Trips_op.mtx&quot;</span><span class="p">)</span>
+        <span class="n">copy_model_outputs_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;msa_log.txt&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># copy other files to support performance measures</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span>
+                    <span class="s2">&quot;EMAExperimentFiles&quot;</span><span class="p">,</span> <span class="s2">&quot;PerfMeasSupport&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span>
+                <span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">copy</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_results_path</span><span class="p">,</span> 
+                                    <span class="s2">&quot;EMAExperimentFiles&quot;</span><span class="p">,</span> <span class="s2">&quot;PerfMeasSupport&quot;</span><span class="p">))</span>
+            
+        <span class="c1"># copy output summaries (all csv&#39;s)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="s2">&quot;Outputs&quot;</span><span class="p">,</span> <span class="s2">&quot;*.csv&quot;</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">copy</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_results_path</span><span class="p">,</span> <span class="s2">&quot;Outputs&quot;</span><span class="p">))</span></div>
+
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1">#     Experiment variable setting methods</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_simple_evar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">macro</span><span class="p">,</span> <span class="n">evar</span><span class="p">,</span> <span class="n">exp_var</span><span class="p">):</span>       
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; call TransCAD macro and return variable to completed list&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;G30 File Close All&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">)</span>  
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="n">macro</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">mod_path_tc</span><span class="p">,</span>
+                               <span class="nb">float</span><span class="p">(</span><span class="n">exp_var</span><span class="p">[</span><span class="n">evar</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s2">&quot;Error </span><span class="si">{2}</span><span class="s2"> in setting </span><span class="si">{0}</span><span class="s2"> to </span><span class="si">{1}</span><span class="s2">&quot;</span> 
+                              <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">evar</span><span class="p">,</span> <span class="n">exp_var</span><span class="p">[</span><span class="n">evar</span><span class="p">],</span> <span class="n">ret</span><span class="p">))</span> 
+        <span class="k">return</span> <span class="p">[</span><span class="n">evar</span><span class="p">]</span>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_bailey_transit_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">macro</span><span class="p">,</span> <span class="n">evar</span><span class="p">,</span> <span class="n">exp_var</span><span class="p">):</span> 
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; call TransCAD macro and return both strategies to completed list&#39;&#39;&#39;</span>
+        <span class="c1"># bailey transit and micro mobility strategies are interdependent</span>
+        <span class="n">tserv</span> <span class="o">=</span> <span class="n">exp_var</span><span class="p">[</span><span class="s1">&#39;Bailey Transit Service&#39;</span><span class="p">]</span>
+        <span class="n">mobhub</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">exp_var</span><span class="p">[</span><span class="s1">&#39;Bailey Mobility Hubs&#39;</span><span class="p">])</span>
+        <span class="n">mmob</span> <span class="o">=</span>  <span class="nb">int</span><span class="p">(</span><span class="n">exp_var</span><span class="p">[</span><span class="s1">&#39;Bailey Micro-Mobility&#39;</span><span class="p">])</span>
+        
+        <span class="n">ttime</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">thead</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">if</span> <span class="n">tserv</span> <span class="o">==</span> <span class="s1">&#39;improved headway&#39;</span><span class="p">:</span>
+            <span class="n">thead</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">tserv</span> <span class="o">==</span> <span class="s1">&#39;traffic priority&#39;</span><span class="p">:</span>
+            <span class="n">ttime</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">tserv</span> <span class="o">==</span> <span class="s1">&#39;brt&#39;</span><span class="p">:</span>
+            <span class="n">ttime</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">thead</span> <span class="o">=</span> <span class="mi">1</span>
+            
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;G30 File Close All&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">)</span>  
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="n">macro</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">mod_path_tc</span><span class="p">,</span>
+                               <span class="n">ttime</span><span class="p">,</span> <span class="n">mobhub</span><span class="p">,</span> <span class="n">mmob</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s2">&quot;Error in setting Bailey travel time / Mobility Hubs to </span><span class="si">{0}</span><span class="s2">/</span><span class="si">{1}</span><span class="s2">&quot;</span> 
+                              <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ttime</span><span class="p">,</span> <span class="n">mobhub</span><span class="p">))</span> 
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;G30 File Close All&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">)</span>  
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;Headway&quot;</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">mod_path_tc</span><span class="p">,</span>
+                               <span class="n">thead</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s2">&quot;Error in setting Bailey service headway component to </span><span class="si">{0}</span><span class="s2">&quot;</span>
+                              <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">thead</span><span class="p">))</span>             
+            
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;Bailey Transit Service&#39;</span><span class="p">,</span> <span class="s1">&#39;Bailey Mobility Hubs&#39;</span><span class="p">,</span> <span class="s1">&#39;Bailey Micro-Mobility&#39;</span><span class="p">]</span>
+        
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_kenslrt_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">macro</span><span class="p">,</span> <span class="n">evar</span><span class="p">,</span> <span class="n">exp_var</span><span class="p">):</span> 
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; call TransCAD macro and return both strategies to completed list&#39;&#39;&#39;</span>
+        <span class="c1"># kensington and lrt strategy are interdependent</span>
+        <span class="n">kens</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">exp_var</span><span class="p">[</span><span class="s1">&#39;Kensington Decommissioning&#39;</span><span class="p">])</span>
+        <span class="n">lrt</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">exp_var</span><span class="p">[</span><span class="s1">&#39;LRT Extension&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;G30 File Close All&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">)</span>  
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="n">macro</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">mod_path_tc</span><span class="p">,</span>
+                               <span class="n">kens</span><span class="p">,</span> <span class="n">lrt</span><span class="p">)</span>
+        
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;VA&quot;</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">,</span> 
+                               <span class="bp">self</span><span class="o">.</span><span class="n">mod_path_tc</span><span class="p">,</span>
+                               <span class="nb">float</span><span class="p">(</span><span class="n">exp_var</span><span class="p">[</span><span class="s1">&#39;Shared Mobility&#39;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s2">&quot;Error in setting LRT / Kensington to </span><span class="si">{0}</span><span class="s2">/</span><span class="si">{1}</span><span class="s2">&quot;</span> 
+                              <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lrt</span><span class="p">,</span> <span class="n">kens</span><span class="p">))</span> 
+            
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;Kensington Decommissioning&#39;</span><span class="p">,</span> <span class="s1">&#39;LRT Extension&#39;</span><span class="p">]</span>
+
+     
+    <span class="c1"># =============================================================================</span>
+    <span class="c1">#   Performance measure processing methods</span>
+    <span class="c1"># =============================================================================</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">__pp_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">macro</span><span class="p">,</span> <span class="n">exp_var</span><span class="p">,</span> <span class="n">out_path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;call TransCAD macro with the path argument&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;G30 File Close All&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">)</span>  
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="n">macro</span><span class="p">,</span> 
+                         <span class="bp">self</span><span class="o">.</span><span class="n">perf_meas_ui</span><span class="p">,</span> 
+                         <span class="n">out_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__PM_BY_TRANSCAD_MACRO</span><span class="p">[</span><span class="n">macro</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__pp_path_kens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">macro</span><span class="p">,</span> <span class="n">exp_var</span><span class="p">,</span> <span class="n">out_path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;call TransCAD macro with path and kensington arguments&#39;&#39;&#39;</span>
+        <span class="n">kens</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">exp_var</span><span class="p">[</span><span class="s1">&#39;Kensington Decommissioning&#39;</span><span class="p">])</span>
+                
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="s2">&quot;G30 File Close All&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp_param_ui</span><span class="p">)</span>  
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">tc</span><span class="o">.</span><span class="n">RunMacro</span><span class="p">(</span><span class="n">macro</span><span class="p">,</span> 
+                         <span class="bp">self</span><span class="o">.</span><span class="n">perf_meas_ui</span><span class="p">,</span> 
+                         <span class="n">out_path</span><span class="p">,</span>
+                         <span class="n">kens</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__PM_BY_TRANSCAD_MACRO</span><span class="p">[</span><span class="n">macro</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>    
+    
+  
+     
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1">#   Hooks to macros and methods for GBNRTC</span>
+    <span class="c1"># =============================================================================</span>
+                  
+    <span class="c1"># dictionary of methods and Macros by experiment variable</span>
+    <span class="n">__METHOD_MACRO_BY_EVAR</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Land Use - CBD Focus&#39;</span><span class="p">:</span>         <span class="p">(</span><span class="n">__set_simple_evar</span><span class="p">,</span> <span class="s2">&quot;SE Data&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Freeway Capacity&#39;</span><span class="p">:</span>             <span class="p">(</span><span class="n">__set_simple_evar</span><span class="p">,</span> <span class="s2">&quot;Roadway Capacity&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Auto IVTT Sensitivity&#39;</span><span class="p">:</span>        <span class="p">(</span><span class="n">__set_simple_evar</span><span class="p">,</span> <span class="s2">&quot;IVTT Discount&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Shared Mobility&#39;</span><span class="p">:</span>              <span class="p">(</span><span class="n">__set_simple_evar</span><span class="p">,</span> <span class="s2">&quot;VA&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Kensington Decommissioning&#39;</span><span class="p">:</span>   <span class="p">(</span><span class="n">__set_kenslrt_strategy</span><span class="p">,</span> <span class="s2">&quot;Set POC Strategies&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;LRT Extension&#39;</span><span class="p">:</span>                <span class="p">(</span><span class="n">__set_kenslrt_strategy</span><span class="p">,</span> <span class="s2">&quot;Set POC Strategies&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Bailey Land Use&#39;</span><span class="p">:</span>              <span class="p">(</span><span class="n">__set_simple_evar</span><span class="p">,</span> <span class="s2">&quot;Corridor_SED&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Self Parking&#39;</span><span class="p">:</span>                 <span class="p">(</span><span class="n">__set_simple_evar</span><span class="p">,</span> <span class="s2">&quot;Terminal_Time&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Weather Impacts&#39;</span><span class="p">:</span>              <span class="p">(</span><span class="n">__set_simple_evar</span><span class="p">,</span> <span class="s2">&quot;Weather_Capacity_Impact&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Bailey Transit Service&#39;</span><span class="p">:</span>       <span class="p">(</span><span class="n">__set_bailey_transit_strategy</span><span class="p">,</span> <span class="s2">&quot;Transit_Strategies&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Bailey Micro-Mobility&#39;</span><span class="p">:</span>        <span class="p">(</span><span class="n">__set_bailey_transit_strategy</span><span class="p">,</span> <span class="s2">&quot;Transit_Strategies&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;Bailey Mobility Hubs&#39;</span><span class="p">:</span>         <span class="p">(</span><span class="n">__set_bailey_transit_strategy</span><span class="p">,</span> <span class="s2">&quot;Transit_Strategies&quot;</span><span class="p">),</span>
+        <span class="c1">#&#39;Bailey Transit Headway&#39;:       (__set_simple_evar, &quot;Headway&quot;),</span>
+        <span class="s1">&#39;Bailey Reduced Parking&#39;</span><span class="p">:</span>       <span class="p">(</span><span class="n">__set_simple_evar</span><span class="p">,</span> <span class="s2">&quot;Bailey_Parking&quot;</span><span class="p">),</span>        
+        <span class="s1">&#39;Bailey Non-Motorized Facilities&#39;</span><span class="p">:</span>       <span class="p">(</span><span class="n">__set_simple_evar</span><span class="p">,</span> <span class="s2">&quot;Walk_Time&quot;</span><span class="p">)</span>                
+        
+    <span class="p">}</span>
+    
+    <span class="n">__PM_BY_TRANSCAD_MACRO</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;VMTVHT&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                    <span class="p">[</span><span class="s1">&#39;Region-wide VMT&#39;</span><span class="p">,</span><span class="s1">&#39;Interstate + Expressway + Ramp/Connector VMT&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;Major and Minor Arterials VMT&#39;</span><span class="p">,</span><span class="s1">&#39;Total Auto VMT&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;Total Truck VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;Bailey VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;Bailey VHT&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;Bailey Delay AM&#39;</span><span class="p">,</span><span class="s1">&#39;Bailey Delay MD&#39;</span><span class="p">,</span><span class="s1">&#39;Bailey Delay PM&#39;</span><span class="p">,</span><span class="s1">&#39;Bailey Delay NT&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;TripLength&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                        <span class="p">[</span><span class="s1">&#39;AM Trip Time (minutes)&#39;</span><span class="p">,</span><span class="s1">&#39;AM Trip Length (miles)&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;PM Trip Time (minutes)&#39;</span><span class="p">,</span><span class="s1">&#39;PM Trip Length (miles)&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;Boardings&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                       <span class="p">[</span><span class="s1">&#39;Peak Walk-to-transit Boarding&#39;</span><span class="p">,</span><span class="s1">&#39;Off-Peak Walk-to-transit Boarding&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Peak Drive-to-transit Boarding&#39;</span><span class="p">,</span><span class="s1">&#39;Off-Peak Drive-to-transit Boarding&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Total Transit Boardings&#39;</span><span class="p">,</span><span class="s1">&#39;Peak Walk-to-transit LRT Boarding&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Off-Peak Walk-to-transit LRT Boarding&#39;</span><span class="p">,</span><span class="s1">&#39;Peak Drive-to-transit LRT Boarding&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Off-Peak Drive-to-transit LRT Boarding&#39;</span><span class="p">,</span><span class="s1">&#39;Total LRT Boardings&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;BaileyBoardings&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                       <span class="p">[</span><span class="s1">&#39;Peak Walk-to-transit Bailey Route Boarding&#39;</span><span class="p">,</span><span class="s1">&#39;Peak Drive-to-transit Bailey Route Boarding&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Off-Peak Walk-to-transit Bailey Route Boarding&#39;</span><span class="p">,</span> <span class="s1">&#39;Off-Peak Drive-to-transit Bailey Route Boarding&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Bailey corridor route ridership&#39;</span><span class="p">]),</span>    
+        <span class="s1">&#39;ModeShare&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                       <span class="p">[</span><span class="s1">&#39;Peak Transit Share&#39;</span><span class="p">,</span><span class="s1">&#39;Peak NonMotorized Share&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Off-Peak Transit Share&#39;</span><span class="p">,</span><span class="s1">&#39;Off-Peak NonMotorized Share&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Daily Transit Share&#39;</span><span class="p">,</span><span class="s1">&#39;Daily NonMotorized Share&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Bailey Peak Transit Share&#39;</span><span class="p">,</span><span class="s1">&#39;Bailey Peak NonMotorized Share&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Bailey Off-Peak Transit Share&#39;</span><span class="p">,</span><span class="s1">&#39;Bailey Off-Peak NonMotorized Share&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Bailey Transit share&#39;</span><span class="p">,</span><span class="s1">&#39;Bailey NonMotorized share&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Regional trips to/from Bailey&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;HBW Transit Time&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                              <span class="p">[</span><span class="s1">&#39;Number of Home-based work tours taking &lt;= 45 minutes via transit&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;Accessibility to CBD&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                                  <span class="p">[</span><span class="s1">&#39;Households within 30 min of CBD&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;Accessibility_Bailey&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                                  <span class="p">[</span><span class="s1">&#39;Employment &lt; 20 transit mins from Bailey&#39;</span><span class="p">]),</span>                                  
+        <span class="s1">&#39;Downtown to Airport Travel Time&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                                             <span class="p">[</span><span class="s1">&#39;Downtown to Airport Travel Time&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;CorridorMeasures&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path_kens</span><span class="p">,</span> 
+                              <span class="p">[</span><span class="s1">&#39;Kensington Daily VMT&#39;</span><span class="p">,</span><span class="s1">&#39;Kensington Daily VHT&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;Kensington_OB PM VMT&#39;</span><span class="p">,</span><span class="s1">&#39;Kensington_OB PM VHT&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;Kensington_IB AM VMT&#39;</span><span class="p">,</span><span class="s1">&#39;Kensington_IB AM VHT&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;190 Daily VMT&#39;</span><span class="p">,</span><span class="s1">&#39;190 Daily VHT&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;190_OB Daily VMT&#39;</span><span class="p">,</span><span class="s1">&#39;190_OB Daily VHT&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;190_IB Daily VMT&#39;</span><span class="p">,</span><span class="s1">&#39;190_IB Daily VHT&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;33_west Daily VMT&#39;</span><span class="p">,</span><span class="s1">&#39;33_west Daily VHT&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;I90_south Daily VMT&#39;</span><span class="p">,</span><span class="s1">&#39;I90_south Daily VHT&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;OD Flows&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="n">__pp_path</span><span class="p">,</span> 
+                      <span class="p">[</span><span class="s1">&#39;OD Volume District 1 to 1&#39;</span><span class="p">,</span><span class="s1">&#39;OD Volume District 1 to 2&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;OD Volume District 1 to 3&#39;</span><span class="p">,</span><span class="s1">&#39;OD Volume District 1 to 4&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;OD Volume District 1 to 5&#39;</span><span class="p">,</span><span class="s1">&#39;OD Volume District 1 to 6&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;OD Volume District 1 to 7&#39;</span><span class="p">,</span><span class="s1">&#39;OD Volume District 1 to 8&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;OD Volume District 1 to 9&#39;</span><span class="p">,</span><span class="s1">&#39;OD Volume District 1 to 10&#39;</span><span class="p">])</span>
+    <span class="p">}</span>
+    
+    <span class="n">__MEASURE_PARSERS</span> <span class="o">=</span> <span class="p">[</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;transit_board.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;Peak Walk-to-transit Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_walk_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Off-Peak Walk-to-transit Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_walk_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Peak Drive-to-transit Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_drive_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Off-Peak Drive-to-transit Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_drive_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Total Transit Boardings&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;total&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;transit_board_rail.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;Peak Walk-to-transit LRT Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_walk_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Off-Peak Walk-to-transit LRT Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_walk_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Peak Drive-to-transit LRT Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_drive_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Off-Peak Drive-to-transit LRT Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_drive_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Total LRT Boardings&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;total&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+        
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;transit_board_bailey.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;Peak Walk-to-transit Bailey Route Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_walk_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Off-Peak Walk-to-transit Bailey Route Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_walk_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Peak Drive-to-transit Bailey Route Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_drive_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Off-Peak Drive-to-transit Bailey Route Boarding&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_drive_board&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Bailey corridor route ridership&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;total&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>        
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;SUMMARY_VMTVHT.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;Region-wide VMT&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[:,</span> <span class="s1">&#39;Daily Total VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Total Auto VMT&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[:,</span> <span class="s1">&#39;Daily Auto VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Total Truck VMT&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[:,</span> <span class="s1">&#39;Daily Truck VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Interstate + Expressway + Ramp/Connector VMT&#39;</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="n">loc_sum</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Daily Total VMT&#39;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">loc_sum</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">8</span><span class="p">,</span> <span class="s1">&#39;Daily Total VMT&#39;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">loc_sum</span><span class="p">[</span><span class="mi">21</span><span class="p">:</span><span class="mi">22</span><span class="p">,</span> <span class="s1">&#39;Daily Total VMT&#39;</span><span class="p">]),</span>
+                <span class="s1">&#39;Major and Minor Arterials VMT&#39;</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="n">loc_sum</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;Daily Total VMT&#39;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">loc</span><span class="p">[</span><span class="mi">23</span><span class="p">,</span> <span class="s1">&#39;Daily Total VMT&#39;</span><span class="p">]),</span>
+            <span class="p">},</span>
+            <span class="c1"># The TransCAD macro that creates the file SUMMARY_VMTVHT.csv</span>
+            <span class="c1"># does not attach a header row with column names, so we</span>
+            <span class="c1"># need to give column names here to enable the label-based</span>
+            <span class="c1"># loc getters above. The column names include the first</span>
+            <span class="c1"># columns, which is a row identifier that will be used as</span>
+            <span class="c1"># the index of the resulting loaded dataframe, and not column</span>
+            <span class="c1"># data.</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span>
+                <span class="s1">&#39;identifier&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Daily Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;Daily Truck VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Daily Total VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;Daily Auto VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Daily Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;Daily Total VHT&#39;</span><span class="p">,</span><span class="s1">&#39;Daily Auto FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Daily Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;Daily Total FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;AM Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Truck VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Total VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;MD Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Truck VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Total VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PM Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Truck VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Total VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;NT Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Truck VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Total VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;AM Auto VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Total VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;MD Auto VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Total VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PM Auto VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Total VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;NT Auto VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Total VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;AM Auto FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Total FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;MD Auto FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Total FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PM Auto FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Total FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;NT Auto FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Total FFVHT&#39;</span>
+            <span class="p">],</span>
+            <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;identifier&#39;</span><span class="p">:</span><span class="nb">int</span><span class="p">},</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;SELECTION_VMTVHT.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;Bailey VMT&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[:,</span> <span class="s1">&#39;Daily Total VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Bailey VHT&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[:,</span> <span class="s1">&#39;Daily Total VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Bailey Delay AM&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[:,</span> <span class="s1">&#39;AM Total VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Bailey Delay MD&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[:,</span> <span class="s1">&#39;MD Total VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Bailey Delay PM&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[:,</span> <span class="s1">&#39;PM Total VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Bailey Delay NT&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[:,</span> <span class="s1">&#39;NT Total VHT&#39;</span><span class="p">]</span>                                    
+            <span class="p">},</span>
+            <span class="c1"># The TransCAD macro that creates the file SUMMARY_VMTVHT.csv</span>
+            <span class="c1"># does not attach a header row with column names, so we</span>
+            <span class="c1"># need to give column names here to enable the label-based</span>
+            <span class="c1"># loc getters above.</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span>
+                <span class="s1">&#39;identifier&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Daily Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;Daily Truck VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Daily Total VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;Daily Auto VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Daily Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;Daily Total VHT&#39;</span><span class="p">,</span><span class="s1">&#39;Daily Auto FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Daily Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;Daily Total FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;AM Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Truck VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Total VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;MD Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Truck VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Total VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PM Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Truck VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Total VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;NT Auto VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Truck VMT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Total VMT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;AM Auto VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Total VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;MD Auto VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Total VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PM Auto VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Total VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;NT Auto VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Truck VHT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Total VHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;AM Auto FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;AM Total FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;MD Auto FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;MD Total FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PM Auto FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;PM Total FFVHT&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;NT Auto FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Truck FFVHT&#39;</span><span class="p">,</span> <span class="s1">&#39;NT Total FFVHT&#39;</span>
+            <span class="p">],</span>
+            <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;identifier&#39;</span><span class="p">:</span><span class="nb">int</span><span class="p">},</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;trip_length.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;AM Trip Time (minutes)&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AM Trip Length (minute)&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;AM Trip Length (miles)&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AM Trip Length (mile)&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;PM Trip Time (minutes)&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;PM Trip Length (minute)&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;PM Trip Length (miles)&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;PM Trip Length (mile)&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;mode_share.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Peak Transit Share&quot;</span>          <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_transit_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Peak NonMotorized Share&quot;</span>     <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_nonmot_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Off-Peak Transit Share&quot;</span>      <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_transit_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Off-Peak NonMotorized Share&quot;</span> <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_nonmot_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Daily Transit Share&quot;</span>         <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dly_transit_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Daily NonMotorized Share&quot;</span>    <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dly_nonmot_share&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;bailey_mode_share.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Bailey Peak Transit Share&quot;</span>          <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_transit_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Bailey Peak NonMotorized Share&quot;</span>     <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_nonmot_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Bailey Off-Peak Transit Share&quot;</span>      <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_transit_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Bailey Off-Peak NonMotorized Share&quot;</span> <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_nonmot_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Bailey Transit share&quot;</span>               <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dly_transit_share&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;Bailey NonMotorized share&quot;</span>          <span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dly_nonmot_share&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;bailey_trip_summary.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Regional trips to/from Bailey&quot;</span>       <span class="p">:</span> <span class="p">(</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;pk_total&#39;</span><span class="p">]</span> <span class="o">+</span> 
+                                                        <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;op_total&#39;</span><span class="p">])</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;HH_within_30min.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Households within 30 min of CBD&quot;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;HHs within 30 min of CBD&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;EMP_within_20min_of_BLY.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Employment &lt; 20 transit mins from Bailey&quot;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;EMPs within 20 min of BLY&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;HBW_within_45min_transit.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Number of Home-based work tours taking &lt;= 45 minutes via transit&quot;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;HBW within 45 min&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;Downtown_Airport_Time.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Downtown to Airport Travel Time&quot;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Downtown to Airport Time&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;District_OD.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;OD Volume District 1 to 1&#39;</span> <span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">&#39;OD Volume District 1 to 2&#39;</span> <span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s1">&#39;OD Volume District 1 to 3&#39;</span> <span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">&#39;OD Volume District 1 to 4&#39;</span> <span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span>
+                <span class="s1">&#39;OD Volume District 1 to 5&#39;</span> <span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span>
+                <span class="s1">&#39;OD Volume District 1 to 6&#39;</span> <span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span>
+                <span class="s1">&#39;OD Volume District 1 to 7&#39;</span> <span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span>
+                <span class="s1">&#39;OD Volume District 1 to 8&#39;</span> <span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span>
+                <span class="s1">&#39;OD Volume District 1 to 9&#39;</span> <span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span>
+                <span class="s1">&#39;OD Volume District 1 to 10&#39;</span><span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">9</span><span class="p">],</span>
+             <span class="p">}</span>
+        <span class="p">),</span>
+
+        <span class="n">TableParser</span><span class="p">(</span>
+            <span class="s2">&quot;CorridorMeasures.csv&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;Kensington Daily VMT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;Kensington&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Kensington Daily VHT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;Kensington&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Kensington_OB PM VMT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;Kensington_OB&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Kensington_OB PM VHT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;Kensington_OB&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Kensington_IB AM VMT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;Kensington_IB&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Kensington_IB AM VHT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;Kensington_IB&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;190 Daily VMT&#39;</span><span class="p">:</span>        <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;190&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;190 Daily VHT&#39;</span><span class="p">:</span>        <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;190&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;190_OB Daily VMT&#39;</span><span class="p">:</span>     <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;190_OB&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;190_OB Daily VHT&#39;</span><span class="p">:</span>     <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;190_OB&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;190_IB Daily VMT&#39;</span><span class="p">:</span>     <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;190_IB&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;190_IB Daily VHT&#39;</span><span class="p">:</span>     <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;190_IB&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;33_west Daily VMT&#39;</span><span class="p">:</span>    <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;33_west&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;33_west Daily VHT&#39;</span><span class="p">:</span>    <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;33_west&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I90_south Daily VMT&#39;</span><span class="p">:</span>  <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;I90_south&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I90_south Daily VHT&#39;</span><span class="p">:</span>  <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;I90_south&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I-90 SL #1 Daily VMT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;i190_sel1&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I-90 SL #1 Daily VHT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;i190_sel1&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I-90 SL #2 Daily VMT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;i190_sel2&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I-90 SL #2 Daily VHT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;i190_sel2&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I-90 SL #3 Daily VMT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;i190_sel3&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I-90 SL #3 Daily VHT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;i190_sel3&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I-90 SL #4 Daily VMT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;i190_sel4&#39;</span><span class="p">,</span> <span class="s1">&#39; VMT&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;I-90 SL #4 Daily VHT&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;i190_sel4&#39;</span><span class="p">,</span> <span class="s1">&#39; VHT&#39;</span><span class="p">],</span>
+            <span class="p">},</span>
+            <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="c1"># The example archive data does not include the screenline</span>
+            <span class="c1"># data items, so these will by default raise an error.</span>
+            <span class="c1"># We can skip the error and just retrieve NaN values</span>
+            <span class="c1"># using the handle_errors argument.</span>
+            <span class="n">handle_errors</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+
+    <span class="p">]</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

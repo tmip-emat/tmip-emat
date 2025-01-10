@@ -1,0 +1,395 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.analysis.visual_distribution &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.analysis.visual_distribution</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.analysis.visual_distribution</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emat.viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">scatter_graphs</span><span class="p">,</span> <span class="n">scatter_graphs_2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emat.viz.scatter</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScatterMass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTML</span><span class="p">,</span> <span class="n">display</span><span class="p">,</span> <span class="n">display_html</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_shorten_category_names</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">experiment_results</span><span class="p">,</span> <span class="n">original_cats</span><span class="p">):</span>
+	<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_all_names</span><span class="p">():</span>
+		<span class="n">abbrev</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scope</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">,</span> <span class="p">{})</span>
+		<span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">experiment_results</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">is_cat</span> <span class="o">=</span> <span class="n">experiment_results</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;category&#39;</span>
+			<span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+				<span class="n">is_cat</span> <span class="o">=</span> <span class="kc">False</span>
+			<span class="k">if</span> <span class="n">is_cat</span><span class="p">:</span>
+				<span class="n">original_cats</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">experiment_results</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span>
+				<span class="n">experiment_results</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="n">abbrev</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">experiment_results</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span><span class="p">]</span>
+	<span class="k">return</span> <span class="n">experiment_results</span><span class="p">,</span> <span class="n">original_cats</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_restore_category_names</span><span class="p">(</span><span class="n">experiment_results</span><span class="p">,</span> <span class="n">original_cats</span><span class="p">):</span>
+	<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">original_cats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">experiment_results</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="n">v</span>
+		<span class="k">except</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">(</span><span class="n">experiment_results</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+			<span class="k">raise</span>
+
+
+<div class="viewcode-block" id="display_experiments">
+<a class="viewcode-back" href="../../../source/emat.analysis/splom.html#emat.analysis.display_experiments">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">display_experiments</span><span class="p">(</span>
+		<span class="n">scope</span><span class="p">,</span>
+		<span class="n">experiment_results</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">render</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span>
+		<span class="n">rows</span><span class="o">=</span><span class="s1">&#39;measures&#39;</span><span class="p">,</span>
+		<span class="n">columns</span><span class="o">=</span><span class="s1">&#39;infer&#39;</span><span class="p">,</span>
+		<span class="n">mass</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+		<span class="n">use_gl</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">return_figures</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Render a visualization of experimental results.</span>
+
+<span class="sd">	This function will display the outputs in a jupyter notebook,</span>
+<span class="sd">	but does not actually return any values.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	scope : emat.Scope</span>
+<span class="sd">		The scope to use in identifying parameters and performance</span>
+<span class="sd">		measures.</span>
+<span class="sd">	experiment_results : pandas.DataFrame or str</span>
+<span class="sd">		The complete results from a set of experiments,</span>
+<span class="sd">		including parameter inputs and performance measure</span>
+<span class="sd">		outputs.  Give a string to name a design in the database.</span>
+<span class="sd">	db : emat.Database, optional</span>
+<span class="sd">		When either of the `experiments` arguments is given as</span>
+<span class="sd">		a string, the experiments are loaded from this database</span>
+<span class="sd">		using the scope name as well as the given string as the</span>
+<span class="sd">		design name.</span>
+<span class="sd">	render : str or dict or None, default &#39;png&#39;</span>
+<span class="sd">		If given, the graph[s]</span>
+<span class="sd">		will be rendered to a static image using `plotly.io.to_image`.</span>
+<span class="sd">		For default settings, pass &#39;png&#39;, or give a dictionary</span>
+<span class="sd">		that specifies keyword arguments to that function. If no</span>
+<span class="sd">		rendering is done (by setting `render` to None), the raw</span>
+<span class="sd">		plotly figures are returned -- this may result in a very</span>
+<span class="sd">		large number of javascript figures and may slow down your</span>
+<span class="sd">		browser.</span>
+<span class="sd">	rows : {&#39;measures&#39;, &#39;levers&#39;, &#39;uncertainties&#39;} or Collection, default &#39;measures&#39;</span>
+<span class="sd">		Give a named group to generate a row of figures for each</span>
+<span class="sd">		item in that group, or give a collection of individual</span>
+<span class="sd">		names to generate a row of figures for each named item.</span>
+<span class="sd">	columns : {&#39;infer&#39;, &#39;measures&#39;, &#39;levers&#39;, &#39;uncertainties&#39;} or Collection, default &#39;infer&#39;</span>
+<span class="sd">		Give a named group to generate a column of plots for each</span>
+<span class="sd">		item in that group, or give a collection of individual</span>
+<span class="sd">		names to generate a column of plots for each named item.</span>
+<span class="sd">		The default &#39;infer&#39; value will select all parameters when</span>
+<span class="sd">		the row is a measure, and all measures otherwise.</span>
+<span class="sd">	mass : int or emat.viz.ScatterMass, default 1000</span>
+<span class="sd">		The target number of rendered points in each figure. Setting</span>
+<span class="sd">		to a number less than the number of experiments will make</span>
+<span class="sd">		each scatter point partially transparent, which will help</span>
+<span class="sd">		visually convey relative density when there are a very large</span>
+<span class="sd">		number of points.</span>
+<span class="sd">	return_figures : bool, default False</span>
+<span class="sd">		Set this to True to return the FigureWidgets instead of</span>
+<span class="sd">		simply displaying them.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">experiment_results</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must give experiments or db and design_name&quot;</span><span class="p">)</span>
+		<span class="n">experiment_results</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">read_experiment_all</span><span class="p">(</span>
+			<span class="n">scope_name</span><span class="o">=</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+			<span class="n">design_name</span><span class="o">=</span><span class="n">experiment_results</span><span class="p">,</span>
+		<span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">rows</span> <span class="o">==</span> <span class="s1">&#39;measures&#39;</span><span class="p">:</span>
+		<span class="n">rows</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">()</span>
+	<span class="k">elif</span> <span class="n">rows</span> <span class="o">==</span> <span class="s1">&#39;levers&#39;</span><span class="p">:</span>
+		<span class="n">rows</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_lever_names</span><span class="p">()</span>
+	<span class="k">elif</span> <span class="n">rows</span> <span class="o">==</span> <span class="s1">&#39;uncertainties&#39;</span><span class="p">:</span>
+		<span class="n">rows</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_uncertainty_names</span><span class="p">()</span>
+	
+	<span class="n">original_cats</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">experiment_results</span><span class="p">,</span> <span class="n">original_cats</span> <span class="o">=</span> <span class="n">_shorten_category_names</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">experiment_results</span><span class="p">,</span> <span class="n">original_cats</span><span class="p">)</span>
+
+		<span class="n">figures</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">fig</span> <span class="o">=</span> <span class="n">scatter_graphs</span><span class="p">(</span>
+					<span class="n">row</span><span class="p">,</span>
+					<span class="n">experiment_results</span><span class="p">,</span>
+					<span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span>
+					<span class="n">render</span><span class="o">=</span><span class="n">render</span><span class="p">,</span>
+					<span class="n">use_gl</span><span class="o">=</span><span class="n">use_gl</span><span class="p">,</span>
+					<span class="n">mass</span><span class="o">=</span><span class="n">mass</span><span class="p">,</span>
+					<span class="n">contrast</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+				<span class="p">)</span>
+			<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+				<span class="k">continue</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">250</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+				<span class="k">raise</span>
+			<span class="k">except</span><span class="p">:</span>
+				<span class="k">pass</span>
+			<span class="k">if</span> <span class="n">return_figures</span><span class="p">:</span>
+				<span class="n">figures</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">fig</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">display_html</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;h4 title=&quot;</span><span class="si">{</span><span class="n">scope</span><span class="o">.</span><span class="n">get_description</span><span class="p">(</span><span class="n">row</span><span class="p">)</span><span class="si">}</span><span class="s1">&quot;&gt;</span><span class="si">{</span><span class="n">scope</span><span class="o">.</span><span class="n">shortname</span><span class="p">(</span><span class="n">row</span><span class="p">)</span><span class="si">}</span><span class="s1">&lt;/h4&gt;&#39;</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+				<span class="n">display</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">return_figures</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">figures</span>
+
+	<span class="k">finally</span><span class="p">:</span>
+		<span class="n">_restore_category_names</span><span class="p">(</span><span class="n">experiment_results</span><span class="p">,</span> <span class="n">original_cats</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="contrast_experiments">
+<a class="viewcode-back" href="../../../source/emat.analysis/splom.html#emat.analysis.contrast_experiments">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">contrast_experiments</span><span class="p">(</span>
+		<span class="n">scope</span><span class="p">,</span>
+		<span class="n">experiments_1</span><span class="p">,</span>
+		<span class="n">experiments_2</span><span class="p">,</span>
+		<span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">render</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span>
+		<span class="n">rows</span><span class="o">=</span><span class="s1">&#39;measures&#39;</span><span class="p">,</span>
+		<span class="n">columns</span><span class="o">=</span><span class="s1">&#39;infer&#39;</span><span class="p">,</span>
+		<span class="n">mass</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+		<span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">use_gl</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">return_figures</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Render a visualization of two sets of experimental results.</span>
+
+<span class="sd">	This function will display the outputs in a Jupyter notebook,</span>
+<span class="sd">	but does not actually return any values.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		scope (emat.Scope):</span>
+<span class="sd">			The scope to use in identifying parameters and</span>
+<span class="sd">			performance measures.</span>
+<span class="sd">		experiments_1, experiments_2 (str or pandas.DataFrame):</span>
+<span class="sd">			The complete results from a set of experiments,</span>
+<span class="sd">			including parameter inputs and performance measure</span>
+<span class="sd">			outputs.  Give a string to name a design in the</span>
+<span class="sd">			database instead of passing results explicitly as</span>
+<span class="sd">			a DataFrame.</span>
+<span class="sd">		db (emat.Database, optional):</span>
+<span class="sd">			When either of the `experiments` arguments is given as</span>
+<span class="sd">			a string, the experiments are loaded from this database</span>
+<span class="sd">			using the scope name as well as the given string as the</span>
+<span class="sd">			design name.</span>
+<span class="sd">		render (str or dict or None, default &#39;png&#39;):</span>
+<span class="sd">			If given, the graph[s] will be rendered to a static</span>
+<span class="sd">			image using `plotly.io.to_image`. For default settings,</span>
+<span class="sd">			pass &#39;png&#39;, or give a dictionary that specifies keyword</span>
+<span class="sd">			arguments to that function. If no rendering is done (by</span>
+<span class="sd">			setting `render` to None), the raw plotly figures are</span>
+<span class="sd">			returned -- this may result in a very large number of</span>
+<span class="sd">			javascript figures and may slow down your browser.</span>
+<span class="sd">		rows (str or Collection, default &#39;measures&#39;):</span>
+<span class="sd">			Give a named group {&#39;measures&#39;, &#39;levers&#39;, &#39;uncertainties&#39;}</span>
+<span class="sd">			to generate a row of figures for each item in that group,</span>
+<span class="sd">			or give a collection of individual names to generate a</span>
+<span class="sd">			row of figures for each named item.</span>
+<span class="sd">		columns (str or Collection, default &#39;infer&#39;):</span>
+<span class="sd">			Give a named group {&#39;infer&#39;, &#39;measures&#39;, &#39;levers&#39;,</span>
+<span class="sd">			&#39;uncertainties&#39;} to generate a column of plots for each</span>
+<span class="sd">			item in that group, or give a collection of individual</span>
+<span class="sd">			names to generate a column of plots for each named item.</span>
+<span class="sd">			The default &#39;infer&#39; value will select all parameters when</span>
+<span class="sd">			the row is a measure, and all measures otherwise.</span>
+<span class="sd">		mass (int or emat.viz.ScatterMass, default 1000):</span>
+<span class="sd">			The target number of rendered points in each figure. Setting</span>
+<span class="sd">			to a number less than the number of experiments will make</span>
+<span class="sd">			each scatter point partially transparent, which will help</span>
+<span class="sd">			visually convey relative density when there are a very large</span>
+<span class="sd">			number of points.</span>
+<span class="sd">		colors (2-tuple, optional):</span>
+<span class="sd">			A pair of colors for the experiments.</span>
+<span class="sd">		return_figures (bool, default False):</span>
+<span class="sd">			Set this to True to return the figures instead of</span>
+<span class="sd">			simply displaying them within a Jupyter notebook.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">experiments_1</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must give experiments or db and design_name&quot;</span><span class="p">)</span>
+		<span class="n">experiments_1</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">read_experiment_all</span><span class="p">(</span>
+			<span class="n">scope_name</span><span class="o">=</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+			<span class="n">design_name</span><span class="o">=</span><span class="n">experiments_1</span><span class="p">,</span>
+		<span class="p">)</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">experiments_2</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must give experiments or db and design_name&quot;</span><span class="p">)</span>
+		<span class="n">experiments_2</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">read_experiment_all</span><span class="p">(</span>
+			<span class="n">scope_name</span><span class="o">=</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+			<span class="n">design_name</span><span class="o">=</span><span class="n">experiments_2</span><span class="p">,</span>
+		<span class="p">)</span>
+
+	<span class="c1"># check that categories align with scope</span>
+	<span class="n">scope</span><span class="o">.</span><span class="n">ensure_cat_ordering</span><span class="p">(</span><span class="n">experiments_1</span><span class="p">)</span>
+	<span class="n">scope</span><span class="o">.</span><span class="n">ensure_cat_ordering</span><span class="p">(</span><span class="n">experiments_2</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">rows</span> <span class="o">==</span> <span class="s1">&#39;measures&#39;</span><span class="p">:</span>
+		<span class="n">rows</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">()</span>
+	<span class="k">elif</span> <span class="n">rows</span> <span class="o">==</span> <span class="s1">&#39;levers&#39;</span><span class="p">:</span>
+		<span class="n">rows</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_lever_names</span><span class="p">()</span>
+	<span class="k">elif</span> <span class="n">rows</span> <span class="o">==</span> <span class="s1">&#39;uncertainties&#39;</span><span class="p">:</span>
+		<span class="n">rows</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_uncertainty_names</span><span class="p">()</span>
+
+	<span class="c1"># if measures is None:</span>
+	<span class="c1"># 	measures = scope.get_measure_names()</span>
+
+	<span class="n">original_cats1</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="n">original_cats2</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">experiments_1</span><span class="p">,</span> <span class="n">original_cats1</span> <span class="o">=</span> <span class="n">_shorten_category_names</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">experiments_1</span><span class="p">,</span> <span class="n">original_cats1</span><span class="p">)</span>
+		<span class="n">experiments_2</span><span class="p">,</span> <span class="n">original_cats2</span> <span class="o">=</span> <span class="n">_shorten_category_names</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">experiments_2</span><span class="p">,</span> <span class="n">original_cats2</span><span class="p">)</span>
+
+		<span class="n">figures</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">return_figures</span><span class="p">:</span>
+				<span class="n">display_html</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;h4 title=&quot;</span><span class="si">{</span><span class="n">scope</span><span class="o">.</span><span class="n">get_description</span><span class="p">(</span><span class="n">row</span><span class="p">)</span><span class="si">}</span><span class="s1">&quot;&gt;</span><span class="si">{</span><span class="n">scope</span><span class="o">.</span><span class="n">shortname</span><span class="p">(</span><span class="n">row</span><span class="p">)</span><span class="si">}</span><span class="s1">&lt;/h4&gt;&#39;</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+			<span class="n">fig</span> <span class="o">=</span> <span class="n">scatter_graphs_2</span><span class="p">(</span>
+				<span class="n">row</span><span class="p">,</span>
+				<span class="p">[</span><span class="n">experiments_1</span><span class="p">,</span> <span class="n">experiments_2</span><span class="p">],</span>
+				<span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span>
+				<span class="n">render</span><span class="o">=</span><span class="n">render</span><span class="p">,</span>
+				<span class="n">use_gl</span><span class="o">=</span><span class="n">use_gl</span><span class="p">,</span>
+				<span class="n">mass</span><span class="o">=</span><span class="n">mass</span><span class="p">,</span>
+				<span class="n">contrast</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+				<span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+			<span class="p">)</span>
+			<span class="k">if</span> <span class="n">return_figures</span><span class="p">:</span>
+				<span class="n">figures</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">fig</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">display</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">return_figures</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">figures</span>
+
+	<span class="k">finally</span><span class="p">:</span>
+		<span class="n">_restore_category_names</span><span class="p">(</span><span class="n">experiments_1</span><span class="p">,</span> <span class="n">original_cats1</span><span class="p">)</span>
+		<span class="n">_restore_category_names</span><span class="p">(</span><span class="n">experiments_2</span><span class="p">,</span> <span class="n">original_cats2</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

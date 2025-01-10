@@ -1,0 +1,485 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.model.core_python.core_python_examples &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/thebelab.css" />
+
+  
+      <script src="../../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.model.core_python.core_python_examples</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.model.core_python.core_python_examples</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Dummy</span><span class="p">():</span>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;nothing to do here&#39;&#39;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_pm1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_vars</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sum_exp_vars</span><span class="p">(</span><span class="n">exp_vars</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_pm2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_vars</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sum_exp_vars</span><span class="p">(</span><span class="n">exp_vars</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_pm10</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_vars</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sum_exp_vars</span><span class="p">(</span><span class="n">exp_vars</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_pm100</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_vars</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sum_exp_vars</span><span class="p">(</span><span class="n">exp_vars</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>    
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">__sum_exp_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ev</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ev</span><span class="p">[</span><span class="s1">&#39;exp_var 1&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ev</span><span class="p">[</span><span class="s1">&#39;exp_var 2&#39;</span><span class="p">]</span>
+        
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">pm_1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_pm1</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">pm_2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_pm2</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">pm_10</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_pm10</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">pm_100</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_pm100</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="p">)</span>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">NoisyDummy</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">lever1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lever1&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">lever2</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lever2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">uncertain1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uncertain1&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">uncertain2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uncertain2&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">))</span>
+    <span class="n">uncertain3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uncertain3&#39;</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">))</span>
+    <span class="n">certain4</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;certain4&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">noise_amplitude</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;noise_amplitude&#39;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">noise_frequency</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;noise_frequency&#39;</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>
+
+    <span class="n">pm_1</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="o">-</span> <span class="n">uncertain2</span> <span class="o">*</span> <span class="n">lever1</span> <span class="o">*</span> <span class="n">lever1</span>
+        <span class="o">+</span> <span class="p">(</span><span class="n">uncertain1</span> <span class="o">+</span> <span class="n">certain4</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">lever1</span> <span class="o">+</span> <span class="n">lever2</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">noise_amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">noise_frequency</span> <span class="o">*</span> <span class="n">lever1</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">pm_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
+        <span class="mf">1.11e+111</span> <span class="o">*</span> <span class="n">uncertain1</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="n">uncertain3</span> <span class="o">*</span> <span class="n">lever1</span> <span class="o">*</span> <span class="p">(</span><span class="n">lever1</span> <span class="o">+</span> <span class="n">lever2</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">uncertain1</span> <span class="o">*</span> <span class="n">lever1</span>
+            <span class="o">+</span> <span class="n">noise_amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">noise_frequency</span> <span class="o">*</span> <span class="n">lever2</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">pm_3</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">noise_amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">noise_frequency</span> <span class="o">*</span> <span class="n">lever1</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">noise_amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">noise_frequency</span> <span class="o">*</span> <span class="n">lever2</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">certain4</span>
+    <span class="p">)</span>
+
+    <span class="n">pm_4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="n">uncertain1</span> <span class="o">+</span> <span class="n">certain4</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;pm_1&#39;</span><span class="p">:</span><span class="n">pm_1</span><span class="p">,</span> <span class="s1">&#39;pm_2&#39;</span><span class="p">:</span> <span class="n">pm_2</span><span class="p">,</span> <span class="s1">&#39;pm_3&#39;</span><span class="p">:</span> <span class="n">pm_3</span><span class="p">,</span> <span class="s1">&#39;pm_4&#39;</span><span class="p">:</span><span class="n">pm_4</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pmt</span><span class="p">(</span><span class="n">rate</span><span class="p">,</span> <span class="n">nper</span><span class="p">,</span> <span class="n">pv</span><span class="p">,</span> <span class="n">fv</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="s1">&#39;end&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the payment against loan principal plus interest.</span>
+
+<span class="sd">    Given:</span>
+<span class="sd">     * a present value, `pv` (e.g., an amount borrowed)</span>
+<span class="sd">     * a future value, `fv` (e.g., 0)</span>
+<span class="sd">     * an interest `rate` compounded once per period, of which</span>
+<span class="sd">       there are</span>
+<span class="sd">     * `nper` total</span>
+<span class="sd">     * and (optional) specification of whether payment is made</span>
+<span class="sd">       at the beginning (`when` = {&#39;begin&#39;, 1}) or the end</span>
+<span class="sd">       (`when` = {&#39;end&#39;, 0}) of each period</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">       the (fixed) periodic payment.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rate : array_like</span>
+<span class="sd">        Rate of interest (per period)</span>
+<span class="sd">    nper : array_like</span>
+<span class="sd">        Number of compounding periods</span>
+<span class="sd">    pv : array_like</span>
+<span class="sd">        Present value</span>
+<span class="sd">    fv : array_like,  optional</span>
+<span class="sd">        Future value (default = 0)</span>
+<span class="sd">    when : {{&#39;begin&#39;, 1}, {&#39;end&#39;, 0}}, {string, int}</span>
+<span class="sd">        When payments are due (&#39;begin&#39; (1) or &#39;end&#39; (0))</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out : ndarray</span>
+<span class="sd">        Payment against loan plus interest.  If all input is scalar, returns a</span>
+<span class="sd">        scalar float.  If any input is array_like, returns payment for each</span>
+<span class="sd">        input element. If multiple inputs are array_like, they all must have</span>
+<span class="sd">        the same shape.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function is replicated from the numpy_financial package, under the same</span>
+<span class="sd">    LICENSE as the TMIP-EMAT repository.</span>
+<span class="sd">    Copyright (c) 2005-2019, NumPy Developers. All rights reserved.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_when_to_num</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;end&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;begin&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s1">&#39;e&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s1">&#39;beginning&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s1">&#39;finish&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_convert_when</span><span class="p">(</span><span class="n">when</span><span class="p">):</span>
+        <span class="c1"># Test to see if when has already been converted to ndarray</span>
+        <span class="c1"># This will happen if one function calls another, for example ppmt</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">when</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_when_to_num</span><span class="p">[</span><span class="n">when</span><span class="p">]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">_when_to_num</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">when</span><span class="p">]</span>
+    <span class="n">when</span> <span class="o">=</span> <span class="n">_convert_when</span><span class="p">(</span><span class="n">when</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">rate</span><span class="p">,</span> <span class="n">nper</span><span class="p">,</span> <span class="n">pv</span><span class="p">,</span> <span class="n">fv</span><span class="p">,</span> <span class="n">when</span><span class="p">)</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="p">[</span><span class="n">rate</span><span class="p">,</span> <span class="n">nper</span><span class="p">,</span> <span class="n">pv</span><span class="p">,</span> <span class="n">fv</span><span class="p">,</span> <span class="n">when</span><span class="p">])</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">rate</span><span class="p">)</span><span class="o">**</span><span class="n">nper</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">rate</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">masked_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">rate</span><span class="p">)</span>
+    <span class="n">fact</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nper</span><span class="p">,</span>
+                    <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">masked_rate</span><span class="o">*</span><span class="n">when</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">temp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">masked_rate</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">fv</span> <span class="o">+</span> <span class="n">pv</span><span class="o">*</span><span class="n">temp</span><span class="p">)</span> <span class="o">/</span> <span class="n">fact</span>
+
+<div class="viewcode-block" id="Road_Capacity_Investment">
+<a class="viewcode-back" href="../../../../source/emat.examples/RoadTest/road_test_yaml.html#emat.model.core_python.core_python_examples.Road_Capacity_Investment">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">Road_Capacity_Investment</span><span class="p">(</span>
+        <span class="c1"># constant</span>
+        <span class="n">free_flow_time</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">initial_capacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+
+        <span class="c1"># uncertainty</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>
+        <span class="n">beta</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+        <span class="n">input_flow</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">value_of_time</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">unit_cost_expansion</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">interest_rate</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span>
+        <span class="n">yield_curve</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+
+        <span class="c1"># policy</span>
+        <span class="n">expand_capacity</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">amortization_period</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">interest_rate_lock</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">debt_type</span><span class="o">=</span><span class="s1">&#39;GO Bond&#39;</span><span class="p">,</span>
+        <span class="n">lane_width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A fictitious example model for road capacity investment.</span>
+
+<span class="sd">    This model simulates a capacity expansion investment on a single</span>
+<span class="sd">    network link.  The link volume-delay function is governed by the</span>
+<span class="sd">    `BPR function &lt;https://en.wikipedia.org/wiki/Route_assignment#Frank-Wolfe_algorithm&gt;`_.</span>
+
+<span class="sd">    This model is a bit contrived, because it is designed to explicitly demonstrate</span>
+<span class="sd">    a wide variety of EMAT features in a transportation planning model that is as simple</span>
+<span class="sd">    as possible.  For example, the policy levers are structured so that there is one</span>
+<span class="sd">    of each dtype (float, int, bool, and categorical).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        free_flow_time (float, default 60): The free flow travel time on the link.</span>
+<span class="sd">        initial_capacity (float, default 100): The pre-expansion capacity on the link.</span>
+<span class="sd">        alpha (float, default 0.15): Alpha parameter to the BPR volume-delay function.</span>
+<span class="sd">        beta (float, default 4.0): Beta parameter to the BPR volume-delay function.</span>
+<span class="sd">        input_flow (float, default 100): The future input flow on the link.</span>
+<span class="sd">        value_of_time (float, default 0.01): The value of a unit of travel time savings</span>
+<span class="sd">            per unit of flow on the link.</span>
+<span class="sd">        unit_cost_expansion (float, default 1): The present marginal cost of adding one</span>
+<span class="sd">            unit of capacity to the link (assumes no economies of scale on expansion cost)</span>
+<span class="sd">        interest_rate (float, default 0.03): The interest rate actually incurred for</span>
+<span class="sd">            revenue bonds amortized over 15 years.  The interest rate for general obligation</span>
+<span class="sd">            bonds is assumed to be 0.0025 less than this value.</span>
+<span class="sd">        yield_curve (float, default 0.01): The marginal increase in the interest_rate if</span>
+<span class="sd">            the amortization period is 50 years instead of 15.  The yield curve is assumed</span>
+<span class="sd">            to be linearly projected to all other possible amortization periods</span>
+<span class="sd">        expand_capacity (float, default 10): The amount of capacity expansion actually</span>
+<span class="sd">            constructed.</span>
+<span class="sd">        amortization_period (int, default 30): The time period over which the construction</span>
+<span class="sd">            costs are amortized.</span>
+<span class="sd">        interest_rate_lock (bool, default False): Whether interest rates are locked at</span>
+<span class="sd">            the assumed current rate of 0.03 / 0.01 or allowed to float.</span>
+<span class="sd">        debt_type (&#39;GO Bond&#39;, &#39;Rev Bond&#39;, &#39;Paygo&#39;): Type of financing.  General obligation</span>
+<span class="sd">            bonds are assumed to have a lower interest rate than revenue bonds, but</span>
+<span class="sd">            may be politically less desirable.  Pay-as-you-go financing incurs no actual</span>
+<span class="sd">            interest costs, but requires actually having the funds available.</span>
+<span class="sd">        lane_width (float, default 10): The width of lanes on the roadway.  This parameter</span>
+<span class="sd">            is intentionally wacky, causing massive congestion for any value other than 10,</span>
+<span class="sd">            to demonstrate what might happen with broken model inputs.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict:</span>
+<span class="sd">            no_build_travel_time</span>
+<span class="sd">                The average travel time on the link if no</span>
+<span class="sd">                capacity expansion was constructed.</span>
+<span class="sd">            build_travel_time</span>
+<span class="sd">                The average travel time on the link after expansion.</span>
+<span class="sd">            time_savings</span>
+<span class="sd">                The average travel time savings as a result of the</span>
+<span class="sd">                expansion.</span>
+<span class="sd">            value_of_time_savings</span>
+<span class="sd">                The total value of the travel time savings,</span>
+<span class="sd">                accounting for the time savings per traveler, the total flow, and</span>
+<span class="sd">                the value of time.</span>
+<span class="sd">            present_cost_expansion</span>
+<span class="sd">                The present cost of building the expansion</span>
+<span class="sd">            cost_of_capacity_expansion</span>
+<span class="sd">                The annual payment to finance the expansion,</span>
+<span class="sd">                when amortized.</span>
+<span class="sd">            net_benefits</span>
+<span class="sd">                The value of the time savings minus the annual payment.</span>
+
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">debt_type</span> <span class="o">=</span> <span class="n">debt_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">debt_type</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;go bond&#39;</span><span class="p">,</span> <span class="s1">&#39;paygo&#39;</span><span class="p">,</span> <span class="s1">&#39;rev bond&#39;</span><span class="p">)</span>
+
+    <span class="n">average_travel_time0</span> <span class="o">=</span> <span class="n">free_flow_time</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="n">input_flow</span><span class="o">/</span><span class="n">initial_capacity</span><span class="p">)</span><span class="o">**</span><span class="n">beta</span><span class="p">)</span>
+    <span class="n">capacity</span> <span class="o">=</span> <span class="n">initial_capacity</span> <span class="o">+</span> <span class="n">expand_capacity</span>
+    <span class="n">average_travel_time1</span> <span class="o">=</span> <span class="n">free_flow_time</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="n">input_flow</span><span class="o">/</span><span class="n">capacity</span><span class="p">)</span><span class="o">**</span><span class="n">beta</span><span class="p">)</span>
+    <span class="n">oops</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">lane_width</span><span class="o">-</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">average_travel_time1</span> <span class="o">+=</span> <span class="p">(</span><span class="n">oops</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">input_flow</span><span class="p">)</span><span class="o">*</span><span class="n">oops</span><span class="o">*</span><span class="mi">2</span>
+    <span class="n">travel_time_savings</span> <span class="o">=</span> <span class="n">average_travel_time0</span> <span class="o">-</span> <span class="n">average_travel_time1</span>
+    <span class="n">value_of_time_savings</span> <span class="o">=</span> <span class="n">value_of_time</span> <span class="o">*</span> <span class="n">travel_time_savings</span> <span class="o">*</span> <span class="n">input_flow</span>
+    <span class="n">present_cost_of_capacity_expansion</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">unit_cost_expansion</span> <span class="o">*</span> <span class="n">expand_capacity</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">interest_rate_lock</span><span class="p">:</span>
+        <span class="n">interest_rate</span> <span class="o">=</span> <span class="mf">0.03</span>
+        <span class="n">yield_curve</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">debt_type</span> <span class="o">==</span> <span class="s1">&#39;go bond&#39;</span><span class="p">):</span>
+        <span class="n">interest_rate</span> <span class="o">-=</span> <span class="mf">0.0025</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">debt_type</span> <span class="o">==</span> <span class="s1">&#39;paygo&#39;</span><span class="p">):</span>
+        <span class="n">interest_rate</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">effective_interest_rate</span> <span class="o">=</span> <span class="n">interest_rate</span> <span class="o">+</span> <span class="n">yield_curve</span> <span class="o">*</span> <span class="p">(</span><span class="n">amortization_period</span><span class="o">-</span><span class="mi">15</span><span class="p">)</span> <span class="o">/</span> <span class="mi">35</span>
+
+    <span class="n">cost_of_capacity_expansion</span> <span class="o">=</span> <span class="n">pmt</span><span class="p">(</span>
+        <span class="n">effective_interest_rate</span><span class="p">,</span>
+        <span class="n">amortization_period</span><span class="p">,</span>
+        <span class="n">present_cost_of_capacity_expansion</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">no_build_travel_time</span><span class="o">=</span><span class="n">average_travel_time0</span><span class="p">,</span>
+        <span class="n">build_travel_time</span><span class="o">=</span><span class="n">average_travel_time1</span><span class="p">,</span>
+        <span class="n">time_savings</span><span class="o">=</span><span class="n">travel_time_savings</span><span class="p">,</span>
+        <span class="n">value_of_time_savings</span><span class="o">=</span><span class="n">value_of_time_savings</span><span class="p">,</span>
+        <span class="n">present_cost_expansion</span><span class="o">=</span><span class="n">present_cost_of_capacity_expansion</span><span class="p">,</span>
+        <span class="n">cost_of_capacity_expansion</span><span class="o">=-</span><span class="n">cost_of_capacity_expansion</span><span class="p">,</span>
+        <span class="n">net_benefits</span> <span class="o">=</span> <span class="n">value_of_time_savings</span> <span class="o">+</span> <span class="n">cost_of_capacity_expansion</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_Road_Capacity_Investment_CmdLine</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is a demo for calling a core model function on the command line.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span><span class="o">,</span><span class="w"> </span><span class="nn">pandas</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">warnings</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--levers&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;levers.yml&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Levers Yaml File&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--uncs&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;uncs.yml&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Uncertainties Yaml File&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--no-random-crashes&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;disable random crashes&#39;</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;emat.RoadTest&#39;</span><span class="p">)</span>
+    <span class="n">file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">&quot;emat-road-test.log&quot;</span><span class="p">)</span>
+    <span class="n">file_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">LOG_FORMAT</span> <span class="o">=</span> <span class="s1">&#39;[</span><span class="si">%(asctime)s</span><span class="s1">] </span><span class="si">%(name)s</span><span class="s1">.</span><span class="si">%(levelname)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+    <span class="n">file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">LOG_FORMAT</span><span class="p">))</span>
+    <span class="n">console_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="n">console_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">console_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">LOG_FORMAT</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;running emat-road-test-demo&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()))</span>
+
+    <span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">levers</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">levers</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">levers</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">levers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mandatory_unused_lever&#39;</span><span class="p">:</span><span class="mi">42</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">uncs</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">uncs</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">uncs</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uncs</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="s1">&#39;mandatory_unused_lever&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">levers</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;missing &#39;mandatory_unused_lever&#39;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">levers</span><span class="p">[</span><span class="s1">&#39;mandatory_unused_lever&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">42</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;incorrect value for &#39;mandatory_unused_lever&#39;, must be 42&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;unit_cost_expansion&#39;</span> <span class="ow">in</span> <span class="n">uncs</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot give &#39;unit_cost_expansion&#39;, use &#39;labor_unit_cost_expansion&#39; and &#39;materials_unit_cost_expansion&#39;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">uncs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;labor_unit_cost_expansion&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">uncs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;materials_unit_cost_expansion&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;labor_unit_cost_expansion&#39; cannot be less than or equal &#39;materials_unit_cost_expansion&#39;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">uncs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;labor_unit_cost_expansion&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">uncs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;materials_unit_cost_expansion&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;labor_unit_cost_expansion&#39; cannot be more than double &#39;materials_unit_cost_expansion&#39;&quot;</span><span class="p">)</span>
+    <span class="n">unit_cost_expansion</span> <span class="o">=</span> <span class="n">uncs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;labor_unit_cost_expansion&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">uncs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;materials_unit_cost_expansion&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">uncs</span><span class="p">[</span><span class="s1">&#39;unit_cost_expansion&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit_cost_expansion</span>
+
+    <span class="c1"># (pseudo)random crash</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">no_random_crashes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;expand_capacity&#39;</span> <span class="ow">in</span> <span class="n">levers</span> <span class="ow">and</span> <span class="n">levers</span><span class="p">[</span><span class="s1">&#39;expand_capacity&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;prevent_random_crash.txt&#39;</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;prevent_random_crash.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;this file will prevent random crashes in `emat-road-test-demo`&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Random crash, ha ha!&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">9</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">levers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;lever: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">uncs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;uncertainty: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">Road_Capacity_Investment</span><span class="p">(</span><span class="o">**</span><span class="n">levers</span><span class="p">,</span> <span class="o">**</span><span class="n">uncs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;result: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">result1</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span><span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;no_build_travel_time&#39;</span><span class="p">,</span><span class="s1">&#39;build_travel_time&#39;</span><span class="p">,</span><span class="s1">&#39;time_savings&#39;</span><span class="p">]}</span>
+        <span class="n">result2</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+            <span class="s1">&#39;value_of_time_savings&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;value_of_time_savings&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],</span>
+            <span class="s1">&#39;present_cost_expansion&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;present_cost_expansion&#39;</span><span class="p">]],</span>
+            <span class="s1">&#39;cost_of_capacity_expansion&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;cost_of_capacity_expansion&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],</span>
+            <span class="s1">&#39;net_benefits&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;net_benefits&#39;</span><span class="p">]],</span>
+        <span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span><span class="s1">&#39;plain&#39;</span><span class="p">])</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;output.yaml&#39;</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">result1</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="n">result2</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;output.csv.gz&#39;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;emat-road-test-demo completed without errors&quot;</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;unintentional crash&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

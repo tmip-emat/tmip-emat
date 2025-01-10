@@ -1,0 +1,571 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TableParser Example &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="MappingParser Example" href="mapping_parse_example.html" />
+    <link rel="prev" title="Files-Based Model" href="files.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Core Models</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="abstract.html">Basic EMAT Model API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_based.html">Python-Based Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="excel.html">Excel-Based Models</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="files.html">Files-Based Model</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">TableParser Example</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Parsing-a-Labeled-Table">Parsing a Labeled Table</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Parsing-Labeled-Values">Parsing Labeled Values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Parsing Labeled Values</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mapping_parse_example.html">MappingParser Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html">Files-Based Model API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gbnrtc.html">GBNRTC Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Core Models</a></li>
+          <li class="breadcrumb-item"><a href="files.html">Files-Based Model</a></li>
+      <li class="breadcrumb-item active">TableParser Example</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.models/table_parse_example.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">emat</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</pre></div>
+</div>
+</div>
+<section id="TableParser-Example">
+<h1>TableParser Example<a class="headerlink" href="#TableParser-Example" title="Link to this heading">¶</a></h1>
+<p>In this notebook, we will illustrate the use of a TableParser with a few simple examples.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">emat.model.core_files.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TableParser</span><span class="p">,</span>
+    <span class="n">loc</span><span class="p">,</span> <span class="n">loc_sum</span><span class="p">,</span> <span class="n">loc_mean</span><span class="p">,</span>
+    <span class="n">iloc</span><span class="p">,</span> <span class="n">iloc_sum</span><span class="p">,</span> <span class="n">iloc_mean</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Parsing-a-Labeled-Table">
+<h2>Parsing a Labeled Table<a class="headerlink" href="#Parsing-a-Labeled-Table" title="Link to this heading">¶</a></h2>
+<p>First, let’s consider a TableParser for extracting values from a simple CSV table of traffic counts by time period. We’ll begin by writing such a table as a temporary file to be processed:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample_file_labeled_table</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">LinkID,Count_AM,Count_MD,Count_PM,Count_EV</span>
+<span class="s2">123,3498,2340,3821,1820</span>
+<span class="s2">234,4011,2513,4101,1942</span>
+<span class="s2">345,386,103,441,251</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/emat_sample_file_labeled_table.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sample_file_labeled_table</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>If we wanted to read this table one time, we could easily do so using <code class="docutils literal notranslate"><span class="pre">pandas.read_csv</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;/tmp/emat_sample_file_labeled_table.csv&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;LinkID&#39;</span><span class="p">)</span>
+<span class="n">df</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Count_AM</th>
+      <th>Count_MD</th>
+      <th>Count_PM</th>
+      <th>Count_EV</th>
+    </tr>
+    <tr>
+      <th>LinkID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>123</th>
+      <td>3498</td>
+      <td>2340</td>
+      <td>3821</td>
+      <td>1820</td>
+    </tr>
+    <tr>
+      <th>234</th>
+      <td>4011</td>
+      <td>2513</td>
+      <td>4101</td>
+      <td>1942</td>
+    </tr>
+    <tr>
+      <th>345</th>
+      <td>386</td>
+      <td>103</td>
+      <td>441</td>
+      <td>251</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>It is then simple to manually extract individual values by label, or by position, or we could extract a row total to get a daily total count for a link, or take the mean of a column:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">123</span><span class="p">,</span><span class="s1">&#39;Count_AM&#39;</span><span class="p">],</span>  <span class="c1"># by label</span>
+    <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>            <span class="c1"># by position</span>
+    <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">345</span><span class="p">,:]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>     <span class="c1"># sum a row</span>
+    <span class="s1">&#39;D&#39;</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>     <span class="c1"># mean of a column</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;A&#39;: 3498, &#39;B&#39;: 4011, &#39;C&#39;: 1181, &#39;D&#39;: 1652.0}
+</pre></div></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">TableParser</span></code> object makes it easy to combine these instructions to extract the same values from the same file in any model run.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span> <span class="o">=</span> <span class="n">TableParser</span><span class="p">(</span>
+    <span class="s1">&#39;emat_sample_file_labeled_table.csv&#39;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="mi">123</span><span class="p">,</span><span class="s1">&#39;Count_AM&#39;</span><span class="p">],</span>  <span class="c1"># by label</span>
+        <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>            <span class="c1"># by position</span>
+        <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="n">loc_sum</span><span class="p">[</span><span class="mi">345</span><span class="p">,:],</span>       <span class="c1"># sum a row</span>
+        <span class="s1">&#39;D&#39;</span><span class="p">:</span> <span class="n">iloc_mean</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span>       <span class="c1"># mean of a column</span>
+    <span class="p">},</span>
+    <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;LinkID&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We can now execute all these instructions by using the <code class="docutils literal notranslate"><span class="pre">read</span></code> method of the parser.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">from_dir</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;A&#39;: 3498.0, &#39;B&#39;: 4011.0, &#39;C&#39;: 1181, &#39;D&#39;: 1652.0}
+</pre></div></div>
+</div>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">TableParser</span></code> has some advantages over just writing a custom function for each table to be processed. The most important is that we do not need to actually parse anything to access the names of the keys available in the parser’s output.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">measure_names</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;A&#39;, &#39;B&#39;, &#39;C&#39;, &#39;D&#39;]
+</pre></div></div>
+</div>
+</section>
+<section id="Parsing-Labeled-Values">
+<h2>Parsing Labeled Values<a class="headerlink" href="#Parsing-Labeled-Values" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">TableParser</span></code> can also be used to read performace measures from a file that contains simply a list of labeled values, as this can readily be interpreted as a table with one index column and a single data column.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample_file_labeled_values</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Mean Highway Speed (mph),56.34</span>
+<span class="s2">Mean Arterial Speed (mph),31.52</span>
+<span class="s2">Mean Collector Speed (mph),24.80</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/emat_sample_file_labeled_values.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sample_file_labeled_values</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Reading this file with <code class="docutils literal notranslate"><span class="pre">pandas.read_csv</span></code> can be done neatly by giving a few extra keyword arguments:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+    <span class="s1">&#39;/tmp/emat_sample_file_labeled_values.csv&#39;</span><span class="p">,</span>
+    <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Label&#39;</span><span class="p">,</span><span class="s1">&#39;Value&#39;</span><span class="p">],</span>
+    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <th>Label</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Mean Highway Speed (mph)</th>
+      <td>56.34</td>
+    </tr>
+    <tr>
+      <th>Mean Arterial Speed (mph)</th>
+      <td>31.52</td>
+    </tr>
+    <tr>
+      <th>Mean Collector Speed (mph)</th>
+      <td>24.80</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>We can simply pass these same keyword arguments on to the <code class="docutils literal notranslate"><span class="pre">TableParser</span></code>, and proceed as above to define the values to extract.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span> <span class="o">=</span> <span class="n">TableParser</span><span class="p">(</span>
+    <span class="s1">&#39;emat_sample_file_labeled_values.csv&#39;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;Highway Speed&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">[</span><span class="s1">&#39;Mean Highway Speed (mph)&#39;</span><span class="p">,</span><span class="s1">&#39;Value&#39;</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Label&#39;</span><span class="p">,</span><span class="s1">&#39;Value&#39;</span><span class="p">],</span>
+    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">from_dir</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;Highway Speed&#39;: 56.34}
+</pre></div></div>
+</div>
+</section>
+<section id="id1">
+<h2>Parsing Labeled Values<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p>Lastly, the <code class="docutils literal notranslate"><span class="pre">TableParser</span></code> can be used to read performace measures from a file that contains an unlabeled array of values, as sometimes is generated from popular transportation modeling tools.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample_file_unlabeled_array</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">11,22,33</span>
+<span class="s2">44,55,66</span>
+<span class="s2">77,88,99</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/emat_sample_file_unlabeled_array.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sample_file_unlabeled_array</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The labels are not required to read this data using <code class="docutils literal notranslate"><span class="pre">pandas.read_csv</span></code>, as a default set of row and column index labels are generated.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+    <span class="s1">&#39;/tmp/emat_sample_file_unlabeled_array.csv&#39;</span><span class="p">,</span>
+    <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>0</th>
+      <th>1</th>
+      <th>2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>11</td>
+      <td>22</td>
+      <td>33</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>44</td>
+      <td>55</td>
+      <td>66</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>77</td>
+      <td>88</td>
+      <td>99</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>But the table is loaded, and individual values or slices can be taken using the <code class="docutils literal notranslate"><span class="pre">iloc</span></code> tool.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span> <span class="o">=</span> <span class="n">TableParser</span><span class="p">(</span>
+    <span class="s1">&#39;emat_sample_file_unlabeled_array.csv&#39;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;upper_left&#39;</span><span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+        <span class="s1">&#39;lower_right&#39;</span><span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="s1">&#39;partial_row&#39;</span><span class="p">:</span> <span class="n">iloc_sum</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">:],</span>
+        <span class="s1">&#39;top_corner_sum&#39;</span><span class="p">:</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">from_dir</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;upper_left&#39;: 11.0,
+ &#39;lower_right&#39;: 99.0,
+ &#39;partial_row&#39;: 55,
+ &#39;top_corner_sum&#39;: 44.0}
+</pre></div></div>
+</div>
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"fbdf1055526941ed9505eeaa6cb54e00": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": "250px"}}, "6f53293c9a194161868cd5fc6528ba91": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}}, "version_major": 2, "version_minor": 0}
+</script></section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="files.html" class="btn btn-neutral float-left" title="Files-Based Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mapping_parse_example.html" class="btn btn-neutral float-right" title="MappingParser Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

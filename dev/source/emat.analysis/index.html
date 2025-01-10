@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analysis &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Scatter Plot Matrix" href="splom.html" />
+    <link rel="prev" title="Database Walkthrough" href="../emat.database/database-walkthrough.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="splom.html">Scatter Plot Matrix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="corruption.html">Identifying Model Problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interactive-explorer-v2.html">Interactive Visualizer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#scenario-discovery">Scenario Discovery</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="feature-scoring.html">Feature Scoring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prim.html">PRIM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cart.html">CART</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#directed-search">Directed Search</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="policy-contrast.html">Policy Contrast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimization.html">Optimization Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimization.html#Mechanics-of-Using-Optimization">Mechanics of Using Optimization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.analysis/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="analysis">
+<h1>Analysis<a class="headerlink" href="#analysis" title="Link to this heading">¶</a></h1>
+<section id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Link to this heading">¶</a></h2>
+<p>Visualization tools are an important part of the exploratory
+modeling process.  They allow analysts and other stakeholders
+to conceptualize the potentially complex relationships represented
+in transportation models.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="splom.html">Scatter Plot Matrix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="splom.html#Contrasting-Sets-of-Experiments">Contrasting Sets of Experiments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splom.html#Scatter-Plot-Matrix-API">Scatter Plot Matrix API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="splom.html#emat.analysis.display_experiments"><code class="docutils literal notranslate"><span class="pre">display_experiments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="splom.html#emat.analysis.contrast_experiments"><code class="docutils literal notranslate"><span class="pre">contrast_experiments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="splom.html#emat.viz.scatter_graphs"><code class="docutils literal notranslate"><span class="pre">scatter_graphs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="splom.html#emat.viz.scatter_graphs_2"><code class="docutils literal notranslate"><span class="pre">scatter_graphs_2()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="corruption.html">Identifying Model Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-explorer-v2.html">Interactive Visualizer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="interactive-explorer-v2.html#single-dimension-figures">Single Dimension Figures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interactive-explorer-v2.html#changing-selections">Changing Selections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interactive-explorer-v2.html#two-dimension-figures">Two Dimension Figures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interactive-explorer-v2.html#dynamic-feature-scoring">Dynamic Feature Scoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interactive-explorer-v2.html#interactive-prim">Interactive PRIM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interactive-explorer-v2.html#visualizer-api">Visualizer API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer"><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.set_active_selection_color"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_active_selection_color()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.three_way"><code class="docutils literal notranslate"><span class="pre">Visualizer.three_way()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="interactive-explorer-v2.html#manipulating-selections">Manipulating Selections</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.add_box"><code class="docutils literal notranslate"><span class="pre">Visualizer.add_box()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.new_box"><code class="docutils literal notranslate"><span class="pre">Visualizer.new_box()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.clear_box"><code class="docutils literal notranslate"><span class="pre">Visualizer.clear_box()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.new_selection"><code class="docutils literal notranslate"><span class="pre">Visualizer.new_selection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="interactive-explorer-v2.html#single-dimension-views">Single Dimension Views</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.complete"><code class="docutils literal notranslate"><span class="pre">Visualizer.complete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.status"><code class="docutils literal notranslate"><span class="pre">Visualizer.status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.selectors"><code class="docutils literal notranslate"><span class="pre">Visualizer.selectors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.lever_selectors"><code class="docutils literal notranslate"><span class="pre">Visualizer.lever_selectors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.uncertainty_selectors"><code class="docutils literal notranslate"><span class="pre">Visualizer.uncertainty_selectors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.measure_selectors"><code class="docutils literal notranslate"><span class="pre">Visualizer.measure_selectors()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="interactive-explorer-v2.html#multi-dimension-views">Multi Dimension Views</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.two_way"><code class="docutils literal notranslate"><span class="pre">Visualizer.two_way()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.TwoWayFigure"><code class="docutils literal notranslate"><span class="pre">TwoWayFigure</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.splom"><code class="docutils literal notranslate"><span class="pre">Visualizer.splom()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.hmm"><code class="docutils literal notranslate"><span class="pre">Visualizer.hmm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.parcoords"><code class="docutils literal notranslate"><span class="pre">Visualizer.parcoords()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="interactive-explorer-v2.html#analytical-tools">Analytical Tools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.prim"><code class="docutils literal notranslate"><span class="pre">Visualizer.prim()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="interactive-explorer-v2.html#emat.analysis.Visualizer.selection_feature_scores"><code class="docutils literal notranslate"><span class="pre">Visualizer.selection_feature_scores()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="scenario-discovery">
+<h2>Scenario Discovery<a class="headerlink" href="#scenario-discovery" title="Link to this heading">¶</a></h2>
+<p>Scenario discovery in exploratory modeling is focused on finding
+scenarios that are interesting to the user.
+The process generally begins through the identification
+of particular outcomes that are “of interest”, and then discovering
+what factor or combination of factors can result in those outcomes.
+There are a variety of methods to use for scenario discovery.
+We illustrate a few here.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="feature-scoring.html">Feature Scoring</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="feature-scoring.html#Road-Test-Feature-Scores">Road Test Feature Scores</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature-scoring.html#Interpreting-Feature-Scores">Interpreting Feature Scores</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature-scoring.html#Threshold-Scoring">Threshold Scoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature-scoring.html#Feature-Scoring-API">Feature Scoring API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="feature-scoring.html#emat.analysis.feature_scoring.feature_scores"><code class="docutils literal notranslate"><span class="pre">feature_scores()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="feature-scoring.html#emat.analysis.feature_scoring.threshold_feature_scores"><code class="docutils literal notranslate"><span class="pre">threshold_feature_scores()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="prim.html">PRIM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="prim.html#The-Mechanics-of-using-PRIM">The Mechanics of using PRIM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prim.html#Non-Rectangular-Boxes">Non-Rectangular Boxes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prim.html#PRIM-API">PRIM API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="prim.html#emat.analysis.Prim"><code class="docutils literal notranslate"><span class="pre">Prim</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.Prim.boxes"><code class="docutils literal notranslate"><span class="pre">Prim.boxes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.Prim.boxes_to_dataframe"><code class="docutils literal notranslate"><span class="pre">Prim.boxes_to_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.Prim.determine_coi"><code class="docutils literal notranslate"><span class="pre">Prim.determine_coi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.Prim.find_box"><code class="docutils literal notranslate"><span class="pre">Prim.find_box()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.Prim.show_boxes"><code class="docutils literal notranslate"><span class="pre">Prim.show_boxes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.Prim.stats"><code class="docutils literal notranslate"><span class="pre">Prim.stats</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.Prim.stats_to_dataframe"><code class="docutils literal notranslate"><span class="pre">Prim.stats_to_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.Prim.to_emat_boxes"><code class="docutils literal notranslate"><span class="pre">Prim.to_emat_boxes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.Prim.tradeoff_selector"><code class="docutils literal notranslate"><span class="pre">Prim.tradeoff_selector()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="prim.html#emat.analysis.PrimBox"><code class="docutils literal notranslate"><span class="pre">PrimBox</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.box_number"><code class="docutils literal notranslate"><span class="pre">PrimBox.box_number()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.drop_restriction"><code class="docutils literal notranslate"><span class="pre">PrimBox.drop_restriction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.explore"><code class="docutils literal notranslate"><span class="pre">PrimBox.explore()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.hmm"><code class="docutils literal notranslate"><span class="pre">PrimBox.hmm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.inspect"><code class="docutils literal notranslate"><span class="pre">PrimBox.inspect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.resample"><code class="docutils literal notranslate"><span class="pre">PrimBox.resample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.select"><code class="docutils literal notranslate"><span class="pre">PrimBox.select()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.show_pairs_scatter"><code class="docutils literal notranslate"><span class="pre">PrimBox.show_pairs_scatter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.show_ppt"><code class="docutils literal notranslate"><span class="pre">PrimBox.show_ppt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.show_tradeoff"><code class="docutils literal notranslate"><span class="pre">PrimBox.show_tradeoff()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.splom"><code class="docutils literal notranslate"><span class="pre">PrimBox.splom()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.to_emat_box"><code class="docutils literal notranslate"><span class="pre">PrimBox.to_emat_box()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.to_json"><code class="docutils literal notranslate"><span class="pre">PrimBox.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.tradeoff_selector"><code class="docutils literal notranslate"><span class="pre">PrimBox.tradeoff_selector()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.update"><code class="docutils literal notranslate"><span class="pre">PrimBox.update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="prim.html#emat.analysis.PrimBox.write_ppt_to_stdout"><code class="docutils literal notranslate"><span class="pre">PrimBox.write_ppt_to_stdout()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cart.html">CART</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cart.html#The-Mechanics-of-using-CART">The Mechanics of using CART</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cart.html#CART-API">CART API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cart.html#emat.analysis.CART"><code class="docutils literal notranslate"><span class="pre">CART</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cart.html#emat.analysis.CART.boxes"><code class="docutils literal notranslate"><span class="pre">CART.boxes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cart.html#emat.analysis.CART.boxes_to_dataframe"><code class="docutils literal notranslate"><span class="pre">CART.boxes_to_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cart.html#emat.analysis.CART.build_tree"><code class="docutils literal notranslate"><span class="pre">CART.build_tree()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cart.html#emat.analysis.CART.select"><code class="docutils literal notranslate"><span class="pre">CART.select()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cart.html#emat.analysis.CART.show_boxes"><code class="docutils literal notranslate"><span class="pre">CART.show_boxes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cart.html#emat.analysis.CART.show_tree"><code class="docutils literal notranslate"><span class="pre">CART.show_tree()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cart.html#emat.analysis.CART.stats"><code class="docutils literal notranslate"><span class="pre">CART.stats</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cart.html#emat.analysis.CART.stats_to_dataframe"><code class="docutils literal notranslate"><span class="pre">CART.stats_to_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cart.html#emat.analysis.CART.tree_chooser"><code class="docutils literal notranslate"><span class="pre">CART.tree_chooser()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="directed-search">
+<h2>Directed Search<a class="headerlink" href="#directed-search" title="Link to this heading">¶</a></h2>
+<p>The scenario discovery tools outlined above are focused on
+exploring parameters and outcomes across a pre-set sample of
+model runs.  This sample can be small or quite large, but the
+tools only consider cases that have already been evaluated.
+In directed search, we transition to tools that will propose
+and execute <em>new</em> cases.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="policy-contrast.html">Policy Contrast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html#Multi-Objective-Optimization">Multi-Objective Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html#Robust-Optimization">Robust Optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimization.html#Robustness-Functions">Robustness Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html#Mechanics-of-Using-Optimization">Mechanics of Using Optimization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html#Policy-Optimization:-Search-over-Levers">Policy Optimization: Search over Levers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html#Worst-Case-Discovery:-Search-over-Uncertainties">Worst Case Discovery: Search over Uncertainties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html#Using-Robust-Optimization">Using Robust Optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimization.html#Constraints">Constraints</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../emat.database/database-walkthrough.html" class="btn btn-neutral float-left" title="Database Walkthrough" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="splom.html" class="btn btn-neutral float-right" title="Scatter Plot Matrix" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

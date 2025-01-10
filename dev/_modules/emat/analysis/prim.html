@@ -1,0 +1,674 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.analysis.prim &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.analysis.prim</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.analysis.prim</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">operator</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..workbench.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">prim</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..workbench.analysis.scenario_discovery_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleInductionType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..workbench.analysis.prim_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">PrimException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..scope.box</span><span class="w"> </span><span class="kn">import</span> <span class="n">Box</span><span class="p">,</span> <span class="n">Bounds</span><span class="p">,</span> <span class="n">Boxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..scope.scope</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scope</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.discovery</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScenarioDiscoveryMixin</span>
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">graph_objects</span> <span class="k">as</span> <span class="n">go</span>
+
+<div class="viewcode-block" id="Prim">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.Prim">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Prim</span><span class="p">(</span><span class="n">prim</span><span class="o">.</span><span class="n">Prim</span><span class="p">,</span> <span class="n">ScenarioDiscoveryMixin</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Patient rule induction method</span>
+
+<span class="sd">    This implementation of Prim is derived from</span>
+<span class="sd">    the EMA workbench, and is enhanced to work</span>
+<span class="sd">    interactively within the TMIP-EMAT framework.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (pandas.DataFrame):</span>
+<span class="sd">            The independent variables, generally the</span>
+<span class="sd">            scoped input parameters (uncertainties</span>
+<span class="sd">            and/or policy levers) from a design of</span>
+<span class="sd">            experiments.</span>
+<span class="sd">        y (array-like):</span>
+<span class="sd">            The dependent variable, generally a</span>
+<span class="sd">            pandas.Series or other one dimensional</span>
+<span class="sd">            array with size equal to the number of</span>
+<span class="sd">            rows in `x`.</span>
+<span class="sd">        threshold (float):</span>
+<span class="sd">            The density threshold that a box must meet.</span>
+<span class="sd">        obj_function ({LENIENT1, LENIENT2, ORIGINAL}):</span>
+<span class="sd">            The objective function used by PRIM. This</span>
+<span class="sd">            defaults to a lenient objective function</span>
+<span class="sd">            based on the gain of mean divided by the</span>
+<span class="sd">            loss of mass.</span>
+<span class="sd">        peel_alpha (float, default 0.05):</span>
+<span class="sd">            The parameter controlling the peeling stage.</span>
+<span class="sd">        paste_alpha (float, default 0.05):</span>
+<span class="sd">            The parameter controlling the pasting stage.</span>
+<span class="sd">        mass_min (float, default 0.05):</span>
+<span class="sd">            The minimum mass of a box.</span>
+<span class="sd">        threshold_type ({ABOVE, BELOW}):</span>
+<span class="sd">            Whether to look above or below the threshold</span>
+<span class="sd">            value.</span>
+<span class="sd">        mode (RuleInductionType):</span>
+<span class="sd">            This PRIM implementation defaults to binary</span>
+<span class="sd">            classification, but this argument can be used</span>
+<span class="sd">            to switch to regression mode.  In binary mode,</span>
+<span class="sd">            the `y` array should only have binary values,</span>
+<span class="sd">            while in regression mode it can contain other</span>
+<span class="sd">            floating point values.</span>
+<span class="sd">        update_function ({&#39;default&#39;, &#39;guivarch&#39;}):</span>
+<span class="sd">            The default behavior for this algorithm</span>
+<span class="sd">            after finding the first box is to</span>
+<span class="sd">            remove all points in the first box,</span>
+<span class="sd">            so that subsequent boxes do not include</span>
+<span class="sd">            them.  An alternate procedure suggested by</span>
+<span class="sd">            Guivarch et al (2016)</span>
+<span class="sd">            doi:10.1016/j.envsoft.2016.03.006 is to simply</span>
+<span class="sd">            set all points in the first box to be no longer</span>
+<span class="sd">            of interest. This alternate procedure is only</span>
+<span class="sd">            valid in binary mode.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Prim.find_box">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.Prim.find_box">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute one iteration of the PRIM algorithm.</span>
+
+<span class="sd">        This method will find one box, starting from the</span>
+<span class="sd">        current state of Prim (i.e., over all observations</span>
+<span class="sd">        that are not already within a previously selected</span>
+<span class="sd">        PrimBox).  All existing boxes will be &quot;frozen&quot; by</span>
+<span class="sd">        this command, so that those prior boxes can no</span>
+<span class="sd">        longer be modified by their `select` methods or</span>
+<span class="sd">        from within their `tradeoff_selector`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            emat.analysis.PrimBox</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">primbox</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">find_box</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">primbox</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">primbox</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">PrimBox</span>
+        <span class="n">prim_explorer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_explorer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">prim_explorer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.explore_2.explore_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
+            <span class="n">subdata</span> <span class="o">=</span> <span class="n">prim_explorer</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">primbox</span><span class="o">.</span><span class="n">yi_initial</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subdata</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prim_explorer</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+                <span class="c1"># Generally, second and later boxes get new subvisualizers</span>
+                <span class="n">primbox</span><span class="o">.</span><span class="n">_explorer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span>
+                    <span class="n">subdata</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                    <span class="n">scope</span><span class="o">=</span><span class="n">prim_explorer</span><span class="o">.</span><span class="n">scope</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">primbox</span><span class="o">.</span><span class="n">_explorer</span> <span class="o">=</span> <span class="n">prim_explorer</span>
+        <span class="n">primbox</span><span class="o">.</span><span class="n">_target_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_target_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">primbox</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">primbox</span><span class="o">.</span><span class="n">_cur_box</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">primbox</span></div>
+
+
+<div class="viewcode-block" id="Prim.tradeoff_selector">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.Prim.tradeoff_selector">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tradeoff_selector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">figure_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize the trade off between coverage and density.</span>
+
+<span class="sd">        This visualization plots all of the points along</span>
+<span class="sd">        the peeling trajectory for the selected `PrimBox`,</span>
+<span class="sd">        plotting coverage along the x axis, density along the</span>
+<span class="sd">        y axis, and showing the number of restricted dimensions</span>
+<span class="sd">        by color.</span>
+
+<span class="sd">        Coverage is percentage of the cases of interest that</span>
+<span class="sd">        are in the box (i.e., number of cases of interest in</span>
+<span class="sd">        the box divided by total number of cases of interest).</span>
+<span class="sd">        The starting point of the PRIM algorithm is the</span>
+<span class="sd">        unrestricted full set of cases, which includes all</span>
+<span class="sd">        outcomes of interest, and therefore, the coverage starts</span>
+<span class="sd">        at 1.0 and drops as the algorithm progresses.</span>
+
+<span class="sd">        Density is the share of cases in the box that are case</span>
+<span class="sd">        of interest (i.e., number of cases of interest in the</span>
+<span class="sd">        box divided by the total number of cases in the box).</span>
+<span class="sd">        As the box is reduced, the density will increase (as</span>
+<span class="sd">        that is the objective of the PRIM algorithm).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n (int, optional):</span>
+<span class="sd">                The index number of the PrimBox to use.  If not</span>
+<span class="sd">                given, the last found box is used.  If no boxes</span>
+<span class="sd">                have been found yet, an initial box is found</span>
+<span class="sd">                using the `find_box` method, and in this case</span>
+<span class="sd">                giving any value other than -1 will raise an error.</span>
+<span class="sd">            colorscale (str, default &#39;viridis&#39;):</span>
+<span class="sd">                A valid color scale name, as compatible with the</span>
+<span class="sd">                color_palette method in seaborn.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            plotly.FigureWidget</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boxes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_box</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">box</span><span class="o">.</span><span class="n">tradeoff_selector</span><span class="p">(</span><span class="n">colorscale</span><span class="o">=</span><span class="n">colorscale</span><span class="p">,</span> <span class="n">figure_class</span><span class="o">=</span><span class="n">figure_class</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boxes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_box</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">box</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">explorer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">explorer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_explorer</span> <span class="o">=</span> <span class="n">explorer</span>
+        <span class="k">elif</span> <span class="n">explorer</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_explorer</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_explorer</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;scope&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">scope</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">scope</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">scope</span>
+            <span class="k">if</span> <span class="n">scope</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.explore_2.explore_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_explorer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">)</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_discrete_color_scale</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">colorlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">thiscolor_s</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;rgb(</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">255</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">255</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="mi">255</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="n">colorlist</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="o">/</span><span class="n">n</span><span class="p">,</span> <span class="n">thiscolor_s</span><span class="p">])</span>
+        <span class="n">colorlist</span><span class="o">.</span><span class="n">append</span><span class="p">([(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">n</span><span class="p">,</span> <span class="n">thiscolor_s</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">colorlist</span>
+
+
+<div class="viewcode-block" id="PrimBox">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.PrimBox">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PrimBox</span><span class="p">(</span><span class="n">prim</span><span class="o">.</span><span class="n">PrimBox</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Information for a specific Prim box.</span>
+
+<span class="sd">    By default, the currently selected box</span>
+<span class="sd">    is the last box on the peeling trajectory,</span>
+<span class="sd">    unless this is changed via :meth:`PrimBox.select`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PrimBox.box_number">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.PrimBox.box_number">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">box_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The number of PRIM iterations up to and including this PrimBox.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prim</span><span class="o">.</span><span class="n">_boxes</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">n</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="PrimBox.to_emat_box">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.PrimBox.to_emat_box">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_emat_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">src_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the current PrimBox to a standard emat.Box.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            emat.Box</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cur_box</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;PRIM Box </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">box_number</span><span class="p">()</span><span class="si">}</span><span class="s1"> Peel </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">if</span> <span class="n">src_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; [</span><span class="si">{</span><span class="n">src_name</span><span class="si">}</span><span class="s2">]&quot;</span>
+
+        <span class="n">limits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_lims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">b</span> <span class="o">=</span> <span class="n">Box</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">limits</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prim</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">pandas</span><span class="o">.</span><span class="n">CategoricalDtype</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prim</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span><span class="p">)</span> <span class="o">!=</span> <span class="n">limits</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">b</span><span class="o">.</span><span class="n">replace_allowed_set</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">limits</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">limits</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prim</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">():</span>
+                    <span class="n">b</span><span class="o">.</span><span class="n">set_lower_bound</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">limits</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">limits</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prim</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">():</span>
+                    <span class="n">b</span><span class="o">.</span><span class="n">set_upper_bound</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">limits</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">coverage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peeling_trajectory</span><span class="p">[</span><span class="s1">&#39;coverage&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">density</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peeling_trajectory</span><span class="p">[</span><span class="s1">&#39;density&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peeling_trajectory</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">b</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cur_box</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> peel </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peeling_trajectory</span><span class="p">)</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
+
+        <span class="c1"># make the box definition</span>
+        <span class="n">qp_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">uncs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">qp_values</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="n">uncs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">uncs</span> <span class="o">=</span> <span class="p">[</span><span class="n">uncs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">uncs</span> <span class="ow">in</span> <span class="n">uncs</span><span class="p">]</span>
+        <span class="n">box_lim</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span> <span class="n">index</span><span class="o">=</span><span class="n">uncs</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">,</span><span class="s1">&#39;max&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">unc</span> <span class="ow">in</span> <span class="n">uncs</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_lims</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">unc</span><span class="p">]</span>
+            <span class="n">box_lim</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">unc</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">   coverage: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">coverage</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">   density:  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">   mean: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">   mass: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">   restricted dims: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">res_dim</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">box_lim</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">head</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">     &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">box_lim</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">     &quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">head</span>
+
+<div class="viewcode-block" id="PrimBox.to_json">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.PrimBox.to_json">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write out the current PrimBox in json format.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peeling_trajectory</span><span class="p">)):</span>
+            <span class="n">state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_make_tradeoff_selector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s1">&#39;cividis&#39;</span><span class="p">,</span> <span class="n">figure_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize the trade off between coverage and density. Color</span>
+<span class="sd">        is used to denote the number of restricted dimensions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            colorscale (str, default &#39;cividis&#39;):</span>
+<span class="sd">                A valid seaborn color scale name.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            plotly.FigureWidget</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">peeling_trajectory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peeling_trajectory</span>
+
+        <span class="n">hovertext</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">peeling_trajectory</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">figure_class</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">figure_class</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">FigureWidget</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">figure_class</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">peeling_trajectory</span><span class="p">)):</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span><span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
+            <span class="n">hovertext</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&lt;span style=&quot;font-family:Consolas,monospace&quot;&gt;</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s1">&lt;/span&gt;&#39;</span>
+
+        <span class="n">n_colors</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">peeling_trajectory</span><span class="p">[</span><span class="s1">&#39;res_dim&#39;</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span>
+        <span class="n">color_scale_</span> <span class="o">=</span> <span class="n">_discrete_color_scale</span><span class="p">(</span><span class="n">colorscale</span><span class="p">,</span> <span class="n">n_colors</span><span class="p">)</span>
+        <span class="n">colortickvals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">n_colors</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_colors</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">n_colors</span>
+        <span class="n">colorticktext</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_colors</span><span class="p">)]</span>
+
+        <span class="n">symbols</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">peeling_trajectory</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">symbols</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cur_box</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span> <span class="c1"># cross</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">peeling_trajectory</span><span class="p">),</span> <span class="mi">6</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">sizes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cur_box</span><span class="p">]</span> <span class="o">=</span> <span class="mi">9</span>
+
+        <span class="n">scatter</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">peeling_trajectory</span><span class="p">[</span><span class="s1">&#39;coverage&#39;</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">peeling_trajectory</span><span class="p">[</span><span class="s1">&#39;density&#39;</span><span class="p">],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">peeling_trajectory</span><span class="p">[</span><span class="s1">&#39;res_dim&#39;</span><span class="p">],</span>
+                <span class="n">colorscale</span><span class="o">=</span><span class="n">color_scale_</span><span class="p">,</span>
+                <span class="n">showscale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">colorbar</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Number of Restricted Dimensions&quot;</span><span class="p">,</span>
+                    <span class="n">titleside</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span>
+                    <span class="n">tickmode</span><span class="o">=</span><span class="s2">&quot;array&quot;</span><span class="p">,</span>
+                    <span class="n">tickvals</span><span class="o">=</span><span class="n">colortickvals</span><span class="p">,</span>
+                    <span class="n">ticktext</span><span class="o">=</span><span class="n">colorticktext</span><span class="p">,</span>
+                    <span class="n">ticks</span><span class="o">=</span><span class="s2">&quot;outside&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">symbol</span><span class="o">=</span><span class="n">symbols</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">sizes</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">hovertext</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+            <span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
+            <span class="n">xaxis_title_text</span><span class="o">=</span><span class="s1">&#39;Coverage&#39;</span><span class="p">,</span>
+            <span class="n">yaxis_title_text</span><span class="o">=</span><span class="s1">&#39;Density&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># create callback function</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">select_point</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">selector</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">points</span><span class="o">.</span><span class="n">point_inds</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">scatter</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">select_point</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span>
+
+<div class="viewcode-block" id="PrimBox.tradeoff_selector">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.PrimBox.tradeoff_selector">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tradeoff_selector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">figure_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Visualize the trade off between coverage and density.</span>
+
+<span class="sd">        This visualization plots all of the points along</span>
+<span class="sd">        the peeling trajectory for this `PrimBox`,</span>
+<span class="sd">        plotting coverage along the x axis, density along the</span>
+<span class="sd">        y axis, and showing the number of restricted dimensions</span>
+<span class="sd">        by color.</span>
+
+<span class="sd">        Coverage is percentage of the cases of interest that</span>
+<span class="sd">        are in the box (i.e., number of cases of interest in</span>
+<span class="sd">        the box divided by total number of cases of interest).</span>
+<span class="sd">        The starting point of the PRIM algorithm is the</span>
+<span class="sd">        unrestricted full set of cases, which includes all</span>
+<span class="sd">        outcomes of interest, and therefore, the coverage starts</span>
+<span class="sd">        at 1.0 and drops as the algorithm progresses.</span>
+
+<span class="sd">        Density is the share of cases in the box that are case</span>
+<span class="sd">        of interest (i.e., number of cases of interest in the</span>
+<span class="sd">        box divided by the total number of cases in the box).</span>
+<span class="sd">        As the box is reduced, the density will increase (as</span>
+<span class="sd">        that is the objective of the PRIM algorithm).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        colorscale : str, default &#39;viridis&#39;</span>
+<span class="sd">            A valid color scale name, as compatible with the</span>
+<span class="sd">            color_palette method in seaborn.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        FigureWidget</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_tradeoff_widget&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tradeoff_widget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_tradeoff_selector</span><span class="p">(</span>
+                <span class="n">colorscale</span><span class="o">=</span><span class="n">colorscale</span><span class="p">,</span>
+                <span class="n">figure_class</span><span class="o">=</span><span class="n">figure_class</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tradeoff_widget</span></div>
+
+
+<div class="viewcode-block" id="PrimBox.select">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.PrimBox.select">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Select an entry from the peeling and pasting trajectory.</span>
+
+<span class="sd">        This will update the PRIM box to this selected box, as</span>
+<span class="sd">        well as update the `tradeoff_selector` and `explorer`,</span>
+<span class="sd">        if either is attached to this PrimBox.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i (int):</span>
+<span class="sd">                The index of the box to select.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">PrimBox</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">PrimException</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">widget</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_tradeoff_widget&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">widget</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">symbols</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peeling_trajectory</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+                <span class="n">symbols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># cross</span>
+                <span class="n">sizes</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">peeling_trajectory</span><span class="p">),</span> <span class="mi">6</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+                <span class="n">sizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">9</span>
+                <span class="n">widget</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;marker&#39;</span><span class="p">][</span><span class="s1">&#39;symbol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">symbols</span>
+                <span class="n">widget</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;marker&#39;</span><span class="p">][</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sizes</span>
+            <span class="n">explorer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_explorer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">explorer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.explore_2.explore_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrameExplorerBase</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">explorer</span><span class="p">,</span> <span class="n">DataFrameExplorerBase</span><span class="p">):</span>
+                    <span class="n">name_t</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;PRIM Box </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">box_number</span><span class="p">()</span><span class="si">}</span><span class="s2"> Target [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_target_name</span><span class="si">}</span><span class="s2">]&quot;</span>
+                    <span class="n">name_s</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;PRIM Box </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">box_number</span><span class="p">()</span><span class="si">}</span><span class="s2"> Solution [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_target_name</span><span class="si">}</span><span class="s2">]&quot;</span>
+                    <span class="n">explorer</span><span class="o">.</span><span class="n">new_selection</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span>
+                        <span class="n">name</span><span class="o">=</span><span class="n">name_t</span><span class="p">,</span>
+                        <span class="n">activate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">explorer</span><span class="o">.</span><span class="n">new_selection</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">(),</span>
+                        <span class="n">name</span><span class="o">=</span><span class="n">name_s</span><span class="p">,</span>
+                        <span class="n">activate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">explorer</span><span class="o">.</span><span class="n">active_selection_name</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">name_t</span><span class="p">,</span> <span class="n">name_s</span><span class="p">):</span>
+                        <span class="n">explorer</span><span class="o">.</span><span class="n">set_active_selection_name</span><span class="p">(</span><span class="n">name_t</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">explorer</span><span class="o">.</span><span class="n">set_active_selection_name</span><span class="p">(</span>
+                            <span class="n">explorer</span><span class="o">.</span><span class="n">active_selection_name</span><span class="p">(),</span>
+                            <span class="n">force_update</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># for old explorer interface</span>
+                    <span class="n">explorer</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="PrimBox.explore">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.PrimBox.explore">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">explore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create or access the existing visualizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            scope (Scope, optional):</span>
+<span class="sd">                Override the exploratory scope for this Box.</span>
+<span class="sd">            data (DataFrame, optional):</span>
+<span class="sd">                Override the data for this Box.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            emat.Visualizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_explorer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.explore_2.explore_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prim</span><span class="o">.</span><span class="n">x</span>
+            <span class="k">if</span> <span class="n">scope</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">scope</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;scope&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">scope</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;failed to initialize visualizer, cannot find scope&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_explorer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_explorer</span><span class="p">[</span><span class="s2">&quot;PRIM Target&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_explorer</span></div>
+
+
+<div class="viewcode-block" id="PrimBox.splom">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.PrimBox.splom">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">splom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a scatter plot matrix showing this PrimBox.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rows, cols (list-like, optional):</span>
+<span class="sd">                The dimensions to display as rows and columns of the</span>
+<span class="sd">                resulting scatter plot matrix.  If not provided, each</span>
+<span class="sd">                defaults to the set of restricted dimensions on the</span>
+<span class="sd">                current CartBox.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            plotly.FigureWidget</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">rows</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">()</span><span class="o">.</span><span class="n">demanded_features</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">()</span><span class="o">.</span><span class="n">demanded_features</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">explore</span><span class="p">()</span><span class="o">.</span><span class="n">splom</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rows</span><span class="si">}</span><span class="s2">|</span><span class="si">{</span><span class="n">cols</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span>
+            <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="PrimBox.hmm">
+<a class="viewcode-back" href="../../../source/emat.analysis/prim.html#emat.analysis.PrimBox.hmm">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hmm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a heatmap matrix showing this CartBox.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rows, cols (list-like, optional):</span>
+<span class="sd">                The dimensions to display as rows and columns of the</span>
+<span class="sd">                resulting heatmap matrix.  If not provided, each</span>
+<span class="sd">                defaults to the set of restricted dimensions on the</span>
+<span class="sd">                current CartBox.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            plotly.FigureWidget</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">rows</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">()</span><span class="o">.</span><span class="n">demanded_features</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">()</span><span class="o">.</span><span class="n">demanded_features</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">explore</span><span class="p">()</span><span class="o">.</span><span class="n">hmm</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rows</span><span class="si">}</span><span class="s2">|</span><span class="si">{</span><span class="n">cols</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span>
+            <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

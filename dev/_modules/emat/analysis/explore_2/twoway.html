@@ -1,0 +1,1036 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.analysis.explore_2.twoway &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/thebelab.css" />
+
+  
+      <script src="../../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.analysis.explore_2.twoway</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.analysis.explore_2.twoway</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly.callbacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoxSelector</span><span class="p">,</span> <span class="n">LassoSelector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ipywidgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">HBox</span><span class="p">,</span> <span class="n">VBox</span><span class="p">,</span> <span class="n">Dropdown</span><span class="p">,</span> <span class="n">Label</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Output</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">colors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...util.naming</span><span class="w"> </span><span class="kn">import</span> <span class="n">clean_name</span><span class="p">,</span> <span class="n">multiindex_to_strings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.explore_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.menu</span><span class="w"> </span><span class="kn">import</span> <span class="n">Menu</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;EMAT.widget&#39;</span><span class="p">)</span>
+
+<span class="c1"># def _debugprint(s):</span>
+<span class="c1"># 	print(s.replace(&quot;rgb(255, 127, 14)&quot;, &quot;&lt;ORANGE&gt;&quot;).replace(&quot;rgb(255, 46, 241)&quot;,&quot;&lt;PINK&gt;&quot;))</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseTwoWayFigure</span><span class="p">():</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+			<span class="bp">self</span><span class="p">,</span>
+			<span class="n">viz</span><span class="p">,</span>
+	<span class="p">):</span>
+		<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="n">Visualizer</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span> <span class="o">=</span> <span class="n">viz</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">scope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">scope</span>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">selection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">active_selection</span><span class="p">()</span>
+
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_get_sectional_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+		<span class="n">scope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scope</span>
+		<span class="n">uncs</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_uncertainty_names</span><span class="p">()</span>
+		<span class="n">levs</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_lever_names</span><span class="p">()</span>
+		<span class="n">cons</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_constant_names</span><span class="p">()</span>
+		<span class="n">meas</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">()</span>
+
+		<span class="n">c_uncs</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">c_levs</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">c_cons</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">c_meas</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">c_other</span> <span class="o">=</span> <span class="p">[]</span>
+
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">uncs</span><span class="p">:</span>
+				<span class="n">c_uncs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">levs</span><span class="p">:</span>
+				<span class="n">c_levs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cons</span><span class="p">:</span>
+				<span class="n">c_cons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">meas</span><span class="p">:</span>
+				<span class="n">c_meas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">c_other</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+		<span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_uncs</span><span class="p">):</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-- (X) Uncertainties --&quot;</span><span class="p">)</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">c_uncs</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_levs</span><span class="p">):</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-- (L) Levers --&quot;</span><span class="p">)</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">c_levs</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_cons</span><span class="p">):</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-- Constants --&quot;</span><span class="p">)</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">c_cons</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_meas</span><span class="p">):</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-- (M) Measures --&quot;</span><span class="p">)</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">c_meas</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_other</span><span class="p">):</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-- Other --&quot;</span><span class="p">)</span>
+			<span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">c_other</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">result</span>
+
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_get_shortname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">name</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="o">.</span><span class="n">shortname</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_manage_categorical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">perturb</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">valid_scales</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">]</span>
+			<span class="n">x_categories</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="n">x_ticktext</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="n">x_tickvals</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+				<span class="n">x</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">bool_</span><span class="p">):</span>
+					<span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;category&#39;</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+				<span class="k">pass</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">CategoricalDtype</span><span class="p">):</span>
+				<span class="n">x_categories</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span>
+				<span class="n">codes</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">codes</span>
+				<span class="n">x</span> <span class="o">=</span> <span class="n">codes</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+				<span class="n">s_</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span> <span class="o">*</span> <span class="mf">0.01</span>
+				<span class="n">s_</span> <span class="o">=</span> <span class="n">s_</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">s_</span><span class="p">)</span>
+				<span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.05</span> <span class="o">+</span> <span class="mf">0.20</span> <span class="o">*</span> <span class="n">s_</span>
+				<span class="k">if</span> <span class="n">perturb</span><span class="p">:</span>
+					<span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+				<span class="n">x_tickmode</span> <span class="o">=</span> <span class="s1">&#39;array&#39;</span>
+				<span class="n">x_ticktext</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">x_categories</span><span class="p">)</span>
+				<span class="n">x_tickvals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_ticktext</span><span class="p">)))</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+					<span class="n">valid_scales</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+			<span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_ticktext</span><span class="p">,</span> <span class="n">x_tickvals</span><span class="p">,</span> <span class="n">valid_scales</span>
+		<span class="k">except</span><span class="p">:</span>
+			<span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;ERROR IN _manage_categorical&#39;</span><span class="p">)</span>
+			<span class="k">raise</span>
+
+<div class="viewcode-block" id="TwoWayFigure">
+<a class="viewcode-back" href="../../../../source/emat.analysis/interactive-explorer-v2.html#emat.analysis.TwoWayFigure">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TwoWayFigure</span><span class="p">(</span><span class="n">HBox</span><span class="p">,</span> <span class="n">BaseTwoWayFigure</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	The two-way visualizer widget.</span>
+
+<span class="sd">	This class encapsulates a TMIP-EMAT interactive widget</span>
+<span class="sd">	that displays a configurable two dimensional scatter</span>
+<span class="sd">	plot of Visualizer data.  Dropdown menus allow the user</span>
+<span class="sd">	to change the data dimensions displayed on the x and</span>
+<span class="sd">	y axes, as well as create and manipulate new selection</span>
+<span class="sd">	sets directly from the interactive widget.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		viz (emat.Visualizer):</span>
+<span class="sd">			The visualizer object to link for this two-way.</span>
+<span class="sd">		target_marker_opacity (numeric, default 1000):</span>
+<span class="sd">			The number of scatter point markers to display</span>
+<span class="sd">			fully opaque.  If the number of markers displayed</span>
+<span class="sd">			exceeds this value, each marker is rendered</span>
+<span class="sd">			partially transparent, such that the total marker</span>
+<span class="sd">			weight (opacity * number of markers) is loosely</span>
+<span class="sd">			approximate to this total value.</span>
+<span class="sd">		minimum_marker_opacity (float, default 0.25):</span>
+<span class="sd">			This is the minimum marker opacity used,</span>
+<span class="sd">			notwithstanding any transparency level implied</span>
+<span class="sd">			by `target_marker_opacity`.</span>
+<span class="sd">		use_gl (bool, default True):</span>
+<span class="sd">			Use Plotly&#39;s `Scattergl` instead of `Scatter`, which</span>
+<span class="sd">			may provide some performance benefit for large data</span>
+<span class="sd">			sets.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+			<span class="bp">self</span><span class="p">,</span>
+			<span class="n">viz</span><span class="p">,</span>
+			<span class="n">target_marker_opacity</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+			<span class="n">minimum_marker_opacity</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+			<span class="n">use_gl</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+	<span class="p">):</span>
+		<span class="n">BaseTwoWayFigure</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">)</span>
+
+		<span class="n">axis_choices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sectional_names</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_axis_choose</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span>
+			<span class="n">options</span><span class="o">=</span><span class="n">axis_choices</span><span class="p">,</span>
+			<span class="c1"># description=&#39;X Axis&#39;,</span>
+			<span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_axis_scale</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span>
+			<span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;linear&#39;</span> <span class="p">,],</span>
+			<span class="n">value</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_axis_choose</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span>
+			<span class="n">options</span><span class="o">=</span><span class="n">axis_choices</span><span class="p">,</span>
+			<span class="c1"># description=&#39;Y Axis&#39;,</span>
+			<span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_axis_scale</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span>
+			<span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;linear&#39;</span> <span class="p">,],</span>
+			<span class="n">value</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_choose</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span>
+			<span class="n">options</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">selection_names</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;Expr&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+			<span class="n">value</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_edit_menu</span> <span class="o">=</span> <span class="n">Menu</span><span class="p">(</span>
+			<span class="s2">&quot;Edit Selection...&quot;</span><span class="p">,</span>
+			<span class="p">{</span>
+				<span class="s2">&quot;Use Manual Selection&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">_use_manual_selection</span><span class="p">,</span>
+			<span class="p">}</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_expr</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span>
+			<span class="n">value</span><span class="o">=</span><span class="s1">&#39;True&#39;</span><span class="p">,</span>
+			<span class="n">disabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span>
+			<span class="n">value</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+			<span class="n">disabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">axis_choose</span> <span class="o">=</span> <span class="n">VBox</span><span class="p">(</span>
+			<span class="p">[</span>
+				<span class="n">Label</span><span class="p">(</span><span class="s2">&quot;X Axis&quot;</span><span class="p">),</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">x_axis_choose</span><span class="p">,</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">x_axis_scale</span><span class="p">,</span>
+				<span class="n">Label</span><span class="p">(</span><span class="s2">&quot;Y Axis&quot;</span><span class="p">),</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_axis_choose</span><span class="p">,</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_axis_scale</span><span class="p">,</span>
+				<span class="n">Label</span><span class="p">(</span><span class="s2">&quot;Selection&quot;</span><span class="p">),</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">_active_selection_chooser</span><span class="p">,</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">selection_edit_menu</span><span class="p">,</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="p">,</span>
+			<span class="p">],</span>
+			<span class="n">layout</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">overflow</span><span class="o">=</span><span class="s1">&#39;hidden&#39;</span><span class="p">,</span>
+			<span class="p">)</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">minimum_marker_opacity</span> <span class="o">=</span> <span class="n">minimum_marker_opacity</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">target_marker_opacity</span> <span class="o">=</span> <span class="n">target_marker_opacity</span>
+		<span class="n">marker_opacity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_marker_opacity</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+
+		<span class="n">Scatter</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scattergl</span> <span class="k">if</span> <span class="n">use_gl</span> <span class="k">else</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span> <span class="o">=</span> <span class="n">Scatter</span><span class="p">(</span>
+			<span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;markers&#39;</span><span class="p">,</span>
+			<span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">opacity</span><span class="o">=</span><span class="n">marker_opacity</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+				<span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+				<span class="n">colorscale</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_BASE_COLOR</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_HIGHLIGHT_COLOR</span><span class="p">]],</span>
+				<span class="n">cmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+				<span class="n">cmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+			<span class="p">),</span>
+			<span class="n">name</span><span class="o">=</span><span class="s1">&#39;Cases&#39;</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span>
+			<span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="c1"># name=&#39;x density&#39;,</span>
+			<span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_BASE_COLOR</span><span class="p">,</span>
+				<span class="c1"># opacity=0.7,</span>
+			<span class="p">),</span>
+			<span class="n">yaxis</span><span class="o">=</span><span class="s1">&#39;y2&#39;</span><span class="p">,</span>
+			<span class="n">bingroup</span><span class="o">=</span><span class="s1">&#39;xxx&#39;</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span>
+			<span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="c1"># name=&#39;y density&#39;,</span>
+			<span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_BASE_COLOR</span><span class="p">,</span>
+				<span class="c1"># opacity=0.7,</span>
+			<span class="p">),</span>
+			<span class="n">xaxis</span><span class="o">=</span><span class="s1">&#39;x2&#39;</span><span class="p">,</span>
+			<span class="n">bingroup</span><span class="o">=</span><span class="s1">&#39;yyy&#39;</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span>
+			<span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_HIGHLIGHT_COLOR</span><span class="p">,</span>
+				<span class="c1"># opacity=0.7,</span>
+			<span class="p">),</span>
+			<span class="n">yaxis</span><span class="o">=</span><span class="s1">&#39;y2&#39;</span><span class="p">,</span>
+			<span class="n">bingroup</span><span class="o">=</span><span class="s1">&#39;xxx&#39;</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span>
+			<span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_HIGHLIGHT_COLOR</span><span class="p">,</span>
+				<span class="c1"># opacity=0.7,</span>
+			<span class="p">),</span>
+			<span class="n">xaxis</span><span class="o">=</span><span class="s1">&#39;x2&#39;</span><span class="p">,</span>
+			<span class="n">bingroup</span><span class="o">=</span><span class="s1">&#39;yyy&#39;</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">FigureWidget</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+			<span class="n">xaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">domain</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">],</span>
+				<span class="n">showgrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+				<span class="c1"># title=self._df.data.columns[0],</span>
+			<span class="p">),</span>
+			<span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">domain</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">],</span>
+				<span class="n">showgrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+				<span class="c1"># title=self._df.data.columns[-1],</span>
+			<span class="p">),</span>
+
+			<span class="n">xaxis2</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">domain</span><span class="o">=</span><span class="p">[</span><span class="mf">0.85</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+				<span class="n">showgrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+				<span class="n">zeroline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+				<span class="n">zerolinecolor</span><span class="o">=</span><span class="s1">&#39;#FFF&#39;</span><span class="p">,</span>
+				<span class="n">zerolinewidth</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+			<span class="p">),</span>
+			<span class="n">yaxis2</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">domain</span><span class="o">=</span><span class="p">[</span><span class="mf">0.85</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+				<span class="n">showgrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+				<span class="n">zeroline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+				<span class="n">zerolinecolor</span><span class="o">=</span><span class="s1">&#39;#FFF&#39;</span><span class="p">,</span>
+				<span class="n">zerolinewidth</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+			<span class="p">),</span>
+
+			<span class="n">barmode</span><span class="o">=</span><span class="s2">&quot;overlay&quot;</span><span class="p">,</span>
+			<span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+			<span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+			<span class="n">dragmode</span><span class="o">=</span><span class="s2">&quot;lasso&quot;</span><span class="p">,</span>
+			<span class="n">plot_bgcolor</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_PLOT_BACKGROUND_COLOR</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_axis_choose</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_observe_change_column_x</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_axis_choose</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_observe_change_column_y</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_axis_scale</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_observe_change_scale_x</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_axis_scale</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_observe_change_scale_y</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_choose</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_change_selection_choose</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_expr</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_change_selection_expr</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">drawbox</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">multiindex_to_strings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+			<span class="n">hover_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">hover_name</span> <span class="o">=</span> <span class="s2">&quot;Experiment&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">hovertemplate</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;%</span><span class="se">{{</span><span class="s2">xaxis.title.text</span><span class="se">}}</span><span class="s2">: %</span><span class="se">{{</span><span class="s2">x</span><span class="se">}}</span><span class="s2">&lt;br&gt;%</span><span class="se">{{</span><span class="s2">yaxis.title.text</span><span class="se">}}</span><span class="s2">: %</span><span class="se">{{</span><span class="s2">y</span><span class="se">}}</span><span class="s2">&lt;extra&gt;</span><span class="si">{</span><span class="n">hover_name</span><span class="si">}</span><span class="s2"> %</span><span class="se">{{</span><span class="s2">meta</span><span class="se">}}</span><span class="s2">&lt;/extra&gt;&quot;</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">draw_box</span><span class="p">()</span>
+
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+			<span class="p">[</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">axis_choose</span><span class="p">,</span>
+			<span class="p">],</span>
+			<span class="n">layout</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+				<span class="n">align_items</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+			<span class="p">)</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">on_selection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_select_points</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">out_logger</span> <span class="o">=</span> <span class="n">Output</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_update_state_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_compute_marker_opacity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="c1"># if self.selection is None:</span>
+		<span class="c1"># 	marker_opacity = 1.0</span>
+		<span class="c1"># 	if len(self._df.data) &gt; self.target_marker_opacity:</span>
+		<span class="c1"># 		marker_opacity = self.target_marker_opacity / len(self._dfv.data)</span>
+		<span class="c1"># 	if marker_opacity &lt; self.minimum_marker_opacity:</span>
+		<span class="c1"># 		marker_opacity = self.minimum_marker_opacity</span>
+		<span class="c1"># 	return marker_opacity, 1.0</span>
+		<span class="c1"># else:</span>
+		<span class="n">marker_opacity</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+		<span class="n">n_selected</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">active_selection</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+		<span class="n">n_unselect</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">n_selected</span>
+		<span class="k">if</span> <span class="n">n_unselect</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_marker_opacity</span><span class="p">:</span>
+			<span class="n">marker_opacity</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_marker_opacity</span> <span class="o">/</span> <span class="n">n_unselect</span>
+		<span class="k">if</span> <span class="n">marker_opacity</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum_marker_opacity</span><span class="p">:</span>
+			<span class="n">marker_opacity</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum_marker_opacity</span>
+
+		<span class="k">if</span> <span class="n">n_selected</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_marker_opacity</span><span class="p">:</span>
+			<span class="n">marker_opacity</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_marker_opacity</span> <span class="o">/</span> <span class="n">n_selected</span>
+		<span class="k">if</span> <span class="n">marker_opacity</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum_marker_opacity</span><span class="p">:</span>
+			<span class="n">marker_opacity</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum_marker_opacity</span>
+		<span class="k">return</span> <span class="n">marker_opacity</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">_x_data_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">w</span>
+		<span class="k">return</span> <span class="mi">1</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">_y_data_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">w</span>
+		<span class="k">return</span> <span class="mi">1</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_observe_change_column_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;-- &#39;</span> <span class="ow">and</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39; --&#39;</span><span class="p">:</span>
+			<span class="c1"># Just a heading, not a real option</span>
+			<span class="n">payload</span><span class="p">[</span><span class="s1">&#39;owner&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;old&#39;</span><span class="p">]</span>
+			<span class="k">return</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">])</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_observe_change_column_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;-- &#39;</span> <span class="ow">and</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39; --&#39;</span><span class="p">:</span>
+			<span class="c1"># Just a heading, not a real option</span>
+			<span class="n">payload</span><span class="p">[</span><span class="s1">&#39;owner&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;old&#39;</span><span class="p">]</span>
+			<span class="k">return</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_y</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">])</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_observe_change_scale_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis_choose</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_observe_change_scale_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis_choose</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">set_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">drawbox</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Set the new X axis data.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			col (str or array-like):</span>
+<span class="sd">				The name of the new `x` column in `df`, or a</span>
+<span class="sd">				computed array or pandas.Series of values.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">batch_update</span><span class="p">():</span>
+				<span class="n">this_label</span> <span class="o">=</span> <span class="kc">None</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+					<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+					<span class="n">this_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_shortname</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">x</span> <span class="o">=</span> <span class="n">col</span>
+					<span class="k">try</span><span class="p">:</span>
+						<span class="n">this_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_shortname</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+					<span class="k">except</span><span class="p">:</span>
+						<span class="k">pass</span>
+
+				<span class="n">x</span><span class="p">,</span> <span class="n">x_ticktext</span><span class="p">,</span> <span class="n">x_tickvals</span><span class="p">,</span> <span class="n">x_scales</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manage_categorical</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">x_axis_scale</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">x_scales</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">x</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_x_ticktext</span> <span class="o">=</span> <span class="n">x_ticktext</span> <span class="ow">or</span> <span class="p">[]</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_x_tickvals</span> <span class="o">=</span> <span class="n">x_tickvals</span> <span class="ow">or</span> <span class="p">[]</span>
+
+				<span class="n">is_linear</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis_scale</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
+				<span class="n">is_log</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis_scale</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+				<span class="k">if</span> <span class="n">this_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">this_label</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">this_label</span> <span class="o">+</span><span class="s1">&#39; Unselected Density&#39;</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">this_label</span> <span class="o">+</span><span class="s1">&#39; Selected Density&#39;</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;x axis&#39;</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Unselected Density&#39;</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Selected Density&#39;</span>
+
+				<span class="c1"># if self.selection is None:</span>
+				<span class="c1"># 	self.scattergraph.x = x</span>
+				<span class="c1"># 	self.x_hist.x = x if is_linear else None</span>
+				<span class="c1"># 	self.x_hist_s.x = None</span>
+				<span class="c1"># else:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="k">if</span> <span class="n">is_linear</span> <span class="k">else</span> <span class="kc">None</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_linear</span> <span class="k">else</span> <span class="kc">None</span>
+				<span class="k">if</span> <span class="n">x_ticktext</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="p">(</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.3</span><span class="p">,</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.3</span><span class="p">,</span>
+					<span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">tickmode</span> <span class="o">=</span> <span class="s1">&#39;array&#39;</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">ticktext</span> <span class="o">=</span> <span class="n">x_ticktext</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">tickvals</span> <span class="o">=</span> <span class="n">x_tickvals</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="o">.</span><span class="n">xbins</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+						<span class="n">start</span><span class="o">=-</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+					<span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="o">.</span><span class="n">autobinx</span> <span class="o">=</span> <span class="kc">False</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="p">(</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_data_width</span> <span class="o">*</span> <span class="mf">0.07</span><span class="p">,</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_x_data_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_data_width</span> <span class="o">*</span> <span class="mf">0.07</span><span class="p">,</span>
+					<span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_axis_scale</span><span class="o">.</span><span class="n">value</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">tickmode</span> <span class="o">=</span> <span class="kc">None</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">ticktext</span> <span class="o">=</span> <span class="kc">None</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">tickvals</span> <span class="o">=</span> <span class="kc">None</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="o">.</span><span class="n">xbins</span> <span class="o">=</span> <span class="kc">None</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="o">.</span><span class="n">autobinx</span> <span class="o">=</span> <span class="kc">True</span>
+				<span class="k">if</span> <span class="n">drawbox</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">draw_box</span><span class="p">()</span>
+		<span class="k">except</span><span class="p">:</span>
+			<span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;ERROR IN DataFrameViewer.set_x&#39;</span><span class="p">)</span>
+			<span class="k">raise</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">set_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Set the new Y axis data.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			col (str or array-like):</span>
+<span class="sd">				The name of the new `y` column in `df`, or a</span>
+<span class="sd">				computed array or pandas.Series of values.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">batch_update</span><span class="p">():</span>
+			<span class="n">this_label</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+				<span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+				<span class="n">this_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_shortname</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">y</span> <span class="o">=</span> <span class="n">col</span>
+				<span class="k">try</span><span class="p">:</span>
+					<span class="n">this_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_shortname</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+				<span class="k">except</span><span class="p">:</span>
+					<span class="k">pass</span>
+
+			<span class="n">y</span><span class="p">,</span> <span class="n">y_ticktext</span><span class="p">,</span> <span class="n">y_tickvals</span><span class="p">,</span> <span class="n">y_scales</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manage_categorical</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">y_axis_scale</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">y_scales</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="n">y</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_y_ticktext</span> <span class="o">=</span> <span class="n">y_ticktext</span> <span class="ow">or</span> <span class="p">[]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_y_tickvals</span> <span class="o">=</span> <span class="n">y_tickvals</span> <span class="ow">or</span> <span class="p">[]</span>
+
+			<span class="n">is_linear</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis_scale</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
+			<span class="n">is_log</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis_scale</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+			<span class="k">if</span> <span class="n">this_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">this_label</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">this_label</span> <span class="o">+</span><span class="s1">&#39; Unselected Density&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">this_label</span> <span class="o">+</span><span class="s1">&#39; Selected Density&#39;</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;y axis&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Unselected Density&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Selected Density&#39;</span>
+
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="k">if</span> <span class="n">is_linear</span> <span class="k">else</span> <span class="kc">None</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="k">if</span> <span class="n">is_linear</span> <span class="k">else</span> <span class="kc">None</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_linear</span> <span class="k">else</span> <span class="kc">None</span>
+			<span class="k">if</span> <span class="n">y_ticktext</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="p">(</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.3</span><span class="p">,</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.3</span><span class="p">,</span>
+				<span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">tickmode</span> <span class="o">=</span> <span class="s1">&#39;array&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">ticktext</span> <span class="o">=</span> <span class="n">y_ticktext</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">tickvals</span> <span class="o">=</span> <span class="n">y_tickvals</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="o">.</span><span class="n">ybins</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+					<span class="n">start</span><span class="o">=-</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+				<span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="o">.</span><span class="n">autobiny</span> <span class="o">=</span> <span class="kc">False</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="p">(</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_data_width</span> <span class="o">*</span> <span class="mf">0.07</span><span class="p">,</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_y_data_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_data_width</span> <span class="o">*</span> <span class="mf">0.07</span><span class="p">,</span>
+				<span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis_scale</span><span class="o">.</span><span class="n">value</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">tickmode</span> <span class="o">=</span> <span class="kc">None</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">ticktext</span> <span class="o">=</span> <span class="kc">None</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">tickvals</span> <span class="o">=</span> <span class="kc">None</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="o">.</span><span class="n">ybins</span> <span class="o">=</span> <span class="kc">None</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="o">.</span><span class="n">autobiny</span> <span class="o">=</span> <span class="kc">True</span>
+
+			<span class="bp">self</span><span class="o">.</span><span class="n">draw_box</span><span class="p">()</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">change_selection_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_color</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">new_color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">new_color</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_HIGHLIGHT_COLOR</span>
+		<span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">batch_update</span><span class="p">():</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">colorscale</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_BASE_COLOR</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">new_color</span><span class="p">]]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">new_color</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">new_color</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">change_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_selection</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">new_selection</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">selection</span> <span class="o">=</span> <span class="kc">None</span>
+			<span class="c1"># Update Selected Portion of Scatters</span>
+			<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span>
+			<span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span>
+			<span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">batch_update</span><span class="p">():</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+				<span class="n">marker_opacity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_marker_opacity</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="n">marker_opacity</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+				<span class="c1"># Update Selected Portion of Histograms</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="kc">None</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="kc">None</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">draw_box</span><span class="p">()</span>
+			<span class="k">return</span>
+
+		<span class="k">if</span> <span class="n">new_selection</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;new selection size (</span><span class="si">{</span><span class="n">new_selection</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">) &quot;</span>
+							 <span class="sa">f</span><span class="s2">&quot;does not match length of data (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+		<span class="c1">#self.selection = new_selection</span>
+		<span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">batch_update</span><span class="p">():</span>
+			<span class="c1"># Update Selected Portion of Scatters</span>
+			<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span>
+			<span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>  <span class="c1"># [~self.selection]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>  <span class="c1"># [~self.selection]</span>
+			<span class="n">selection_as_int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">selection_as_int</span>
+			<span class="n">marker_opacity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_marker_opacity</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="p">[</span><span class="n">marker_opacity</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">selection_as_int</span><span class="p">]</span>
+			<span class="c1"># Update Selected Portion of Histograms</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="p">]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="p">]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">draw_box</span><span class="p">()</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">draw_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="kn">from</span><span class="w"> </span><span class="nn">...scope.box</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bounds</span>
+		<span class="n">x_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_axis_choose</span><span class="o">.</span><span class="n">value</span>
+		<span class="n">y_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis_choose</span><span class="o">.</span><span class="n">value</span>
+		<span class="n">background_shapes</span><span class="p">,</span> <span class="n">foreground_shapes</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+		<span class="n">box</span> <span class="o">=</span> <span class="kc">None</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">active_selection_deftype</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;box&#39;</span><span class="p">:</span>
+			<span class="n">box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">_selection_defs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">active_selection_name</span><span class="p">()]</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">active_selection_deftype</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;primbox&#39;</span><span class="p">,</span> <span class="s1">&#39;cartbox&#39;</span><span class="p">):</span>
+			<span class="n">box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">_selection_defs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">active_selection_name</span><span class="p">()]</span><span class="o">.</span><span class="n">to_emat_box</span><span class="p">()</span>
+
+		<span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">x_label</span> <span class="ow">in</span> <span class="n">box</span><span class="o">.</span><span class="n">thresholds</span> <span class="ow">or</span> <span class="n">y_label</span> <span class="ow">in</span> <span class="n">box</span><span class="o">.</span><span class="n">thresholds</span><span class="p">:</span>
+				<span class="n">x_lo</span><span class="p">,</span> <span class="n">x_hi</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+				<span class="n">thresh</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">thresholds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x_label</span><span class="p">)</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">Bounds</span><span class="p">):</span>
+					<span class="n">x_lo</span><span class="p">,</span> <span class="n">x_hi</span> <span class="o">=</span> <span class="n">thresh</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+					<span class="n">x_lo</span><span class="p">,</span> <span class="n">x_hi</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+					<span class="k">for</span> <span class="n">tickval</span><span class="p">,</span> <span class="n">ticktext</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_tickvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_ticktext</span><span class="p">):</span>
+						<span class="k">if</span> <span class="n">ticktext</span> <span class="ow">in</span> <span class="n">thresh</span><span class="p">:</span>
+							<span class="n">x_lo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tickval</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">)</span>
+							<span class="n">x_hi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tickval</span> <span class="o">+</span><span class="mf">0.3</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">x_lo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">x_lo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="o">.</span><span class="n">min</span><span class="p">(</span> <span class="p">)</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_data_width</span> <span class="o">*</span> <span class="mf">0.02</span>
+				<span class="k">if</span> <span class="n">x_hi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">x_hi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="o">.</span><span class="n">max</span><span class="p">(</span> <span class="p">)</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_data_width</span> <span class="o">*</span> <span class="mf">0.02</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_lo</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+					<span class="n">x_lo</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_lo</span><span class="p">]</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_hi</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+					<span class="n">x_hi</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_hi</span><span class="p">]</span>
+
+				<span class="n">y_lo</span><span class="p">,</span> <span class="n">y_hi</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+				<span class="n">thresh</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">thresholds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">y_label</span><span class="p">)</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">Bounds</span><span class="p">):</span>
+					<span class="n">y_lo</span><span class="p">,</span> <span class="n">y_hi</span> <span class="o">=</span> <span class="n">thresh</span>
+				<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+					<span class="n">y_lo</span><span class="p">,</span> <span class="n">y_hi</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+					<span class="k">for</span> <span class="n">tickval</span><span class="p">,</span> <span class="n">ticktext</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_tickvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_ticktext</span><span class="p">):</span>
+						<span class="k">if</span> <span class="n">ticktext</span> <span class="ow">in</span> <span class="n">thresh</span><span class="p">:</span>
+							<span class="n">y_lo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tickval</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">)</span>
+							<span class="n">y_hi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tickval</span> <span class="o">+</span><span class="mf">0.3</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">y_lo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">y_lo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">min</span><span class="p">(</span> <span class="p">)</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_data_width</span> <span class="o">*</span> <span class="mf">0.02</span>
+				<span class="k">if</span> <span class="n">y_hi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">y_hi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">max</span><span class="p">(</span> <span class="p">)</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_data_width</span> <span class="o">*</span> <span class="mf">0.02</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y_lo</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+					<span class="n">y_lo</span> <span class="o">=</span> <span class="p">[</span><span class="n">y_lo</span><span class="p">]</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y_hi</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+					<span class="n">y_hi</span> <span class="o">=</span> <span class="p">[</span><span class="n">y_hi</span><span class="p">]</span>
+
+				<span class="n">x_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x_lo</span><span class="p">,</span> <span class="n">x_hi</span><span class="p">))</span>
+				<span class="n">y_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">y_lo</span><span class="p">,</span> <span class="n">y_hi</span><span class="p">))</span>
+
+				<span class="n">background_shapes</span> <span class="o">+=</span> <span class="p">[</span>
+					<span class="c1"># Rectangle background color</span>
+					<span class="n">go</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span>
+						<span class="nb">type</span><span class="o">=</span><span class="s2">&quot;rect&quot;</span><span class="p">,</span>
+						<span class="n">xref</span><span class="o">=</span><span class="s2">&quot;x1&quot;</span><span class="p">,</span>
+						<span class="n">yref</span><span class="o">=</span><span class="s2">&quot;y1&quot;</span><span class="p">,</span>
+						<span class="n">x0</span><span class="o">=</span><span class="n">x_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+						<span class="n">y0</span><span class="o">=</span><span class="n">y_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+						<span class="n">x1</span><span class="o">=</span><span class="n">x_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+						<span class="n">y1</span><span class="o">=</span><span class="n">y_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+						<span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+							<span class="n">width</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+						<span class="p">),</span>
+						<span class="n">fillcolor</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_BOX_BG_COLOR</span><span class="p">,</span>
+						<span class="n">opacity</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+						<span class="n">layer</span><span class="o">=</span><span class="s2">&quot;below&quot;</span><span class="p">,</span>
+					<span class="p">)</span>
+					<span class="k">for</span> <span class="n">x_pair</span> <span class="ow">in</span> <span class="n">x_pairs</span>
+					<span class="k">for</span> <span class="n">y_pair</span> <span class="ow">in</span> <span class="n">y_pairs</span>
+				<span class="p">]</span>
+
+				<span class="n">foreground_shapes</span> <span class="o">+=</span> <span class="p">[</span>
+					<span class="c1"># Rectangle reference to the axes</span>
+					<span class="n">go</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span>
+						<span class="nb">type</span><span class="o">=</span><span class="s2">&quot;rect&quot;</span><span class="p">,</span>
+						<span class="n">xref</span><span class="o">=</span><span class="s2">&quot;x1&quot;</span><span class="p">,</span>
+						<span class="n">yref</span><span class="o">=</span><span class="s2">&quot;y1&quot;</span><span class="p">,</span>
+						<span class="n">x0</span><span class="o">=</span><span class="n">x_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+						<span class="n">y0</span><span class="o">=</span><span class="n">y_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+						<span class="n">x1</span><span class="o">=</span><span class="n">x_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+						<span class="n">y1</span><span class="o">=</span><span class="n">y_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+						<span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+							<span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+							<span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_BOX_LINE_COLOR</span><span class="p">,</span>
+						<span class="p">),</span>
+						<span class="n">fillcolor</span><span class="o">=</span><span class="s1">&#39;rgba(0,0,0,0)&#39;</span><span class="p">,</span>
+						<span class="n">opacity</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+					<span class="p">)</span>
+					<span class="k">for</span> <span class="n">x_pair</span> <span class="ow">in</span> <span class="n">x_pairs</span>
+					<span class="k">for</span> <span class="n">y_pair</span> <span class="ow">in</span> <span class="n">y_pairs</span>
+				<span class="p">]</span>
+
+		<span class="n">x_refpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">reference_point</span><span class="p">(</span><span class="n">x_label</span><span class="p">)</span>
+		<span class="n">y_refpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">reference_point</span><span class="p">(</span><span class="n">y_label</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">x_refpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">_y_lo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">min</span><span class="p">(</span> <span class="p">)</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_data_width</span> <span class="o">*</span> <span class="mf">0.02</span>
+			<span class="n">_y_hi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">max</span><span class="p">(</span> <span class="p">)</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_data_width</span> <span class="o">*</span> <span class="mf">0.02</span>
+			<span class="n">foreground_shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+				<span class="n">go</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span>
+					<span class="nb">type</span><span class="o">=</span><span class="s2">&quot;line&quot;</span><span class="p">,</span>
+					<span class="n">xref</span><span class="o">=</span><span class="s2">&quot;x1&quot;</span><span class="p">,</span>
+					<span class="n">yref</span><span class="o">=</span><span class="s2">&quot;y1&quot;</span><span class="p">,</span>
+					<span class="n">y0</span><span class="o">=</span><span class="n">_y_lo</span><span class="p">,</span>
+					<span class="n">x0</span><span class="o">=</span><span class="n">x_refpoint</span><span class="p">,</span>
+					<span class="n">y1</span><span class="o">=</span><span class="n">_y_hi</span><span class="p">,</span>
+					<span class="n">x1</span><span class="o">=</span><span class="n">x_refpoint</span><span class="p">,</span>
+					<span class="o">**</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_REF_LINE_STYLE</span><span class="p">,</span>
+				<span class="p">)</span>
+			<span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">y_refpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">_x_lo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="o">.</span><span class="n">min</span><span class="p">(</span> <span class="p">)</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_data_width</span> <span class="o">*</span> <span class="mf">0.02</span>
+			<span class="n">_x_hi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="o">.</span><span class="n">max</span><span class="p">(</span> <span class="p">)</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_data_width</span> <span class="o">*</span> <span class="mf">0.02</span>
+			<span class="n">foreground_shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+				<span class="n">go</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span>
+					<span class="nb">type</span><span class="o">=</span><span class="s2">&quot;line&quot;</span><span class="p">,</span>
+					<span class="n">xref</span><span class="o">=</span><span class="s2">&quot;x1&quot;</span><span class="p">,</span>
+					<span class="n">yref</span><span class="o">=</span><span class="s2">&quot;y1&quot;</span><span class="p">,</span>
+					<span class="n">x0</span><span class="o">=</span><span class="n">_x_lo</span><span class="p">,</span>
+					<span class="n">y0</span><span class="o">=</span><span class="n">y_refpoint</span><span class="p">,</span>
+					<span class="n">x1</span><span class="o">=</span><span class="n">_x_hi</span><span class="p">,</span>
+					<span class="n">y1</span><span class="o">=</span><span class="n">y_refpoint</span><span class="p">,</span>
+					<span class="o">**</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_REF_LINE_STYLE</span><span class="p">,</span>
+				<span class="p">)</span>
+			<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">shapes</span> <span class="o">=</span> <span class="n">background_shapes</span> <span class="o">+</span><span class="n">foreground_shapes</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_selection_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt</span><span class="p">):</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">clean_name</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">})</span>
+		<span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_use_manual_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="s1">&#39;Use Manual Target&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span><span class="p">:</span>
+			<span class="k">return</span>
+		<span class="n">lasso_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span><span class="p">[</span><span class="s1">&#39;Use Manual Target&#39;</span><span class="p">]</span>
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span><span class="p">[</span><span class="s1">&#39;Use Manual Target&#39;</span><span class="p">]</span>
+		<span class="n">lasso_select_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">value</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">new_selection</span><span class="p">(</span><span class="n">lasso_target</span><span class="p">,</span> <span class="n">lasso_select_name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_LASSO_COLOR</span><span class="p">,</span> <span class="n">activate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">refresh_selection_names</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_clear_selection</span><span class="p">()</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_on_change_selection_choose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+		<span class="k">if</span> <span class="s2">&quot;on_change_selection_choose&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_state_</span><span class="p">:</span> <span class="k">return</span>
+		<span class="k">if</span> <span class="s2">&quot;refresh_selection_names&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_state_</span><span class="p">:</span> <span class="k">return</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_update_state_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;on_change_selection_choose&quot;</span><span class="p">)</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">batch_update</span><span class="p">():</span>
+				<span class="k">if</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;Expr&#39;</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">selection_expr</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">True</span>
+				<span class="k">if</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Expr&#39;</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">selection_expr</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">False</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_on_change_selection_expr</span><span class="p">({</span><span class="s1">&#39;new&#39;</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">selection_expr</span><span class="o">.</span><span class="n">value</span><span class="p">})</span>
+				<span class="k">elif</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">selection_names</span><span class="p">()):</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">set_active_selection_name</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">])</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">change_selection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">active_selection</span><span class="p">())</span>
+				<span class="k">elif</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Use Manual Target&#39;</span><span class="p">:</span>
+					<span class="n">lasso_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span><span class="p">[</span><span class="s1">&#39;Use Manual Target&#39;</span><span class="p">]</span>
+					<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span><span class="p">[</span><span class="s1">&#39;Use Manual Target&#39;</span><span class="p">]</span>
+					<span class="n">lasso_select_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">value</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">new_selection</span><span class="p">(</span><span class="n">lasso_target</span><span class="p">,</span> <span class="n">lasso_select_name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">DEFAULT_LASSO_COLOR</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">add_alt_selection</span><span class="p">(</span><span class="n">lasso_select_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">selection_choose</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">lasso_select_name</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">True</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_clear_selection</span><span class="p">()</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">set_active_selection_name</span><span class="p">(</span><span class="n">lasso_select_name</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">change_selection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">active_selection</span><span class="p">())</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">change_selection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span><span class="p">[</span><span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">]])</span>
+		<span class="k">finally</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_update_state_</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="s2">&quot;on_change_selection_choose&quot;</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_clear_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">selectedpoints</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="o">.</span><span class="n">selectedpoints</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_hist_s</span><span class="o">.</span><span class="n">selectedpoints</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="o">.</span><span class="n">selectedpoints</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_hist_s</span><span class="o">.</span><span class="n">selectedpoints</span> <span class="o">=</span> <span class="kc">None</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_on_change_selection_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+		<span class="n">expression</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">]</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selection_eval</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+			<span class="c1"># print(&quot;FAILED ON EVAL\n&quot;,expression, err)</span>
+			<span class="k">pass</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">change_selection</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+				<span class="c1"># print(&quot;FAILED ON SETTING\n&quot;, expression, err)</span>
+				<span class="k">pass</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="c1"># print(&quot;PASSED&quot;, expression)</span>
+				<span class="k">pass</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">add_alt_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Add a new possible alternative selection vector.</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		key : str</span>
+<span class="sd">			An identifier for the new selection vector.</span>
+<span class="sd">		value : array-like of bool</span>
+<span class="sd">			A vector of boolean values giving the selection.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;value size (</span><span class="si">{</span><span class="n">value</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">) &quot;</span>
+								 <span class="sa">f</span><span class="s2">&quot;does not match length of data (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">refresh_selection_names</span><span class="p">()</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">lasso_selected_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Get the index values of points selected interactively in the figure.</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		pandas.Index</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">selectedpoints</span><span class="p">)]</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">lasso_selected_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Get the full data of points selected interactively in the figure.</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		pandas.DataFrame</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lasso_selected_indexes</span><span class="p">()]</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">lasso_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Get a boolean array indicating points selected interactively in the figure.</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		pandas.Series</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+		<span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scattergraph</span><span class="o">.</span><span class="n">selectedpoints</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="k">return</span> <span class="n">s</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_on_select_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">selector</span><span class="p">):</span>
+		<span class="c1"># callback function for selection</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">points</span><span class="o">.</span><span class="n">point_inds</span><span class="p">:</span>
+			<span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="c1"># with self.out_logger:</span>
+		<span class="c1"># 	print(points)</span>
+		<span class="c1"># 	print(selector)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">add_alt_selection</span><span class="p">(</span><span class="s2">&quot;Use Manual Target&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selector</span><span class="p">,</span> <span class="n">LassoSelector</span><span class="p">):</span>
+			<span class="n">default_name</span> <span class="o">=</span> <span class="s2">&quot;Lasso Target&quot;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">default_name</span> <span class="o">=</span> <span class="s2">&quot;Rectangular Target&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">default_name</span>
+		<span class="n">tentative_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">value</span>
+		<span class="n">n</span><span class="o">=</span><span class="mi">2</span>
+		<span class="k">while</span> <span class="n">tentative_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">selection_names</span><span class="p">():</span>
+			<span class="n">tentative_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">default_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span>
+			<span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tentative_name</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">refresh_selection_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="s2">&quot;refresh_selection_names&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_state_</span><span class="p">:</span> <span class="k">return</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_update_state_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;refresh_selection_names&quot;</span><span class="p">)</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selection_choose</span><span class="o">.</span><span class="n">value</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">selection_choose</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">selection_names</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;Expr&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alt_selections</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">selection_choose</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dfv</span><span class="o">.</span><span class="n">active_selection_name</span><span class="p">()</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">selection_choose</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">cache</span>
+			<span class="k">except</span><span class="p">:</span>
+				<span class="k">pass</span>
+		<span class="k">finally</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_update_state_</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="s2">&quot;refresh_selection_names&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

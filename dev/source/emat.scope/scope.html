@@ -1,0 +1,507 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scope &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Parameters" href="parameters.html" />
+    <link rel="prev" title="Exploratory Scoping" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Exploratory Scoping</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Scope</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#emat.Scope"><code class="docutils literal notranslate"><span class="pre">Scope</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#read-write">Read / Write</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.store_scope"><code class="docutils literal notranslate"><span class="pre">Scope.store_scope()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.delete_scope"><code class="docutils literal notranslate"><span class="pre">Scope.delete_scope()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.dump"><code class="docutils literal notranslate"><span class="pre">Scope.dump()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.duplicate"><code class="docutils literal notranslate"><span class="pre">Scope.duplicate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#feature-access">Feature Access</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.get_constants"><code class="docutils literal notranslate"><span class="pre">Scope.get_constants()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.get_uncertainties"><code class="docutils literal notranslate"><span class="pre">Scope.get_uncertainties()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.get_levers"><code class="docutils literal notranslate"><span class="pre">Scope.get_levers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.get_parameters"><code class="docutils literal notranslate"><span class="pre">Scope.get_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.get_measures"><code class="docutils literal notranslate"><span class="pre">Scope.get_measures()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#names">Names</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#other-attributes">Other Attributes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.info"><code class="docutils literal notranslate"><span class="pre">Scope.info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.n_factors"><code class="docutils literal notranslate"><span class="pre">Scope.n_factors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.n_sample_factors"><code class="docutils literal notranslate"><span class="pre">Scope.n_sample_factors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.design_experiments"><code class="docutils literal notranslate"><span class="pre">Scope.design_experiments()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Scope.ensure_dtypes"><code class="docutils literal notranslate"><span class="pre">Scope.ensure_dtypes()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measures.html">Performance Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boxes.html">Boxes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scope.file.html">Scope File</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Exploratory Scoping</a></li>
+      <li class="breadcrumb-item active">Scope</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.scope/scope.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="scope">
+<span id="methodology-scoping"></span><h1>Scope<a class="headerlink" href="#scope" title="Link to this heading">¶</a></h1>
+<p>The exploratory <a class="reference internal" href="#emat.Scope" title="emat.Scope"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scope</span></code></a> provides a high-level
+group of instructions for what inputs and outputs a model
+provides, and what ranges and/or distributions of these inputs
+will be considered in an exploratory analysis.</p>
+<p>The <a class="reference internal" href="#emat.Scope" title="emat.Scope"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scope</span></code></a> API outlined below provides the framework for
+interacting with an existing scope in Python. However, the process
+of defining a <em>new</em> scope is generally done by using
+a <a class="reference internal" href="scope.file.html"><span class="doc">scope definition YAML file</span></a>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="emat.Scope">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">emat.</span></span><span class="sig-name descname"><span class="pre">Scope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope_def</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope" title="Link to this definition">¶</a></dt>
+<dd><p>Definitions for the relevant inputs and outputs for a model.</p>
+<p>A Scope provides a structure to define the nature of the inputs
+and outputs for exploratory modeling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_file</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to scope file</p></li>
+<li><p><strong>scope_def</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The content of the scope file, if it has
+already been read into a string.  If this value is given, it is
+assumed to be the contents of the file and the file is not actually
+read again.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="read-write">
+<h2>Read / Write<a class="headerlink" href="#read-write" title="Link to this heading">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.store_scope">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">store_scope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.database.Database"><span class="pre">Database</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.store_scope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.store_scope" title="Link to this definition">¶</a></dt>
+<dd><p>Write variables and scope definition to database.</p>
+<p>Writing the scope to the database is required
+prior to running a experiments that will be
+stored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>db</strong> (<a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.Database"><em>Database</em></a>) – database object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.delete_scope">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">delete_scope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.database.Database"><span class="pre">Database</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.delete_scope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.delete_scope" title="Link to this definition">¶</a></dt>
+<dd><p>Deletes scope from database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>db</strong> (<a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.Database"><em>Database</em></a>) – The database from which to delete this Scope.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only the <cite>name</cite> attribute is used to identify the scope
+to delete.  If some other different scope is stored in
+the database with the same name as this scope, it will
+be deleted.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.dump">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strip_measure_transforms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_measures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_measures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_flow_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.dump" title="Link to this definition">¶</a></dt>
+<dd><p>Serialize this scope into a YAML stream.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stream</strong> (<em>file-like</em><em> or </em><em>None</em>) – Serialize into this stream. If None,
+return the produced string instead, unless <cite>filename</cite> is given.</p></li>
+<li><p><strong>filename</strong> (<em>path-like</em><em> or </em><em>None</em>) – If given and <cite>stream</cite> is None,
+then write the serialized result into this file.</p></li>
+<li><p><strong>strip_measure_transforms</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Remove the
+‘transform’ values from all measures in the output.</p></li>
+<li><p><strong>include_measures</strong> (<em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – If provided, only
+output performance measures with names in this set will be included.</p></li>
+<li><p><strong>exclude_measures</strong> (<em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – If provided, only
+output performance measures with names not in this set will be included.</p></li>
+<li><p><strong>default_flow_style</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Use the default_flow_style,
+see yaml.dump for details.</p></li>
+<li><p><strong>**kwargs</strong> – All other keyword arguments are forwarded as-is to <cite>yaml.dump</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>If both <cite>stream</cite> and <cite>filename</cite> are None, the serialized YAML
+content is returned as a string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#FileExistsError" title="(in Python v3.7)"><strong>FileExistsError</strong></a> – If <cite>filename</cite> already exists.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If both <cite>stream</cite> and <cite>filename</cite> are given.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.duplicate">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">duplicate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strip_measure_transforms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_measures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_measures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.duplicate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.duplicate" title="Link to this definition">¶</a></dt>
+<dd><p>Create a duplicate scope, optionally stripping some features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strip_measure_transforms</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Remove the ‘transform’ values from all measures.</p></li>
+<li><p><strong>include_measures</strong> (<em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – If provided, only
+output performance measures with names in this set will be included.</p></li>
+<li><p><strong>exclude_measures</strong> (<em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – If provided, only
+output performance measures with names not in this set will be included.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scope</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="feature-access">
+<h2>Feature Access<a class="headerlink" href="#feature-access" title="Link to this heading">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_constants">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_constants</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_constants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_constants" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of model constants.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_uncertainties">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_uncertainties</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_uncertainties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_uncertainties" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of exogenous uncertainties.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_levers">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_levers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_levers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_levers" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of policy levers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_parameters">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of model parameters (uncertainties+levers+constants).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_measures">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_measures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_measures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_measures" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of performance measures.</p>
+</dd></dl>
+
+<section id="names">
+<h3>Names<a class="headerlink" href="#names" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_constant_names">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_constant_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_constant_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_constant_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of model constant names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_uncertainty_names">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_uncertainty_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_uncertainty_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_uncertainty_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of exogenous uncertainty names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_lever_names">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_lever_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_lever_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_lever_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of policy lever names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_parameter_names">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_parameter_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_constants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_parameter_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_parameter_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of model parameter (uncertainty+lever+constant) names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>include_constants</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Include constants.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_measure_names">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_measure_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_measure_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_measure_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of performance measure names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_all_names">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_all_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_all_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_all_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of all (uncertainty+lever+constant+measure) model names.</p>
+</dd></dl>
+
+</section>
+<section id="other-attributes">
+<h3>Other Attributes<a class="headerlink" href="#other-attributes" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_dtype">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_dtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_dtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_dtype" title="Link to this definition">¶</a></dt>
+<dd><p>Get the dtype for a parameter or measure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the parameter or measure</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>{‘real’, ‘int’, ‘bool’, ‘cat’}</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.get_cat_values">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">get_cat_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.get_cat_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.get_cat_values" title="Link to this definition">¶</a></dt>
+<dd><p>Get the category values for a parameter or measure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the parameter or measure</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.info">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">return_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.info" title="Link to this definition">¶</a></dt>
+<dd><p>Print a summary of this Scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>return_string</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Defaults False (print to stdout) but if given as True
+then this function returns the string instead of printing it.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.n_factors">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">n_factors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.n_factors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.n_factors" title="Link to this definition">¶</a></dt>
+<dd><p>Number of input factors defined in this scope.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.n_sample_factors">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">n_sample_factors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.n_sample_factors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.n_sample_factors" title="Link to this definition">¶</a></dt>
+<dd><p>Number of non-constant input factors defined in this scope.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.design_experiments">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">design_experiments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.design_experiments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.design_experiments" title="Link to this definition">¶</a></dt>
+<dd><p>Create a design of experiments based on this Scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_samples_per_factor</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>default 10</em>) – The number of samples in the
+design per random factor.</p></li>
+<li><p><strong>n_samples</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a><em>, </em><em>optional</em>) – The total number of samples in the
+design.  If <cite>jointly</cite> is False, this is the number of samples in each
+of the uncertainties and the levers, the total number of samples will
+be the square of this value.  Give a 2-tuple to set values for
+uncertainties and levers respectively, to set them independently.
+If this argument is given, it overrides <cite>n_samples_per_factor</cite>.</p></li>
+<li><p><strong>random_seed</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default 1234</em>) – A random seed for reproducibility.</p></li>
+<li><p><strong>db</strong> (<a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.Database"><em>Database</em></a><em>, </em><em>optional</em>) – If provided, this design will be stored in the
+database indicated.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – A name for this design, to identify it in the
+database. If not given, a unique name will be generated based on the
+selected sampler.  Has no effect if no <cite>db</cite> is given.</p></li>
+<li><p><strong>sampler</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>AbstractSampler</em><em>, </em><em>default 'lhs'</em>) – <p>The sampler to use for this
+design.  Available pre-defined samplers include:</p>
+<blockquote>
+<div><ul>
+<li><p>’lhs’: Latin Hypercube sampling</p></li>
+<li><dl class="simple">
+<dt>’ulhs’: Uniform Latin Hypercube sampling, which ignores defined</dt><dd><p>distribution shapes from the scope and samples everything
+as if it was from a uniform distribution</p>
+</dd>
+</dl>
+</li>
+<li><p>’mc’: Monte carlo sampling</p></li>
+<li><dl class="simple">
+<dt>’uni’: Univariate sensitivity testing, whereby experiments are</dt><dd><p>generated setting each parameter individually to minimum and
+maximum values (for numeric dtypes) or all possible values
+(for boolean and categorical dtypes).  Note that designs for
+univariate sensitivity testing are deterministic and the number
+of samples given is ignored.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>sample_from</strong> (<em>'all'</em><em>, </em><em>'uncertainties'</em><em>, or </em><em>'levers'</em>) – Which scope components
+from which to sample.  Components not sampled are set at their default
+values in the design.</p></li>
+<li><p><strong>jointly</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Whether to sample jointly all uncertainties
+and levers in a single design, or, if False, to generate separate samples
+for levers and uncertainties, and then combine the two in a full-factorial
+manner.  This argument has no effect unless <cite>sample_from</cite> is ‘all’.
+Note that setting <cite>jointly</cite> to False may produce a very large design,
+as the total number of experiments will be the product of the number of
+experiments for the levers and the number of experiments for the
+uncertainties, which are set separately (i.e. if <cite>n_samples</cite> is given,
+the total number of experiments is the square of that value).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The resulting design.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Scope.ensure_dtypes">
+<span class="sig-prename descclassname"><span class="pre">Scope.</span></span><span class="sig-name descname"><span class="pre">ensure_dtypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/scope.html#Scope.ensure_dtypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Scope.ensure_dtypes" title="Link to this definition">¶</a></dt>
+<dd><p>Convert columns of dataframe to correct dtype as needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a>) – A dataframe with column names
+that are uncertainties, levers, or measures.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The same data as input, but with dtypes as appropriate.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Exploratory Scoping" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parameters.html" class="btn btn-neutral float-right" title="Parameters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

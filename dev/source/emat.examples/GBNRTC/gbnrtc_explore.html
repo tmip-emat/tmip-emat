@@ -1,0 +1,176 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Using the Explorer with GBNRTC Experiments &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Using the Explorer with GBNRTC Experiments</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/emat.examples/GBNRTC/gbnrtc_explore.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="using-the-explorer-with-gbnrtc-experiments">
+<h1>Using the Explorer with GBNRTC Experiments<a class="headerlink" href="#using-the-explorer-with-gbnrtc-experiments" title="Link to this heading">¶</a></h1>
+<p>After a design of experiments has been run using a GBNRTC meta-model and
+saved into a Database, the interactive <code class="xref py py-class docutils literal notranslate"><span class="pre">Explorer</span></code> can be used
+in a Jupyter notebook to explore the results.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Explorer is a prototype interface for exploratory analysis,
+and is provided as a demonstration of an approach to exploratory
+modeling, not as a full-fledged and polished product.  It is not
+fully tested and not feature complete (for example, you cannot yet
+move backwards through the panels and edit previous choices with
+introducing errors).</p>
+</div>
+<p>To launch the Explorer, simply instantiate it with the <code class="xref py py-class docutils literal notranslate"><span class="pre">Database</span></code>
+containing the experiments.</p>
+<div class="screencap highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">emat</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">SQLiteDB</span><span class="p">(</span><span class="s1">&#39;gbnrtc_1.sqlitedb&#39;</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">emat.interactive</span><span class="w"> </span><span class="kn">import</span> <span class="n">Explorer</span>
+<span class="n">Explorer</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The initial panel in the Explorer includes options to select the
+scope and design of experiments to use in this analysis.</p>
+<img alt="../../../_images/explorer_1.png" class="screencap" src="../../../_images/explorer_1.png" />
+<p>And clicking the <cite>Next</cite> button, the Explorer moves on to a
+<strong>Box Selection</strong> panel.  This panel is pre-populated
+with any <code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code> objects saved in the database for the current scope.
+Any of these existing boxes can be selected to open for this
+analysis, or a “New Child” can be created as a descendent of any
+existing <code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code>, or of the original complete exploratory scope.</p>
+<img alt="../../../_images/explorer_2.png" class="screencap" src="../../../_images/explorer_2.png" />
+<p>After selecting the box to edit and clicking the <cite>Next</cite> button, the
+<strong>Relevent Features</strong> panel is activated.  This panel allows the
+analyst to select a subset of features defined in the full scope
+which they would like to manipulate and/or view.  Features that
+are already subject to restrictions (e.g., by inheriting those
+restrictions from an ancestor box in the hierarchy) are pre-selected
+and cannot be unselected.</p>
+<p>If the list of features is uncomfortably long, the <cite>Filter</cite> box allows
+for quickly finding those features that are of interest, by entering a
+portion of the text in the feature name.</p>
+<p>The list on the right summarizes the features that have already been
+identified as relevant.</p>
+<img alt="../../../_images/explorer_3.png" class="screencap" src="../../../_images/explorer_3.png" />
+<p>Once the relevant features have been selected, click <cite>Next</cite> to move
+to the <strong>Thresholds</strong> panel.  On this panel, the analyst can adjust
+the threshold levels for each feature, limiting the set of experiments
+contained in the Box.  Thresholds can be adjusted on any of the feature
+dimensions that previously had thresholds set, as well on any of the
+features selected as “relevant” in the previous panel.</p>
+<p>Histograms showing the distribution of values of each relevant dimension
+are shown next to the threshold sliders, and these histogram figures are
+dynamically updated when the thresholds change, to show the distribution
+of cases within the <code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code>, relative to the overall distribution.</p>
+<img alt="../../../_images/explorer_4.png" class="screencap" src="../../../_images/explorer_4.png" />
+<p>Once the <code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code> thresholds are finalized, clicking <cite>Next</cite> brings up a
+report generation plan.  A variety of reports are available.</p>
+<img alt="../../../_images/explorer_5.png" class="screencap" src="../../../_images/explorer_5.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

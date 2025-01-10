@@ -1,0 +1,586 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.workbench.analysis.cart &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/thebelab.css" />
+
+  
+      <script src="../../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.workbench.analysis.cart</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.workbench.analysis.cart</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">A scenario discovery oriented implementation of CART. It essentially is</span>
+<span class="sd">a wrapper around scikit-learn&#39;s version of CART.</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.image</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpimg</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn</span><span class="w"> </span><span class="kn">import</span> <span class="n">tree</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">scenario_discovery_util</span> <span class="k">as</span> <span class="n">sdutil</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_module_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.ema_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">EMAError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pygments.unistring</span><span class="w"> </span><span class="kn">import</span> <span class="n">cats</span>
+
+<span class="c1"># Created on May 22, 2015</span>
+<span class="c1">#</span>
+<span class="c1"># .. codeauthor:: jhkwakkel &lt;j.h.kwakkel (at) tudelft (dot) nl&gt;</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;setup_cart&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;CART&#39;</span><span class="p">]</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">get_module_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_cart</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">classify</span><span class="p">,</span> <span class="n">incl_unc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mass_min</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;helper function for performing cart in combination with data</span>
+<span class="sd">    generated by the workbench.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    results : tuple of DataFrame and dict with numpy arrays</span>
+<span class="sd">              the return from :meth:`perform_experiments`.</span>
+<span class="sd">    classify : string, function or callable</span>
+<span class="sd">               either a string denoting the outcome of interest to</span>
+<span class="sd">               use or a function.</span>
+<span class="sd">    incl_unc : list of strings, optional</span>
+<span class="sd">    mass_min : float, optional</span>
+
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        if classify is not a string or a callable.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">outcomes</span> <span class="o">=</span> <span class="n">results</span>
+
+    <span class="k">if</span> <span class="n">incl_unc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">drop_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">incl_unc</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">drop_names</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">classify</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">outcomes</span><span class="p">[</span><span class="n">classify</span><span class="p">]</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">RuleInductionType</span><span class="o">.</span><span class="n">REGRESSION</span>
+    <span class="k">elif</span> <span class="nb">callable</span><span class="p">(</span><span class="n">classify</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">classify</span><span class="p">(</span><span class="n">outcomes</span><span class="p">)</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">RuleInductionType</span><span class="o">.</span><span class="n">BINARY</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unknown type for classify&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">CART</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mass_min</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CART</span><span class="p">(</span><span class="n">sdutil</span><span class="o">.</span><span class="n">OutputFormatterMixin</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;CART algorithm</span>
+
+<span class="sd">    can be used in a manner similar to PRIM. It provides access</span>
+<span class="sd">    to the underlying tree, but it can also show the boxes described by the</span>
+<span class="sd">    tree in a table or graph form similar to prim.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : DataFrame</span>
+<span class="sd">    y : 1D ndarray</span>
+<span class="sd">    mass_min : float, optional</span>
+<span class="sd">               a value between 0 and 1 indicating the minimum fraction</span>
+<span class="sd">               of data points in a terminal leaf. Defaults to 0.05,</span>
+<span class="sd">               identical to prim.</span>
+<span class="sd">    mode : {BINARY, CLASSIFICATION, REGRESSION}</span>
+<span class="sd">           indicates the mode in which CART is used. Binary indicates</span>
+<span class="sd">           binary classification, classification is multiclass, and regression</span>
+<span class="sd">           is regression.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    boxes : list</span>
+<span class="sd">            list of DataFrame box lims</span>
+<span class="sd">    stats : list</span>
+<span class="sd">            list of dicts with stats</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This class is a wrapper around scikit-learn&#39;s CART algorithm. It provides</span>
+<span class="sd">    an interface to CART that is more oriented towards scenario discovery, and</span>
+<span class="sd">    shared some methods with PRIM</span>
+
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :mod:`prim`</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">sep</span> <span class="o">=</span> <span class="s1">&#39;!?!&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mass_min</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                 <span class="n">mode</span><span class="o">=</span><span class="n">sdutil</span><span class="o">.</span><span class="n">RuleInductionType</span><span class="o">.</span><span class="n">BINARY</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; init</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s2">&quot;scenario&quot;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mass_min</span> <span class="o">=</span> <span class="n">mass_min</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+
+        <span class="c1"># we need to transform the structured array to a ndarray</span>
+        <span class="c1"># we use dummy variables for each category in case of categorical</span>
+        <span class="c1"># variables. Integers are treated as floats</span>
+        <span class="n">dummies</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">prefix_sep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">dummiesmap</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">column</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span><span class="n">entry</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">unique</span><span class="p">()}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dummiesmap</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapping</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boxes</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">boxes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boxes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boxes</span>
+
+        <span class="c1"># based on</span>
+        <span class="c1"># http://stackoverflow.com/questions/20224526/how-to-extract-the-</span>
+        <span class="c1"># decision-rules-from-scikit-learn-decision-tree</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf</span>
+
+        <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="o">.</span><span class="n">tree_</span><span class="o">.</span><span class="n">children_left</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="o">.</span><span class="n">tree_</span><span class="o">.</span><span class="n">children_right</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="o">.</span><span class="n">tree_</span><span class="o">.</span><span class="n">threshold</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="o">.</span><span class="n">tree_</span><span class="o">.</span><span class="n">feature</span><span class="p">]</span>
+
+        <span class="c1"># get ids of leaf nodes</span>
+        <span class="n">leafs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">left</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">recurse</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">lineage</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">lineage</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># lineage = [self.clf.tree_.value[child]]</span>
+                <span class="n">lineage</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">if</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">left</span><span class="p">:</span>
+                <span class="n">parent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">left</span> <span class="o">==</span> <span class="n">child</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="n">split</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">right</span> <span class="o">==</span> <span class="n">child</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="n">split</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span>
+
+            <span class="n">lineage</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">parent</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">threshold</span><span class="p">[</span><span class="n">parent</span><span class="p">],</span>
+                            <span class="n">features</span><span class="p">[</span><span class="n">parent</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="n">parent</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">lineage</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">lineage</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">recurse</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">lineage</span><span class="p">)</span>
+
+        <span class="n">box_init</span> <span class="o">=</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_make_box</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">boxes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="n">leafs</span><span class="p">:</span>
+            <span class="n">branch</span> <span class="o">=</span> <span class="n">recurse</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">leaf</span><span class="p">)</span>
+            <span class="n">box</span> <span class="o">=</span> <span class="n">box_init</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">branch</span><span class="p">:</span>
+                <span class="n">direction</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">unc</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                
+                <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">unc</span> <span class="ow">in</span> <span class="n">box_init</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                        <span class="n">box</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">unc</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                    <span class="k">else</span> <span class="p">:</span>
+                        <span class="n">unc</span><span class="p">,</span> <span class="n">cat</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+                        <span class="n">cats</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">unc</span><span class="p">]</span>
+                        <span class="c1"># TODO:: cat is a str needs casting?</span>
+                        <span class="c1"># what abouta lookup table mapping</span>
+                        <span class="c1"># each str cat to the associate actual cat</span>
+                        <span class="c1"># object</span>
+                        <span class="c1"># can be created when making the dummy variables</span>
+                        
+                        <span class="n">cats</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dummiesmap</span><span class="p">[</span><span class="n">unc</span><span class="p">][</span><span class="n">cat</span><span class="p">])</span>
+                        <span class="n">box</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">unc</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">cats</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="n">cats</span><span class="p">)]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">unc</span> <span class="ow">in</span> <span class="n">box_init</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">box</span><span class="p">[</span><span class="n">unc</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">:</span>
+                            <span class="n">value</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                        <span class="n">box</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">unc</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+
+            <span class="n">boxes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boxes</span> <span class="o">=</span> <span class="n">boxes</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boxes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span>
+
+        <span class="n">boxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxes</span>
+
+        <span class="n">box_init</span> <span class="o">=</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_make_box</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">:</span>
+            <span class="n">boxstats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boxstat_methods</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">box_init</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">boxstats</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_binary_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">box_init</span><span class="p">):</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_in_box</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">box</span><span class="p">)</span>
+
+        <span class="n">y_in_box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+        <span class="n">box_coi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y_in_box</span><span class="p">)</span>
+        <span class="n">density</span> <span class="o">=</span> <span class="n">box_coi</span> <span class="o">/</span> <span class="n">y_in_box</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">gini</span> <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="p">((</span><span class="n">density</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">density</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="nb">all</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+            <span class="n">entropy</span> <span class="o">=</span> <span class="o">-</span><span class="p">((</span><span class="n">density</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">density</span><span class="p">))</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">density</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">density</span><span class="p">)))</span>
+        <span class="n">entropy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">entropy</span><span class="p">)</span>
+
+        <span class="n">boxstats</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;coverage&#39;</span><span class="p">:</span> <span class="n">box_coi</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">),</span>
+                    <span class="s1">&#39;density&#39;</span><span class="p">:</span> <span class="n">density</span><span class="p">,</span>
+                    <span class="s1">&#39;gini&#39;</span><span class="p">:</span> <span class="n">gini</span><span class="p">,</span>
+                    <span class="s1">&#39;entropy&#39;</span><span class="p">:</span> <span class="n">entropy</span><span class="p">,</span>
+                    <span class="s1">&#39;res dim&#39;</span><span class="p">:</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_determine_nr_restricted_dims</span><span class="p">(</span><span class="n">box</span><span class="p">,</span>
+                                                                    <span class="n">box_init</span><span class="p">),</span>
+                    <span class="s1">&#39;res dim names&#39;</span><span class="p">:</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_determine_restricted_dims</span><span class="p">(</span><span class="n">box</span><span class="p">,</span>
+                                                                    <span class="n">box_init</span><span class="p">),</span>
+                    <span class="s1">&#39;mass&#39;</span><span class="p">:</span> <span class="n">y_in_box</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]}</span>
+        <span class="k">return</span> <span class="n">boxstats</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_regression_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">box_init</span><span class="p">):</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_in_box</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">box</span><span class="p">)</span>
+
+        <span class="n">y_in_box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+
+        <span class="n">boxstats</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_in_box</span><span class="p">),</span>
+                    <span class="s1">&#39;mass&#39;</span><span class="p">:</span> <span class="n">y_in_box</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s1">&#39;res dim&#39;</span><span class="p">:</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_determine_nr_restricted_dims</span><span class="p">(</span><span class="n">box</span><span class="p">,</span>
+                                                                    <span class="n">box_init</span><span class="p">),</span>
+                    <span class="s1">&#39;res dim names&#39;</span><span class="p">:</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_determine_restricted_dims</span><span class="p">(</span><span class="n">box</span><span class="p">,</span>
+                                                                       <span class="n">box_init</span><span class="p">),</span>
+                    <span class="p">}</span>
+        <span class="k">return</span> <span class="n">boxstats</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_classification_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">box_init</span><span class="p">):</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_in_box</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">box</span><span class="p">)</span>
+
+        <span class="n">y_in_box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+
+        <span class="n">counts</span> <span class="o">=</span> <span class="p">[</span><span class="n">y_in_box</span><span class="p">[</span><span class="n">y_in_box</span> <span class="o">==</span> <span class="n">ci</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">ci</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">]</span>
+
+        <span class="n">total_gini</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">counts</span><span class="p">:</span>
+            <span class="n">total_gini</span> <span class="o">+=</span> <span class="p">(</span><span class="n">count</span> <span class="o">/</span> <span class="n">y_in_box</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">gini</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">total_gini</span>
+
+        <span class="n">boxstats</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;gini&#39;</span><span class="p">:</span> <span class="n">gini</span><span class="p">,</span>
+                    <span class="s1">&#39;mass&#39;</span><span class="p">:</span> <span class="n">y_in_box</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s1">&#39;box_composition&#39;</span><span class="p">:</span> <span class="n">counts</span><span class="p">,</span>
+                    <span class="s1">&#39;res dim&#39;</span><span class="p">:</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_determine_nr_restricted_dims</span><span class="p">(</span><span class="n">box</span><span class="p">,</span>
+                                                                    <span class="n">box_init</span><span class="p">),</span>
+                    <span class="s1">&#39;res dim names&#39;</span><span class="p">:</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">_determine_restricted_dims</span><span class="p">(</span><span class="n">box</span><span class="p">,</span>
+                                                                    <span class="n">box_init</span><span class="p">),</span>
+                    <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">boxstats</span>
+
+    <span class="n">_boxstat_methods</span> <span class="o">=</span> <span class="p">{</span><span class="n">sdutil</span><span class="o">.</span><span class="n">RuleInductionType</span><span class="o">.</span><span class="n">BINARY</span><span class="p">:</span> <span class="n">_binary_stats</span><span class="p">,</span>
+                        <span class="n">sdutil</span><span class="o">.</span><span class="n">RuleInductionType</span><span class="o">.</span><span class="n">REGRESSION</span><span class="p">:</span> <span class="n">_regression_stats</span><span class="p">,</span>
+                        <span class="n">sdutil</span><span class="o">.</span><span class="n">RuleInductionType</span><span class="o">.</span><span class="n">CLASSIFICATION</span><span class="p">:</span> <span class="n">_classification_stats</span><span class="p">}</span>
+
+<div class="viewcode-block" id="CART.build_tree">
+<a class="viewcode-back" href="../../../../source/emat.analysis/cart.html#emat.analysis.CART.build_tree">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_tree</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">criterion</span><span class="o">=</span><span class="s2">&quot;gini&quot;</span><span class="p">,</span>
+            <span class="n">max_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">mass_min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">min_samples_split</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;train CART on the data&#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="n">criterion</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;gini&quot;</span><span class="p">,</span> <span class="s2">&quot;entropy&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">mass_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mass_min</span> <span class="o">=</span> <span class="n">mass_min</span>
+
+        <span class="n">min_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_min</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">sdutil</span><span class="o">.</span><span class="n">RuleInductionType</span><span class="o">.</span><span class="n">REGRESSION</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clf</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">DecisionTreeRegressor</span><span class="p">(</span>
+                <span class="n">min_samples_leaf</span><span class="o">=</span><span class="n">min_samples</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clf</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">DecisionTreeClassifier</span><span class="p">(</span>
+                <span class="n">criterion</span><span class="o">=</span><span class="n">criterion</span><span class="p">,</span>
+                <span class="n">min_samples_split</span><span class="o">=</span><span class="n">min_samples_split</span><span class="p">,</span>
+                <span class="n">splitter</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span>
+                <span class="n">max_depth</span><span class="o">=</span><span class="n">max_depth</span><span class="p">,</span>
+                <span class="n">min_samples_leaf</span><span class="o">=</span><span class="n">min_samples</span><span class="p">,</span>
+                <span class="n">min_weight_fraction_leaf</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+                <span class="n">max_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">max_leaf_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">min_impurity_decrease</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+                <span class="n">class_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">ccp_alpha</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CART.show_tree">
+<a class="viewcode-back" href="../../../../source/emat.analysis/cart.html#emat.analysis.CART.show_tree">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mplfig</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;return a png of the tree</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mplfig : bool, optional</span>
+<span class="sd">                 if true (default) returns a matplotlib figure with the tree,</span>
+<span class="sd">                 otherwise, it returns the output as bytes</span>
+<span class="sd">        format : {&#39;png&#39;, &#39;svg&#39;}, default &#39;png&#39;</span>
+<span class="sd">                 Gives a format of the output.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">clf</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pydotplus</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pydot</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pydot</span>  <span class="c1"># dirty hack for read the docs</span>
+
+        <span class="n">dot_data</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">export_graphviz</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clf</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">dot_data</span><span class="p">,</span>
+            <span class="n">feature_names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span>
+            <span class="n">filled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">dot_data</span> <span class="o">=</span> <span class="n">dot_data</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>  <span class="c1"># .encode(&#39;ascii&#39;) # @UndefinedVariable</span>
+        <span class="n">graphs</span> <span class="o">=</span> <span class="n">pydot</span><span class="o">.</span><span class="n">graph_from_dot_data</span><span class="p">(</span><span class="n">dot_data</span><span class="p">)</span>
+        
+        <span class="c1"># FIXME:: pydot now always returns a list, usted to be either a</span>
+        <span class="c1"># singleton or a list. This is a stopgap which might be sufficient</span>
+        <span class="c1"># but just in case, we raise an error if assumption of len==1 does</span>
+        <span class="c1"># not hold</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">graphs</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">EMAError</span><span class="p">(</span><span class="s2">&quot;trying to visualize more than one tree&quot;</span><span class="p">)</span>
+        
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">graphs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;png&#39;</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">create_png</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">mplfig</span><span class="p">:</span>
+                <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">))</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mpimg</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">img</span><span class="p">)))</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">fig</span>
+        <span class="k">elif</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;svg&#39;</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">create_svg</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;format must be in {&#39;png&#39;, &#39;svg&#39;}&#39;&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">img</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_and_show_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boxes</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_tree</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_tree</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CART.tree_chooser">
+<a class="viewcode-back" href="../../../../source/emat.analysis/cart.html#emat.analysis.CART.tree_chooser">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tree_chooser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        An interactive chooser for setting decision tree hyperparameters.</span>
+
+<span class="sd">        This method returns an interactive widget that allows an analyst</span>
+<span class="sd">        to manipulate selected hyperparameters for the decision tree used</span>
+<span class="sd">        by CART.  The analyst can set the branch splitting criteria</span>
+<span class="sd">        (gini impurity or entropy reduction), the maximum tree depth, and</span>
+<span class="sd">        the minimum fraction of observations in any leaf node.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ipywidgets.widgets.interaction.interactive</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ipywidgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">interactive</span><span class="p">,</span> <span class="n">FloatSlider</span><span class="p">,</span> <span class="n">Dropdown</span>
+        <span class="k">return</span> <span class="n">interactive</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build_and_show_tree</span><span class="p">,</span>
+            <span class="n">criterion</span><span class="o">=</span><span class="n">Dropdown</span><span class="p">(</span>
+                <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gini&#39;</span><span class="p">,</span> <span class="s1">&#39;entropy&#39;</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;gini&#39;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">max_depth</span><span class="o">=</span><span class="n">Dropdown</span><span class="p">(</span>
+                <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">mass_min</span><span class="o">=</span><span class="n">FloatSlider</span><span class="p">(</span>
+                <span class="nb">min</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                <span class="n">continuous_update</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<span class="c1"># if __name__ == &#39;__main__&#39;:</span>
+<span class="c1">#     from test import test_utilities</span>
+<span class="c1">#     import matplotlib.pyplot as plt</span>
+<span class="c1">#</span>
+<span class="c1">#     ema_logging.log_to_stderr(ema_logging.INFO)</span>
+<span class="c1">#</span>
+<span class="c1">#     def scarcity_classify(outcomes):</span>
+<span class="c1">#         outcome = outcomes[&#39;relative market price&#39;]</span>
+<span class="c1">#         change = np.abs(outcome[:, 1::]-outcome[:, 0:-1])</span>
+<span class="c1">#</span>
+<span class="c1">#         neg_change = np.min(change, axis=1)</span>
+<span class="c1">#         pos_change = np.max(change, axis=1)</span>
+<span class="c1">#</span>
+<span class="c1">#         logical = (neg_change &gt; -0.6) &amp; (pos_change &gt; 0.6)</span>
+<span class="c1">#</span>
+<span class="c1">#         classes = np.zeros(outcome.shape[0])</span>
+<span class="c1">#         classes[logical] = 1</span>
+<span class="c1">#</span>
+<span class="c1">#         return classes</span>
+<span class="c1">#</span>
+<span class="c1">#     results = test_utilities.load_scarcity_data()</span>
+<span class="c1">#</span>
+<span class="c1">#     cart = setup_cart(results, scarcity_classify)</span>
+<span class="c1">#     cart.build_tree()</span>
+<span class="c1">#</span>
+<span class="c1">#     print(cart.boxes_to_dataframe())</span>
+<span class="c1">#     print(cart.stats_to_dataframe())</span>
+<span class="c1">#     cart.display_boxes(together=True)</span>
+<span class="c1">#</span>
+<span class="c1">#     img = cart.show_tree()</span>
+<span class="c1">#</span>
+<span class="c1">#     import matplotlib.pyplot as plt</span>
+<span class="c1">#     import matplotlib.image as mpimg</span>
+<span class="c1">#</span>
+<span class="c1">#     # treat the dot output string as an image file</span>
+<span class="c1">#     sio = StringIO()</span>
+<span class="c1">#     sio.write(img)</span>
+<span class="c1">#     sio.seek(0)</span>
+<span class="c1">#     img = mpimg.imread(sio)</span>
+<span class="c1">#</span>
+<span class="c1">#     # plot the image</span>
+<span class="c1">#     imgplot = plt.imshow(img, aspect=&#39;equal&#39;)</span>
+<span class="c1">#</span>
+<span class="c1">#     plt.show()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

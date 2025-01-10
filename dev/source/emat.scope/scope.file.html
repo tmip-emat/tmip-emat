@@ -1,0 +1,335 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scope File &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Experimental Designs" href="../emat.design/emat.design.html" />
+    <link rel="prev" title="Boxes" href="boxes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Exploratory Scoping</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="scope.html">Scope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measures.html">Performance Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boxes.html">Boxes</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Scope File</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scope-name-and-description">Scope Name and Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inputs">Inputs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#uncertainties">Uncertainties</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#levers">Levers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#constants">Constants</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#outputs">Outputs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Exploratory Scoping</a></li>
+      <li class="breadcrumb-item active">Scope File</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.scope/scope.file.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="scope-file">
+<h1>Scope File<a class="headerlink" href="#scope-file" title="Link to this heading">¶</a></h1>
+<p>The Scope File is where the scope is defined for the analysis. The file is
+implemented in YAML and contains the selected model inputs (uncertainties, levers) and
+and outputs (measures) for the analysis and the necessary meta-data on each. The scope
+file is used when initializing an EMAT Scope.</p>
+<section id="scope-name-and-description">
+<h2>Scope Name and Description<a class="headerlink" href="#scope-name-and-description" title="Link to this heading">¶</a></h2>
+<p>Each scope file begins with a <strong>scope:</strong> section that defines the name and description of the
+scope. Both the <strong>name:</strong> and <strong>desc:</strong> are input as strings, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scope</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="n">EMAT</span> <span class="n">demo</span> <span class="n">test</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">A</span> <span class="n">demo</span> <span class="n">test</span> <span class="n">to</span> <span class="n">fall</span> <span class="ow">in</span> <span class="n">love</span> <span class="k">with</span> <span class="n">EMAT</span>
+</pre></div>
+</div>
+</section>
+<section id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">¶</a></h2>
+<p>The <strong>inputs:</strong> section contains the scoped inputs including uncertainties, levers, and
+constants that are to be set in the core model. Depending on the input types, there are
+slightly different parameter settings available. Below we outline some of the more common
+uses cases.  For a full set of input options, see the <a class="reference internal" href="parameters.html#input-parameters"><span class="std std-ref">Parameters</span></a> documentation.</p>
+<p>Within the inputs section, individual inputs are defined by names.
+The name of a parameter is a string with a unique value
+not shared by any other model input or output.  It is not
+required but it is generally advisable for parameter names
+to be a valid Python identifier (i.e. no spaces, starts with a
+letter or underscore, contains only letters, numbers, and
+underscores.)</p>
+<p>For each defined, name, a number of related settings can be given in the
+scope file. Not all of these settings are applicable to all input types.</p>
+<dl class="simple">
+<dt><strong>ptype</strong></dt><dd><p>The ptype is one of <em>uncertainty</em>, <em>lever</em>, or <em>constant</em>,
+and describes what kind of controls and tools might be used in
+exploratory modeling. This should be set for every input.</p>
+</dd>
+<dt><strong>dtype</strong></dt><dd><p>The dtype is one of <em>float</em>, <em>integer</em>, <em>bool</em> (for True/False
+values), or <em>cat</em> (for discrete categorical values).</p>
+</dd>
+<dt><strong>default</strong></dt><dd><p>A default value for the parameter. The default value is not
+needed for many exploratory modeling applications, but it
+is useful when TMIP-EMAT is used for sensitivity testing and
+similar applications, or to illustrate a “reference” default
+scenario if that is desired.</p>
+</dd>
+<dt><strong>min, max</strong></dt><dd><p>A lower and upper bound for the parameter. This is not applicable
+for constants.</p>
+</dd>
+<dt><strong>dist</strong></dt><dd><p>By default, uncertainties and policy levers are evaluated using
+a uniform distribution between the lower and upper bounds, as is
+typical for exploratory modeling under deep uncertainty. However,
+if a modeler wished to include a non-uniform distribution, that
+can be given here as a sub-dictionary, giving the name of the
+desired distribution (e.g. triangular, pert) as well as any
+required shape parameters. In general, bounded distributions are
+preferred for exploratory modeling, as the long tails of unbounded
+distributions can cause numerical instability when extreme values
+are generated.  Note that the upper and lower bounds for each
+input are defined by the min and max, and only any <em>other</em>
+distributional shape parameters (e.g. the relative location of the
+peak for skewed distrivutions, or the gamma shape parameter for PERT
+distributions) need be given inside the “dist” definition.
+See below for examples.</p>
+</dd>
+<dt><strong>values</strong></dt><dd><p>For categorical distributions only, give a list of particular
+discrete values that the factor can take on.  These can be given as
+strings or numerical values.</p>
+</dd>
+<dt><strong>desc</strong></dt><dd><p>A brief description of the parameter can be provided.  The
+description is not used in mathematical modeling, but it can
+be accessed to provide context in certain visualizations (e.g.
+as a tooltip).</p>
+</dd>
+<dt><strong>corr</strong></dt><dd><p>If modeling well-characterized uncertainties, it is possible that
+some correlation across uncertainties is desired.  This correlation
+can be asserted in the scope, and random draws with approximately
+this level of correlation can be generated.</p>
+</dd>
+</dl>
+<section id="uncertainties">
+<h3>Uncertainties<a class="headerlink" href="#uncertainties" title="Link to this heading">¶</a></h3>
+<p>Uncertainties are defined by the range or categories of values, and the distribution shape and
+parameters across the range. Correlations may also be defined between multiple uncertainty
+measures.</p>
+<p>An example uncertainty input is below. This example implements an uncertainty variable with a
+range between 0.82 and 1.37 with a PERT distribution shaped by a relative peak 33% of the
+distance between lower and upper bounds, and a
+gamma value of 4. There is also a defined correlation between the distribution of this uncertainty variable
+and two other variables in the scope. The default value of this variable is 1.0, which is used for
+sensitivity testing as the “baseline” value for this parameter on tests where it is not the
+focus (i.e., when examining single-variable sensitivity on other parameters).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Uncertainty_Variable_1</span><span class="p">:</span>
+    <span class="n">ptype</span><span class="p">:</span> <span class="n">uncertainty</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">A</span> <span class="n">test</span> <span class="n">uncertainty</span> <span class="n">variable</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">default</span><span class="p">:</span> <span class="mf">1.0</span>
+    <span class="nb">min</span><span class="p">:</span> <span class="mf">0.82</span>
+    <span class="nb">max</span><span class="p">:</span> <span class="mf">1.37</span>
+    <span class="n">dist</span><span class="p">:</span>
+        <span class="n">name</span><span class="p">:</span> <span class="n">pert</span>
+        <span class="n">rel_peak</span><span class="p">:</span> <span class="mf">0.33</span>
+        <span class="n">gamma</span><span class="p">:</span> <span class="mi">4</span>
+    <span class="n">corr</span><span class="p">:</span>
+        <span class="n">Uncertainty_Variable_2</span><span class="p">:</span> <span class="mf">0.5</span>
+        <span class="n">Uncertainty_Variable_3</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.25</span>
+</pre></div>
+</div>
+<section id="notes-on-correlations">
+<h4>Notes on Correlations<a class="headerlink" href="#notes-on-correlations" title="Link to this heading">¶</a></h4>
+<p>Correlations are by definition bi-directional – if ‘Uncertainty_Variable_1’ is
+set to be correlated at +0.5 with ‘Uncertainty Variable 2’, then that same correlation
+automatically applies in reverse as well, and it is not necessary to give it explicitly
+for both parameters (and, if they are both given but at different values, an error is generated
+when using the scope file).</p>
+<p>Additionally, correlations in aggregate across the entire scope must make sense:  if ‘A’
+is highly correlated with ‘B’ and ‘B’ is highly correlated with ‘C’, then there must
+be at least some correlation between ‘A’ and ‘C’.  Exactly how much is required is a
+matter of linear algebra (i.e. the correlation matrix must be positive semi-definite).
+In practical applications, logical and consistent assumptions about correlation across
+uncertainties should naturally come out fine, and if not, an <code class="docutils literal notranslate"><span class="pre">LinAlgError</span></code> will be generated.</p>
+</section>
+</section>
+<section id="levers">
+<h3>Levers<a class="headerlink" href="#levers" title="Link to this heading">¶</a></h3>
+<p>Levers differ from Uncertainties as inputs because they do not have a distribution per se,
+rather levers are set in a deterministic fashion. However, it is still important for the analysis
+that scenarios are tested with levers in all possible positions.</p>
+<p>Three example lever definitions are shown below. The first has a simple boolean value, the second has
+several categorical values, and the third has a continuous value.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">boolean_lever</span><span class="p">:</span>
+    <span class="n">ptype</span><span class="p">:</span> <span class="n">policy</span> <span class="n">lever</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">Example</span> <span class="n">boolean</span> <span class="n">lever</span> <span class="nb">input</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">default</span><span class="p">:</span> <span class="kc">False</span>
+
+<span class="n">categorical_lever</span><span class="p">:</span>
+    <span class="n">ptype</span><span class="p">:</span> <span class="n">policy</span> <span class="n">lever</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">Example</span> <span class="n">lever</span> <span class="k">with</span> <span class="n">categorical</span> <span class="n">value</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="n">cat</span>
+    <span class="n">default</span><span class="p">:</span> <span class="n">category</span> <span class="mi">1</span>
+    <span class="n">values</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">category</span> <span class="mi">1</span>
+        <span class="o">-</span> <span class="n">category</span> <span class="mi">2</span>
+        <span class="o">-</span> <span class="n">category</span> <span class="mi">3</span>
+
+<span class="n">continuous_value_lever</span><span class="p">:</span>
+    <span class="n">ptype</span><span class="p">:</span> <span class="n">policy</span> <span class="n">lever</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">Example</span> <span class="n">lever</span> <span class="k">with</span> <span class="n">a</span> <span class="n">continuous</span> <span class="n">value</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">default</span><span class="p">:</span> <span class="mi">30</span>
+    <span class="nb">min</span><span class="p">:</span> <span class="mi">15</span>
+    <span class="nb">max</span><span class="p">:</span> <span class="mi">50</span>
+</pre></div>
+</div>
+</section>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading">¶</a></h3>
+<p>Constants are inputs with a fixed value in the analysis. This input option is provided to allow the
+modeler to fix a set of inputs. If a constant is to be set in a manner that it
+will really never change, then it may be more convenient to simply ignore the
+constant in the exploratory scope and simply code the constant value directly
+into the model itself. By providing this functionality in the scope file, TMIP-EMAT
+allows for use cases where an input is fixed in the current exploratory scope,
+but it may be changed or even treated as a variable input in other exploratory
+scopes that otherwise use the exact same underlying model. Note
+that both the ptype and the dist need to be set to ‘constant’ in the definition.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">constant</span> <span class="nb">input</span><span class="p">:</span>
+    <span class="n">ptype</span><span class="p">:</span> <span class="n">constant</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">Example</span> <span class="n">constant</span> <span class="nb">input</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">default</span><span class="p">:</span> <span class="mi">60</span>
+    <span class="n">dist</span><span class="p">:</span> <span class="n">constant</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">¶</a></h2>
+<p>The <strong>outputs:</strong> section of the scoping file lists all the measures to be captured from the core model.
+Each output is declared individually along with information about any transformation that should be
+taken in development of the meta-model and how the output should be treated in the automated analysis,
+for example with <a class="reference external" href="https://github.com/quaquel/EMAworkbench/tree/v2">EMA Workbench</a>.</p>
+<p>For a full set of output options, see the <a class="reference internal" href="measures.html#output-measures"><span class="std std-ref">Measures</span></a> documentation.  Within
+each output measure definition, any keyword argument for the constructor of a <a class="reference internal" href="measures.html#emat.Measure" title="emat.Measure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Measure</span></code></a> can
+be given in this scope file (with the exception of <em>function</em> arguments, which are disabled for
+security reasons; use the <em>transform</em> argument instead).</p>
+<p>The example output below shows an output measure that has a log transformation (the meta-model will
+be based on the log of the value of this measure, instead of the original raw value) and the measure
+should be minimized in an automated analysis.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Example</span> <span class="n">output</span> <span class="n">measure</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">metamodeltype</span><span class="p">:</span> <span class="n">log</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="n">minimize</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="boxes.html" class="btn btn-neutral float-left" title="Boxes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../emat.design/emat.design.html" class="btn btn-neutral float-right" title="Experimental Designs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

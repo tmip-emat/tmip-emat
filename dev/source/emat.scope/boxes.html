@@ -1,0 +1,537 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boxes &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Scope File" href="scope.file.html" />
+    <link rel="prev" title="Performance Measures" href="measures.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Exploratory Scoping</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="scope.html">Scope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measures.html">Performance Measures</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Boxes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#box">Box</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Box"><code class="docutils literal notranslate"><span class="pre">Box</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Box.set_lower_bound"><code class="docutils literal notranslate"><span class="pre">Box.set_lower_bound()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Box.set_upper_bound"><code class="docutils literal notranslate"><span class="pre">Box.set_upper_bound()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Box.set_bounds"><code class="docutils literal notranslate"><span class="pre">Box.set_bounds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Box.add_to_allowed_set"><code class="docutils literal notranslate"><span class="pre">Box.add_to_allowed_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Box.remove_from_allowed_set"><code class="docutils literal notranslate"><span class="pre">Box.remove_from_allowed_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Box.replace_allowed_set"><code class="docutils literal notranslate"><span class="pre">Box.replace_allowed_set()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Boxes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Boxes"><code class="docutils literal notranslate"><span class="pre">Boxes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#chainedbox">ChainedBox</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.ChainedBox"><code class="docutils literal notranslate"><span class="pre">ChainedBox</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">ChainedBox.uncertainty_thresholds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">ChainedBox.lever_thresholds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">ChainedBox.measure_thresholds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.Bounds"><code class="docutils literal notranslate"><span class="pre">Bounds</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="scope.file.html">Scope File</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Exploratory Scoping</a></li>
+      <li class="breadcrumb-item active">Boxes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.scope/boxes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="boxes">
+<h1>Boxes<a class="headerlink" href="#boxes" title="Link to this heading">¶</a></h1>
+<p>A <a class="reference internal" href="#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code></a> represents a constrained subset of experiments, containing
+only those <a class="reference internal" href="../emat.glossary.html#term-case"><span class="xref std std-term">cases</span></a> that meet certain restrictions.  These
+restrictions are expressed as limited ranges on a particular set of named
+<a class="reference internal" href="../emat.glossary.html#term-parameter"><span class="xref std std-term">parameters</span></a> or <a class="reference internal" href="../emat.glossary.html#term-measure"><span class="xref std std-term">measures</span></a>.  A <a class="reference internal" href="#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code></a> can also
+designate a set of relevant features, which are not themselves constrained
+but should be considered in any analytical report developed based on that
+<a class="reference internal" href="#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code></a>.</p>
+<p>A <a class="reference internal" href="#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code></a> can be created manually as part of the scoping process. For example,
+the initially defined scope may be too broad or may include more uncertainties
+or policy levers than an analyst wishes to study at a particular time.  For this
+situation, a <a class="reference internal" href="#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code></a> can be used to define a more limited scope for study, by
+limiting the ranges of some set of <a class="reference internal" href="../emat.glossary.html#term-parameter"><span class="xref std std-term">parameters</span></a>.  It is possible to effectively
+remove parameters from analysis by setting the minimum and maximum values to
+the same value (for scalar parameters) or by limiting the allowed set of values
+to a single value (for categorical parameters).  It is also possible to include
+<a class="reference internal" href="../emat.glossary.html#term-measure"><span class="xref std std-term">measures</span></a> in the set of restrictions, which results in a different kind of
+exploratory analysis, where the analyst can undertake scenario discovery, to
+analyze the variety of input values that might lead to certain kinds of output
+values.</p>
+<section id="box">
+<h2>Box<a class="headerlink" href="#box" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="emat.Box">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">emat.</span></span><span class="sig-name descname"><span class="pre">Box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relevant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#Box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Box" title="Link to this definition">¶</a></dt>
+<dd><p>A Box defines a set of restricted dimensions for a Scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name for this Box.</p></li>
+<li><p><strong>parent</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the parent for this Box.  When extracted
+as a <a class="reference internal" href="#emat.ChainedBox" title="emat.ChainedBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChainedBox</span></code></a> from a collection of <a class="reference internal" href="#emat.Boxes" title="emat.Boxes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Boxes</span></code></a>,
+the thresholds will also include any thresholds inherited
+from this box’s ancestor(s).</p></li>
+<li><p><strong>scope</strong> (<a class="reference internal" href="scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a><em>, </em><em>optional</em>) – A scope to associate with this box.</p></li>
+<li><p><strong>upper_bounds</strong> (<em>Mapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>numeric</em><em>]</em><em>, </em><em>optional</em>) – If given, a mapping with keys giving feature names
+and values giving an upper bound for each feature.</p></li>
+<li><p><strong>lower_bounds</strong> (<em>Mapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>numeric</em><em>]</em><em>, </em><em>optional</em>) – If given, a mapping with keys giving feature names
+and values giving a lower bound for each feature.</p></li>
+<li><p><strong>bounds</strong> (<em>Mapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><a class="reference internal" href="#emat.Bounds" title="emat.Bounds"><em>Bounds</em></a><em>]</em><em>, </em><em>optional</em>) – If given, a mapping with keys giving feature names
+and values giving <a class="reference internal" href="#emat.Bounds" title="emat.Bounds"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bounds</span></code></a> for each feature.</p></li>
+<li><p><strong>allowed</strong> (<em>Mapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>Set</em><em>]</em><em>, </em><em>optional</em>) – If given, a mapping with keys giving feature names
+and values giving the available <code class="xref py py-class docutils literal notranslate"><span class="pre">Set</span></code> for
+each feature.</p></li>
+<li><p><strong>relevant</strong> (<em>Iterable</em><em>, </em><em>optional</em>) – If given, a set of names of relevant features.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="emat.Box.thresholds">
+<span class="sig-name descname"><span class="pre">thresholds</span></span><a class="headerlink" href="#emat.Box.thresholds" title="Link to this definition">¶</a></dt>
+<dd><p>The restricted dimensions in this Box, with feature names as
+keys and <a class="reference internal" href="#emat.Bounds" title="emat.Bounds"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bounds</span></code></a> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">Set</span></code> of available discrete
+values as the dictionary values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)">str</a>,Union[<a class="reference internal" href="#emat.Bounds" title="emat.Bounds">Bounds</a>,Set]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="emat.Box.relevant_features">
+<span class="sig-name descname"><span class="pre">relevant_features</span></span><a class="headerlink" href="#emat.Box.relevant_features" title="Link to this definition">¶</a></dt>
+<dd><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Set</span></code> of features that are relevant for this Box.
+These are features, which are not themselves constrained,
+but should be considered in any analytical report developed
+based on this Box.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Set[<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="emat.Box.scope">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scope</span></span><a class="headerlink" href="#emat.Box.scope" title="Link to this definition">¶</a></dt>
+<dd><p>A scope associated with this Box.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="scope.html#emat.Scope" title="emat.Scope">Scope</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="emat.Box.measure_thresholds">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">measure_thresholds</span></span><a class="headerlink" href="#emat.Box.measure_thresholds" title="Link to this definition">¶</a></dt>
+<dd><p>Dict[str,Union[Bounds,Set]]:
+The thresholds in this Box associated with performance measures.</p>
+<p>A Scope must be associated with this Box to access this property.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="emat.Box.uncertainty_thresholds">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncertainty_thresholds</span></span><a class="headerlink" href="#emat.Box.uncertainty_thresholds" title="Link to this definition">¶</a></dt>
+<dd><p>Dict[str,Union[Bounds,Set]]:
+The thresholds in this Box associated with exogenous uncertainties.</p>
+<p>A Scope must be associated with this Box to access this property.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="emat.Box.lever_thresholds">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lever_thresholds</span></span><a class="headerlink" href="#emat.Box.lever_thresholds" title="Link to this definition">¶</a></dt>
+<dd><p>Dict[str,Union[Bounds,Set]]:
+The thresholds in this Box associated with policy levers.</p>
+<p>A Scope must be associated with this Box to access this property.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Box.set_lower_bound">
+<span class="sig-prename descclassname"><span class="pre">Box.</span></span><span class="sig-name descname"><span class="pre">set_lower_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#emat.Box.set_lower_bound" title="Link to this definition">¶</a></dt>
+<dd><p>Set a lower bound, retaining existing upper bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The feature name to which this lower bound
+will be attached.</p></li>
+<li><p><strong>value</strong> (<em>numeric</em><em> or </em><em>None</em>) – The lower bound. Set explicitly to ‘None’ to
+leave unbounded from below.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ScopeError</strong> – If a scope is attached to this box but the <cite>key</cite> cannot
+    be found in the scope.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Box.set_upper_bound">
+<span class="sig-prename descclassname"><span class="pre">Box.</span></span><span class="sig-name descname"><span class="pre">set_upper_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#emat.Box.set_upper_bound" title="Link to this definition">¶</a></dt>
+<dd><p>Set an upper bound, retaining existing lower bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The feature name to which this upper bound
+will be attached.</p></li>
+<li><p><strong>value</strong> (<em>numeric</em><em> or </em><em>None</em>) – The upper bound. Set explicitly to ‘None’ to
+leave unbounded from above.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ScopeError</strong> – If a scope is attached to this box but the <cite>key</cite> cannot
+    be found in the scope.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Box.set_bounds">
+<span class="sig-prename descclassname"><span class="pre">Box.</span></span><span class="sig-name descname"><span class="pre">set_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowerbound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperbound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#Box.set_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Box.set_bounds" title="Link to this definition">¶</a></dt>
+<dd><p>Set both lower and upper bounds.</p>
+<p>If values are both set to None and this key becomes
+unbounded but it was not previously unbounded, it is moved from
+thresholds to relevant_features.  Conversely, if no bounds were
+previously set but the key appears in relevant_features, it is
+removed from that set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The feature name to which these bounds
+will be attached.</p></li>
+<li><p><strong>lowerbound</strong> (<em>numeric</em><em>, </em><em>None</em><em>, or </em><a class="reference internal" href="#emat.Bounds" title="emat.Bounds"><em>Bounds</em></a>) – The lower bound, or a Bounds object that gives
+upper and lower bounds (in which case the <cite>upperbound</cite>
+argument is ignored).  Set explicitly to ‘None’ to
+leave unbounded from below.</p></li>
+<li><p><strong>upperbound</strong> (<em>numeric</em><em> or </em><em>None</em><em>, </em><em>default None</em>) – The upper bound. Set to ‘None’ to
+leave unbounded from above.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ScopeError</strong> – If a scope is attached to this box but the <cite>key</cite> cannot
+    be found in the scope.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Box.add_to_allowed_set">
+<span class="sig-prename descclassname"><span class="pre">Box.</span></span><span class="sig-name descname"><span class="pre">add_to_allowed_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#emat.Box.add_to_allowed_set" title="Link to this definition">¶</a></dt>
+<dd><p>Add a value to the allowed set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The feature name to which these allowed values
+will be attached.</p></li>
+<li><p><strong>value</strong> (<em>Any</em>) – A value to add to the allowed set.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If there is already a directional Bounds set for <cite>key</cite>.</p></li>
+<li><p><strong>ScopeError</strong> – If a scope is attached to this box but the <cite>key</cite> cannot
+    be found in the scope.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Box.remove_from_allowed_set">
+<span class="sig-prename descclassname"><span class="pre">Box.</span></span><span class="sig-name descname"><span class="pre">remove_from_allowed_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#emat.Box.remove_from_allowed_set" title="Link to this definition">¶</a></dt>
+<dd><p>Remove a value from the allowed set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The feature name to which these allowed values
+will be attached.</p></li>
+<li><p><strong>value</strong> (<em>Any</em>) – A value to remove from the allowed set.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If the threshold set for <cite>key</cite> is a directional Bounds
+    instead of a set.</p></li>
+<li><p><strong>ScopeError</strong> – If a scope is attached to this box but the <cite>key</cite> cannot
+    be found in the scope.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#KeyError" title="(in Python v3.7)"><strong>KeyError</strong></a> – If the value to be removed was not already in the
+    allowed set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.Box.replace_allowed_set">
+<span class="sig-prename descclassname"><span class="pre">Box.</span></span><span class="sig-name descname"><span class="pre">replace_allowed_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#Box.replace_allowed_set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Box.replace_allowed_set" title="Link to this definition">¶</a></dt>
+<dd><p>Replace the allowed set.</p>
+<p>If the new allowed set is the same as the complete set of
+possible values defined in the scope, this key becomes
+unbounded and it is moved from thresholds to
+relevant_features.  Conversely, if no bounds were previously
+set but the key appears in relevant_features, it is
+removed from that set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The feature name to which these bounds
+will be attached.</p></li>
+<li><p><strong>values</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#set" title="(in Python v3.7)"><em>set</em></a>) – A set of values to use as the allowed set.
+If an empty set or None is given, then any
+values are allowed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id1">
+<h2>Boxes<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="emat.Boxes">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">emat.</span></span><span class="sig-name descname"><span class="pre">Boxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#Boxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.Boxes" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.7/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
+</dd></dl>
+
+</section>
+<section id="chainedbox">
+<h2>ChainedBox<a class="headerlink" href="#chainedbox" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="emat.ChainedBox">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">emat.</span></span><span class="sig-name descname"><span class="pre">ChainedBox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boxes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#ChainedBox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.ChainedBox" title="Link to this definition">¶</a></dt>
+<dd><p>A Box defines a set of restricted dimensions for a Scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>boxes</strong> (<a class="reference internal" href="#emat.Boxes" title="emat.Boxes"><em>Boxes</em></a>) – A collection of Boxes from which to assemble a chain.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name for this ChainedBox.  This must be the name of
+a Box in <cite>boxes</cite>, which serves as the seed for the chain.
+Ancestors are added recursively by finding the parent box
+of each box in the chain, until a box is found with no parent.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.ChainedBox.measure_thresholds">
+<span class="sig-name descname"><span class="pre">measure_thresholds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#ChainedBox.measure_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.ChainedBox.measure_thresholds" title="Link to this definition">¶</a></dt>
+<dd><p>The thresholds in this Box or its ancestor(s) associated with performance measures.</p>
+<p>A Scope must be associated with each Box in the chain to access this property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str,Union[Bounds,Set]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.ChainedBox.uncertainty_thresholds">
+<span class="sig-name descname"><span class="pre">uncertainty_thresholds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#ChainedBox.uncertainty_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.ChainedBox.uncertainty_thresholds" title="Link to this definition">¶</a></dt>
+<dd><p>The thresholds in this Box or its ancestor(s) associated with exogenous uncertainties.</p>
+<p>A Scope must be associated with each Box in the chain to access this property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str,Union[Bounds,Set]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.ChainedBox.lever_thresholds">
+<span class="sig-name descname"><span class="pre">lever_thresholds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#ChainedBox.lever_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.ChainedBox.lever_thresholds" title="Link to this definition">¶</a></dt>
+<dd><p>The thresholds in this Box or its ancestor(s) associated with policy levers.</p>
+<p>A Scope must be associated with each Box in the chain to access this property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str,Union[Bounds,Set]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-prename descclassname"><span class="pre">ChainedBox.</span></span><span class="sig-name descname"><span class="pre">uncertainty_thresholds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#ChainedBox.uncertainty_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd><p>The thresholds in this Box or its ancestor(s) associated with exogenous uncertainties.</p>
+<p>A Scope must be associated with each Box in the chain to access this property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str,Union[Bounds,Set]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-prename descclassname"><span class="pre">ChainedBox.</span></span><span class="sig-name descname"><span class="pre">lever_thresholds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#ChainedBox.lever_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd><p>The thresholds in this Box or its ancestor(s) associated with policy levers.</p>
+<p>A Scope must be associated with each Box in the chain to access this property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str,Union[Bounds,Set]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-prename descclassname"><span class="pre">ChainedBox.</span></span><span class="sig-name descname"><span class="pre">measure_thresholds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/scope/box.html#ChainedBox.measure_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<dd><p>The thresholds in this Box or its ancestor(s) associated with performance measures.</p>
+<p>A Scope must be associated with each Box in the chain to access this property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str,Union[Bounds,Set]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="emat.Bounds">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">emat.</span></span><span class="sig-name descname"><span class="pre">Bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lowerbound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperbound</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#emat.Bounds" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#tuple" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p>A lower and upper bound as a 2-tuple.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lowerbound</strong> (<em>numeric</em><em> or </em><em>None</em>) – The lower bound to set, or None
+if there is no lower bound.</p></li>
+<li><p><strong>upperbound</strong> (<em>numeric</em><em> or </em><em>None</em>) – The upper bound to set, or None
+if there is no upper bound.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="emat.Bounds.lowerbound">
+<span class="sig-name descname"><span class="pre">lowerbound</span></span><a class="headerlink" href="#emat.Bounds.lowerbound" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="emat.Bounds.upperbound">
+<span class="sig-name descname"><span class="pre">upperbound</span></span><a class="headerlink" href="#emat.Bounds.upperbound" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="measures.html" class="btn btn-neutral float-left" title="Performance Measures" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="scope.file.html" class="btn btn-neutral float-right" title="Scope File" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

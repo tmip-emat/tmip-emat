@@ -1,0 +1,399 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MappingParser Example &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Files-Based Model API" href="files-api.html" />
+    <link rel="prev" title="TableParser Example" href="table_parse_example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Core Models</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="abstract.html">Basic EMAT Model API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_based.html">Python-Based Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="excel.html">Excel-Based Models</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="files.html">Files-Based Model</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="table_parse_example.html">TableParser Example</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">MappingParser Example</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Parsing-a-YAML-File">Parsing a YAML File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Parsing-a-JSON-File">Parsing a JSON File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Parsing-other-File-Formats">Parsing other File Formats</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html">Files-Based Model API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gbnrtc.html">GBNRTC Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Core Models</a></li>
+          <li class="breadcrumb-item"><a href="files.html">Files-Based Model</a></li>
+      <li class="breadcrumb-item active">MappingParser Example</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.models/mapping_parse_example.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">emat</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+</pre></div>
+</div>
+</div>
+<section id="MappingParser-Example">
+<h1>MappingParser Example<a class="headerlink" href="#MappingParser-Example" title="Link to this heading">¶</a></h1>
+<p>In this notebook, we will illustrate the use of a MappingParser with a few simple examples.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">emat.model.core_files.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">MappingParser</span><span class="p">,</span>
+    <span class="n">key</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Parsing-a-YAML-File">
+<h2>Parsing a YAML File<a class="headerlink" href="#Parsing-a-YAML-File" title="Link to this heading">¶</a></h2>
+<p>First, let’s consider a <code class="docutils literal notranslate"><span class="pre">MappingParser</span></code> for extracting values from a simple YAML file of traffic counts by time period. We’ll begin by writing such a table as a temporary file to be processed:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample_file_yaml</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">---</span>
+<span class="s2">LinkID: 123</span>
+<span class="s2">LinkName: Yellow Brick Rd.</span>
+<span class="s2">Toll: 0.30</span>
+<span class="s2">Count_AM: 3498</span>
+<span class="s2">Count_MD: 2340</span>
+<span class="s2">Count_PM: 3821</span>
+<span class="s2">Count_EV: 1820</span>
+<span class="s2">...</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/emat_sample_file.yml&#39;</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sample_file_yaml</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>If we wanted to read this YAML file one time, we could easily do so using <code class="docutils literal notranslate"><span class="pre">yaml.safe_load</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/emat_sample_file.yml&#39;</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fi</span><span class="p">)</span>
+
+<span class="n">mapping</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;LinkID&#39;: 123,
+ &#39;LinkName&#39;: &#39;Yellow Brick Rd.&#39;,
+ &#39;Toll&#39;: 0.3,
+ &#39;Count_AM&#39;: 3498,
+ &#39;Count_MD&#39;: 2340,
+ &#39;Count_PM&#39;: 3821,
+ &#39;Count_EV&#39;: 1820}
+</pre></div></div>
+</div>
+<p>It is then simple to manually extract individual values by label, or by position, or we could extract a row total to get a daily total count for a link, or take the mean of a column:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;AM&#39;</span><span class="p">:</span> <span class="n">mapping</span><span class="p">[</span><span class="s1">&#39;Count_AM&#39;</span><span class="p">],</span>  <span class="c1"># one key</span>
+    <span class="s1">&#39;PM&#39;</span><span class="p">:</span> <span class="n">mapping</span><span class="p">[</span><span class="s1">&#39;Count_PM&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;OffPeak&#39;</span><span class="p">:</span> <span class="n">mapping</span><span class="p">[</span><span class="s1">&#39;Count_MD&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">mapping</span><span class="p">[</span><span class="s1">&#39;Count_EV&#39;</span><span class="p">],</span>  <span class="c1"># adding together keys</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;AM&#39;: 3498, &#39;PM&#39;: 3821, &#39;OffPeak&#39;: 4160}
+</pre></div></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">MappingParser</span></code> object makes it easy to combine these instructions to extract the same values from the same file in any model run.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span> <span class="o">=</span> <span class="n">MappingParser</span><span class="p">(</span>
+    <span class="s1">&#39;emat_sample_file.yml&#39;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;AM&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_AM&#39;</span><span class="p">],</span>  <span class="c1"># one key</span>
+        <span class="s1">&#39;PM&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_PM&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;OffPeak&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_MD&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_EV&#39;</span><span class="p">],</span>  <span class="c1"># adding together keys</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We can now execute all these instructions by using the <code class="docutils literal notranslate"><span class="pre">read</span></code> method of the parser.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">from_dir</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;AM&#39;: 3498.0, &#39;PM&#39;: 3821.0, &#39;OffPeak&#39;: 4160.0}
+</pre></div></div>
+</div>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">MappingParser</span></code> has some advantages over just writing a custom function for each table to be processed. The most important is that we do not need to actually parse anything to access the names of the keys available in the parser’s output.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">measure_names</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;AM&#39;, &#39;OffPeak&#39;, &#39;PM&#39;]
+</pre></div></div>
+</div>
+</section>
+<section id="Parsing-a-JSON-File">
+<h2>Parsing a JSON File<a class="headerlink" href="#Parsing-a-JSON-File" title="Link to this heading">¶</a></h2>
+<p>The default format for a <code class="docutils literal notranslate"><span class="pre">MappingParser</span></code> input file is YAML, which conveniently can also be used to read performace measures from a JSON file.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/emat_sample_file.json&#39;</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span> <span class="o">=</span> <span class="n">MappingParser</span><span class="p">(</span>
+    <span class="s1">&#39;emat_sample_file.json&#39;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;AM&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_AM&#39;</span><span class="p">],</span>  <span class="c1"># one key</span>
+        <span class="s1">&#39;PM&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_PM&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;OffPeak&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_MD&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_EV&#39;</span><span class="p">],</span>  <span class="c1"># adding together keys</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">from_dir</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;AM&#39;: 3498.0, &#39;PM&#39;: 3821.0, &#39;OffPeak&#39;: 4160.0}
+</pre></div></div>
+</div>
+</section>
+<section id="Parsing-other-File-Formats">
+<h2>Parsing other File Formats<a class="headerlink" href="#Parsing-other-File-Formats" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">MappingParser</span></code> can also be used for other file types that can be read into a simple Python mapping. For example, consider a mapping encoded as a <code class="docutils literal notranslate"><span class="pre">msgpack</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">msgpack</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/emat_sample_file.msgpk&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">msgpack</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>To parse this file, we’ll need to write a small reader function that takes a filename and returns the raw mapping.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">msgpack_load</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fi</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Then we provide that reader function in the <code class="docutils literal notranslate"><span class="pre">reader_method</span></code> argument when constucting the MappingParser.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span> <span class="o">=</span> <span class="n">MappingParser</span><span class="p">(</span>
+    <span class="s1">&#39;emat_sample_file.msgpk&#39;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;AM&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_AM&#39;</span><span class="p">],</span>  <span class="c1"># one key</span>
+        <span class="s1">&#39;PM&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_PM&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;OffPeak&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_MD&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;Count_EV&#39;</span><span class="p">],</span>  <span class="c1"># adding together keys</span>
+    <span class="p">},</span>
+    <span class="n">reader_method</span><span class="o">=</span><span class="n">msgpack_load</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">from_dir</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;AM&#39;: 3498.0, &#39;PM&#39;: 3821.0, &#39;OffPeak&#39;: 4160.0}
+</pre></div></div>
+</div>
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"5ae7eb66ae3549359b1a131548cb4f3c": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": "250px"}}, "d742bd9872514e158c80d522c1ecb451": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}}, "version_major": 2, "version_minor": 0}
+</script></section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="table_parse_example.html" class="btn btn-neutral float-left" title="TableParser Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="files-api.html" class="btn btn-neutral float-right" title="Files-Based Model API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

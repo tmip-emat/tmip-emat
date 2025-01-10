@@ -1,0 +1,1280 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Experimental Designs &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Core Models" href="../emat.models/index.html" />
+    <link rel="prev" title="Scope File" href="../emat.scope/scope.file.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Experimental Designs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Univariate-Sensitivity-Tests">Univariate Sensitivity Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Efficient-Designs">Efficient Designs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Reference-Designs">Reference Designs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Experimental-Design-API">Experimental Design API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#emat.experiment.experimental_design.design_experiments"><code class="docutils literal notranslate"><span class="pre">design_experiments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#emat.experiment.experimental_design.design_sensitivity_tests"><code class="docutils literal notranslate"><span class="pre">design_sensitivity_tests()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#emat.experiment.experimental_design.design_refpoint_test"><code class="docutils literal notranslate"><span class="pre">design_refpoint_test()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Experimental Designs</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.design/emat.design.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">emat</span>
+<span class="n">emat</span><span class="o">.</span><span class="n">versions</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+emat 0.6.4, plotly 5.24.1
+</pre></div></div>
+</div>
+<span class="target" id="methodology-experimental-design"></span><section id="Experimental-Designs">
+<h1>Experimental Designs<a class="headerlink" href="#Experimental-Designs" title="Link to this heading">¶</a></h1>
+<p>A fundamental part of TMIP-EMAT is the development of a “design of experiments” to use in conjunction with a model. The experimental design lays out a list of model experiments to be conducted, and can be constructed in a number of different ways: it can be a systematic design, a random design, or something in between.</p>
+<p>Developing an experimental design using TMIP-EMAT requires that an exploratory scope is defined, to identify the model inputs and their potential values. To illustrate designs, we’ll work with the scope from the road test model.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">emat.examples</span>
+<span class="n">scope</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">road_test</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<span class="target" id="methodology-univariate-sensitivity"></span><section id="Univariate-Sensitivity-Tests">
+<h2>Univariate Sensitivity Tests<a class="headerlink" href="#Univariate-Sensitivity-Tests" title="Link to this heading">¶</a></h2>
+<p>One of the simplest experimental designs, and one used often in practice for transportation models, is a series of univariate sensitivity tests. In this design, a set of baseline or default model inputs is used as a starting point, and then input parameters are changed one at a time to non-default values. Univariate sensitivity tests are excellent tools for debugging and quality checking the model code, as they allow modelers to confirm that each modeled input is (or is intentionally not)
+triggering some change in the model outputs.</p>
+<p>TMIP-EMAT provides the <code class="docutils literal notranslate"><span class="pre">design_sensitivity_tests</span></code> function to automatically generate a design of univariate sensitivity tests, given an exploratory scope. This tool will systematically generate experiments where all of the inputs but one are set to their default values, and the holdout input is then set to alternative values. For numerical inputs, the alternative values are the minimum or maximum value (one experiment for each, if they are different from the default). For categorical and
+boolean inputs, one experiment is created for each possible input value.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">emat.experiment.experimental_design</span><span class="w"> </span><span class="kn">import</span> <span class="n">design_sensitivity_tests</span>
+<span class="n">ust</span> <span class="o">=</span> <span class="n">design_sensitivity_tests</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="s1">&#39;univariate_tests&#39;</span><span class="p">)</span>
+<span class="n">ust</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>free_flow_time</th>
+      <th>initial_capacity</th>
+      <th>alpha</th>
+      <th>beta</th>
+      <th>input_flow</th>
+      <th>value_of_time</th>
+      <th>unit_cost_expansion</th>
+      <th>interest_rate</th>
+      <th>yield_curve</th>
+      <th>expand_capacity</th>
+      <th>amortization_period</th>
+      <th>debt_type</th>
+      <th>interest_rate_lock</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.10</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.20</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>3.5</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>5.5</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>80</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>150</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.001</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.250</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>95</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>145</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.025</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.040</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>-0.0025</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0200</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>0.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>100.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>15</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>50</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>Rev Bond</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>Paygo</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.030</td>
+      <td>0.0100</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>True</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>The output of this function is an <code class="docutils literal notranslate"><span class="pre">emat.ExperimentalDesign</span></code>, which is a subclass of a typical pandas DataFrame. The <code class="docutils literal notranslate"><span class="pre">emat.ExperimentalDesign</span></code> subclass attaches some useful metadata to the actual contents of the design, namely:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sampler_name</span></code>, which for univariate sensitivity test is <code class="docutils literal notranslate"><span class="pre">'uni'</span></code>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">design_name</span></code>, a descriptive name for storing and retrieving experiments and results in a database, and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scope</span></code>, which contains a reference to the scope used to define this design.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ust</span><span class="o">.</span><span class="n">scope</span> <span class="ow">is</span> <span class="n">scope</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+True
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ust</span><span class="o">.</span><span class="n">sampler_name</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;uni&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ust</span><span class="o">.</span><span class="n">design_name</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;univariate_tests&#39;
+</pre></div></div>
+</div>
+<span class="target" id="methodology-latin-hypercube"></span></section>
+<section id="Efficient-Designs">
+<h2>Efficient Designs<a class="headerlink" href="#Efficient-Designs" title="Link to this heading">¶</a></h2>
+<p>The univariate tests, while useful for model debugging and testing, are not the best choice for exploratory modeling, where we want to consider changing many input factors at once. To support multivariate exploratation, TMIP-EMAT includes a design_experiments function that offers several different multivariate samplers.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">emat.experiment.experimental_design</span><span class="w"> </span><span class="kn">import</span> <span class="n">design_experiments</span>
+</pre></div>
+</div>
+</div>
+<p>The default multivariate sampler is a basic Latin Hypercube sampler. Meta-models for deterministic simulation experiments, such as a TDM, are best supported by a “space filling” design of experiments, such as Latin Hypercube draws (Sacks, Welch, Mitchell, &amp; Wynn, 1989).</p>
+<p>A Latin Hypercube sample for one dimension is constructed by subdividing the distribution of each input factor into N equally probable ranges, and drawing one random sample within each range. For example, if an input factor is assumed to be uniformly distributed between 0.1 and 0.2, that distribution can be divided into four regions (0.1-0.125, 0.125-0.15, 0.15-0.175, and 0.175-0.2), and one random draw can be made in each region. In the example below, we illustrate exactly this, for the “alpha”
+parameter in the demo scope.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n</span><span class="o">=</span><span class="mi">4</span>
+<span class="n">design</span> <span class="o">=</span> <span class="n">design_experiments</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;initial_capacity&#39;</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">xlim</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">scope</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">range</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">xlim</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([]);</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/runner/work/tmip-emat/tmip-emat/.venv/lib/python3.10/site-packages/pandas/plotting/_matplotlib/core.py:1070: UserWarning:
+
+No data for colormapping provided via &#39;c&#39;. Parameters &#39;cmap&#39; will be ignored
+
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.design_emat.design_18_1.png" src="../../_images/source_emat.design_emat.design_18_1.png" />
+</div>
+</div>
+<p>This ensures better coverage of the entire input range than making four random draws from the full space, which could easily result in a cluster of observations in one part of the space and large void elsewhere.</p>
+<p>Generating a multi-dimensional Latin Hypercube sample for use with multiple input variables follows this same basic technique, although the various draws in each dimension are randomly reordered before being joined with draws in other dimensions, to avoid unintended correlation. Various techniques exist to conduct this random reordering, although there is no agreement in the literature about the “best” orthogonal Latin hypercube design. In most instances, a simple random reordering is sufficient
+to get pretty good coverage of the space; this is the default in TMIP-EMAT. If a greater degree of orthogonality is desired, one simple method to achieve it is to generate numerous possible sets of random draws, and greedily select the set that minimizes the maximum correlation.</p>
+<p>In the figure below, we can see the result across two dimensions for the design of four draws we made previously. Each dimension is divided in 4, so that each grid row and each grid column has exactly one experiment.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;expand_capacity&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;input_flow&#39;</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">xlim</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">scope</span><span class="p">[</span><span class="s1">&#39;expand_capacity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">range</span>
+<span class="n">ylim</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">scope</span><span class="p">[</span><span class="s1">&#39;input_flow&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">range</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">xlim</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">ylim</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">));</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.design_emat.design_20_0.png" src="../../_images/source_emat.design_emat.design_20_0.png" />
+</div>
+</div>
+<p>The Latin Hypercube design of experiments is advantageous over a factorial or grid-based design, as every experimental observation can provide useful information, even when some input factors are potentially unimportant or spurious.</p>
+<p>As an example, consider the illustration below: 16 experiments are designed, either by making an evenly spaced grid over a two dimensional design space (i.e. a “full factorial” design) or by making the same number of latin hypercube draws.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="n">factorial</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">design</span><span class="o">.</span><span class="n">scope</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">range</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+                      <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">design</span><span class="o">.</span><span class="n">scope</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">range</span><span class="p">,</span> <span class="mi">4</span><span class="p">)),</span>
+    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;beta&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">lhs</span> <span class="o">=</span> <span class="n">design_experiments</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">factorial</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;beta&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+<span class="n">lhs</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;beta&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.design_emat.design_22_0.png" src="../../_images/source_emat.design_emat.design_22_0.png" />
+</div>
+</div>
+<p>If it turns out that the “beta” input is not particularly important for some model outputs, the information we are actually getting on those outputs will have been derived from inputs that look like this:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">factorial</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">lhs</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">factorial</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;beta&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">lhs</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;beta&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([]);</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/source_emat.design_emat.design_24_0.png" src="../../_images/source_emat.design_emat.design_24_0.png" />
+</div>
+</div>
+<p>Essentially only four unique experiments remain under the full factorial design, while the Latin hypercube design still offers useful variance over all 16 experiments.</p>
+<p>As for the sensitivity tests, the return type for the <code class="docutils literal notranslate"><span class="pre">design_experiments</span></code> function is <code class="docutils literal notranslate"><span class="pre">emat.ExperimentalDesign</span></code>. The result can be manipulated, saved, or reloaded as any other pandas DataFrame, which allows the the modeler to review an experimental design before actually running experiments.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lhs</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>alpha</th>
+      <th>amortization_period</th>
+      <th>beta</th>
+      <th>debt_type</th>
+      <th>expand_capacity</th>
+      <th>input_flow</th>
+      <th>interest_rate</th>
+      <th>interest_rate_lock</th>
+      <th>unit_cost_expansion</th>
+      <th>value_of_time</th>
+      <th>yield_curve</th>
+      <th>free_flow_time</th>
+      <th>initial_capacity</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.179365</td>
+      <td>24</td>
+      <td>1</td>
+      <td>GO Bond</td>
+      <td>80.162643</td>
+      <td>120</td>
+      <td>0.034792</td>
+      <td>False</td>
+      <td>140.962953</td>
+      <td>0.049228</td>
+      <td>0.007397</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.105645</td>
+      <td>33</td>
+      <td>1</td>
+      <td>GO Bond</td>
+      <td>64.671571</td>
+      <td>126</td>
+      <td>0.030968</td>
+      <td>False</td>
+      <td>107.579380</td>
+      <td>0.137505</td>
+      <td>0.013873</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.141456</td>
+      <td>40</td>
+      <td>1</td>
+      <td>GO Bond</td>
+      <td>87.868001</td>
+      <td>131</td>
+      <td>0.033288</td>
+      <td>True</td>
+      <td>104.801110</td>
+      <td>0.065576</td>
+      <td>0.012420</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.118782</td>
+      <td>26</td>
+      <td>1</td>
+      <td>Rev Bond</td>
+      <td>16.323886</td>
+      <td>104</td>
+      <td>0.037495</td>
+      <td>False</td>
+      <td>134.207518</td>
+      <td>0.097838</td>
+      <td>0.004853</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.128577</td>
+      <td>29</td>
+      <td>1</td>
+      <td>GO Bond</td>
+      <td>94.525091</td>
+      <td>146</td>
+      <td>0.038427</td>
+      <td>True</td>
+      <td>117.693257</td>
+      <td>0.107705</td>
+      <td>0.016380</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0.158509</td>
+      <td>42</td>
+      <td>1</td>
+      <td>Paygo</td>
+      <td>54.747060</td>
+      <td>115</td>
+      <td>0.034314</td>
+      <td>True</td>
+      <td>142.451442</td>
+      <td>0.027920</td>
+      <td>0.010428</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>0.172526</td>
+      <td>36</td>
+      <td>1</td>
+      <td>Rev Bond</td>
+      <td>11.215146</td>
+      <td>139</td>
+      <td>0.037112</td>
+      <td>True</td>
+      <td>110.962472</td>
+      <td>0.063330</td>
+      <td>0.001749</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>0.114949</td>
+      <td>32</td>
+      <td>1</td>
+      <td>Paygo</td>
+      <td>83.803917</td>
+      <td>148</td>
+      <td>0.036221</td>
+      <td>False</td>
+      <td>126.533101</td>
+      <td>0.083207</td>
+      <td>0.015196</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.198825</td>
+      <td>47</td>
+      <td>1</td>
+      <td>Paygo</td>
+      <td>37.148734</td>
+      <td>88</td>
+      <td>0.030445</td>
+      <td>True</td>
+      <td>115.398483</td>
+      <td>0.092398</td>
+      <td>-0.001874</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.185078</td>
+      <td>19</td>
+      <td>1</td>
+      <td>Rev Bond</td>
+      <td>1.086124</td>
+      <td>108</td>
+      <td>0.025081</td>
+      <td>True</td>
+      <td>95.638473</td>
+      <td>0.044881</td>
+      <td>0.000090</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.151665</td>
+      <td>50</td>
+      <td>1</td>
+      <td>Rev Bond</td>
+      <td>24.641162</td>
+      <td>99</td>
+      <td>0.028835</td>
+      <td>True</td>
+      <td>136.540190</td>
+      <td>0.124668</td>
+      <td>0.006217</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.110274</td>
+      <td>15</td>
+      <td>1</td>
+      <td>Rev Bond</td>
+      <td>71.659310</td>
+      <td>92</td>
+      <td>0.032085</td>
+      <td>False</td>
+      <td>104.141210</td>
+      <td>0.169572</td>
+      <td>0.019213</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.136319</td>
+      <td>18</td>
+      <td>1</td>
+      <td>Rev Bond</td>
+      <td>29.768710</td>
+      <td>83</td>
+      <td>0.028615</td>
+      <td>True</td>
+      <td>98.688980</td>
+      <td>0.150877</td>
+      <td>0.004064</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>0.143869</td>
+      <td>45</td>
+      <td>1</td>
+      <td>GO Bond</td>
+      <td>60.955126</td>
+      <td>133</td>
+      <td>0.026766</td>
+      <td>False</td>
+      <td>125.126753</td>
+      <td>0.079968</td>
+      <td>0.008846</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>0.187749</td>
+      <td>37</td>
+      <td>1</td>
+      <td>Paygo</td>
+      <td>49.882562</td>
+      <td>96</td>
+      <td>0.039660</td>
+      <td>False</td>
+      <td>129.689219</td>
+      <td>0.114333</td>
+      <td>0.017687</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>0.168406</td>
+      <td>22</td>
+      <td>1</td>
+      <td>Paygo</td>
+      <td>43.582987</td>
+      <td>118</td>
+      <td>0.027771</td>
+      <td>False</td>
+      <td>121.363034</td>
+      <td>0.018184</td>
+      <td>0.001277</td>
+      <td>60</td>
+      <td>100</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<span class="target" id="methodology-monte-carlo-design"></span><p>In addition to the default Latin Hypercube sampler, TMIP-EMAT also includes several other samplers, which can be invoked through the <code class="docutils literal notranslate"><span class="pre">sampler</span></code> argument of the <code class="docutils literal notranslate"><span class="pre">design_experiments</span></code> function:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'ulhs'</span></code> is a “uniform” latin hypercube sampler, which ignores all defined distribution shapes and correlations from the scope, instead using independent uniform distributions for all inputs. This sampler is useful when designing experiments to support a meta-model for a risk analysis that includes well characterized non-uniform uncertainties and correlations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'mc'</span></code> is a simple Monte Carlo sampler, which does not make attempts to ensure good coverage of the sampling space. This sampler minimizes overhead and is useful when running a very large number of simulations</p></li>
+</ul>
+<span class="target" id="methodology-reference-design"></span></section>
+<section id="Reference-Designs">
+<h2>Reference Designs<a class="headerlink" href="#Reference-Designs" title="Link to this heading">¶</a></h2>
+<p>An additional convenience tool is included in TMIP-EMAT to create a “reference” design, which contains only a single experiment that has every input set at the default value. Although this one experiment is also included in the univariate sensitivity test design, an analyst may not need or want to run that full design. Having the reference case available can be helpful to add context to some exploratory visualizations.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">emat.experiment.experimental_design</span><span class="w"> </span><span class="kn">import</span> <span class="n">design_refpoint_test</span>
+<span class="n">design_refpoint_test</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>free_flow_time</th>
+      <th>initial_capacity</th>
+      <th>alpha</th>
+      <th>beta</th>
+      <th>input_flow</th>
+      <th>value_of_time</th>
+      <th>unit_cost_expansion</th>
+      <th>interest_rate</th>
+      <th>yield_curve</th>
+      <th>expand_capacity</th>
+      <th>amortization_period</th>
+      <th>debt_type</th>
+      <th>interest_rate_lock</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>60</td>
+      <td>100</td>
+      <td>0.15</td>
+      <td>4.0</td>
+      <td>100</td>
+      <td>0.075</td>
+      <td>100</td>
+      <td>0.03</td>
+      <td>0.01</td>
+      <td>10.0</td>
+      <td>30</td>
+      <td>GO Bond</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="Experimental-Design-API">
+<h2>Experimental Design API<a class="headerlink" href="#Experimental-Design-API" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="emat.experiment.experimental_design.design_experiments">
+<span class="sig-prename descclassname"><span class="pre">emat.experiment.experimental_design.</span></span><span class="sig-name descname"><span class="pre">design_experiments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_per_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1234</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lhs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_from</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jointly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redraws</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/experiment/experimental_design.html#design_experiments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.experiment.experimental_design.design_experiments" title="Link to this definition">¶</a></dt>
+<dd><p>Create a design of experiments based on a Scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a>) – The exploratory scope to use for the design.</p></li>
+<li><p><strong>n_samples_per_factor</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>default 10</em>) – The number of samples to draw
+per input factor in the design. To support the estimation of a
+meta-model, leaving this value at the default of 10 is generally
+a good plan; 10 draws per dimension will usually be sufficient for
+reasonably well behaved performance measure outputs, and if it is
+not sufficient then the number of draws that would be needed for
+good results is probably too many to be feasible.</p></li>
+<li><p><strong>n_samples</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a><em>, </em><em>optional</em>) – The total number of samples in the
+design.  If <cite>jointly</cite> is False, this is the number of samples in each
+of the uncertainties and the levers, the total number of samples will
+be the square of this value.  Give a 2-tuple to set values for
+uncertainties and levers respectively, to set them independently.
+If this argument is given, it overrides <cite>n_samples_per_factor</cite>.</p></li>
+<li><p><strong>random_seed</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default 1234</em>) – A random seed for reproducibility.</p></li>
+<li><p><strong>db</strong> (<a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.Database"><em>Database</em></a><em>, </em><em>optional</em>) – If provided, the generated design will be stored
+in the database indicated.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – A name for this design, to identify it in the
+database. If not given, a unique name will be generated based on the
+selected sampler.</p></li>
+<li><p><strong>sampler</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>AbstractSampler</em><em>, </em><em>default ‘lhs’</em>) – <p>The sampler to use for this
+design.  Available pre-defined samplers include:</p>
+<blockquote>
+<div><ul>
+<li><p>’lhs’: Latin Hypercube sampling</p></li>
+<li><p>’ulhs’: Uniform Latin Hypercube sampling, which ignores defined
+distribution shapes from the scope and samples everything
+as if it was from a uniform distribution</p></li>
+<li><p>’mc’: Monte carlo sampling, where independent random draws are
+made across all draws.  This design has weaker space-covering
+properties than the LHS sampler, but may be appropriate for
+risk analysis and other large applications where coverage is
+not an issue.</p></li>
+<li><p>’uni’: Univariate sensitivity testing, whereby experiments are
+generated setting each parameter individually to minimum and
+maximum values (for numeric dtypes) or all possible values
+(for boolean and categorical dtypes).  Note that designs for
+univariate sensitivity testing are deterministic and the number
+of samples given is ignored.</p></li>
+<li><p>’ref’: Reference point, which generates a design containing only
+a single experiment, with all parameters set at their default
+values.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>sample_from</strong> (<em>‘all’</em><em>, </em><em>‘uncertainties’</em><em>, or </em><em>‘levers’</em>) – The scope components
+from which to sample. The default is to sample from both uncertainties
+and levers, but it is also possible to sample only from one group of
+inputs or the other. Components not sampled are set at their default
+values in the design.</p></li>
+<li><p><strong>jointly</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Whether to sample jointly all uncertainties
+and levers in a single design, or, if False, to generate separate samples
+for levers and uncertainties, and then combine the two in a full-factorial
+manner.  This argument has no effect unless <cite>sample_from</cite> is ‘all’.
+Note that setting <cite>jointly</cite> to False may produce a very large design,
+as the total number of experiments will be the product of the number of
+experiments for the levers and the number of experiments for the
+uncertainties, which are set separately (i.e. if <cite>n_samples</cite> is given,
+the total number of experiments is the square of that value).  Sampling
+jointly (the default) is appropriate for designing experiments to
+support the development of a meta-model.  Sampling uncertainties and
+levers separately is appropriate for some other exploratory modeling
+applications, especially for directed search applications where the
+goal is to understand these two sets of input factors on their own.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The resulting design. This is a specialized sub-class of a regular
+pandas.DataFrame, which attaches some useful meta-data to the
+DataFrame, including <cite>design_name</cite>, <cite>sampler_name</cite>, and <cite>scope</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>emat.experiment.ExperimentalDesign</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="emat.experiment.experimental_design.design_sensitivity_tests">
+<span class="sig-prename descclassname"><span class="pre">emat.experiment.experimental_design.</span></span><span class="sig-name descname"><span class="pre">design_sensitivity_tests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'uni'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/experiment/experimental_design.html#design_sensitivity_tests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.experiment.experimental_design.design_sensitivity_tests" title="Link to this definition">¶</a></dt>
+<dd><p>Create a design of univariate sensitivity tests based on a Scope.</p>
+<p>If any of the parameters or levers have an infinite lower or upper bound,
+the sensitivity test will be made at the 1st or 99th percentile value
+respectively, instead of at the infinite value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a>) – The exploratory scope to use for the design.</p></li>
+<li><p><strong>db</strong> (<a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.Database"><em>Database</em></a><em>, </em><em>optional</em>) – If provided, this design will be stored in the
+database indicated.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>default ‘uni’</em>) – A name for this design, primarily
+to identify it when stored in the database.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The resulting design.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>emat.ExperimentalDesign</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="emat.experiment.experimental_design.design_refpoint_test">
+<span class="sig-prename descclassname"><span class="pre">emat.experiment.experimental_design.</span></span><span class="sig-name descname"><span class="pre">design_refpoint_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ref'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/experiment/experimental_design.html#design_refpoint_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.experiment.experimental_design.design_refpoint_test" title="Link to this definition">¶</a></dt>
+<dd><p>Create a design containing a single reference point test based on a Scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a>) – The exploratory scope to use for the design.</p></li>
+<li><p><strong>db</strong> (<a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.Database"><em>Database</em></a><em>, </em><em>optional</em>) – If provided, this design will be stored in the
+database indicated.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>default ‘ref’</em>) – A name for this design, primarily
+to identify it when stored in the database.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The resulting design.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"e65f974f5e8948299057d392954911c0": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": "250px"}}, "c69fabadb6a149ecab76795073cdeae8": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}}, "version_major": 2, "version_minor": 0}
+</script></section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../emat.scope/scope.file.html" class="btn btn-neutral float-left" title="Scope File" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../emat.models/index.html" class="btn btn-neutral float-right" title="Core Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

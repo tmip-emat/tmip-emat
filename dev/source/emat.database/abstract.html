@@ -1,0 +1,1157 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic EMAT Database API &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="SQLite Database" href="sqlitedb.html" />
+    <link rel="prev" title="Databases" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Databases</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Basic EMAT Database API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#emat.database.Database"><code class="docutils literal notranslate"><span class="pre">Database</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.add_scope_meas"><code class="docutils literal notranslate"><span class="pre">Database.add_scope_meas()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.delete_experiment_measures"><code class="docutils literal notranslate"><span class="pre">Database.delete_experiment_measures()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.get_db_info"><code class="docutils literal notranslate"><span class="pre">Database.get_db_info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.info"><code class="docutils literal notranslate"><span class="pre">Database.info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.init_xlm"><code class="docutils literal notranslate"><span class="pre">Database.init_xlm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.lock"><code class="docutils literal notranslate"><span class="pre">Database.lock</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.new_run_id"><code class="docutils literal notranslate"><span class="pre">Database.new_run_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_experiment_id"><code class="docutils literal notranslate"><span class="pre">Database.read_experiment_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_experiment_measure_sources"><code class="docutils literal notranslate"><span class="pre">Database.read_experiment_measure_sources()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_experiment_run_status"><code class="docutils literal notranslate"><span class="pre">Database.read_experiment_run_status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.store_scope"><code class="docutils literal notranslate"><span class="pre">Database.store_scope()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.update_scope"><code class="docutils literal notranslate"><span class="pre">Database.update_scope()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.write_experiment_run_status"><code class="docutils literal notranslate"><span class="pre">Database.write_experiment_run_status()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#scopes">Scopes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_scope"><code class="docutils literal notranslate"><span class="pre">Database.read_scope()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.delete_scope"><code class="docutils literal notranslate"><span class="pre">Database.delete_scope()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_scope_names"><code class="docutils literal notranslate"><span class="pre">Database.read_scope_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scope-features">Scope Features</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#boxes">Boxes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.write_box"><code class="docutils literal notranslate"><span class="pre">Database.write_box()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.write_boxes"><code class="docutils literal notranslate"><span class="pre">Database.write_boxes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_box"><code class="docutils literal notranslate"><span class="pre">Database.read_box()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_boxes"><code class="docutils literal notranslate"><span class="pre">Database.read_boxes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_box_names"><code class="docutils literal notranslate"><span class="pre">Database.read_box_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_box_parent_name"><code class="docutils literal notranslate"><span class="pre">Database.read_box_parent_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_box_parent_names"><code class="docutils literal notranslate"><span class="pre">Database.read_box_parent_names()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#experiments">Experiments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.write_experiment_parameters"><code class="docutils literal notranslate"><span class="pre">Database.write_experiment_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.write_experiment_parameters_1"><code class="docutils literal notranslate"><span class="pre">Database.write_experiment_parameters_1()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.write_experiment_measures"><code class="docutils literal notranslate"><span class="pre">Database.write_experiment_measures()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.write_experiment_all"><code class="docutils literal notranslate"><span class="pre">Database.write_experiment_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_experiment_parameters"><code class="docutils literal notranslate"><span class="pre">Database.read_experiment_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_experiment_measures"><code class="docutils literal notranslate"><span class="pre">Database.read_experiment_measures()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_experiment_all"><code class="docutils literal notranslate"><span class="pre">Database.read_experiment_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_experiment_ids"><code class="docutils literal notranslate"><span class="pre">Database.read_experiment_ids()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_design_names"><code class="docutils literal notranslate"><span class="pre">Database.read_design_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.delete_experiments"><code class="docutils literal notranslate"><span class="pre">Database.delete_experiments()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#meta-models">Meta-Models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.get_new_metamodel_id"><code class="docutils literal notranslate"><span class="pre">Database.get_new_metamodel_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.write_metamodel"><code class="docutils literal notranslate"><span class="pre">Database.write_metamodel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_metamodel_ids"><code class="docutils literal notranslate"><span class="pre">Database.read_metamodel_ids()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.database.Database.read_metamodel"><code class="docutils literal notranslate"><span class="pre">Database.read_metamodel()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sqlitedb.html">SQLite Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database-walkthrough.html">Database Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Databases</a></li>
+      <li class="breadcrumb-item active">Basic EMAT Database API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.database/abstract.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="basic-emat-database-api">
+<h1>Basic EMAT Database API<a class="headerlink" href="#basic-emat-database-api" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="emat.database.Database">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">emat.database.</span></span><span class="sig-name descname"><span class="pre">Database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readonly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.7/library/abc.html#abc.ABC" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Abstract Base Class for EMAT data storage</p>
+<p>Database constains the design experiments, meta-model parameters,
+and the core and meta-model results (performance measures)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.add_scope_meas">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">add_scope_meas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scp_m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.add_scope_meas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.add_scope_meas" title="Link to this definition">¶</a></dt>
+<dd><p>Update the set of performance measures associated with the scope</p>
+<p>Use this function when the core model runs are complete to add
+performance measures to the scope and post-process against the
+archived results</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name, used to identify experiments,
+performance measures, and results associated with this run</p></li>
+<li><p><strong>scp_m</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em>) – scope performance measures</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#KeyError" title="(in Python v3.7)"><strong>KeyError</strong></a> – If scope name does not exist or the
+    performance measures are not initialized in the database.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.delete_experiment_measures">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">delete_experiment_measures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">experiment_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.delete_experiment_measures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.delete_experiment_measures" title="Link to this definition">¶</a></dt>
+<dd><p>Delete experiment performance measure results.</p>
+<p>The method removes only the performance measures, not the
+parameters.  This can be useful if a set of corrupted model
+results was stored in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>experiment_ids</strong> (<em>Collection</em><em>, </em><em>optional</em>) – A collection of experiment id’s for which measures shall
+be deleted.  Note that no scope or design are given here,
+experiments must be individually identified.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.get_db_info">
+<span class="sig-name descname"><span class="pre">get_db_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.get_db_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.get_db_info" title="Link to this definition">¶</a></dt>
+<dd><p>Get a short string describing this Database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.info">
+<span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.info" title="Link to this definition">¶</a></dt>
+<dd><p>Print info about scopes and designs in this database.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.init_xlm">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">init_xlm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measure_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.init_xlm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.init_xlm" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize or extend set of experiment variables and measures</p>
+<p>Initialize database with universe of risk variables,
+policy variables, and performance measures. All variables and measures
+defined in scopes must be defined in this set.
+This method only needs to be run
+once after creating a new database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_list</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a><em>]</em>) – Experiment variable tuples (variable name, type)
+where variable name is a string and
+type is ‘uncertainty’, ‘lever’, or ‘constant’</p></li>
+<li><p><strong>measure_list</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a><em>]</em>) – Performance measure tuples (name, transform), where
+name is a string and transform is a defined transformation
+used in metamodeling, currently supported include {‘log’, None}.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="emat.database.Database.lock">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lock</span></span><a class="headerlink" href="#emat.database.Database.lock" title="Link to this definition">¶</a></dt>
+<dd><p>Context manager to temporarily mark this database as locked.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.new_run_id">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">new_run_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_attrs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.new_run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.new_run_id" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new run_id in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name, used to identify experiments,
+performance measures, and results associated with this run</p></li>
+<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – keys are experiment parameters, values are the
+experimental values to look up.  Subsequent positional or keyword
+arguments are used to update parameters.</p></li>
+<li><p><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>True</em><em>, </em><em>optional</em>) – An identifier for this location
+(i.e. this computer).  If set to True, the name of this node
+is found using the <cite>platform</cite> module.</p></li>
+<li><p><strong>experiment_id</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – The experiment id associated
+with this run.  If given, the parameters are ignored.</p></li>
+<li><p><strong>source</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>default 0</em>) – The metamodel_id of the source for this
+run, or 0 for a core model run.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The run_id and experiment_id of the identified experiment</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[Int,Int]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If scope name does not exist</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If multiple experiments match an experiment definition.
+    This can happen, for example, if the definition is incomplete.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_experiment_id">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">read_experiment_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_experiment_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_experiment_id" title="Link to this definition">¶</a></dt>
+<dd><p>Read the experiment id previously defined in the database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name, used to identify experiments,
+performance measures, and results associated with this run</p></li>
+<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – keys are experiment parameters, values are the
+experimental values to look up.  Subsequent positional or keyword
+arguments are used to update parameters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the experiment id of the identified experiment</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)">int</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If scope name does not exist</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If multiple experiments match an experiment definition.
+    This can happen, for example, if the definition is incomplete.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_experiment_measure_sources">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">read_experiment_measure_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_experiment_measure_sources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_experiment_measure_sources" title="Link to this definition">¶</a></dt>
+<dd><p>Read all source ids from the results stored in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A scope name, used to identify experiments,
+performance measures, and results associated with this
+exploratory analysis.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – If given, only experiments
+associated with both the scope and the named design
+are returned, otherwise all experiments associated
+with the scope are returned.</p></li>
+<li><p><strong>experiment_id</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – The id of the experiment to
+retrieve.  If omitted, get all experiments matching the
+named scope and design.</p></li>
+<li><p><strong>design</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Deprecated, use <cite>design_name</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>performance measure source ids</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_experiment_run_status">
+<span class="sig-name descname"><span class="pre">read_experiment_run_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_experiment_run_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_experiment_run_status" title="Link to this definition">¶</a></dt>
+<dd><p>Read experiment definitions from the database.</p>
+<p>Read the values for each experiment parameter per experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A scope name, used to identify experiments,
+performance measures, and results associated with this
+exploratory analysis.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – If given, only experiments
+associated with both the scope and the named design
+are returned, otherwise all experiments associated
+with the scope are returned.</p></li>
+<li><p><strong>experiment_ids</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>]</em><em>, </em><em>optional</em>) – A single experiment id to check.  If given,
+<cite>design_name</cite> is ignored.</p></li>
+<li><p><strong>experiment_ids</strong> – A collection of experiment id’s to check.  If given,
+<cite>design_name</cite> is ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The experiment run statuses are returned in a subclass
+of a normal pandas.DataFrame, which allows attaching
+the <cite>design_name</cite> as meta-data to the DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>emat.ExperimentalDesign</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – if <cite>scope_name</cite> is not stored in this database</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.store_scope">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">store_scope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.store_scope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.store_scope" title="Link to this definition">¶</a></dt>
+<dd><p>Save an emat.Scope directly to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a>) – The scope object to store.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#KeyError" title="(in Python v3.7)"><strong>KeyError</strong></a> – If scope name already exists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.update_scope">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update_scope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.update_scope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.update_scope" title="Link to this definition">¶</a></dt>
+<dd><p>Update the emat scope information in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a>) – scope to update</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.write_experiment_run_status">
+<span class="sig-name descname"><span class="pre">write_experiment_run_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.write_experiment_run_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.write_experiment_run_status" title="Link to this definition">¶</a></dt>
+<dd><p>Write experiment status to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>)</p></li>
+<li><p><strong>run_id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>experiment_id</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>)</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The status to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="scopes">
+<h2>Scopes<a class="headerlink" href="#scopes" title="Link to this heading">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_scope">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_scope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_scope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_scope" title="Link to this definition">¶</a></dt>
+<dd><p>Load the pickled scope from the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the scope to load.  If not
+given and there is only one scope stored
+in the database, that scope is loaded. If not
+given and there are multiple scopes stored in
+the database, a KeyError is raised.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scope</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#KeyError" title="(in Python v3.7)"><strong>KeyError</strong></a> – If a name is given but is not found in
+    the database, or if no name is given but there
+    is more than one scope stored.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.delete_scope">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">delete_scope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.delete_scope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.delete_scope" title="Link to this definition">¶</a></dt>
+<dd><p>Delete the scope from the database</p>
+<p>Deletes the scope as well as any experiments and results associated
+with the scope</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name, used to identify experiments,
+performance measures, and results associated with this run</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_scope_names">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_scope_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_scope_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_scope_names" title="Link to this definition">¶</a></dt>
+<dd><p>A list of all available scopes in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – If a design name, is given, only
+scopes containing a design with this name are returned.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="scope-features">
+<h3>Scope Features<a class="headerlink" href="#scope-features" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_uncertainties">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_uncertainties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_uncertainties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_uncertainties" title="Link to this definition">¶</a></dt>
+<dd><p>A list of all uncertainties for a given scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_levers">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_levers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_levers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_levers" title="Link to this definition">¶</a></dt>
+<dd><p>A list of all levers for a given scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_constants">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_constants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_constants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_constants" title="Link to this definition">¶</a></dt>
+<dd><p>A list of all constants for a given scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_measures">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_measures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_measures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_measures" title="Link to this definition">¶</a></dt>
+<dd><p>A list of all performance measures for a given scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="boxes">
+<h2>Boxes<a class="headerlink" href="#boxes" title="Link to this heading">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.write_box">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">write_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.write_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.write_box" title="Link to this definition">¶</a></dt>
+<dd><p>Write a single box to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>box</strong> (<a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><em>Box</em></a>) – The Box to write to the database.</p></li>
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The scope name to use when writing to the database. If
+the <cite>boxes</cite> has a particular scope assigned, the name
+of that scope is used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If the <cite>box</cite> has a particular scope assigned, and
+    <cite>scope_name</cite> is given but it is not the same name
+    of the assigned scope.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.write_boxes">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">write_boxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boxes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.write_boxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.write_boxes" title="Link to this definition">¶</a></dt>
+<dd><p>Write Boxes to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>boxes</strong> (<a class="reference internal" href="../emat.scope/boxes.html#emat.Boxes" title="emat.Boxes"><em>Boxes</em></a>) – The collection of Boxes to write to the database.</p></li>
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The scope name to use when writing to the database. If
+the <cite>boxes</cite> has a particular scope assigned, the name
+of that scope is used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If the <cite>boxes</cite> has a particular scope assigned, and
+    <cite>scope_name</cite> is given but it is not the same name
+    of the assigned scope.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_box">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_box" title="Link to this definition">¶</a></dt>
+<dd><p>Read a Box from the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the scope from which to read the box.</p></li>
+<li><p><strong>box_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the box to read.</p></li>
+<li><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a><em>, </em><em>optional</em>) – The Scope to assign to the Box that is returned.
+If not given, no Scope object is assigned to the
+box.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Box</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_boxes">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_boxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.7/library/constants.html#None" title="(in Python v3.7)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_boxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_boxes" title="Link to this definition">¶</a></dt>
+<dd><p>Read Boxes from the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the scope from which to load Boxes. This
+is used exclusively to identify the Boxes to load from
+the database, and the scope by this name is not attached
+to the Boxes, unless <cite>scope</cite> is given, in which case this
+argument is ignored.</p></li>
+<li><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a><em>, </em><em>optional</em>) – The scope to assign to the Boxes.  If not given,
+no Scope object is assigned.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Boxes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_box_names">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_box_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_box_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_box_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get the names of all boxes associated with a particular scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the scope from which to read the Box names.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_box_parent_name">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_box_parent_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_box_parent_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_box_parent_name" title="Link to this definition">¶</a></dt>
+<dd><p>Get the name of the parent box for a particular box in the database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the scope from which to read the Box parent.</p></li>
+<li><p><strong>box_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the box from which to read the parent.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>If the identified box has a parent, this is the name of that
+parent, otherwise None is returned.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)">str</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_box_parent_names">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_box_parent_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_box_parent_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_box_parent_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get the name of the parent box for each box in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the scope from which to read Box parents.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>dict</dt><dd><p>A dictionary, with keys giving Box names and values
+giving the respective Box parent names.</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="experiments">
+<h2>Experiments<a class="headerlink" href="#experiments" title="Link to this heading">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.write_experiment_parameters">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">write_experiment_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xl_df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.write_experiment_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.write_experiment_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Write experiment definitions the the database.</p>
+<p>This method records values for each experiment parameter,
+for each experiment in a design of one or more experiments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A scope name, used to identify experiments,
+performance measures, and results associated with this
+exploratory analysis. The scope with this name should
+already have been stored in this database.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – An experiment design name. This name should be unique
+within the named scope, and typically will include a
+reference to the design sampler, for example:
+‘uni’ - generated by univariate sensitivity test design
+‘lhs’ - generated by latin hypercube sample design
+The design_name is used primarily to load groups of
+related experiments together.</p></li>
+<li><p><strong>xl_df</strong> (<em>pandas.Dataframe</em>) – The columns of this DataFrame are the experiment
+parameters (i.e. policy levers, uncertainties, and
+constants), and each row is an experiment.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the experiment id’s of the newly recorded experiments</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)">list</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#UserWarning" title="(in Python v3.7)"><strong>UserWarning</strong></a> – If scope name does not exist</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#TypeError" title="(in Python v3.7)"><strong>TypeError</strong></a> – If not all scope variables are defined in the
+    exp_def</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.write_experiment_parameters_1">
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">write_experiment_parameters_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.write_experiment_parameters_1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.write_experiment_parameters_1" title="Link to this definition">¶</a></dt>
+<dd><p>Write experiment definitions for a single experiment.</p>
+<p>This method records values for each experiment parameter,
+for a single experiment only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A scope name, used to identify experiments,
+performance measures, and results associated with this
+exploratory analysis. The scope with this name should
+already have been stored in this database.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – An experiment design name. This name should be unique
+within the named scope, and typically will include a
+reference to the design sampler, for example:
+‘uni’ - generated by univariate sensitivity test design
+‘lhs’ - generated by latin hypercube sample design
+The design_name is used primarily to load groups of
+related experiments together.</p></li>
+<li><p><strong>*args</strong> (<em>Mapping</em><em>[</em><em>s</em><em>]</em>) – A dictionary where the keys are experiment parameter names
+(i.e. policy levers, uncertainties, and constants), and
+values are the the parameter values for this experiment.
+Subsequent positional or keyword arguments are used to update
+the parameters.</p></li>
+<li><p><strong>**kwargs</strong> – <p>A dictionary where the keys are experiment parameter names
+(i.e. policy levers, uncertainties, and constants), and
+values are the the parameter values for this experiment.
+Subsequent positional or keyword arguments are used to update
+the parameters.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The experiment id of the newly recorded experiments</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)">int</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#UserWarning" title="(in Python v3.7)"><strong>UserWarning</strong></a> – If scope name does not exist</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#TypeError" title="(in Python v3.7)"><strong>TypeError</strong></a> – If not all scope variables are defined in the
+    exp_def</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.write_experiment_measures">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">write_experiment_measures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.write_experiment_measures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.write_experiment_measures" title="Link to this definition">¶</a></dt>
+<dd><p>Write experiment results to the database.</p>
+<p>Write the performance measure results for each experiment
+in the scope - if the scope does not exist, nothing is recorded.</p>
+<p>Note that the design_name is not required to write experiment
+measures, as the individual experiments from any design are
+uniquely identified by the experiment id’s.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A scope name, used to identify experiments,
+performance measures, and results associated with this
+exploratory analysis. The scope with this name should
+already have been stored in this database.</p></li>
+<li><p><strong>source</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – An indicator of performance measure source. This should
+be 0 for a bona-fide run of the associated core models,
+or some non-zero metamodel_id number.</p></li>
+<li><p><strong>m_df</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a>) – The columns of this DataFrame are the performance
+measure names, and row indexes are the experiment id’s.</p></li>
+<li><p><strong>run_ids</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Index.html#pandas.Index" title="(in pandas v2.2.3)"><em>pandas.Index</em></a><em>, </em><em>optional</em>) – Provide an optional index of universally unique run ids
+(UUIDs) for these results. The UUIDs can be used to help
+identify problems and organize model runs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#UserWarning" title="(in Python v3.7)"><strong>UserWarning</strong></a> – If scope name does not exist</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.write_experiment_all">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">write_experiment_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlm_df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.write_experiment_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.write_experiment_all" title="Link to this definition">¶</a></dt>
+<dd><p>Write experiment definitions and results</p>
+<p>Writes the values from each experiment variable and the
+results for each performance measure per experiment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A scope name, used to identify experiments,
+performance measures, and results associated with this
+exploratory analysis. The scope with this name should
+already have been stored in this database.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – An experiment design name. This name should be unique
+within the named scope, and typically will include a
+reference to the design sampler, for example:
+‘uni’ - generated by univariate sensitivity test design
+‘lhs’ - generated by latin hypercube sample design
+The design_name is used primarily to load groups of
+related experiments together.</p></li>
+<li><p><strong>source</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – An indicator of performance measure source. This should
+be 0 for a bona fide run of the associated core models,
+or some non-zero metamodel_id number.</p></li>
+<li><p><strong>xlm_df</strong> (<em>pandas.Dataframe</em>) – The columns of this DataFrame are the experiment
+parameters (i.e. policy levers, uncertainties, and
+constants) and performance measures, and each row
+is an experiment.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>DesignExistsError</strong> – If scope and design already exist</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#TypeError" title="(in Python v3.7)"><strong>TypeError</strong></a> – If not all scope variables are defined in the
+    experiment</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_experiment_parameters">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_experiment_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_pending</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure_dtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_experiment_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_experiment_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Read experiment definitions from the database.</p>
+<p>Read the values for each experiment parameter per experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A scope name, used to identify experiments,
+performance measures, and results associated with this
+exploratory analysis.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – If given, only experiments
+associated with both the scope and the named design
+are returned, otherwise all experiments associated
+with the scope are returned.</p></li>
+<li><p><strong>only_pending</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – If True, only pending
+experiments (which have no performance measure results
+stored in the database) are returned.</p></li>
+<li><p><strong>design</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – Deprecated.  Use design_name.</p></li>
+<li><p><strong>experiment_ids</strong> (<em>Collection</em><em>, </em><em>optional</em>) – A collection of experiment id’s to load.  If given,
+both <cite>design_name</cite> and <cite>only_pending</cite> are ignored.</p></li>
+<li><p><strong>ensure_dtypes</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – If True, the scope
+associated with these experiments is also read out
+of the database, and that scope file is used to
+format experimental data consistently (i.e., as
+float, integer, bool, or categorical).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The experiment parameters are returned in a subclass
+of a normal pandas.DataFrame, which allows attaching
+the <cite>design_name</cite> as meta-data to the DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>emat.ExperimentalDesign</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – if <cite>scope_name</cite> is not stored in this database</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_experiment_measures">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_experiment_measures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formulas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_validity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_experiment_measures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_experiment_measures" title="Link to this definition">¶</a></dt>
+<dd><p>Read experiment results from the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a>) – A scope or just its name, used to identify experiments,
+performance measures, and results associated with this
+exploratory analysis.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – If given, only experiments
+associated with both the scope and the named design
+are returned, otherwise all experiments associated
+with the scope are returned.</p></li>
+<li><p><strong>experiment_id</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – The id of the experiment to
+retrieve.  If omitted, get all experiments matching the
+named scope and design.</p></li>
+<li><p><strong>source</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – The source identifier of the
+experimental outcomes to load.  If not given, but
+there are only results from a single source in the
+database, those results are returned.  If there are
+results from multiple sources, an error is raised.</p></li>
+<li><p><strong>design</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Deprecated, use <cite>design_name</cite>.</p></li>
+<li><p><strong>runs</strong> (<em>{None</em><em>, </em><em>'all'</em><em>, </em><em>'valid'</em><em>, </em><em>'invalid'}</em><em>, </em><em>default None</em>) – By default, this method fails if there is more than
+one valid model run matching the given <cite>design_name</cite>
+and <cite>source</cite> (if any) for any experiment.  Set this to
+‘valid’ or ‘invalid’ to get all valid or invalid model
+runs (instead of raising an exception). Set to ‘all’ to get
+everything, including both valid and invalidated results.</p></li>
+<li><p><strong>formulas</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – If the scope includes
+formulaic measures (computed directly from other
+measures) then compute these values and include them in
+the results.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>performance measures</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>results (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)">pandas.DataFrame</a>)</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – When the database contains multiple sets of results
+    matching the given <cite>design_name</cite> and/or <cite>source</cite>
+    (if any) for any experiment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_experiment_all">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_experiment_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_pending</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_incomplete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_complete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_with_measures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure_dtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_run_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_experiment_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_experiment_all" title="Link to this definition">¶</a></dt>
+<dd><p>Read experiment definitions and results</p>
+<p>Read the values from each experiment variable and the
+results for each performance measure per experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A scope name, used to identify experiments,
+performance measures, and results associated with this
+exploratory analysis.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – The experimental design name (a single <cite>str</cite>) or
+a collection of design names to read.</p></li>
+<li><p><strong>source</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – The source identifier of the
+experimental outcomes to load.  If not given, but
+there are only results from a single source in the
+database, those results are returned.  If there are
+results from multiple sources, an error is raised.</p></li>
+<li><p><strong>only_pending</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – If True, only pending
+experiments (which have no performance measure results
+stored in the database) are returned. Experiments that
+have any results, even if only partial results, are
+excluded.</p></li>
+<li><p><strong>only_incomplete</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – If True, only incomplete
+experiments (which have at least one missing performance
+measure result that is not stored in the database) are
+returned.  Only complete experiments (that have every
+performance measure populated) are excluded.</p></li>
+<li><p><strong>only_complete</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – If True, only complete
+experiments (which have no missing performance measure
+results stored in the database) are returned.</p></li>
+<li><p><strong>only_with_measures</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – If True, only
+experiments with at least one stored performance measure
+are returned.</p></li>
+<li><p><strong>ensure_dtypes</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – If True, the scope
+associated with these experiments is also read out
+of the database, and that scope file is used to
+format experimental data consistently (i.e., as
+float, integer, bool, or categorical).</p></li>
+<li><p><strong>with_run_ids</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to use a
+two-level pd.MultiIndex that includes both the
+experiment_id (which always appears in the index)
+as well as the run_id (which only appears in the
+index if this argument is set to True).</p></li>
+<li><p><strong>runs</strong> (<em>{None</em><em>, </em><em>'all'</em><em>, </em><em>'valid'</em><em>, </em><em>'invalid'}</em><em>, </em><em>default None</em>) – By default, this method returns the one and only
+valid model run matching the given <cite>design_name</cite>
+and <cite>source</cite> (if any) for any experiment, and fails
+if there is more than one such valid run. Set this to
+‘valid’ or ‘invalid’ to get all valid or invalid model
+runs (instead of raising an exception). Set to ‘all’ to get
+everything, including both valid and invalidated results.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The experiment parameters are returned in a subclass
+of a normal pandas.DataFrame, which allows attaching
+the <cite>design_name</cite> as meta-data to the DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>emat.ExperimentalDesign</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – When no source is given but the database contains
+    results from multiple sources.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_experiment_ids">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_experiment_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xl_df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_experiment_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_experiment_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Read the experiment ids previously defined in the database.</p>
+<p>This method is used to recover the experiment id, if the
+set of parameter values is known but the id of the experiment
+is not known.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name, used to identify experiments,
+performance measures, and results associated with this run</p></li>
+<li><p><strong>xl_df</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a>) – columns are experiment parameters,
+each row is a full experiment</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the experiment id’s of the identified experiments</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)">list</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If scope name does not exist</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If multiple experiments match an experiment definition.
+    This can happen, for example, if the definition is incomplete.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_design_names">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_design_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_design_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_design_names" title="Link to this definition">¶</a></dt>
+<dd><p>A list of all available designs for a given scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name, used to identify experiments,
+performance measures, and results associated with this run</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.delete_experiments">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">delete_experiments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.delete_experiments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.delete_experiments" title="Link to this definition">¶</a></dt>
+<dd><p>Delete experiment definitions and results.</p>
+<p>The method removes the linkage between experiments and the
+identified experimental design.  Experiment parameters and results
+are only removed if they are also not linked to any other experimental
+design stored in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name, used to identify experiments,
+performance measures, and results associated with this run</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Only experiments
+associated with both the scope and the named design
+are deleted.</p></li>
+<li><p><strong>design</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Deprecated, use <cite>design_name</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="meta-models">
+<h2>Meta-Models<a class="headerlink" href="#meta-models" title="Link to this heading">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.get_new_metamodel_id">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">get_new_metamodel_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.get_new_metamodel_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.get_new_metamodel_id" title="Link to this definition">¶</a></dt>
+<dd><p>Get a new unused metamodel id for a given scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.write_metamodel">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">write_metamodel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metamodel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metamodel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metamodel_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.write_metamodel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.write_metamodel" title="Link to this definition">¶</a></dt>
+<dd><p>Store a meta-model in the database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name</p></li>
+<li><p><strong>metamodel</strong> (<a class="reference internal" href="../emat.metamodels/api.html#emat.MetaModel" title="emat.MetaModel"><em>emat.MetaModel</em></a>) – The meta-model to be stored.
+If a PythonCoreModel containing a MetaModel is given,
+the MetaModel will be extracted.</p></li>
+<li><p><strong>metamodel_id</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – A unique id number for this
+metamodel.  If no id number is given and it cannot be
+inferred from <cite>metamodel</cite>, a unique id number
+will be created.</p></li>
+<li><p><strong>metamodel_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – A name for this meta-model.
+If no name is given and it cannot be
+inferred from <cite>metamodel</cite>, an empty string is used.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_metamodel_ids">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_metamodel_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_metamodel_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_metamodel_ids" title="Link to this definition">¶</a></dt>
+<dd><p>A list of all metamodel id’s for a given scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.database.Database.read_metamodel">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">read_metamodel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metamodel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/database/database.html#Database.read_metamodel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.database.Database.read_metamodel" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve a meta-model from the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – scope name</p></li>
+<li><p><strong>metamodel_id</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – A unique id number for this
+metamodel.  If not given but there is exactly one
+metamodel stored for the given scope, that metamodel
+will be returned.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The meta-model, ready to use</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../emat.models/python_based.html#emat.model.PythonCoreModel" title="emat.model.PythonCoreModel">PythonCoreModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Databases" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sqlitedb.html" class="btn btn-neutral float-right" title="SQLite Database" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

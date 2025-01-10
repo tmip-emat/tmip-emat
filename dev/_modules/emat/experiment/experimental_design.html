@@ -1,0 +1,967 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.experiment.experimental_design &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.experiment.experimental_design</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.experiment.experimental_design</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..scope.scope</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scope</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..database.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatabaseError</span><span class="p">,</span> <span class="n">ReadOnlyDatabaseError</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.loggers</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_module_logger</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">get_module_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.samplers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LHSSampler</span><span class="p">,</span>
+    <span class="n">AbstractSampler</span><span class="p">,</span>
+    <span class="n">UniformLHSSampler</span><span class="p">,</span>
+    <span class="n">MonteCarloSampler</span><span class="p">,</span>
+    <span class="n">CorrelatedLHSSampler</span><span class="p">,</span>
+    <span class="n">CorrelatedMonteCarloSampler</span><span class="p">,</span>
+    <span class="n">TrimmedUniformLHSSampler</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">samplers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;lhs&#39;</span><span class="p">:</span> <span class="n">CorrelatedLHSSampler</span><span class="p">,</span>
+    <span class="s1">&#39;ulhs&#39;</span><span class="p">:</span> <span class="n">UniformLHSSampler</span><span class="p">,</span>
+    <span class="s1">&#39;mc&#39;</span><span class="p">:</span> <span class="n">CorrelatedMonteCarloSampler</span><span class="p">,</span>
+    <span class="s1">&#39;ulhs99&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">TrimmedUniformLHSSampler</span><span class="p">(</span><span class="mf">0.01</span><span class="p">),</span>
+    <span class="s1">&#39;ulhs98&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">TrimmedUniformLHSSampler</span><span class="p">(</span><span class="mf">0.02</span><span class="p">),</span>
+    <span class="s1">&#39;ulhs95&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">TrimmedUniformLHSSampler</span><span class="p">(</span><span class="mf">0.05</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ExperimentalDesignSeries</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+    <span class="c1"># normal properties</span>
+    <span class="n">_metadata</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;design_name&#39;</span><span class="p">,</span> <span class="s1">&#39;sampler_name&#39;</span><span class="p">,</span> <span class="s1">&#39;scope&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scope_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ExperimentalDesignSeries</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_constructor_expanddim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ExperimentalDesign</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ExperimentalDesign</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+    <span class="c1"># normal properties</span>
+    <span class="n">_metadata</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;design_name&#39;</span><span class="p">,</span> <span class="s1">&#39;sampler_name&#39;</span><span class="p">,</span> <span class="s1">&#39;scope&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scope_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">design_name_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;design_name&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;design_name&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ExperimentalDesign</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_constructor_sliced</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ExperimentalDesignSeries</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">prim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new Prim search for this experimental design.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data ({&#39;parameters&#39;, &#39;levers&#39;, &#39;uncertainties&#39;, &#39;measures&#39;, &#39;all&#39;}):</span>
+<span class="sd">                Limit the restricted dimensions to only be drawn</span>
+<span class="sd">                from this subset of possible dimensions from the scope.</span>
+<span class="sd">                Defaults to &#39;parameters` (i.e. levers and uncertainties).</span>
+<span class="sd">            target (str, optional):</span>
+<span class="sd">                If not given, the current active selection is used as the</span>
+<span class="sd">                target for Prim.  Otherwise, give the name of an existing</span>
+<span class="sd">                selection, or an expression to be evaluated on the visualizer</span>
+<span class="sd">                data to create a new target.</span>
+<span class="sd">            **kwargs:</span>
+<span class="sd">                All other keyword arguments are forwarded to the</span>
+<span class="sd">                `emat.analysis.Prim` constructor.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            emat.analysis.Prim</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;missing scope&quot;</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..analysis.explore_2.explore_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">target_name</span> <span class="o">=</span> <span class="n">target</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s2">&quot;PRIM Target&quot;</span><span class="p">)</span>
+        <span class="n">viz</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="p">)</span>
+        <span class="n">viz</span><span class="o">.</span><span class="n">new_selection</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">target_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">viz</span><span class="o">.</span><span class="n">prim</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">target_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="design_experiments">
+<a class="viewcode-back" href="../../../source/emat.design/emat.design.html#emat.experiment.experimental_design.design_experiments">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">design_experiments</span><span class="p">(</span>
+        <span class="n">scope</span><span class="p">,</span>
+        <span class="n">n_samples_per_factor</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">n_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">random_seed</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span>
+        <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sampler</span><span class="o">=</span><span class="s1">&#39;lhs&#39;</span><span class="p">,</span>
+        <span class="n">sample_from</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span>
+        <span class="n">jointly</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">redraws</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a design of experiments based on a Scope.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scope (Scope): The exploratory scope to use for the design.</span>
+<span class="sd">        n_samples_per_factor (int, default 10): The number of samples to draw</span>
+<span class="sd">            per input factor in the design. To support the estimation of a</span>
+<span class="sd">            meta-model, leaving this value at the default of 10 is generally</span>
+<span class="sd">            a good plan; 10 draws per dimension will usually be sufficient for</span>
+<span class="sd">            reasonably well behaved performance measure outputs, and if it is</span>
+<span class="sd">            not sufficient then the number of draws that would be needed for</span>
+<span class="sd">            good results is probably too many to be feasible.</span>
+<span class="sd">        n_samples (int or tuple, optional): The total number of samples in the</span>
+<span class="sd">            design.  If `jointly` is False, this is the number of samples in each</span>
+<span class="sd">            of the uncertainties and the levers, the total number of samples will</span>
+<span class="sd">            be the square of this value.  Give a 2-tuple to set values for</span>
+<span class="sd">            uncertainties and levers respectively, to set them independently.</span>
+<span class="sd">            If this argument is given, it overrides `n_samples_per_factor`.</span>
+<span class="sd">        random_seed (int or None, default 1234): A random seed for reproducibility.</span>
+<span class="sd">        db (Database, optional): If provided, the generated design will be stored</span>
+<span class="sd">            in the database indicated.</span>
+<span class="sd">        design_name (str, optional): A name for this design, to identify it in the</span>
+<span class="sd">            database. If not given, a unique name will be generated based on the</span>
+<span class="sd">            selected sampler.</span>
+<span class="sd">        sampler (str or AbstractSampler, default &#39;lhs&#39;): The sampler to use for this</span>
+<span class="sd">            design.  Available pre-defined samplers include:</span>
+<span class="sd">                - &#39;lhs&#39;: Latin Hypercube sampling</span>
+<span class="sd">                - &#39;ulhs&#39;: Uniform Latin Hypercube sampling, which ignores defined</span>
+<span class="sd">                  distribution shapes from the scope and samples everything</span>
+<span class="sd">                  as if it was from a uniform distribution</span>
+<span class="sd">                - &#39;mc&#39;: Monte carlo sampling, where independent random draws are</span>
+<span class="sd">                  made across all draws.  This design has weaker space-covering</span>
+<span class="sd">                  properties than the LHS sampler, but may be appropriate for</span>
+<span class="sd">                  risk analysis and other large applications where coverage is</span>
+<span class="sd">                  not an issue.</span>
+<span class="sd">                - &#39;uni&#39;: Univariate sensitivity testing, whereby experiments are</span>
+<span class="sd">                  generated setting each parameter individually to minimum and</span>
+<span class="sd">                  maximum values (for numeric dtypes) or all possible values</span>
+<span class="sd">                  (for boolean and categorical dtypes).  Note that designs for</span>
+<span class="sd">                  univariate sensitivity testing are deterministic and the number</span>
+<span class="sd">                  of samples given is ignored.</span>
+<span class="sd">                - &#39;ref&#39;: Reference point, which generates a design containing only</span>
+<span class="sd">                  a single experiment, with all parameters set at their default</span>
+<span class="sd">                  values.</span>
+<span class="sd">        sample_from (&#39;all&#39;, &#39;uncertainties&#39;, or &#39;levers&#39;): The scope components</span>
+<span class="sd">            from which to sample. The default is to sample from both uncertainties</span>
+<span class="sd">            and levers, but it is also possible to sample only from one group of</span>
+<span class="sd">            inputs or the other. Components not sampled are set at their default</span>
+<span class="sd">            values in the design.</span>
+<span class="sd">        jointly (bool, default True): Whether to sample jointly all uncertainties</span>
+<span class="sd">            and levers in a single design, or, if False, to generate separate samples</span>
+<span class="sd">            for levers and uncertainties, and then combine the two in a full-factorial</span>
+<span class="sd">            manner.  This argument has no effect unless `sample_from` is &#39;all&#39;.</span>
+<span class="sd">            Note that setting `jointly` to False may produce a very large design,</span>
+<span class="sd">            as the total number of experiments will be the product of the number of</span>
+<span class="sd">            experiments for the levers and the number of experiments for the</span>
+<span class="sd">            uncertainties, which are set separately (i.e. if `n_samples` is given,</span>
+<span class="sd">            the total number of experiments is the square of that value).  Sampling</span>
+<span class="sd">            jointly (the default) is appropriate for designing experiments to</span>
+<span class="sd">            support the development of a meta-model.  Sampling uncertainties and</span>
+<span class="sd">            levers separately is appropriate for some other exploratory modeling</span>
+<span class="sd">            applications, especially for directed search applications where the</span>
+<span class="sd">            goal is to understand these two sets of input factors on their own.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        emat.experiment.ExperimentalDesign:</span>
+<span class="sd">            The resulting design. This is a specialized sub-class of a regular</span>
+<span class="sd">            pandas.DataFrame, which attaches some useful meta-data to the</span>
+<span class="sd">            DataFrame, including `design_name`, `sampler_name`, and `scope`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">design_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">design_name</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">read_design_names</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">domain</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;the design &quot;</span><span class="si">{</span><span class="n">design_name</span><span class="si">}</span><span class="s1">&quot; already exists for domain &quot;</span><span class="si">{</span><span class="n">scope</span><span class="o">.</span><span class="n">domain</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+    <span class="n">max_corr_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">existing_design_names</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># If using the default name, append the design_name with a number</span>
+    <span class="c1"># until a new unused name is found.</span>
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">design_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sampler</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">proposed_design_name</span> <span class="o">=</span> <span class="n">sampler</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sampler</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+            <span class="n">proposed_design_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">proposed_design_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sampler</span><span class="p">)</span>
+        <span class="n">existing_design_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">read_design_names</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">domain</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">proposed_design_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing_design_names</span><span class="p">:</span>
+            <span class="n">design_name</span> <span class="o">=</span> <span class="n">proposed_design_name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">while</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">proposed_design_name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">existing_design_names</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">design_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">proposed_design_name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span>    
+    
+    <span class="k">if</span> <span class="n">sampler</span> <span class="o">==</span> <span class="s1">&#39;uni&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">design_sensitivity_tests</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">design_name</span> <span class="ow">or</span> <span class="s1">&#39;uni&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sampler</span> <span class="o">==</span> <span class="s1">&#39;ref&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">design_refpoint_test</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">design_name</span> <span class="ow">or</span> <span class="s1">&#39;ref&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sampler</span><span class="p">,</span> <span class="n">AbstractSampler</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sampler</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">samplers</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown sampler </span><span class="si">{</span><span class="n">sampler</span><span class="si">}</span><span class="s2">, choose from (uni, ref, </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">samplers</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sample_generator</span> <span class="o">=</span> <span class="n">samplers</span><span class="p">[</span><span class="n">sampler</span><span class="p">]()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sample_generator</span> <span class="o">=</span> <span class="n">sampler</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">redraws</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">sample_from</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">jointly</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">n_samples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">n_samples_u</span> <span class="o">=</span> <span class="n">n_samples_per_factor</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">get_uncertainties</span><span class="p">())</span>
+                <span class="n">n_samples_l</span> <span class="o">=</span> <span class="n">n_samples_per_factor</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">get_levers</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">n_samples_u</span><span class="p">,</span> <span class="n">n_samples_l</span> <span class="o">=</span> <span class="n">n_samples</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">n_samples_u</span> <span class="o">=</span> <span class="n">n_samples_l</span> <span class="o">=</span> <span class="n">n_samples</span>
+
+            <span class="n">samples_u</span> <span class="o">=</span> <span class="n">sample_generator</span><span class="o">.</span><span class="n">generate_designs</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">get_uncertainties</span><span class="p">(),</span> <span class="n">n_samples_u</span><span class="p">)</span>
+            <span class="n">samples_u</span><span class="o">.</span><span class="n">kind</span> <span class="o">=</span> <span class="nb">dict</span>
+            <span class="n">design_u</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">samples_u</span><span class="p">])</span>
+
+            <span class="n">samples_l</span> <span class="o">=</span> <span class="n">sample_generator</span><span class="o">.</span><span class="n">generate_designs</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">get_levers</span><span class="p">(),</span> <span class="n">n_samples_l</span><span class="p">)</span>
+            <span class="n">samples_l</span><span class="o">.</span><span class="n">kind</span> <span class="o">=</span> <span class="nb">dict</span>
+            <span class="n">design_l</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">samples_l</span><span class="p">])</span>
+
+            <span class="n">design_u</span><span class="p">[</span><span class="s2">&quot;____&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">design_l</span><span class="p">[</span><span class="s2">&quot;____&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">design</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">design_u</span><span class="p">,</span> <span class="n">design_l</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;____&#39;</span><span class="p">)</span>
+            <span class="n">design</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;____&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parms</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">sample_from</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;uncertainties&#39;</span><span class="p">):</span>
+                <span class="n">parms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_uncertainties</span><span class="p">()]</span>
+            <span class="k">if</span> <span class="n">sample_from</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;levers&#39;</span><span class="p">):</span>
+                <span class="n">parms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_levers</span><span class="p">()]</span>
+
+            <span class="k">if</span> <span class="n">n_samples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples_per_factor</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">parms</span><span class="p">)</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">sample_generator</span><span class="o">.</span><span class="n">generate_designs</span><span class="p">(</span><span class="n">parms</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span>
+            <span class="n">samples</span><span class="o">.</span><span class="n">kind</span> <span class="o">=</span> <span class="nb">dict</span>
+            <span class="n">design</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">sample_from</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;constants&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_constants</span><span class="p">():</span>
+                <span class="n">design</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">default</span>
+
+        <span class="n">design</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">ensure_dtypes</span><span class="p">(</span><span class="n">design</span><span class="p">)</span>
+        <span class="n">design</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">redraws</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">corr</span><span class="p">()</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">c</span><span class="p">[</span><span class="n">c</span><span class="o">==</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">max_corr</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">max_corr</span> <span class="o">&lt;</span> <span class="n">max_corr_</span><span class="p">:</span>
+                <span class="n">max_corr_</span> <span class="o">=</span> <span class="n">max_corr</span>
+                <span class="n">design_</span> <span class="o">=</span> <span class="n">design</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">design_</span> <span class="o">=</span> <span class="n">design</span>
+
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sample_from</span> <span class="ow">is</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">experiment_ids</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">write_experiment_parameters</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="n">design_name</span><span class="p">,</span> <span class="n">design_</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">design_</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">experiment_ids</span>
+            <span class="n">design_</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;experiment&#39;</span>
+
+    <span class="n">design</span> <span class="o">=</span> <span class="n">ExperimentalDesign</span><span class="p">(</span><span class="n">design_</span><span class="p">)</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">design_name</span> <span class="o">=</span> <span class="n">design_name</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">sampler_name</span> <span class="o">=</span> <span class="n">sampler</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="n">scope</span>
+    <span class="k">return</span> <span class="n">design</span></div>
+
+
+
+
+<div class="viewcode-block" id="design_sensitivity_tests">
+<a class="viewcode-back" href="../../../source/emat.design/emat.design.html#emat.experiment.experimental_design.design_sensitivity_tests">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">design_sensitivity_tests</span><span class="p">(</span>
+        <span class="n">scope</span><span class="p">,</span>
+        <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">design_name</span><span class="o">=</span><span class="s1">&#39;uni&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a design of univariate sensitivity tests based on a Scope.</span>
+
+<span class="sd">    If any of the parameters or levers have an infinite lower or upper bound,</span>
+<span class="sd">    the sensitivity test will be made at the 1st or 99th percentile value</span>
+<span class="sd">    respectively, instead of at the infinite value.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scope (Scope): The exploratory scope to use for the design.</span>
+<span class="sd">        db (Database, optional): If provided, this design will be stored in the</span>
+<span class="sd">            database indicated.</span>
+<span class="sd">        design_name (str, default &#39;uni&#39;): A name for this design, primarily</span>
+<span class="sd">            to identify it when stored in the database.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        emat.ExperimentalDesign: The resulting design.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_rows</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="s1">&#39;values&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">else</span> <span class="mi">2</span>
+        <span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="n">design</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+        <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_rows</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">default</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()}</span>
+    <span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="s1">&#39;values&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">p</span><span class="o">.</span><span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">design</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">min</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">design</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">design</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">rv_gen</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">design</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">max</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">design</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">design</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">rv_gen</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.99</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                <span class="n">design</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">experiment_ids</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">write_experiment_parameters</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="n">design_name</span><span class="p">,</span> <span class="n">design</span><span class="p">)</span>
+        <span class="n">design</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">experiment_ids</span>
+        <span class="n">design</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;experiment&#39;</span>
+
+    <span class="n">design</span> <span class="o">=</span> <span class="n">ExperimentalDesign</span><span class="p">(</span><span class="n">design</span><span class="p">)</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">design_name</span> <span class="o">=</span> <span class="n">design_name</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">sampler_name</span> <span class="o">=</span> <span class="s1">&#39;uni&#39;</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="n">scope</span>
+    <span class="k">return</span> <span class="n">design</span></div>
+
+
+
+<div class="viewcode-block" id="design_refpoint_test">
+<a class="viewcode-back" href="../../../source/emat.design/emat.design.html#emat.experiment.experimental_design.design_refpoint_test">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">design_refpoint_test</span><span class="p">(</span>
+        <span class="n">scope</span><span class="p">,</span>
+        <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">design_name</span><span class="o">=</span><span class="s1">&#39;ref&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a design containing a single reference point test based on a Scope.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scope (Scope): The exploratory scope to use for the design.</span>
+<span class="sd">        db (Database, optional): If provided, this design will be stored in the</span>
+<span class="sd">            database indicated.</span>
+<span class="sd">        design_name (str, default &#39;ref&#39;): A name for this design, primarily</span>
+<span class="sd">            to identify it when stored in the database.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: The resulting design.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">design</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">default</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()},</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">experiment_ids</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">write_experiment_parameters</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="n">design_name</span><span class="p">,</span> <span class="n">design</span><span class="p">)</span>
+        <span class="n">design</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">experiment_ids</span>
+        <span class="n">design</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;experiment&#39;</span>
+
+    <span class="n">design</span> <span class="o">=</span> <span class="n">ExperimentalDesign</span><span class="p">(</span><span class="n">design</span><span class="p">)</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">design_name</span> <span class="o">=</span> <span class="n">design_name</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">sampler_name</span> <span class="o">=</span> <span class="s1">&#39;ref&#39;</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="n">scope</span>
+    <span class="k">return</span> <span class="n">design</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">minimum_weighted_distance</span><span class="p">(</span><span class="n">fixed_points</span><span class="p">,</span> <span class="n">other_points</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute minimum weighted distance from one array of points to another.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fixed_points (array-like):</span>
+<span class="sd">            The fixed reference points.  Each column is a dimension, and</span>
+<span class="sd">            each row is a point.</span>
+<span class="sd">        other_points (array-like):</span>
+<span class="sd">            The candidate measurement points.  Each column is a dimension,</span>
+<span class="sd">            and each row is a point.  The columns must exactly</span>
+<span class="sd">            match the columns in `fixed_points`, while the number of rows</span>
+<span class="sd">            and the content thereof can be (and probably should be)</span>
+<span class="sd">            entirely different.</span>
+<span class="sd">        weights (vector):</span>
+<span class="sd">            A set of weights by dimension.</span>
+<span class="sd">            The values in this vector should correspond to the columns</span>
+<span class="sd">            in `fixed_points` and `other_points`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray:</span>
+<span class="sd">            The values correspond to the rows in `other_points`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">array1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fixed_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">array2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">other_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">array2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">array2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">array2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">sq_dist_by_axis</span> <span class="o">=</span> <span class="p">(</span><span class="n">array1</span> <span class="o">-</span> <span class="n">row</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">sq_dist_by_axis</span> <span class="o">*</span> <span class="n">w</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">count_within_buffer</span><span class="p">(</span><span class="n">fixed_points</span><span class="p">,</span> <span class="n">other_points</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">buffer_dist</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Count the number of fixed points in a buffer various selected points.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fixed_points (array-like):</span>
+<span class="sd">            The fixed reference points.  Each column is a dimension, and</span>
+<span class="sd">            each row is a point.  These are the points that will be counted.</span>
+<span class="sd">        other_points (array-like):</span>
+<span class="sd">            The candidate measurement points.  Each column is a dimension,</span>
+<span class="sd">            and each row is a point.  The columns must exactly</span>
+<span class="sd">            match the columns in `fixed_points`, while the number of rows</span>
+<span class="sd">            and the content thereof can be (and probably should be)</span>
+<span class="sd">            entirely different.  These are the center points of the</span>
+<span class="sd">            various buffers.</span>
+<span class="sd">        weights (vector):</span>
+<span class="sd">            A set of weights by dimension.</span>
+<span class="sd">            The values in this vector should correspond to the columns</span>
+<span class="sd">            in `fixed_points` and `other_points`.</span>
+<span class="sd">        buffer_dist (float, default 1):</span>
+<span class="sd">            A buffer distance.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame:</span>
+<span class="sd">            The columns of the returned data correspond to the columns</span>
+<span class="sd">            in the `weights` input, and the row correspond to the rows</span>
+<span class="sd">            int the `df2` argument.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">array1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fixed_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">array2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">other_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">array2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">array2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">array2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">array1</span> <span class="o">-</span> <span class="n">row</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">w</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">distances</span> <span class="o">&lt;=</span> <span class="n">buffer_dist</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">value_within_buffer</span><span class="p">(</span><span class="n">fixed_points</span><span class="p">,</span> <span class="n">fixed_values</span><span class="p">,</span> <span class="n">other_points</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">buffer_dist</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Count the number of fixed points in a buffer various selected points.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fixed_points (array-like):</span>
+<span class="sd">            The fixed reference points.  Each column is a dimension, and</span>
+<span class="sd">            each row is a point.  These are the points that will be counted.</span>
+<span class="sd">        fixed_values (vector):</span>
+<span class="sd">            The values for each of the fixed points. Length is equal to</span>
+<span class="sd">            the number of rows in fixed_points.</span>
+<span class="sd">        other_points (array-like):</span>
+<span class="sd">            The candidate measurement points.  Each column is a dimension,</span>
+<span class="sd">            and each row is a point.  The columns must exactly</span>
+<span class="sd">            match the columns in `fixed_points`, while the number of rows</span>
+<span class="sd">            and the content thereof can be (and probably should be)</span>
+<span class="sd">            entirely different.  These are the center points of the</span>
+<span class="sd">            various buffers.</span>
+<span class="sd">        weights (vector):</span>
+<span class="sd">            A set of weights by dimension.</span>
+<span class="sd">            The values in this vector should correspond to the columns</span>
+<span class="sd">            in `fixed_points` and `other_points`.</span>
+<span class="sd">        buffer_dist (float, default 1):</span>
+<span class="sd">            A buffer distance.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame:</span>
+<span class="sd">            The columns of the returned data correspond to the columns</span>
+<span class="sd">            in the `weights` input, and the row correspond to the rows</span>
+<span class="sd">            int the `df2` argument.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">array1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fixed_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">array2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">other_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">array2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">array2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">array2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">array1</span> <span class="o">-</span> <span class="n">row</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">w</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed_values</span><span class="p">[</span><span class="n">distances</span> <span class="o">&lt;=</span> <span class="n">buffer_dist</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">minimum_weighted_distances</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute minimum weighted distance from one DataFrame to another.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df1 (pandas.DataFrame):</span>
+<span class="sd">            The fixed reference points.  Each column is a dimension, and</span>
+<span class="sd">            each row is a point.</span>
+<span class="sd">        df2 (pandas.DataFrame):</span>
+<span class="sd">            The candidate measurement points.  Each column is a dimension,</span>
+<span class="sd">            and each row is a point.  The columns in this DataFrame must</span>
+<span class="sd">            exactly match the columns in `df1`, while the number of rows</span>
+<span class="sd">            and the content thereof can be (and probably should be)</span>
+<span class="sd">            entirely different.</span>
+<span class="sd">        weights (pandas.DataFrame):</span>
+<span class="sd">            A set of weights as a DataFrame.  Each column is a complete</span>
+<span class="sd">            set of weights to use in calculating the weighted distance.</span>
+<span class="sd">            The rows in this DataFrame should correspond to the columns</span>
+<span class="sd">            in `df1` and `df2`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame:</span>
+<span class="sd">            The columns of the returned data correspond to the columns</span>
+<span class="sd">            in the `weights` input, and the row correspond to the rows</span>
+<span class="sd">            int the `df2` argument.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">array1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">array2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">df2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">weights</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df2</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">array2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">sq_dist_by_axis</span> <span class="o">=</span> <span class="p">(</span><span class="n">array1</span> <span class="o">-</span> <span class="n">row</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">weights</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">sq_dist_by_axis</span> <span class="o">/</span> <span class="n">w</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pick_one_new_experiment</span><span class="p">(</span>
+        <span class="n">existing_experiments</span><span class="p">,</span>
+        <span class="n">proposed_experiments</span><span class="p">,</span>
+        <span class="n">possible_experiments</span><span class="p">,</span>
+        <span class="n">dimension_weights</span><span class="p">,</span>
+        <span class="n">future_experiments</span><span class="p">,</span>
+        <span class="n">future_experiments_std</span><span class="p">,</span>
+        <span class="n">buffer_weighting</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">debug</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pick a single new experiment from a candidate population.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        existing_experiments (pandas.DataFrame):</span>
+<span class="sd">            A set of existing experiments.  These experiments have</span>
+<span class="sd">            already been run through the core model and results are</span>
+<span class="sd">            available.  The data of this DataFrame should all be</span>
+<span class="sd">            of a format that is or can be cast to floating point</span>
+<span class="sd">            (i.e., no strings or categorical data).</span>
+<span class="sd">        proposed_experiments (pandas.DataFrame):</span>
+<span class="sd">            The set of existing experiments, plus any other experiments</span>
+<span class="sd">            that are already proposed to be completed.</span>
+<span class="sd">        possible_experiments (pandas.DataFrame):</span>
+<span class="sd">            A set of possible experiments.  These experiments have</span>
+<span class="sd">            not been run through the core model and computed full results</span>
+<span class="sd">            are not available.  The format of this DataFrame should be</span>
+<span class="sd">            identical to `existing_experiments` in data types and columns.</span>
+<span class="sd">        output_weights (Mapping):</span>
+<span class="sd">            The keys of this mapping correspond to output measures from</span>
+<span class="sd">            the core model and the values are relative importance weights.</span>
+<span class="sd">        distance_scales (pandas.DataFrame):</span>
+<span class="sd">            The distance scales to use.  The rows of this DataFrame should</span>
+<span class="sd">            correspond to the columns in the `experiments` arguments, and</span>
+<span class="sd">            the columns to keys in the `output_weights`.  Typically, this</span>
+<span class="sd">            argument is the inverse of the result from the</span>
+<span class="sd">            `get_length_scales` method of a `emat.MetaModel` that has been</span>
+<span class="sd">            fit on the existing experiment results.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int</span>
+<span class="sd">            The row number from possible_experiments that is selected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mwd</span> <span class="o">=</span> <span class="n">minimum_weighted_distance</span><span class="p">(</span>
+        <span class="n">proposed_experiments</span><span class="p">,</span>
+        <span class="n">possible_experiments</span><span class="p">,</span>
+        <span class="n">dimension_weights</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">future_experiments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cwb</span> <span class="o">=</span> <span class="n">value_within_buffer</span><span class="p">(</span>
+            <span class="n">future_experiments</span><span class="p">,</span>
+            <span class="n">future_experiments_std</span><span class="p">,</span>
+            <span class="n">possible_experiments</span><span class="p">,</span>
+            <span class="n">dimension_weights</span><span class="p">,</span>
+            <span class="n">buffer_dist</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">cwb</span> <span class="o">/=</span> <span class="n">cwb</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+            <span class="n">scat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">possible_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">possible_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">c</span><span class="o">=</span><span class="n">mwd</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">scat</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">proposed_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">proposed_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">existing_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">existing_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;pink&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;minimum weighted distance&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+            <span class="n">scat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">possible_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">possible_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">c</span><span class="o">=</span><span class="n">cwb</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">scat</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">proposed_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">proposed_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">existing_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">existing_experiments</span><span class="p">[</span><span class="n">debug</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;pink&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;count within buffer&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="n">mwd</span> <span class="o">=</span> <span class="n">mwd</span> <span class="o">+</span> <span class="p">(</span><span class="n">buffer_weighting</span> <span class="o">*</span> <span class="n">cwb</span><span class="p">)</span>
+
+    <span class="n">new_candidate_experiment</span> <span class="o">=</span> <span class="n">mwd</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">new_candidate_experiment</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">batch_pick_new_experiments</span><span class="p">(</span>
+        <span class="n">existing_experiments</span><span class="p">,</span>
+        <span class="n">possible_experiments</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">dimension_weights</span><span class="p">,</span>
+        <span class="n">future_experiments</span><span class="p">,</span>
+        <span class="n">future_experiments_std</span><span class="p">,</span>
+        <span class="n">buffer_weighting</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pick a batch of new experiments from a candidate population.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        existing_experiments (pandas.DataFrame):</span>
+<span class="sd">            A set of existing experiments.  These experiments have</span>
+<span class="sd">            already been run through the core model and results are</span>
+<span class="sd">            available.  The data of this DataFrame should all be</span>
+<span class="sd">            of a format that is or can be cast to floating point</span>
+<span class="sd">            (i.e., no strings or categorical data).</span>
+<span class="sd">        possible_experiments (pandas.DataFrame):</span>
+<span class="sd">            A set of possible experiments.  These experiments have</span>
+<span class="sd">            not been run through the core model and computed full results</span>
+<span class="sd">            are not available.  The format of this DataFrame should be</span>
+<span class="sd">            identical to `existing_experiments` in data types and columns.</span>
+<span class="sd">        batch_size (int):</span>
+<span class="sd">            How many new experiments should be selected for this batch.</span>
+<span class="sd">        output_weights (Mapping):</span>
+<span class="sd">            The keys of this mapping correspond to output measures from</span>
+<span class="sd">            the core model and the values are relative importance weights.</span>
+<span class="sd">        distance_scales (pandas.DataFrame):</span>
+<span class="sd">            The distance scales to use.  The rows of this DataFrame should</span>
+<span class="sd">            correspond to the columns in the `experiments` arguments, and</span>
+<span class="sd">            the columns to keys in the `output_weights`.  Typically, this</span>
+<span class="sd">            argument is the inverse of the result from the</span>
+<span class="sd">            `get_length_scales` method of a `emat.MetaModel` that has been</span>
+<span class="sd">            fit on the existing experiment results.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame:</span>
+<span class="sd">            This contains `batch_size` rows selected from</span>
+<span class="sd">            `possible_experiments`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">proposed_experiments</span> <span class="o">=</span> <span class="n">existing_experiments</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Initial selection, greedy</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+        <span class="n">new_candidate_experiment</span> <span class="o">=</span> <span class="n">_pick_one_new_experiment</span><span class="p">(</span>
+            <span class="n">existing_experiments</span><span class="p">,</span>
+            <span class="n">proposed_experiments</span><span class="p">,</span>
+            <span class="n">possible_experiments</span><span class="p">,</span>
+            <span class="n">dimension_weights</span><span class="p">,</span>
+            <span class="n">future_experiments</span><span class="p">,</span>
+            <span class="n">future_experiments_std</span><span class="p">,</span>
+            <span class="n">buffer_weighting</span><span class="o">=</span><span class="n">buffer_weighting</span><span class="p">,</span>
+            <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">proposed_experiments</span> <span class="o">=</span> <span class="n">proposed_experiments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">possible_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">new_candidate_experiment</span><span class="p">])</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;selecting </span><span class="si">{</span><span class="n">proposed_experiments</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">new_experiments</span> <span class="o">=</span> <span class="n">proposed_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="n">batch_size</span><span class="p">:]</span>
+
+    <span class="c1"># Fedorov Exchanges</span>
+    <span class="n">n_exchanges</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">n_exchanges</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">n_exchanges</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+            <span class="n">provisionally_dropping</span> <span class="o">=</span> <span class="n">new_experiments</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">proposed_experiments</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span>
+                <span class="n">existing_experiments</span><span class="p">,</span>
+                <span class="n">new_experiments</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">new_experiments</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="p">])</span>
+            <span class="c1"># new_candidate_experiment = minimum_weighted_distance(</span>
+            <span class="c1">#     proposed_experiments,</span>
+            <span class="c1">#     possible_experiments,</span>
+            <span class="c1">#     dimension_weights</span>
+            <span class="c1"># ).argmax()</span>
+            <span class="n">new_candidate_experiment</span> <span class="o">=</span> <span class="n">_pick_one_new_experiment</span><span class="p">(</span>
+                <span class="n">existing_experiments</span><span class="p">,</span>
+                <span class="n">proposed_experiments</span><span class="p">,</span>
+                <span class="n">possible_experiments</span><span class="p">,</span>
+                <span class="n">dimension_weights</span><span class="p">,</span>
+                <span class="n">future_experiments</span><span class="p">,</span>
+                <span class="n">future_experiments_std</span><span class="p">,</span>
+                <span class="n">buffer_weighting</span><span class="o">=</span><span class="n">buffer_weighting</span><span class="p">,</span>
+                <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">provisional_replacement</span> <span class="o">=</span> <span class="n">possible_experiments</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">new_candidate_experiment</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">provisional_replacement</span> <span class="o">!=</span> <span class="n">provisionally_dropping</span><span class="p">:</span>
+                <span class="n">n_exchanges</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">new_index</span> <span class="o">=</span> <span class="n">new_experiments</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="n">new_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">provisional_replacement</span>
+                <span class="n">new_experiments</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">new_index</span>
+                <span class="n">new_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">possible_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">new_candidate_experiment</span><span class="p">]</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;replacing </span><span class="si">{</span><span class="n">provisionally_dropping</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">provisional_replacement</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_exchanges</span><span class="si">}</span><span class="s2"> exchanges completed.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_experiments</span>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">heuristic_pick_experiment</span><span class="p">(</span>
+    <span class="n">metamodel</span><span class="p">,</span>
+    <span class="n">candidate_experiments</span><span class="p">,</span>
+    <span class="n">poorness_of_fit</span><span class="p">,</span>
+    <span class="n">candidate_density</span><span class="p">,</span>
+    <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">candidate_std</span> <span class="o">=</span> <span class="n">metamodel</span><span class="o">.</span><span class="n">compute_std</span><span class="p">(</span><span class="n">candidate_experiments</span><span class="p">)</span>
+    <span class="n">candidate_raw_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">poorness_of_fit</span> <span class="o">*</span> <span class="n">candidate_std</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">candidate_wgt_value</span> <span class="o">=</span> <span class="n">candidate_raw_value</span> <span class="o">*</span> <span class="n">candidate_density</span>
+    <span class="n">proposed_experiment</span> <span class="o">=</span> <span class="n">candidate_wgt_value</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+        <span class="n">axs</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+            <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">c</span><span class="o">=</span><span class="n">candidate_wgt_value</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">axs</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+            <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">proposed_experiment</span><span class="p">],</span>
+            <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">proposed_experiment</span><span class="p">],</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">proposed_experiment</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">heuristic_batch_pick_experiment</span><span class="p">(</span>
+        <span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">metamodel</span><span class="p">,</span>
+        <span class="n">candidate_experiments</span><span class="p">,</span>
+        <span class="n">scope</span><span class="p">,</span>
+        <span class="n">poorness_of_fit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing Density&quot;</span><span class="p">)</span>
+    <span class="n">candidate_density</span> <span class="o">=</span> <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_density</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">poorness_of_fit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing Poorness of Fit&quot;</span><span class="p">)</span>
+        <span class="n">crossval</span> <span class="o">=</span> <span class="n">metamodel</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">cross_val_scores</span><span class="p">()</span>
+        <span class="n">poorness_of_fit</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">crossval</span><span class="p">)</span>
+
+    <span class="n">proposed_candidate_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">proposed_candidates</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+        <span class="n">metamodel</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">set_hypothetical_training_points</span><span class="p">(</span><span class="n">proposed_candidates</span><span class="p">)</span>
+        <span class="n">proposed_id</span> <span class="o">=</span> <span class="n">heuristic_pick_experiment</span><span class="p">(</span>
+            <span class="n">metamodel</span><span class="p">,</span>
+            <span class="n">candidate_experiments</span><span class="p">,</span>
+            <span class="n">poorness_of_fit</span><span class="p">,</span>
+            <span class="n">candidate_density</span><span class="p">,</span>
+            <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">proposed_candidate_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">proposed_id</span><span class="p">)</span>
+        <span class="n">proposed_candidates</span> <span class="o">=</span> <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">proposed_candidate_ids</span><span class="p">]</span>
+
+    <span class="n">proposed_candidate_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">proposed_candidate_ids</span><span class="p">)</span>
+
+    <span class="c1"># Exchanges</span>
+    <span class="n">n_exchanges</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">n_exchanges</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">n_exchanges</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+            <span class="n">provisionally_dropping</span> <span class="o">=</span> <span class="n">proposed_candidate_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">metamodel</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">set_hypothetical_training_points</span><span class="p">(</span>
+                <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">proposed_candidate_ids</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="n">provisionally_dropping</span><span class="p">}]</span>
+            <span class="p">)</span>
+            <span class="n">provisional_replacement</span> <span class="o">=</span> <span class="n">heuristic_pick_experiment</span><span class="p">(</span>
+                <span class="n">metamodel</span><span class="p">,</span>
+                <span class="n">candidate_experiments</span><span class="p">,</span>
+                <span class="n">poorness_of_fit</span><span class="p">,</span>
+                <span class="n">candidate_density</span><span class="p">,</span>
+                <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">provisional_replacement</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">proposed_candidate_ids</span><span class="p">:</span>
+                <span class="n">n_exchanges</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">proposed_candidate_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">provisional_replacement</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Replacing </span><span class="si">{</span><span class="n">provisionally_dropping</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">provisional_replacement</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_exchanges</span><span class="si">}</span><span class="s2"> Exchanges completed.&quot;</span><span class="p">)</span>
+
+
+
+    <span class="n">metamodel</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">clear_hypothetical_training_points</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">proposed_candidates</span>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

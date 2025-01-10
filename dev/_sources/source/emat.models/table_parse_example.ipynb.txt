@@ -1,0 +1,355 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import emat\n",
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# TableParser Example\n",
+    "\n",
+    "In this notebook, we will illustrate the use of a TableParser with \n",
+    "a few simple examples.  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from emat.model.core_files.parsers import (\n",
+    "    TableParser,\n",
+    "    loc, loc_sum, loc_mean,\n",
+    "    iloc, iloc_sum, iloc_mean\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Parsing a Labeled Table\n",
+    "\n",
+    "First, let's consider a TableParser for extracting values from a \n",
+    "simple CSV table of traffic counts by time period.  We'll begin \n",
+    "by writing such a table as a temporary file to be processed:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sample_file_labeled_table = \"\"\"\n",
+    "LinkID,Count_AM,Count_MD,Count_PM,Count_EV\n",
+    "123,3498,2340,3821,1820\n",
+    "234,4011,2513,4101,1942\n",
+    "345,386,103,441,251\n",
+    "\"\"\"\n",
+    "\n",
+    "with open('/tmp/emat_sample_file_labeled_table.csv', 'wt') as f:\n",
+    "    f.write(sample_file_labeled_table)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If we wanted to read this table one time, we could easily\n",
+    "do so using `pandas.read_csv`:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = pd.read_csv('/tmp/emat_sample_file_labeled_table.csv', index_col='LinkID')\n",
+    "df"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "It is then simple to manually extract individual values by label,\n",
+    "or by position, or we could extract a row total to get a daily \n",
+    "total count for a link, or take the mean of a column:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "{\n",
+    "    'A': df.loc[123,'Count_AM'],  # by label\n",
+    "    'B': df.iloc[1,0],            # by position\n",
+    "    'C': df.loc[345,:].sum(),     # sum a row\n",
+    "    'D': df.iloc[:,1].mean(),     # mean of a column\n",
+    "}"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The `TableParser` object makes it easy to combine these instructions\n",
+    "to extract the same values from the same file in any model run."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "parser = TableParser(\n",
+    "    'emat_sample_file_labeled_table.csv',\n",
+    "    {\n",
+    "        'A': loc[123,'Count_AM'],  # by label\n",
+    "        'B': iloc[1,0],            # by position\n",
+    "        'C': loc_sum[345,:],       # sum a row\n",
+    "        'D': iloc_mean[:,1],       # mean of a column\n",
+    "    },\n",
+    "    index_col='LinkID',  \n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We can now execute all these instructions by using the `read` method\n",
+    "of the parser."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "parser.read(from_dir='/tmp')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Using the `TableParser` has some advantages over just writing a custom\n",
+    "function for each table to be processed.  The most important is that\n",
+    "we do not need to actually parse anything to access the names of the \n",
+    "keys available in the parser's output."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "parser.measure_names"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Parsing Labeled Values\n",
+    "\n",
+    "The `TableParser` can also be used to read performace measures \n",
+    "from a file that contains simply a list of labeled values, as\n",
+    "this can readily be interpreted as a table with one index column\n",
+    "and a single data column."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sample_file_labeled_values = \"\"\"\n",
+    "Mean Highway Speed (mph),56.34\n",
+    "Mean Arterial Speed (mph),31.52\n",
+    "Mean Collector Speed (mph),24.80\n",
+    "\"\"\"\n",
+    "\n",
+    "with open('/tmp/emat_sample_file_labeled_values.csv', 'wt') as f:\n",
+    "    f.write(sample_file_labeled_values)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Reading this file with `pandas.read_csv` can be done neatly \n",
+    "by giving a few extra keyword arguments:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "pd.read_csv(\n",
+    "    '/tmp/emat_sample_file_labeled_values.csv', \n",
+    "    header=None, \n",
+    "    names=['Label','Value'], \n",
+    "    index_col=0,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We can simply pass these same keyword arguments on to the `TableParser`,\n",
+    "and proceed as above to define the values to extract."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "parser = TableParser(\n",
+    "    'emat_sample_file_labeled_values.csv',\n",
+    "    {\n",
+    "        'Highway Speed': loc['Mean Highway Speed (mph)','Value']\n",
+    "    },\n",
+    "    header=None, \n",
+    "    names=['Label','Value'], \n",
+    "    index_col=0,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "parser.read(from_dir='/tmp')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Parsing Labeled Values\n",
+    "\n",
+    "Lastly, the `TableParser` can be used to read performace measures \n",
+    "from a file that contains an unlabeled array of values, as\n",
+    "sometimes is generated from popular transportation modeling tools."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sample_file_unlabeled_array = \"\"\"\n",
+    "11,22,33\n",
+    "44,55,66\n",
+    "77,88,99\n",
+    "\"\"\"\n",
+    "\n",
+    "with open('/tmp/emat_sample_file_unlabeled_array.csv', 'wt') as f:\n",
+    "    f.write(sample_file_unlabeled_array)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The labels are not required to read this data using `pandas.read_csv`,\n",
+    "as a default set of row and column index labels are generated."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "pd.read_csv(\n",
+    "    '/tmp/emat_sample_file_unlabeled_array.csv', \n",
+    "    header=None, \n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "But the table is loaded, and individual values or slices can be \n",
+    "taken using the `iloc` tool."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "parser = TableParser(\n",
+    "    'emat_sample_file_unlabeled_array.csv',\n",
+    "    {\n",
+    "        'upper_left': iloc[0,0],\n",
+    "        'lower_right': iloc[-1,-1],\n",
+    "        'partial_row': iloc_sum[0,1:],\n",
+    "        'top_corner_sum': iloc[0,0] + iloc[0,-1],\n",
+    "    },\n",
+    "    header=None, \n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "parser.read(from_dir='/tmp')"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.7"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

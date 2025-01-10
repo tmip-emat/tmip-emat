@@ -1,0 +1,617 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.learn.boosting &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.learn.boosting</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.learn.boosting</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegressorMixin</span><span class="p">,</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">clone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_val_predict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.frameable</span><span class="w"> </span><span class="kn">import</span> <span class="n">FrameableMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrossValMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.multioutput</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultiOutputRegressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.utils.metaestimators</span><span class="w"> </span><span class="kn">import</span> <span class="n">_BaseComposition</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bunch</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BoostedRegressor</span><span class="p">(</span><span class="n">_BaseComposition</span><span class="p">,</span> <span class="n">RegressorMixin</span><span class="p">,</span> <span class="n">FrameableMixin</span><span class="p">,</span> <span class="n">CrossValMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A stack of regressors.</span>
+
+<span class="sd">	Each regressor is fit sequentially, and the remaining residual</span>
+<span class="sd">	is the target of the next model in the chain.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_required_parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;estimators&#39;</span><span class="p">]</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+			<span class="bp">self</span><span class="p">,</span>
+			<span class="n">estimators</span><span class="p">,</span>
+			<span class="n">use_cv_predict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+			<span class="n">prediction_tier</span><span class="o">=</span><span class="mi">9999</span><span class="p">,</span>
+	<span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">estimators</span> <span class="o">=</span> <span class="n">estimators</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">use_cv_predict</span> <span class="o">=</span> <span class="n">use_cv_predict</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">prediction_tier</span> <span class="o">=</span> <span class="n">prediction_tier</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">named_estimators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">Bunch</span><span class="p">(</span><span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimators</span><span class="p">))</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">set_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Setting the parameters for the boosted estimator</span>
+
+<span class="sd">		Valid parameter keys can be listed with get_params().</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		**params : keyword arguments</span>
+<span class="sd">			Specific parameters using e.g. set_params(parameter_name=new_value)</span>
+<span class="sd">			In addition, to setting the parameters of the boosted estimator,</span>
+<span class="sd">			the individual estimators of the boosted estimator can also be</span>
+<span class="sd">			set or replaced by setting them to None.</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_params</span><span class="p">(</span><span class="s1">&#39;estimators&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Get the parameters of the boosted estimator</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		deep : bool</span>
+<span class="sd">			Setting it to True gets the various estimators and the parameters</span>
+<span class="sd">			of the estimators as well</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_params</span><span class="p">(</span><span class="s1">&#39;estimators&#39;</span><span class="p">,</span> <span class="n">deep</span><span class="o">=</span><span class="n">deep</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">estimator_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimators</span><span class="p">]</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">):</span>
+		<span class="c1"># if attr_name in self.named_estimators:</span>
+		<span class="c1"># 	return self.named_estimators[attr_name]</span>
+		<span class="c1"># raise AttributeError(attr_name)</span>
+		<span class="n">position</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimator_names</span><span class="p">):</span>
+			<span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">attr_name</span><span class="p">:</span>
+				<span class="n">position</span> <span class="o">=</span> <span class="n">n</span>
+				<span class="k">break</span>
+		<span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">attr_name</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;estimators_&#39;</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimators_</span><span class="p">[</span><span class="n">position</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimators</span><span class="p">[</span><span class="n">position</span><span class="p">]</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_use_cv_predict_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">use_cv_predict</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_cv_predict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_cv_predict</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+		<span class="k">if</span> <span class="n">sample_weight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">NotImplementedError</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_pre_fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">estimators_</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">Y_</span> <span class="o">=</span> <span class="n">Y</span>
+		<span class="k">for</span> <span class="n">n</span><span class="p">,(</span><span class="n">_</span><span class="p">,</span><span class="n">e</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimators</span><span class="p">):</span>
+			<span class="n">e_</span> <span class="o">=</span> <span class="n">clone</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+			<span class="n">e_</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y_</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">estimators_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimators</span><span class="p">):</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_cv_predict_n</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+					<span class="n">Y_</span> <span class="o">=</span> <span class="n">Y_</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_predict</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">cross_val_predict</span><span class="p">(</span><span class="n">e_</span><span class="p">,</span><span class="n">X</span><span class="p">))</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">Y_</span> <span class="o">=</span> <span class="n">Y_</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_predict</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">e_</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+		<span class="k">return</span> <span class="bp">self</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_set_prediction_tier</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tier</span><span class="p">):</span>
+		<span class="n">tier_</span> <span class="o">=</span> <span class="n">tier</span>
+		<span class="k">if</span> <span class="n">tier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="kn">import</span><span class="w"> </span><span class="nn">numbers</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tier</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;tier must be integer&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">tier</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">tier</span> <span class="o">=</span> <span class="mi">9999</span>
+			<span class="k">if</span> <span class="n">tier</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">tier</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimators</span><span class="p">)</span> <span class="o">+</span> <span class="n">tier</span>
+			<span class="k">if</span> <span class="n">tier</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid tier </span><span class="si">{</span><span class="n">tier_</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">prediction_tier</span> <span class="o">=</span> <span class="n">tier</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">tier</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Generate predictions from a set of exogenous data.</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		X : array-like, prefer pandas.DataFrame</span>
+<span class="sd">			Exogenous data.</span>
+<span class="sd">		tier : int, optional</span>
+<span class="sd">			Limit the prediction to using only the first `tier`</span>
+<span class="sd">			levels of stacking. For example, setting to 1 results</span>
+<span class="sd">			in only using the very first level of the stack.  If not</span>
+<span class="sd">			given, the existing value of `prediction_tier` is used.</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">tier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">tier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prediction_tier</span>
+		<span class="n">Yhat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimators_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">n_</span><span class="p">,</span> <span class="n">e_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimators_</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+			<span class="k">if</span> <span class="n">n_</span><span class="o">+</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="n">tier</span><span class="p">:</span>
+				<span class="n">Yhat</span> <span class="o">+=</span> <span class="n">e_</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+		<span class="n">Yhat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_predict</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Yhat</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">Yhat</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">cross_val_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_repeats</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Calculate the cross validation scores for this model.</span>
+
+<span class="sd">		Unlike other scikit-learn scores, this method returns</span>
+<span class="sd">		a separate score value for each output when the estimator</span>
+<span class="sd">		is for a multi-output process.</span>
+
+<span class="sd">		If the estimator includes a `sample_stratification`</span>
+<span class="sd">		attribute, it is used along with</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			X, Y : array-like</span>
+<span class="sd">				The independent and dependent data to use for</span>
+<span class="sd">				cross-validation.</span>
+<span class="sd">			cv : int, default 5</span>
+<span class="sd">				The number of folds to use in cross-validation.</span>
+<span class="sd">			S : array-like</span>
+<span class="sd">				The stratification data to use for stratified</span>
+<span class="sd">				cross-validation.  This data must be categorical</span>
+<span class="sd">				(or convertible into such), and should be a</span>
+<span class="sd">				vector of length equal to the first dimension</span>
+<span class="sd">				(i.e. number of observations) in the `X` and `Y`</span>
+<span class="sd">				arrays.</span>
+<span class="sd">			n_repeats : int, optional</span>
+<span class="sd">				Repeat the cross validation exercise this many</span>
+<span class="sd">				times, with different random seeds, and return</span>
+<span class="sd">				the average result.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			pandas.Series: The cross-validation scores, by output.</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_set_prediction_tier</span><span class="p">(</span><span class="n">tier</span><span class="p">)</span>
+		<span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cross_validate</span><span class="p">(</span>
+			<span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="n">S</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+			<span class="n">cache_metadata</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prediction_tier</span><span class="p">,</span> <span class="n">n_repeats</span><span class="o">=</span><span class="n">n_repeats</span><span class="p">,</span>
+			<span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span>
+		<span class="p">)</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">({</span><span class="n">j</span><span class="p">:</span> <span class="n">p</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;test_</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y_columns</span><span class="p">})</span>
+		<span class="k">except</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;p=&quot;</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Y_columns</span><span class="p">))</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;self.Y_columns=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y_columns</span><span class="p">)</span>
+			<span class="k">raise</span>
+
+
+<div class="viewcode-block" id="LinearAndGaussian">
+<a class="viewcode-back" href="../../../source/emat.metamodels/regression.html#emat.learn.LinearAndGaussian">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">LinearAndGaussian</span><span class="p">(</span>
+		<span class="n">fit_intercept</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">stats_on_fit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">kernel_generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">alpha</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span>
+		<span class="n">optimizer</span><span class="o">=</span><span class="s2">&quot;fmin_l_bfgs_b&quot;</span><span class="p">,</span>
+		<span class="n">n_restarts_optimizer</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+		<span class="n">normalize_y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">standardize_before_fit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">copy_X_train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">use_cv_predict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">single_target</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Create a detrended Gaussian process regressor.</span>
+
+<span class="sd">	This is the default regressor used in TMIP-EMAT.</span>
+<span class="sd">	This two stage regressor first fits a simple linear regression</span>
+<span class="sd">	model, then fits a Gaussian process regression on the</span>
+<span class="sd">	*residuals* of the linear regression.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	fit_intercept : boolean, optional, default True</span>
+<span class="sd">		Whether to calculate the intercept for the linear</span>
+<span class="sd">		regression step in this model. If set</span>
+<span class="sd">		to False, no intercept will be used in calculations</span>
+<span class="sd">		(e.g. data is expected to be already centered).</span>
+
+<span class="sd">	n_jobs : int or None, optional (default=None)</span>
+<span class="sd">		The number of jobs to use for the computation of the linear model.</span>
+<span class="sd">		This will only provide</span>
+<span class="sd">		speedups for n_targets &gt; 1 and sufficiently large problems.</span>
+<span class="sd">		``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.</span>
+<span class="sd">		``-1`` means using all processors. See :term:`Glossary &lt;n_jobs&gt;`</span>
+<span class="sd">		for more details.</span>
+
+<span class="sd">	stats_on_fit : boolean, optional, default True</span>
+<span class="sd">		Whether to calculate a number of statistical measures for the linear</span>
+<span class="sd">		regression model when it is fit, including standard errors and</span>
+<span class="sd">		t-stats for coefficients and R^2 goodness of fit for overall</span>
+<span class="sd">		models.</span>
+
+<span class="sd">	kernel_generator : Callable, optional</span>
+<span class="sd">		A function that takes the number of input features, and returns</span>
+<span class="sd">		a kernel function to be used in the Gaussian regression model.</span>
+<span class="sd">		See `AnisotropicGaussianProcessRegressor` for details.</span>
+
+<span class="sd">	alpha : float or array-like, optional (default: 1e-10)</span>
+<span class="sd">		Value added to the diagonal of the kernel matrix during fitting.</span>
+<span class="sd">		Larger values correspond to increased noise level in the observations.</span>
+<span class="sd">		This can also prevent a potential numerical issue during fitting, by</span>
+<span class="sd">		ensuring that the calculated values form a positive definite matrix.</span>
+<span class="sd">		If an array is passed, it must have the same number of entries as the</span>
+<span class="sd">		data used for fitting and is used as datapoint-dependent noise level.</span>
+<span class="sd">		Note that this is equivalent to adding a WhiteKernel with c=alpha.</span>
+<span class="sd">		Allowing to specify the noise level directly as a parameter is mainly</span>
+<span class="sd">		for convenience and for consistency with Ridge.</span>
+
+<span class="sd">	optimizer : string or callable, optional (default: &quot;fmin_l_bfgs_b&quot;)</span>
+<span class="sd">		Can either be one of the internally supported optimizers for optimizing</span>
+<span class="sd">		the kernel&#39;s parameters, specified by a string, or an externally</span>
+<span class="sd">		defined optimizer passed as a callable. If a callable is passed, it</span>
+<span class="sd">		must have the signature::</span>
+
+<span class="sd">			def optimizer(obj_func, initial_theta, bounds):</span>
+<span class="sd">				# * &#39;obj_func&#39; is the objective function to be minimized, which</span>
+<span class="sd">				#   takes the hyperparameters theta as parameter and an</span>
+<span class="sd">				#   optional flag eval_gradient, which determines if the</span>
+<span class="sd">				#   gradient is returned additionally to the function value</span>
+<span class="sd">				# * &#39;initial_theta&#39;: the initial value for theta, which can be</span>
+<span class="sd">				#   used by local optimizers</span>
+<span class="sd">				# * &#39;bounds&#39;: the bounds on the values of theta</span>
+<span class="sd">				....</span>
+<span class="sd">				# Returned are the best found hyperparameters theta and</span>
+<span class="sd">				# the corresponding value of the target function.</span>
+<span class="sd">				return theta_opt, func_min</span>
+
+<span class="sd">		Per default, the &#39;fmin_l_bfgs_b&#39; algorithm from scipy.optimize</span>
+<span class="sd">		is used. If None is passed, the kernel&#39;s parameters are kept fixed.</span>
+<span class="sd">		Available internal optimizers are::</span>
+
+<span class="sd">			&#39;fmin_l_bfgs_b&#39;</span>
+
+<span class="sd">	n_restarts_optimizer : int, optional (default: 0)</span>
+<span class="sd">		The number of restarts of the optimizer for finding the kernel&#39;s</span>
+<span class="sd">		parameters which maximize the log-marginal likelihood. The first run</span>
+<span class="sd">		of the optimizer is performed from the kernel&#39;s initial parameters,</span>
+<span class="sd">		the remaining ones (if any) from thetas sampled log-uniform randomly</span>
+<span class="sd">		from the space of allowed theta-values. If greater than 0, all bounds</span>
+<span class="sd">		must be finite. Note that n_restarts_optimizer == 0 implies that one</span>
+<span class="sd">		run is performed.</span>
+
+<span class="sd">	normalize_y : boolean, optional (default: False)</span>
+<span class="sd">		Whether the target values y are normalized, i.e., the mean of the</span>
+<span class="sd">		observed target values become zero. This parameter should be set to</span>
+<span class="sd">		True if the target values&#39; mean is expected to differ considerable from</span>
+<span class="sd">		zero. When enabled, the normalization effectively modifies the GP&#39;s</span>
+<span class="sd">		prior based on the data, which contradicts the likelihood principle;</span>
+<span class="sd">		normalization is thus disabled per default.</span>
+
+<span class="sd">	standardize_before_fit : bool, optional (default: True)</span>
+<span class="sd">		Whether to standardize by scaling the target values of the Gaussian</span>
+<span class="sd">		regression so they have unit variance.  This is replaces the inclusion</span>
+<span class="sd">		of a scalar term in the kernel function, and may help increase the</span>
+<span class="sd">		stability of results, especially with smaller sized datasets.</span>
+
+<span class="sd">	copy_X_train : bool, optional (default: True)</span>
+<span class="sd">		If True, a persistent copy of the training data is stored in the</span>
+<span class="sd">		object. Otherwise, just a reference to the training data is stored,</span>
+<span class="sd">		which might cause predictions to change if the data is modified</span>
+<span class="sd">		externally.</span>
+
+<span class="sd">	random_state : int, RandomState instance or None, optional (default: None)</span>
+<span class="sd">		The generator used to initialize the centers. If int, random_state is</span>
+<span class="sd">		the seed used by the random number generator; If RandomState instance,</span>
+<span class="sd">		random_state is the random number generator; If None, the random number</span>
+<span class="sd">		generator is the RandomState instance used by `np.random`.</span>
+
+<span class="sd">	use_cv_predict : bool, optional (default: False)</span>
+<span class="sd">		Whether to use cross-validated predictors to create residuals from the</span>
+<span class="sd">		linear regression during model fitting.</span>
+
+<span class="sd">	single_target : bool, optional (default: False)</span>
+<span class="sd">		Whether the target values will be a single dimension or multi-dimensional.</span>
+
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	BoostedRegressor</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+
+
+	<span class="kn">from</span><span class="w"> </span><span class="nn">.linear_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearRegression</span>
+	<span class="kn">from</span><span class="w"> </span><span class="nn">.anisotropic</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnisotropicGaussianProcessRegressor</span>
+
+	<span class="k">if</span> <span class="n">single_target</span><span class="p">:</span>
+		<span class="n">regressor2</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">regressor2</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">MultiOutputRegressor</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">BoostedRegressor</span><span class="p">(</span>
+		<span class="p">[</span>
+			<span class="p">(</span>
+				<span class="s1">&#39;lr&#39;</span><span class="p">,</span>
+				<span class="n">LinearRegression</span><span class="p">(</span>
+					<span class="n">fit_intercept</span><span class="o">=</span><span class="n">fit_intercept</span><span class="p">,</span>
+					<span class="n">copy_X</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+					<span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span>
+					<span class="n">stats_on_fit</span><span class="o">=</span><span class="n">stats_on_fit</span><span class="p">,</span>
+				<span class="p">)</span>
+			<span class="p">),</span>
+			<span class="p">(</span>
+				<span class="s1">&#39;gpr&#39;</span><span class="p">,</span>
+				<span class="n">regressor2</span><span class="p">(</span><span class="n">AnisotropicGaussianProcessRegressor</span><span class="p">(</span>
+					<span class="n">kernel_generator</span><span class="o">=</span><span class="n">kernel_generator</span><span class="p">,</span>
+					<span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+					<span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+					<span class="n">n_restarts_optimizer</span><span class="o">=</span><span class="n">n_restarts_optimizer</span><span class="p">,</span>
+					<span class="n">normalize_y</span><span class="o">=</span><span class="n">normalize_y</span><span class="p">,</span>
+					<span class="n">standardize_before_fit</span><span class="o">=</span><span class="n">standardize_before_fit</span><span class="p">,</span>
+					<span class="n">copy_X_train</span><span class="o">=</span><span class="n">copy_X_train</span><span class="p">,</span>
+					<span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+				<span class="p">))</span>
+			<span class="p">),</span>
+		<span class="p">],</span>
+		<span class="n">use_cv_predict</span><span class="o">=</span><span class="n">use_cv_predict</span><span class="p">,</span>
+	<span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">LinearInteractAndGaussian</span><span class="p">(</span>
+		<span class="n">k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">degree</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+		<span class="n">fit_intercept</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">stats_on_fit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">kernel_generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">alpha</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span>
+		<span class="n">optimizer</span><span class="o">=</span><span class="s2">&quot;fmin_l_bfgs_b&quot;</span><span class="p">,</span>
+		<span class="n">n_restarts_optimizer</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+		<span class="n">normalize_y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">standardize_before_fit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">copy_X_train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">use_cv_predict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">single_target</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+	<span class="kn">from</span><span class="w"> </span><span class="nn">.linear_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearRegression_KBestPoly</span>
+	<span class="kn">from</span><span class="w"> </span><span class="nn">.anisotropic</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnisotropicGaussianProcessRegressor</span>
+	<span class="k">if</span> <span class="n">single_target</span><span class="p">:</span>
+		<span class="n">regressor2</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">regressor2</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">MultiOutputRegressor</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">regressor2</span><span class="p">(</span><span class="n">BoostedRegressor</span><span class="p">(</span>
+		<span class="p">[</span>
+			<span class="p">(</span>
+				<span class="s1">&#39;lr&#39;</span><span class="p">,</span>
+				<span class="n">LinearRegression_KBestPoly</span><span class="p">(</span>
+					<span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+					<span class="n">degree</span><span class="o">=</span><span class="n">degree</span><span class="p">,</span>
+					<span class="n">fit_intercept</span><span class="o">=</span><span class="n">fit_intercept</span><span class="p">,</span>
+					<span class="n">copy_X</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+					<span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span>
+					<span class="n">stats_on_fit</span><span class="o">=</span><span class="n">stats_on_fit</span><span class="p">,</span>
+					<span class="n">single_target</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+				<span class="p">)</span>
+			<span class="p">),</span>
+			<span class="p">(</span>
+				<span class="s1">&#39;gpr&#39;</span><span class="p">,</span>
+				<span class="n">AnisotropicGaussianProcessRegressor</span><span class="p">(</span>
+					<span class="n">kernel_generator</span><span class="o">=</span><span class="n">kernel_generator</span><span class="p">,</span>
+					<span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+					<span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+					<span class="n">n_restarts_optimizer</span><span class="o">=</span><span class="n">n_restarts_optimizer</span><span class="p">,</span>
+					<span class="n">normalize_y</span><span class="o">=</span><span class="n">normalize_y</span><span class="p">,</span>
+					<span class="n">standardize_before_fit</span><span class="o">=</span><span class="n">standardize_before_fit</span><span class="p">,</span>
+					<span class="n">copy_X_train</span><span class="o">=</span><span class="n">copy_X_train</span><span class="p">,</span>
+					<span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+				<span class="p">)</span>
+			<span class="p">),</span>
+		<span class="p">],</span>
+		<span class="n">use_cv_predict</span><span class="o">=</span><span class="n">use_cv_predict</span><span class="p">,</span>
+	<span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">LinearInteractRangeAndGaussian</span><span class="p">(</span>
+		<span class="n">k_max</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+		<span class="n">degree</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+		<span class="n">fit_intercept</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">stats_on_fit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">kernel_generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">alpha</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span>
+		<span class="n">optimizer</span><span class="o">=</span><span class="s2">&quot;fmin_l_bfgs_b&quot;</span><span class="p">,</span>
+		<span class="n">n_restarts_optimizer</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+		<span class="n">normalize_y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">standardize_before_fit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">copy_X_train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">use_cv_predict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">single_target</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+	<span class="kn">from</span><span class="w"> </span><span class="nn">.linear_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearRegression_KRangeBestPoly</span>
+	<span class="kn">from</span><span class="w"> </span><span class="nn">.anisotropic</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnisotropicGaussianProcessRegressor</span>
+	<span class="k">if</span> <span class="n">single_target</span><span class="p">:</span>
+		<span class="n">regressor2</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">regressor2</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">MultiOutputRegressor</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">BoostedRegressor</span><span class="p">(</span>
+		<span class="p">[</span>
+			<span class="p">(</span>
+				<span class="s1">&#39;lr&#39;</span><span class="p">,</span>
+				<span class="n">LinearRegression_KRangeBestPoly</span><span class="p">(</span>
+					<span class="n">k_max</span><span class="o">=</span><span class="n">k_max</span><span class="p">,</span>
+					<span class="n">degree</span><span class="o">=</span><span class="n">degree</span><span class="p">,</span>
+					<span class="n">fit_intercept</span><span class="o">=</span><span class="n">fit_intercept</span><span class="p">,</span>
+					<span class="n">copy_X</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+					<span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span>
+					<span class="n">stats_on_fit</span><span class="o">=</span><span class="n">stats_on_fit</span><span class="p">,</span>
+				<span class="p">),</span>
+			<span class="p">),</span>
+			<span class="p">(</span>
+				<span class="s1">&#39;gpr&#39;</span><span class="p">,</span>
+				<span class="n">regressor2</span><span class="p">(</span><span class="n">AnisotropicGaussianProcessRegressor</span><span class="p">(</span>
+					<span class="n">kernel_generator</span><span class="o">=</span><span class="n">kernel_generator</span><span class="p">,</span>
+					<span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+					<span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+					<span class="n">n_restarts_optimizer</span><span class="o">=</span><span class="n">n_restarts_optimizer</span><span class="p">,</span>
+					<span class="n">normalize_y</span><span class="o">=</span><span class="n">normalize_y</span><span class="p">,</span>
+					<span class="n">standardize_before_fit</span><span class="o">=</span><span class="n">standardize_before_fit</span><span class="p">,</span>
+					<span class="n">copy_X_train</span><span class="o">=</span><span class="n">copy_X_train</span><span class="p">,</span>
+					<span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+				<span class="p">)),</span>
+			<span class="p">),</span>
+		<span class="p">],</span>
+		<span class="n">use_cv_predict</span><span class="o">=</span><span class="n">use_cv_predict</span><span class="p">,</span>
+	<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">LinearPossibleInteractAndGaussian</span><span class="p">(</span>
+		<span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+		<span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+		<span class="n">k_search</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
+		<span class="n">degree_search</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span>
+		<span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+
+	<span class="kn">from</span><span class="w"> </span><span class="nn">.multioutput</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultiOutputRegressor</span>
+	<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">GridSearchCV</span>
+
+	<span class="k">return</span> <span class="n">MultiOutputRegressor</span><span class="p">(</span>
+		<span class="n">GridSearchCV</span><span class="p">(</span>
+			<span class="n">LinearInteractAndGaussian</span><span class="p">(</span><span class="n">single_target</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+			<span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span>
+			<span class="n">param_grid</span><span class="o">=</span><span class="p">{</span>
+				<span class="s1">&#39;lr__KBestPoly__k&#39;</span><span class="p">:</span> <span class="n">k_search</span><span class="p">,</span>
+				<span class="s1">&#39;lr__KBestPoly__degree&#39;</span><span class="p">:</span> <span class="n">degree_search</span><span class="p">,</span>
+			<span class="p">},</span>
+		<span class="p">),</span>
+		<span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span>
+	<span class="p">)</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

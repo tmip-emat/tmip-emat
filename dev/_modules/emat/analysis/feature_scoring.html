@@ -1,0 +1,693 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.analysis.feature_scoring &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.analysis.feature_scoring</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.analysis.feature_scoring</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..workbench.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">feature_scoring</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">heatmap_table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..scope.box</span><span class="w"> </span><span class="kn">import</span> <span class="n">Box</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.arg_processing</span><span class="w"> </span><span class="kn">import</span> <span class="n">design_check</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">MissingMeasuresWarning</span><span class="p">,</span> <span class="n">MissingMeasuresError</span>
+
+
+<div class="viewcode-block" id="feature_scores">
+<a class="viewcode-back" href="../../../source/emat.analysis/feature-scoring.html#emat.analysis.feature_scoring.feature_scores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">feature_scores</span><span class="p">(</span>
+		<span class="n">scope</span><span class="p">,</span>
+		<span class="n">design</span><span class="p">,</span>
+		<span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;styled&#39;</span><span class="p">,</span>
+		<span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span>
+		<span class="n">measures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">shortnames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Calculate feature scores based on a design of experiments.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		scope (emat.Scope): The scope that defines this analysis.</span>
+<span class="sd">		design (str or pandas.DataFrame): The name of the design</span>
+<span class="sd">			of experiments to use for feature scoring, or a single</span>
+<span class="sd">			pandas.DataFrame containing the experimental design and</span>
+<span class="sd">			results.</span>
+<span class="sd">		return_type ({&#39;styled&#39;, &#39;figure&#39;, &#39;dataframe&#39;}):</span>
+<span class="sd">			The format to return, either a heatmap figure as an SVG</span>
+<span class="sd">			render in and xmle.Elem, or a plain pandas.DataFrame,</span>
+<span class="sd">			or a styled dataframe.</span>
+<span class="sd">		db (emat.Database): If `design` is given as a string,</span>
+<span class="sd">			extract the experiments from this database.</span>
+<span class="sd">		random_state (int or numpy.RandomState, optional):</span>
+<span class="sd">			Random state to use.</span>
+<span class="sd">		cmap (string or colormap, default &#39;viridis&#39;): matplotlib</span>
+<span class="sd">			colormap to use for rendering.</span>
+<span class="sd">		measures (Collection, optional): The performance measures</span>
+<span class="sd">			on which feature scores are to be generated.  By default,</span>
+<span class="sd">			all measures are included.</span>
+<span class="sd">		shortnames (Scope or callable):</span>
+<span class="sd">			If given, use this function to convert the measure</span>
+<span class="sd">			names into more readable `shortname` values from the</span>
+<span class="sd">			scope, or by using a function that maps measures</span>
+<span class="sd">			names to something else.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		xmle.Elem or pandas.DataFrame:</span>
+<span class="sd">			Returns a rendered SVG as xml, or a DataFrame,</span>
+<span class="sd">			depending on the `return_type` argument.</span>
+
+<span class="sd">	This function internally uses feature_scoring from the EMA Workbench,</span>
+<span class="sd">	which in turn scores features using the &quot;extra trees&quot; regression</span>
+<span class="sd">	approach.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">design</span> <span class="o">=</span> <span class="n">design_check</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
+
+	<span class="c1"># Split design into inputs and outcomes</span>
+	<span class="n">inputs</span> <span class="o">=</span> <span class="n">design</span><span class="p">[[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">design</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_parameter_names</span><span class="p">()]]</span>
+	<span class="n">outcomes</span> <span class="o">=</span> <span class="n">design</span><span class="p">[[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">design</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">()]]</span>
+
+	<span class="c1"># Remove experiments that have no outcomes in any dimension</span>
+	<span class="n">missing_outcomes_experiments</span> <span class="o">=</span> <span class="n">outcomes</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">missing_outcomes_experiments</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+		<span class="n">n_missing</span> <span class="o">=</span> <span class="n">missing_outcomes_experiments</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">n_missing</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">outcomes</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="n">MissingMeasuresError</span><span class="p">(</span>
+				<span class="sa">f</span><span class="s2">&quot;All </span><span class="si">{</span><span class="n">n_missing</span><span class="si">}</span><span class="s2"> experiments have no outcomes&quot;</span><span class="p">,</span>
+			<span class="p">)</span>
+		<span class="n">inputs</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="o">~</span><span class="n">missing_outcomes_experiments</span><span class="p">]</span>
+		<span class="n">outcomes</span> <span class="o">=</span> <span class="n">outcomes</span><span class="p">[</span><span class="o">~</span><span class="n">missing_outcomes_experiments</span><span class="p">]</span>
+		<span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+			<span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">n_missing</span><span class="si">}</span><span class="s2"> experiments &quot;</span>
+			<span class="sa">f</span><span class="s2">&quot;with no outcomes, ignoring them&quot;</span><span class="p">,</span>
+			<span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+			<span class="n">category</span><span class="o">=</span><span class="n">MissingMeasuresWarning</span><span class="p">,</span>
+		<span class="p">)</span>
+
+	<span class="c1"># prepare to remove input columns with NaN&#39;s</span>
+	<span class="n">drop_inputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">pandas</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+
+	<span class="c1"># prepare to remove constant inputs</span>
+	<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_constant_names</span><span class="p">():</span>
+		<span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">drop_inputs</span><span class="p">:</span>
+			<span class="n">drop_inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+	<span class="c1"># prepare to remove outcome columns with NaN&#39;s,</span>
+	<span class="n">drop_outcomes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">outcomes</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">pandas</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">outcomes</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+
+	<span class="c1"># prepare to remove outcomes that have been removed from the scope</span>
+	<span class="n">scope_measures</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">())</span>
+	<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">outcomes</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scope_measures</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">drop_outcomes</span><span class="p">:</span>
+			<span class="n">drop_outcomes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">measures</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">measures</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">drop_outcomes</span><span class="p">:</span>
+			<span class="n">drop_outcomes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+	<span class="c1"># execute removals</span>
+	<span class="n">outcomes_</span> <span class="o">=</span> <span class="n">outcomes</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">drop_outcomes</span><span class="p">)</span>
+	<span class="n">inputs_</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">drop_inputs</span><span class="p">)</span>
+
+	<span class="c1"># use workbench to compute feature scores</span>
+	<span class="n">fs</span> <span class="o">=</span> <span class="n">feature_scoring</span><span class="o">.</span><span class="n">get_feature_scores_all</span><span class="p">(</span><span class="n">inputs_</span><span class="p">,</span> <span class="n">outcomes_</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+
+	<span class="c1"># restore original row/col ordering</span>
+	<span class="n">orig_col_order</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">outcomes</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">scope_measures</span><span class="p">]</span>
+	<span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">orig_col_order</span><span class="p">)</span>
+
+	<span class="c1"># remove columns and rows that are entirely NA</span>
+	<span class="n">drop_c</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">columns</span><span class="p">[(</span><span class="o">~</span><span class="n">pandas</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">fs</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span>
+	<span class="n">drop_r</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">index</span><span class="p">[(</span><span class="o">~</span><span class="n">pandas</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">fs</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span>
+	<span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">drop_r</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">drop_c</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">shortnames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">shortnames</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+			<span class="n">shortnames</span> <span class="o">=</span> <span class="n">scope</span>
+		<span class="kn">from</span><span class="w"> </span><span class="nn">..scope.scope</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scope</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shortnames</span><span class="p">,</span> <span class="n">Scope</span><span class="p">):</span>
+			<span class="n">fs</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">shortnames</span><span class="o">.</span><span class="n">shortname</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">fs</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">shortnames</span><span class="p">)</span>
+
+	<span class="c1"># convert colormap to a light color palette for rendered outputs</span>
+	<span class="k">if</span> <span class="s1">&#39;figure&#39;</span> <span class="ow">in</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s1">&#39;styled&#39;</span> <span class="ow">in</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">cmap</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">light_palette</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="n">as_cmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+			<span class="k">pass</span>
+
+	<span class="c1"># create output based on `return_type`</span>
+	<span class="k">if</span> <span class="s1">&#39;figure&#39;</span> <span class="ow">in</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+		<span class="k">return</span> <span class="n">heatmap_table</span><span class="p">(</span>
+			<span class="n">fs</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+			<span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Model Parameters&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Performance Measures&#39;</span><span class="p">,</span>
+			<span class="n">title</span><span class="o">=</span><span class="s1">&#39;Feature Scoring&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39; [</span><span class="si">{</span><span class="n">design</span><span class="o">.</span><span class="n">design_name_</span><span class="si">}</span><span class="s1">]&#39;</span> <span class="k">if</span> <span class="n">design</span><span class="o">.</span><span class="n">design_name_</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+			<span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+		<span class="p">)</span>
+	<span class="k">elif</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;styled&#39;</span><span class="p">:</span>
+		<span class="kn">from</span><span class="w"> </span><span class="nn">..util.styling</span><span class="w"> </span><span class="kn">import</span> <span class="n">feature_score_styling</span>
+		<span class="k">return</span> <span class="n">feature_score_styling</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">fs</span><span class="o">.</span><span class="n">T</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">box_feature_scores</span><span class="p">(</span>
+		<span class="n">scope</span><span class="p">,</span>
+		<span class="n">box</span><span class="p">,</span>
+		<span class="n">design</span><span class="p">,</span>
+		<span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;styled&#39;</span><span class="p">,</span>
+		<span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span>
+		<span class="n">exclude_measures</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Calculate feature scores for a box, based on a design of experiments.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		scope (emat.Scope): The scope that defines this analysis.</span>
+<span class="sd">		box (emat.Box): The box the defines the target feature.</span>
+<span class="sd">		design (str or pandas.DataFrame): The name of the design of experiments</span>
+<span class="sd">			to use for feature scoring, or a single pandas.DataFrame containing the</span>
+<span class="sd">			experimental design and results.</span>
+<span class="sd">		return_type ({&#39;styled&#39;, &#39;figure&#39;, &#39;dataframe&#39;}):</span>
+<span class="sd">			The format to return, either a heatmap figure as an SVG render in and</span>
+<span class="sd">			xmle.Elem, or a plain pandas.DataFrame, or a styled dataframe.</span>
+<span class="sd">		db (emat.Database): If `design` is given as a string, extract the experiments</span>
+<span class="sd">			from this database.</span>
+<span class="sd">		random_state (int or numpy.RandomState, optional):</span>
+<span class="sd">			Random state to use.</span>
+<span class="sd">		cmap (string or colormap, default &#39;viridis&#39;): matplotlib colormap</span>
+<span class="sd">			to use for rendering.</span>
+<span class="sd">		exclude_measures (bool, default True): Exclude measures from feature scoring.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		xmle.Elem or pandas.DataFrame:</span>
+<span class="sd">			Returns a rendered SVG as xml, or a DataFrame,</span>
+<span class="sd">			depending on the `return_type` argument.</span>
+
+<span class="sd">	This function internally uses feature_scoring from the EMA Workbench, which in turn</span>
+<span class="sd">	scores features using the &quot;extra trees&quot; classification approach.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">design</span> <span class="o">=</span> <span class="n">design_check</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">exclude_measures</span><span class="p">:</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">thresholds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">()):</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;no measures in box thresholds&#39;</span><span class="p">)</span>
+
+	<span class="n">target</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">inside</span><span class="p">(</span><span class="n">design</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">target_feature_scores</span><span class="p">(</span>
+		<span class="n">scope</span><span class="p">,</span>
+		<span class="n">target</span><span class="p">,</span>
+		<span class="n">design</span><span class="p">,</span>
+		<span class="n">return_type</span><span class="o">=</span><span class="n">return_type</span><span class="p">,</span>
+		<span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">,</span>
+		<span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+		<span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+		<span class="n">exclude_measures</span><span class="o">=</span><span class="n">exclude_measures</span><span class="p">,</span>
+		<span class="n">exclude_parameters</span><span class="o">=</span><span class="n">box</span><span class="o">.</span><span class="n">thresholds</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+	<span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">target_feature_scores</span><span class="p">(</span>
+		<span class="n">scope</span><span class="p">,</span>
+		<span class="n">target</span><span class="p">,</span>
+		<span class="n">design</span><span class="p">,</span>
+		<span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;styled&#39;</span><span class="p">,</span>
+		<span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span>
+		<span class="n">exclude_measures</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">exclude_parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Calculate feature scores for a target selection, based on a design of experiments.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		scope (emat.Scope): The scope that defines this analysis.</span>
+<span class="sd">		target (pandas.Series): The target feature, whose dtype should be bool.</span>
+<span class="sd">		design (str or pandas.DataFrame): The name of the design of experiments</span>
+<span class="sd">			to use for feature scoring, or a single pandas.DataFrame containing the</span>
+<span class="sd">			experimental design and results.</span>
+<span class="sd">		return_type ({&#39;styled&#39;, &#39;figure&#39;, &#39;dataframe&#39;}):</span>
+<span class="sd">			The format to return, either a heatmap figure as an SVG render in and</span>
+<span class="sd">			xmle.Elem, or a plain pandas.DataFrame, or a styled dataframe.</span>
+<span class="sd">		db (emat.Database): If `design` is given as a string, extract the experiments</span>
+<span class="sd">			from this database.</span>
+<span class="sd">		random_state (int or numpy.RandomState, optional):</span>
+<span class="sd">			Random state to use.</span>
+<span class="sd">		cmap (string or colormap, default &#39;viridis&#39;): matplotlib colormap</span>
+<span class="sd">			to use for rendering.</span>
+<span class="sd">		exclude_measures (bool, default True): Exclude measures from feature scoring.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		xmle.Elem or pandas.DataFrame:</span>
+<span class="sd">			Returns a rendered SVG as xml, or a DataFrame,</span>
+<span class="sd">			depending on the `return_type` argument.</span>
+
+<span class="sd">	This function internally uses feature_scoring from the EMA Workbench, which in turn</span>
+<span class="sd">	scores features using the &quot;extra trees&quot; classification approach.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="o">,</span><span class="w"> </span><span class="nn">numpy</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;must give db to use design name&#39;</span><span class="p">)</span>
+		<span class="n">design_name</span> <span class="o">=</span> <span class="n">design</span>
+		<span class="n">design</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">read_experiment_all</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">design</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+		<span class="n">design_name</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;must name design or give DataFrame&#39;</span><span class="p">)</span>
+
+	<span class="c1"># remove design columns with NaN&#39;s</span>
+	<span class="n">drop_cols</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">design</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">pandas</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">design</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+
+	<span class="c1"># remove design columns not in the scope</span>
+	<span class="n">all_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">get_all_names</span><span class="p">())</span>
+	<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">design</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_names</span><span class="p">:</span>
+			<span class="n">drop_cols</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+	<span class="c1"># remove constants</span>
+	<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_constant_names</span><span class="p">():</span>
+		<span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">design</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+			<span class="n">drop_cols</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+	<span class="c1"># remove outcome columns if exclude_measures</span>
+	<span class="k">if</span> <span class="n">exclude_measures</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">meas</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">meas</span> <span class="ow">in</span> <span class="n">design</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+				<span class="n">drop_cols</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">meas</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">exclude_parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">meas</span> <span class="ow">in</span> <span class="n">design</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">meas</span> <span class="ow">in</span> <span class="n">exclude_parameters</span><span class="p">:</span>
+				<span class="n">drop_cols</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">meas</span><span class="p">)</span>
+
+	<span class="n">design_</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">drop_cols</span><span class="p">))</span>
+
+	<span class="kn">from</span><span class="w"> </span><span class="nn">..workbench.analysis.scenario_discovery_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleInductionType</span>
+
+	<span class="n">target_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="n">target_name</span> <span class="o">=</span> <span class="s1">&#39;target&#39;</span>
+
+	<span class="n">fs</span> <span class="o">=</span> <span class="n">feature_scoring</span><span class="o">.</span><span class="n">get_feature_scores_all</span><span class="p">(</span>
+		<span class="n">design_</span><span class="p">,</span>
+		<span class="p">{</span><span class="n">target_name</span><span class="p">:</span><span class="n">target</span><span class="p">},</span>
+		<span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+		<span class="n">mode</span><span class="o">=</span><span class="n">RuleInductionType</span><span class="o">.</span><span class="n">CLASSIFICATION</span><span class="p">,</span>
+	<span class="p">)</span>
+
+	<span class="c1"># restore original row/col ordering</span>
+	<span class="c1"># orig_col_order = [c for c in outcomes.columns if c in scope_measures]</span>
+	<span class="c1"># fs = fs.reindex(</span>
+	<span class="c1"># 	index=design.columns,</span>
+	<span class="c1"># 	# columns=orig_col_order,</span>
+	<span class="c1"># )</span>
+
+	<span class="k">if</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;figure&#39;</span><span class="p">,</span><span class="s1">&#39;styled&#39;</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">cmap</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">light_palette</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="n">as_cmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+			<span class="k">pass</span>
+
+	<span class="k">if</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;figure&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">heatmap_table</span><span class="p">(</span>
+			<span class="n">fs</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+			<span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Model Parameters&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Target&#39;</span><span class="p">,</span>
+			<span class="n">title</span><span class="o">=</span><span class="s1">&#39;Feature Scoring&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39; [</span><span class="si">{</span><span class="n">design_name</span><span class="si">}</span><span class="s1">]&#39;</span> <span class="k">if</span> <span class="n">design_name</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+			<span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+		<span class="p">)</span>
+	<span class="k">elif</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;styled&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">fs</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">text_color_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">fs</span><span class="o">.</span><span class="n">T</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_col_breakpoints</span><span class="p">(</span>
+        <span class="n">data_col</span><span class="p">,</span>
+        <span class="n">min_tail</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">max_breaks</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+		<span class="n">break_spacing</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+	<span class="n">arr</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data_col</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">min_tail</span><span class="o">*</span><span class="mi">2</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;array too short for `min_tail`&quot;</span><span class="p">)</span>
+	<span class="n">arr_s</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="p">[</span><span class="n">min_tail</span><span class="p">,</span><span class="o">-</span><span class="n">min_tail</span><span class="p">])</span>
+	<span class="n">lo_end</span><span class="p">,</span> <span class="n">hi_end</span> <span class="o">=</span> <span class="n">arr_s</span><span class="p">[[</span><span class="n">min_tail</span><span class="p">,</span><span class="o">-</span><span class="n">min_tail</span><span class="p">]]</span>
+	<span class="n">inside_size</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="p">(</span><span class="n">min_tail</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">min_tail</span><span class="o">*</span><span class="mi">2</span><span class="p">:</span>
+		<span class="n">inside_breaks</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">inside_breaks</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">inside_size</span><span class="o">/</span><span class="n">min_tail</span><span class="p">)),</span> <span class="n">max_breaks</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">break_spacing</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">lo_end</span><span class="p">,</span> <span class="n">hi_end</span><span class="p">,</span> <span class="n">inside_breaks</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">break_spacing</span> <span class="o">==</span> <span class="s1">&#39;percentile&#39;</span><span class="p">:</span>
+		<span class="n">qtiles</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">min_tail</span><span class="o">/</span><span class="n">arr</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="n">min_tail</span><span class="p">)</span><span class="o">/</span><span class="n">arr</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">inside_breaks</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">qtiles</span><span class="p">)</span>
+	<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;unknown `break_spacing` value </span><span class="si">{</span><span class="n">break_spacing</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="threshold_feature_scores">
+<a class="viewcode-back" href="../../../source/emat.analysis/feature-scoring.html#emat.analysis.feature_scoring.threshold_feature_scores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">threshold_feature_scores</span><span class="p">(</span>
+		<span class="n">scope</span><span class="p">,</span>
+		<span class="n">measure_name</span><span class="p">,</span>
+		<span class="n">design</span><span class="p">,</span>
+		<span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;styled&#39;</span><span class="p">,</span>
+		<span class="o">*</span><span class="p">,</span>
+		<span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span>
+		<span class="n">z_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+		<span class="n">z_max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+		<span class="n">min_tail</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+		<span class="n">max_breaks</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+		<span class="n">break_spacing</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Compute and display threshold feature scores for a performance measure.</span>
+
+<span class="sd">	This function is useful to detect and understand non-linear relationships</span>
+<span class="sd">	between performance measures and various input parameters.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		scope (emat.Scope): The scope that defines this analysis.</span>
+<span class="sd">		measure_name (str): The name of an individual performance</span>
+<span class="sd">			measure to analyze.</span>
+<span class="sd">		design (str or pandas.DataFrame): The name of the design</span>
+<span class="sd">			of experiments to use for feature scoring, or a single</span>
+<span class="sd">			pandas.DataFrame containing the experimental design and</span>
+<span class="sd">			results.</span>
+<span class="sd">		return_type (str):</span>
+<span class="sd">			The format to return:</span>
+<span class="sd">			- &#39;dataframe&#39; gives a plain pandas.DataFrame,</span>
+<span class="sd">			- &#39;styled&#39; gives a colorized pandas.DataFrame,</span>
+<span class="sd">			- &#39;figure&#39; gives a plotly violin plot,</span>
+<span class="sd">			- &#39;ridge figure&#39; gives a plotly ridgeline figure.</span>
+<span class="sd">			Either plotly result can optionally have &quot;.svg&quot;</span>
+<span class="sd">			or &quot;.png&quot; added to render a static image in those</span>
+<span class="sd">			formats.</span>
+<span class="sd">		db (emat.Database): If `design` is given as a string,</span>
+<span class="sd">			extract the experiments from this database.</span>
+<span class="sd">		random_state (int or numpy.RandomState, optional):</span>
+<span class="sd">			Random state to use.</span>
+<span class="sd">		cmap (string or colormap, default &#39;viridis&#39;): matplotlib</span>
+<span class="sd">			colormap to use for rendering. Ignored if `return_type`</span>
+<span class="sd">			is &#39;dataframe&#39;.</span>
+<span class="sd">		z_min, z_max (float, optional): Trim the bottom and top of</span>
+<span class="sd">			the colormap range, respectively.  Defaults to (0,1) which</span>
+<span class="sd">			will make the most relevant overall feature colored at the</span>
+<span class="sd">			top of the colorscale and the least relevant feature at</span>
+<span class="sd">			the bottom.</span>
+<span class="sd">		min_tail (int, default 5): The minimum number of observations</span>
+<span class="sd">			on each side of any threshold point. If this value is too</span>
+<span class="sd">			small, the endpoint feature scoring results are highly</span>
+<span class="sd">			unstable, but if it is too large then important nonlinearities</span>
+<span class="sd">			near the extreme points may not be detected.  This is also</span>
+<span class="sd">			used as the minimum average number of observations between</span>
+<span class="sd">			threshold points.</span>
+<span class="sd">		max_breaks (int, default 20): The maximum number of distinct</span>
+<span class="sd">			threshold points to use.  Setting this value higher improves</span>
+<span class="sd">			resolution but also requires more computational time.</span>
+<span class="sd">		break_spacing ({&#39;linear&#39;, &#39;percentile&#39;}): How to distribute</span>
+<span class="sd">			threshold breakpoints to test within the min-max range.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		plotly.Figure or DataFrame or styled DataFrame</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">design</span> <span class="o">=</span> <span class="n">design_check</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
+
+	<span class="n">tracking</span> <span class="o">=</span> <span class="p">{}</span>
+
+	<span class="n">breakpoints</span> <span class="o">=</span> <span class="n">_col_breakpoints</span><span class="p">(</span>
+		<span class="n">design</span><span class="p">[</span><span class="n">measure_name</span><span class="p">],</span>
+		<span class="n">min_tail</span><span class="o">=</span><span class="n">min_tail</span><span class="p">,</span>
+		<span class="n">max_breaks</span><span class="o">=</span><span class="n">max_breaks</span><span class="p">,</span>
+		<span class="n">break_spacing</span><span class="o">=</span><span class="n">break_spacing</span><span class="p">,</span>
+	<span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">breakpoints</span><span class="p">:</span>
+		<span class="n">tracking</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">box_feature_scores</span><span class="p">(</span>
+			<span class="n">scope</span><span class="p">,</span>
+			<span class="n">Box</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">lower_bounds</span><span class="o">=</span><span class="p">{</span><span class="n">measure_name</span><span class="p">:</span> <span class="n">j</span><span class="p">}),</span>
+			<span class="n">design</span><span class="p">,</span>
+			<span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;dataframe&#39;</span><span class="p">,</span>
+			<span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">,</span>
+			<span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+			<span class="n">exclude_measures</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+	<span class="n">result</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tracking</span><span class="p">)</span>
+	<span class="n">name_order</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_parameter_names</span><span class="p">():</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+			<span class="n">name_order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name_order</span><span class="p">:</span>
+			<span class="n">name_order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+	<span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">name_order</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;styled&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">text_color_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="s1">&#39;figure&#39;</span> <span class="ow">in</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+		<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+		<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">cm</span>
+
+		<span class="n">base_score</span> <span class="o">=</span> <span class="n">feature_scores</span><span class="p">(</span>
+			<span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span>
+			<span class="n">design</span><span class="o">=</span><span class="n">design</span><span class="p">,</span>
+			<span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;dataframe&#39;</span><span class="p">,</span>
+			<span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+			<span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="n">measure_name</span><span class="p">],</span>
+		<span class="p">)</span>
+
+		<span class="n">traces</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">max_base_score</span> <span class="o">=</span> <span class="n">base_score</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+		<span class="n">tick_values</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">tick_labels</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">colormap</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">viridis</span><span class="p">)</span>
+
+
+		<span class="k">if</span> <span class="s1">&#39;ridge&#39;</span> <span class="ow">in</span> <span class="n">return_type</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+			<span class="n">ridge</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="n">gap</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="mi">95</span><span class="p">)</span>
+			<span class="n">linewidth</span> <span class="o">=</span> <span class="mi">3</span>
+			<span class="n">area_alpha</span> <span class="o">=</span> <span class="mf">1.0</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">ridge</span> <span class="o">=</span> <span class="kc">False</span>
+			<span class="n">gap</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="mi">95</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+			<span class="n">linewidth</span> <span class="o">=</span> <span class="mi">2</span>
+			<span class="n">area_alpha</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+		<span class="k">for</span> <span class="n">n_reversed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)):</span>
+			<span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">-</span> <span class="n">n_reversed</span> <span class="o">-</span> <span class="mi">1</span>
+			<span class="n">bs</span> <span class="o">=</span> <span class="n">base_score</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">measure_name</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">n</span><span class="p">]]</span> <span class="o">/</span> <span class="n">max_base_score</span>
+			<span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">bs</span><span class="p">):</span>
+				<span class="n">bs</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="n">bs</span> <span class="o">=</span> <span class="n">bs</span> <span class="o">*</span> <span class="p">(</span><span class="n">z_max</span><span class="o">-</span><span class="n">z_min</span><span class="p">)</span> <span class="o">+</span> <span class="n">z_min</span>
+			<span class="n">color</span> <span class="o">=</span> <span class="n">colormap</span><span class="p">(</span><span class="n">bs</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+			<span class="n">dark_color</span><span class="p">,</span> <span class="n">light_color</span> <span class="o">=</span> <span class="n">_darker_and_lighter_color</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">color</span><span class="p">)</span><span class="o">/</span><span class="mi">255</span><span class="p">)</span>
+			<span class="n">linecolor_</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dark_color</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+			<span class="n">areacolor_</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">light_color</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+			<span class="n">traces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+				<span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+					<span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span> <span class="k">if</span> <span class="n">ridge</span> <span class="k">else</span> <span class="o">-</span><span class="n">result</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="o">+</span> <span class="n">n</span> <span class="o">*</span> <span class="n">gap</span><span class="p">,</span>
+					<span class="n">x</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+					<span class="n">fillcolor</span><span class="o">=</span><span class="s1">&#39;rgba(0,0,0,0)&#39;</span><span class="p">,</span>
+					<span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+					<span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+					<span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;rgba(</span><span class="si">{</span><span class="n">linecolor_</span><span class="si">}</span><span class="s1">, 1.0)&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">0</span> <span class="k">if</span> <span class="n">ridge</span> <span class="k">else</span> <span class="n">linewidth</span><span class="p">),</span>
+					<span class="n">name</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
+					<span class="n">hovertemplate</span><span class="o">=</span><span class="s1">&#39;%</span><span class="si">{meta}</span><span class="s1">&lt;br&gt;Rel Import: %</span><span class="si">{customdata:.3f}</span><span class="s1">&lt;extra&gt;&#39;</span><span class="o">+</span><span class="n">measure_name</span><span class="o">+</span><span class="s1">&#39;: %</span><span class="si">{x:.3s}</span><span class="s1">&lt;/extra&gt;&#39;</span><span class="p">,</span>
+					<span class="n">meta</span><span class="o">=</span><span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">n</span><span class="p">]],</span>
+					<span class="n">customdata</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
+				<span class="p">)</span>
+			<span class="p">)</span>
+			<span class="n">traces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+				<span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+					<span class="n">y</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">+</span> <span class="n">n</span> <span class="o">*</span> <span class="n">gap</span><span class="p">,</span>
+					<span class="n">x</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+					<span class="n">fill</span><span class="o">=</span><span class="s1">&#39;tonexty&#39;</span><span class="p">,</span>
+					<span class="n">name</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
+					<span class="n">fillcolor</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;rgba(</span><span class="si">{</span><span class="n">areacolor_</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">area_alpha</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span>
+					<span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;rgba(</span><span class="si">{</span><span class="n">linecolor_</span><span class="si">}</span><span class="s1">, 1.0)&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">linewidth</span><span class="p">),</span>
+					<span class="n">hovertemplate</span><span class="o">=</span><span class="s1">&#39;%</span><span class="si">{meta}</span><span class="s1">&lt;br&gt;Rel Import: %</span><span class="si">{customdata:.3f}</span><span class="s1">&lt;extra&gt;&#39;</span><span class="o">+</span><span class="n">measure_name</span><span class="o">+</span><span class="s1">&#39;: %</span><span class="si">{x:.3s}</span><span class="s1">&lt;/extra&gt;&#39;</span><span class="p">,</span>
+					<span class="n">meta</span><span class="o">=</span><span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">n</span><span class="p">]],</span>
+					<span class="n">customdata</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
+				<span class="p">)</span>
+			<span class="p">)</span>
+			<span class="n">tick_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">gap</span> <span class="o">+</span> <span class="p">(</span><span class="n">gap</span><span class="o">/</span><span class="mi">3</span> <span class="k">if</span> <span class="n">ridge</span> <span class="k">else</span> <span class="mi">0</span><span class="p">))</span>
+			<span class="n">tick_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
+
+		<span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+		<span class="n">fig</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span>
+
+		<span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+			<span class="n">xaxis_title_text</span><span class="o">=</span><span class="n">scope</span><span class="o">.</span><span class="n">shortname</span><span class="p">(</span><span class="n">measure_name</span><span class="p">),</span>
+			<span class="n">yaxis_showgrid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+			<span class="n">yaxis_zeroline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+			<span class="n">yaxis_tickvals</span><span class="o">=</span><span class="n">tick_values</span><span class="p">,</span>
+			<span class="n">yaxis_ticktext</span><span class="o">=</span><span class="n">tick_labels</span><span class="p">,</span>
+			<span class="n">yaxis_tickmode</span><span class="o">=</span><span class="s1">&#39;array&#39;</span><span class="p">,</span>
+			<span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+			<span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">l</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">r</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+		<span class="p">)</span>
+		<span class="kn">from</span><span class="w"> </span><span class="nn">..util.rendering</span><span class="w"> </span><span class="kn">import</span> <span class="n">render_plotly</span>
+		<span class="k">return</span> <span class="n">render_plotly</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">return_type</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">result</span></div>
+
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_max_luminosity_color</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">max_lum</span><span class="o">=</span><span class="mf">0.333</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mc</span>
+	<span class="kn">import</span><span class="w"> </span><span class="nn">colorsys</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">c</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">cnames</span><span class="p">[</span><span class="n">color</span><span class="p">]</span>
+	<span class="k">except</span><span class="p">:</span>
+		<span class="n">c</span> <span class="o">=</span> <span class="n">color</span>
+	<span class="n">c</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">rgb_to_hls</span><span class="p">(</span><span class="o">*</span><span class="n">mc</span><span class="o">.</span><span class="n">to_rgb</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+	<span class="n">new_c</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">hls_to_rgb</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">min</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">max_lum</span><span class="p">),</span> <span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+	<span class="k">if</span> <span class="nb">bytes</span><span class="p">:</span>
+		<span class="n">lev</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">min</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="mi">255</span><span class="p">))))</span>
+		<span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">lev</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">new_c</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">new_c</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_darker_and_lighter_color</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">lum_diff</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mc</span>
+	<span class="kn">import</span><span class="w"> </span><span class="nn">colorsys</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">c</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">cnames</span><span class="p">[</span><span class="n">color</span><span class="p">]</span>
+	<span class="k">except</span><span class="p">:</span>
+		<span class="n">c</span> <span class="o">=</span> <span class="n">color</span>
+	<span class="n">hls</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">rgb_to_hls</span><span class="p">(</span><span class="o">*</span><span class="n">mc</span><span class="o">.</span><span class="n">to_rgb</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+	<span class="n">dark</span> <span class="o">=</span> <span class="n">hls</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">lum_diff</span><span class="p">)</span>
+	<span class="n">light</span> <span class="o">=</span> <span class="n">dark</span> <span class="o">+</span> <span class="n">lum_diff</span>
+	<span class="n">new_dark_c</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">hls_to_rgb</span><span class="p">(</span><span class="n">hls</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dark</span><span class="p">,</span> <span class="n">hls</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+	<span class="n">new_light_c</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">hls_to_rgb</span><span class="p">(</span><span class="n">hls</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">light</span><span class="p">,</span> <span class="n">hls</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+	<span class="k">if</span> <span class="nb">bytes</span><span class="p">:</span>
+		<span class="n">lev</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">min</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="mi">255</span><span class="p">))))</span>
+		<span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">lev</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">new_dark_c</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">lev</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">new_light_c</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">new_dark_c</span><span class="p">,</span> <span class="n">new_light_c</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

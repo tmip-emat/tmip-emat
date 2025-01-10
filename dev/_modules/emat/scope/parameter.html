@@ -1,0 +1,1241 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.scope.parameter &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.scope.parameter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.scope.parameter</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numbers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..workbench.em_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">parameters</span> <span class="k">as</span> <span class="n">workbench_param</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats._distn_infrastructure</span><span class="w"> </span><span class="kn">import</span> <span class="n">rv_frozen</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">distributions</span><span class="p">,</span> <span class="n">DistributionTypeError</span><span class="p">,</span> <span class="n">DistributionFreezeError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_rv_frozen</span><span class="p">,</span> <span class="n">rv_frozen_as_dict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.names</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShortnameMixin</span><span class="p">,</span> <span class="n">TaggableMixin</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">standardize_parameter_type</span><span class="p">(</span><span class="n">original_type</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Standardize parameter type descriptions</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        original_type (str): The original type</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: The standarized type name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">original_type</span> <span class="o">=</span> <span class="n">original_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;unc&#39;</span> <span class="ow">in</span> <span class="n">original_type</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;uncertainty&#39;</span>
+    <span class="k">if</span> <span class="s1">&#39;lev&#39;</span> <span class="ow">in</span> <span class="n">original_type</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;lever&#39;</span>
+    <span class="k">elif</span> <span class="s1">&#39;con&#39;</span> <span class="ow">in</span> <span class="n">original_type</span> <span class="ow">or</span> <span class="s1">&#39;fix&#39;</span> <span class="ow">in</span> <span class="n">original_type</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;constant&#39;</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot decipher parameter ptype&#39;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">standardize_data_type</span><span class="p">(</span><span class="n">original_type</span><span class="p">):</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">original_type</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;real&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;float32&#39;</span><span class="p">:</span> <span class="s1">&#39;real&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;float64&#39;</span><span class="p">:</span> <span class="s1">&#39;real&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;floating&#39;</span><span class="p">:</span> <span class="s1">&#39;real&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;double&#39;</span><span class="p">:</span> <span class="s1">&#39;real&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;integer&#39;</span><span class="p">:</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;int32&#39;</span><span class="p">:</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;int64&#39;</span><span class="p">:</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;long&#39;</span><span class="p">:</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;boolean&#39;</span><span class="p">:</span> <span class="s1">&#39;bool&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="s1">&#39;cat&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;categorical&#39;</span><span class="p">:</span> <span class="s1">&#39;cat&#39;</span><span class="p">,</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dtype</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_bounds_from_dist</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
+    <span class="n">ppf_zero</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">rv_discrete</span><span class="p">):</span>
+            <span class="c1"># ppf at actual zero for rv_discrete gives lower bound - 1</span>
+            <span class="c1"># due to a quirk in the scipy.stats implementation</span>
+            <span class="c1"># so we use the smallest positive float instead</span>
+            <span class="n">ppf_zero</span> <span class="o">=</span> <span class="mf">5e-324</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ppf_zero</span><span class="p">)</span>
+    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_lower_bound_from_dist</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
+    <span class="n">ppf_zero</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">rv_discrete</span><span class="p">):</span>
+            <span class="c1"># ppf at actual zero for rv_discrete gives lower bound - 1</span>
+            <span class="c1"># due to a quirk in the scipy.stats implementation</span>
+            <span class="c1"># so we use the smallest positive float instead</span>
+            <span class="n">ppf_zero</span> <span class="o">=</span> <span class="mf">5e-324</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ppf_zero</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lower_bound</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_upper_bound_from_dist</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
+    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">upper_bound</span>
+
+<div class="viewcode-block" id="make_parameter">
+<a class="viewcode-back" href="../../../source/emat.scope/parameters.html#emat.make_parameter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_parameter</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">ptype</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;missing description&#39;</span><span class="p">,</span>
+        <span class="nb">min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">address</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;infer&#39;</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">shortname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">abbrev</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory method to build a Parameter or Constant for a model.</span>
+
+<span class="sd">    This function will create an object of the appropriate (sub)class</span>
+<span class="sd">    for the parameter or constant.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): A name for this parameter. The name must be a `str`</span>
+<span class="sd">            and ideally a valid Python identifier (i.e., begins with</span>
+<span class="sd">            a letter or underscore, contains only letters, numerals, and</span>
+<span class="sd">            underscores).</span>
+<span class="sd">        ptype (str, default &#39;constant&#39;): The type for this parameter, one</span>
+<span class="sd">            of {&#39;constant&#39;, &#39;uncertainty&#39;, &#39;lever&#39;}.</span>
+<span class="sd">        min (numeric, optional): The minimum value for this parameter.</span>
+<span class="sd">        max (numeric, optional): The maximum value for this parameter.</span>
+<span class="sd">        dist (str or Mapping or rv_frozen, optional): A definition of a distribution</span>
+<span class="sd">            to use for this parameter.  Can be specified just as the name of the distribution</span>
+<span class="sd">            when that distribution is parameterized only by the min and max</span>
+<span class="sd">            (e.g., &#39;uniform&#39;). If the distribution requires other parameters,</span>
+<span class="sd">            this argument should be a Mapping, with keys including &#39;name&#39; for</span>
+<span class="sd">            the name of the distribution, as well as giving one or more</span>
+<span class="sd">            named distributional parameters as appropriate. Or, just pass</span>
+<span class="sd">            a rv_frozen object directly (see scipy.stats).  The distribution</span>
+<span class="sd">            defined here is of primary use for uncertainty parameters, as the</span>
+<span class="sd">            features of defined uncertainty distributions can be used to</span>
+<span class="sd">            derive probability distributions on outputs.  However, distributions</span>
+<span class="sd">            can also be used for policy lever parameters to guide the development</span>
+<span class="sd">            of appropriate experimental designs.</span>
+<span class="sd">        default (Any, optional): A default value for this parameter. The default</span>
+<span class="sd">            value is used as the actual value for constant parameters. It is also</span>
+<span class="sd">            used during univariate sensitivity testing as the value for this</span>
+<span class="sd">            parameter when other parameters are being evaluated at non-default</span>
+<span class="sd">            values.</span>
+<span class="sd">        corr (dict, optional): A correlation definition that relates this parameter</span>
+<span class="sd">            to others. Only applicable for uncertainty parameters.</span>
+<span class="sd">        address (Any, optional): The address to use to access this parameter in</span>
+<span class="sd">            the model.  This is an implementation-specific detail. For example,</span>
+<span class="sd">            in an Excel-based model, the address could be a sheet and cell reference</span>
+<span class="sd">            given as a string.</span>
+<span class="sd">        dtype (str, default &#39;infer&#39;): A dtype for this parameter, one</span>
+<span class="sd">            of {&#39;cat&#39;, &#39;int&#39;, &#39;real&#39;, &#39;bool&#39;} or some sub-class variant or specialization</span>
+<span class="sd">            thereof (e.g., int64).</span>
+<span class="sd">        values (Collection, optional): A collection of possible values, relevant only</span>
+<span class="sd">            for categorical parameters.</span>
+<span class="sd">        resolution (Collection, optional): A collection of possible particular values,</span>
+<span class="sd">            used to set the possible values considered when sampling with factorial-based</span>
+<span class="sd">            designs.</span>
+<span class="sd">        shortname (str, optional):</span>
+<span class="sd">            A shorter name, especially useful when the name of this parameter</span>
+<span class="sd">            is a long strings that may not display neatly in figures.</span>
+<span class="sd">        abbrev (Mapping, optional):</span>
+<span class="sd">            A set of abbreviations used for values, especially useful when the names of</span>
+<span class="sd">            values are long strings that may not display neatly in figures.</span>
+<span class="sd">        meta (Any, optional):</span>
+<span class="sd">            Meta-data to attach to this parameter</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Parameter or Constant</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Convert dist to a Mapping if it is just a string</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">dist</span><span class="p">}</span>
+
+    <span class="c1"># Default correlation is an empty list.</span>
+    <span class="n">corr</span> <span class="o">=</span> <span class="n">corr</span> <span class="k">if</span> <span class="n">corr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+
+    <span class="c1"># Standardize the dtype to a lowercase string of</span>
+    <span class="c1"># correct type</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">standardize_data_type</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">}:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;bool&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;cat&#39;</span>
+        <span class="k">elif</span> <span class="nb">max</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span> <span class="nb">min</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;bool&#39;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">min</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">max</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">):</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;int&#39;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">min</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Real</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">max</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Real</span><span class="p">):</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;real&#39;</span>
+        <span class="k">elif</span> <span class="n">dist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">make_rv_frozen</span><span class="p">(</span><span class="o">**</span><span class="n">dist</span><span class="p">,</span> <span class="n">discrete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">DistributionTypeError</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;real&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;int&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;cannot infer dtype for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">, give it explicitly&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;cat&#39;</span><span class="p">,</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;real&#39;</span><span class="p">,</span> <span class="s1">&#39;bool&#39;</span><span class="p">):</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;invalid dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> for parameter </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">, must be &#39;cat&#39;, &#39;int&#39;, &#39;real&#39;, or &#39;bool&#39;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;unc&#39;</span> <span class="ow">in</span> <span class="n">dtype</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">(to set this parameter as an uncertainty, set `ptype` to &#39;uncertainty&#39;, not `dtype`)&quot;</span>
+        <span class="k">elif</span> <span class="s1">&#39;lev&#39;</span> <span class="ow">in</span> <span class="n">dtype</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">(to set this parameter as a lever, set `ptype` to &#39;lever&#39;, not `dtype`)&quot;</span>
+        <span class="k">elif</span> <span class="s1">&#39;con&#39;</span> <span class="ow">in</span> <span class="n">dtype</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">(to set this parameter as a constant, set `ptype` to &#39;constant&#39;, not `dtype`)&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="c1"># Data checks</span>
+
+    <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">rv_frozen</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;dist must be a dict or rv_frozen for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">dist</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dist_</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">rv_gen</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">rv_frozen</span><span class="p">):</span>
+        <span class="n">dist_</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">dist</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+        <span class="n">dist_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">kwds</span><span class="p">)</span>
+        <span class="n">rv_gen</span> <span class="o">=</span> <span class="n">dist</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dist_</span> <span class="o">=</span> <span class="n">dist</span>
+        <span class="n">rv_gen</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">dist_for_maker</span> <span class="o">=</span> <span class="n">dist_</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dist_for_maker</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span>
+    <span class="k">if</span> <span class="nb">max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dist_for_maker</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span>
+
+    <span class="k">if</span> <span class="n">dtype</span><span class="o">==</span><span class="s1">&#39;bool&#39;</span><span class="p">:</span>
+        <span class="n">dist_for_maker</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dist_for_maker</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">dtype</span><span class="o">==</span><span class="s1">&#39;cat&#39;</span><span class="p">:</span>
+        <span class="n">dist_for_maker</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dist_for_maker</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+
+
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">standardize_parameter_type</span><span class="p">(</span><span class="n">ptype</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ptype</span> <span class="ow">is</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dist_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dist_</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;constant&#39;</span>
+        <span class="k">if</span> <span class="n">dist_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;constant cannot have non-constant distribution for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">rv_gen_tentative</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># If inferred dtype is int but distribution is discrete, promote to real</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">rv_gen_tentative</span> <span class="o">=</span> <span class="n">rv_gen</span> <span class="ow">or</span> <span class="n">make_rv_frozen</span><span class="p">(</span><span class="o">**</span><span class="n">dist_for_maker</span><span class="p">,</span> <span class="n">discrete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">DistributionTypeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;int&#39;</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;real&#39;</span>
+            <span class="n">rv_gen_tentative</span> <span class="o">=</span> <span class="n">rv_gen</span> <span class="ow">or</span> <span class="n">make_rv_frozen</span><span class="p">(</span><span class="o">**</span><span class="n">dist_for_maker</span><span class="p">,</span> <span class="n">discrete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">DistributionFreezeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DistributionFreezeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;on freeze for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+
+
+
+    <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;bool&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">min</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">min</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">min</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;min of bool must be False for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">max</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="nb">max</span> <span class="o">!=</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;max of bool must be True for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;real&#39;</span><span class="p">}:</span>
+        <span class="k">if</span> <span class="n">dist_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">min</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">min</span> <span class="o">=</span> <span class="n">default</span>
+            <span class="k">if</span> <span class="nb">max</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">max</span> <span class="o">=</span> <span class="n">default</span>
+
+        <span class="k">if</span> <span class="n">rv_gen_tentative</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span> <span class="o">=</span> <span class="n">_get_bounds_from_dist</span><span class="p">(</span><span class="n">rv_gen_tentative</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">min</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;min of </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s1"> is required for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;max of </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s1"> is required for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Create the Parameter</span>
+    <span class="k">if</span> <span class="n">ptype</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;cat&#39;</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;cat&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;cat&#39;</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">CategoricalParameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">values</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+            <span class="n">ptype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span>
+            <span class="n">corr</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+            <span class="n">abbrev</span><span class="o">=</span><span class="n">abbrev</span><span class="p">,</span>
+            <span class="n">shortname</span><span class="o">=</span><span class="n">shortname</span><span class="p">,</span>
+            <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;int&#39;</span><span class="p">:</span>
+        <span class="n">rv_gen</span> <span class="o">=</span> <span class="n">rv_gen</span> <span class="ow">or</span> <span class="n">make_rv_frozen</span><span class="p">(</span><span class="o">**</span><span class="n">dist_for_maker</span><span class="p">,</span> <span class="n">discrete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">rv_gen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;failed to make </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">ptype</span><span class="si">}</span><span class="s1">) from </span><span class="si">{</span><span class="n">dist_</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="c1"># p = Constant(name, default, desc=desc, address=address)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">IntegerParameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">lower_bound</span><span class="o">=</span><span class="nb">min</span><span class="p">,</span>
+                <span class="n">upper_bound</span><span class="o">=</span><span class="nb">max</span><span class="p">,</span>
+                <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+                <span class="n">dist</span><span class="o">=</span><span class="n">rv_gen</span><span class="p">,</span>
+                <span class="n">dist_def</span><span class="o">=</span><span class="n">dist_</span><span class="p">,</span>
+                <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span>
+                <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+                <span class="n">ptype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span>
+                <span class="n">corr</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+                <span class="n">abbrev</span><span class="o">=</span><span class="n">abbrev</span><span class="p">,</span>
+                <span class="n">shortname</span><span class="o">=</span><span class="n">shortname</span><span class="p">,</span>
+                <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;real&#39;</span><span class="p">:</span>
+        <span class="n">rv_gen</span> <span class="o">=</span> <span class="n">rv_gen</span> <span class="ow">or</span> <span class="n">make_rv_frozen</span><span class="p">(</span><span class="o">**</span><span class="n">dist_for_maker</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">rv_gen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;failed to make </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">ptype</span><span class="si">}</span><span class="s1">) from </span><span class="si">{</span><span class="n">dist_</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="c1"># p = Constant(name, default, desc=desc, address=address)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">RealParameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">lower_bound</span><span class="o">=</span><span class="nb">min</span><span class="p">,</span>
+                <span class="n">upper_bound</span><span class="o">=</span><span class="nb">max</span><span class="p">,</span>
+                <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+                <span class="n">dist</span><span class="o">=</span><span class="n">rv_gen</span><span class="p">,</span>
+                <span class="n">dist_def</span><span class="o">=</span><span class="n">dist_</span><span class="p">,</span>
+                <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span>
+                <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+                <span class="n">ptype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span>
+                <span class="n">corr</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+                <span class="n">abbrev</span><span class="o">=</span><span class="n">abbrev</span><span class="p">,</span>
+                <span class="n">shortname</span><span class="o">=</span><span class="n">shortname</span><span class="p">,</span>
+                <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;bool&#39;</span><span class="p">:</span>
+        <span class="n">rv_gen</span> <span class="o">=</span> <span class="n">rv_gen</span> <span class="ow">or</span> <span class="n">make_rv_frozen</span><span class="p">(</span><span class="o">**</span><span class="n">dist_for_maker</span><span class="p">,</span> <span class="n">discrete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rv_gen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;failed to make </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">ptype</span><span class="si">}</span><span class="s1">) from </span><span class="si">{</span><span class="n">dist_</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="c1"># p = Constant(name, default, desc=desc, address=address)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">BooleanParameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+                <span class="n">dist</span><span class="o">=</span><span class="n">rv_gen</span><span class="p">,</span>
+                <span class="n">dist_def</span><span class="o">=</span><span class="n">dist_</span><span class="p">,</span>
+                <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span>
+                <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+                <span class="n">ptype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span>
+                <span class="n">corr</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+                <span class="n">abbrev</span><span class="o">=</span><span class="n">abbrev</span><span class="p">,</span>
+                <span class="n">shortname</span><span class="o">=</span><span class="n">shortname</span><span class="p">,</span>
+                <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">p</span></div>
+
+
+
+
+<div class="viewcode-block" id="Constant">
+<a class="viewcode-back" href="../../../source/emat.scope/parameters.html#emat.Constant">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Constant</span><span class="p">(</span><span class="n">workbench_param</span><span class="o">.</span><span class="n">Constant</span><span class="p">):</span>
+
+    <span class="n">ptype</span> <span class="o">=</span> <span class="s1">&#39;constant&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;str: Parameter type, for compatibility with Parameter.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Constant.value cannot be None&quot;</span><span class="p">)</span>
+
+        <span class="n">workbench_param</span><span class="o">.</span><span class="n">Constant</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">value</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: Human readable description of this constant, for reference only&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">address</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Any: The address to use to access this parameter in the model.</span>
+
+<span class="sd">        This is an implementation-specific detail. For example,</span>
+<span class="sd">        in an Excel-based model, the address could be a sheet and cell reference</span>
+<span class="sd">        given as a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">dtype</span>
+
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">standardize_data_type</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: The dtype for the value, as a string.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Any: meta-data that is attached to this constant.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read-only alias for value&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;list: The value as a one-item list&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">address</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Parameter">
+<a class="viewcode-back" href="../../../source/emat.scope/parameters.html#emat.Parameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Parameter</span><span class="p">(</span><span class="n">workbench_param</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">ShortnameMixin</span><span class="p">,</span> <span class="n">TaggableMixin</span><span class="p">):</span>
+
+    <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">dist</span><span class="p">,</span>
+            <span class="o">*</span><span class="p">,</span>
+            <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">address</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">ptype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">dist_def</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">shortname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">abbrev</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="c1"># The default constructor for ema_workbench parameters uses no distribution</span>
+        <span class="c1"># But for EMAT, we want to always define a distribution explicitly</span>
+        <span class="c1"># for clarity.</span>
+
+        <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must give lower_bound and upper_bound, or dist&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">uniform</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">-</span><span class="n">lower_bound</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span><span class="n">dist</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">dist</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lower_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">dist</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lower_bound</span>
+            <span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">dist</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">upper_bound</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">make_rv_frozen</span><span class="p">(</span><span class="o">**</span><span class="n">dist</span><span class="p">)</span>
+
+        <span class="c1"># We extract and set the lower and upper bounds here,</span>
+        <span class="c1"># in order to use the default constructor from the workbench.</span>
+
+        <span class="n">ppf_zero</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">rv_discrete</span><span class="p">):</span>  <span class="c1"># @UndefinedVariable</span>
+            <span class="c1"># ppf at actual zero for rv_discrete gives lower bound - 1</span>
+            <span class="c1"># due to a quirk in the scipy.stats implementation</span>
+            <span class="c1"># so we use the smallest positive float instead</span>
+            <span class="n">ppf_zero</span> <span class="o">=</span> <span class="mf">5e-324</span>
+
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ppf_zero</span><span class="p">)</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;int&#39;</span><span class="p">:</span>
+            <span class="n">lower_bound</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span>
+            <span class="n">upper_bound</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span>
+
+        <span class="n">workbench_param</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">lower_bound</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span>
+            <span class="n">upper_bound</span><span class="o">=</span><span class="n">upper_bound</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+            <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span>
+            <span class="n">pff</span><span class="o">=</span><span class="n">pff</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: Human readable description of this parameter, for reference only&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">address</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Any: The address to use to access this parameter in the model.</span>
+
+<span class="sd">        This is an implementation-specific detail. For example,</span>
+<span class="sd">        in an Excel-based model, the address could be a sheet and cell reference</span>
+<span class="sd">        given as a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ptype</span> <span class="o">=</span> <span class="n">standardize_parameter_type</span><span class="p">(</span><span class="n">ptype</span><span class="p">)</span> <span class="k">if</span> <span class="n">ptype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: Parameter type, one of {&#39;constant&#39;, &#39;uncertainty&#39;, &#39;lever&#39;}&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">corr</span> <span class="o">=</span> <span class="n">corr</span> <span class="k">if</span> <span class="n">corr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dict: A correlation definition.  Key give names of other parameters, values give correlation.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist_def</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dist_def</span><span class="p">)</span> <span class="k">if</span> <span class="n">dist_def</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dict: The arguments that define the underlying distribution.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shortname</span> <span class="o">=</span> <span class="n">shortname</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">abbrev</span> <span class="o">=</span> <span class="n">abbrev</span> <span class="ow">or</span> <span class="p">{}</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dict: Abbreviations used for long attribute names in figures.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">tags</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Any: meta-data that is attached to this object.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">address</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ptype</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">ptype</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">corr</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">corr</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distdef</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">distdef</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">self_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">other_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">self_keys</span> <span class="o">-</span> <span class="n">other_keys</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">self_keys</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;dist_def&#39;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;dist&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># name, parameters</span>
+                    <span class="n">self_dist</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="n">other_dist</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">self_dist</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">other_dist</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+                    <span class="k">if</span> <span class="n">self_dist</span><span class="o">.</span><span class="n">args</span> <span class="o">!=</span> <span class="n">other_dist</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">explain_neq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not same type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">address</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not same address: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">address</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not same dtype: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ptype</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">ptype</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not same ptype: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ptype</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">ptype</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">corr</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">corr</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not same corr: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">corr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distdef</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">distdef</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not same distdef: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">distdef</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">distdef</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;key attributes not all defined&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not nested classes </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2"> is not </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">self_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">other_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">self_keys</span> <span class="o">-</span> <span class="n">other_keys</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;misaligned keys </span><span class="si">{</span><span class="n">self_keys</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">other_keys</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">self_keys</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;dist_def&#39;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;dist&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not same attr </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="w"> </span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># name, parameters</span>
+                    <span class="n">self_dist</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="n">other_dist</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">self_dist</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">other_dist</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not same dist.name: </span><span class="si">{</span><span class="n">self_dist</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other_dist</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="k">if</span> <span class="n">self_dist</span><span class="o">.</span><span class="n">args</span> <span class="o">!=</span> <span class="n">other_dist</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;not same dist.args: </span><span class="si">{</span><span class="n">self_dist</span><span class="o">.</span><span class="n">args</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other_dist</span><span class="o">.</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distdef</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">rv_frozen_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dist_description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_def</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span><span class="n">result</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;pert&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;gamma&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Pert Distribution (min=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="si">}</span><span class="s2">, peak=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;peak&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">, max=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="si">}</span><span class="s2">, gamma=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;gamma&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Pert Distribution (min=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="si">}</span><span class="s2">, peak=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;peak&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">, max=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;uniform&#39;</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Uniform Distribution (min=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="si">}</span><span class="s2">, max=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;triangle&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Trianglar Distribution (min=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="si">}</span><span class="s2">, peak=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;peak&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">, max=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;emat.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&gt;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hash_it</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..util.hasher</span><span class="w"> </span><span class="kn">import</span> <span class="n">hash_it</span>
+        <span class="k">return</span> <span class="n">hash_it</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dist_def</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pff</span><span class="p">,</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_name</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shortname</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ptype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span>
+            <span class="n">ha</span><span class="o">=</span><span class="n">ha</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Parameter.get_abbrev">
+<a class="viewcode-back" href="../../../source/emat.scope/parameters.html#emat.Parameter.get_abbrev">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_abbrev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get an abbreviated name if available.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">abbrev</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">name</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_abbrev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">abbrev</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">abbrev</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">abbrev</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RealParameter">
+<a class="viewcode-back" href="../../../source/emat.scope/parameters.html#emat.RealParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RealParameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">workbench_param</span><span class="o">.</span><span class="n">RealParameter</span><span class="p">):</span>
+
+    <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;real&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dist_def</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shortname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abbrev</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must give lower_bound and upper_bound, or dist&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">uniform</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">-</span><span class="n">lower_bound</span><span class="p">)</span>
+
+        <span class="n">Parameter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">dist</span><span class="o">=</span><span class="n">dist</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+            <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span>
+            <span class="n">pff</span><span class="o">=</span><span class="n">pff</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+            <span class="n">ptype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span>
+            <span class="n">corr</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+            <span class="n">dist_def</span><span class="o">=</span><span class="n">dist_def</span><span class="p">,</span>
+            <span class="n">shortname</span><span class="o">=</span><span class="n">shortname</span><span class="p">,</span>
+            <span class="n">abbrev</span><span class="o">=</span><span class="n">abbrev</span><span class="p">,</span>
+            <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
+        <span class="p">)</span>
+        
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="IntegerParameter">
+<a class="viewcode-back" href="../../../source/emat.scope/parameters.html#emat.IntegerParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IntegerParameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">workbench_param</span><span class="o">.</span><span class="n">IntegerParameter</span><span class="p">):</span>
+
+    <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;int&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dist_def</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shortname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abbrev</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">lower_bound</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must give lower_bound and upper_bound, or dist&quot;</span><span class="p">)</span>        
+
+        <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">randint</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">Parameter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">dist</span><span class="o">=</span><span class="n">dist</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="n">pff</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+            <span class="n">dist_def</span><span class="o">=</span><span class="n">dist_def</span><span class="p">,</span>
+            <span class="n">shortname</span><span class="o">=</span><span class="n">shortname</span><span class="p">,</span>
+            <span class="n">abbrev</span><span class="o">=</span><span class="n">abbrev</span><span class="p">,</span>
+            <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s1">&#39;all entries in resolution should be &#39;</span>
+                                      <span class="s1">&#39;integers&#39;</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="BooleanParameter">
+<a class="viewcode-back" href="../../../source/emat.scope/parameters.html#emat.BooleanParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BooleanParameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">workbench_param</span><span class="o">.</span><span class="n">BooleanParameter</span><span class="p">):</span>
+
+    <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;bool&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lower_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dist_def</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shortname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abbrev</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="n">Parameter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">dist</span><span class="o">=</span><span class="n">dist</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="n">pff</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+            <span class="n">dist_def</span><span class="o">=</span><span class="n">dist_def</span><span class="p">,</span>
+            <span class="n">shortname</span><span class="o">=</span><span class="n">shortname</span><span class="p">,</span>
+            <span class="n">abbrev</span><span class="o">=</span><span class="n">abbrev</span><span class="p">,</span>
+            <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">cats</span> <span class="o">=</span> <span class="p">[</span><span class="n">workbench_param</span><span class="o">.</span><span class="n">create_category</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span> <span class="k">for</span> <span class="n">cat</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_categories</span> <span class="o">=</span> <span class="n">workbench_param</span><span class="o">.</span><span class="n">NamedObjectMap</span><span class="p">(</span><span class="n">workbench_param</span><span class="o">.</span><span class="n">Category</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="n">cats</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categories</span><span class="p">))]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multivalue</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List: The possible discrete values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="CategoricalParameter">
+<a class="viewcode-back" href="../../../source/emat.scope/parameters.html#emat.CategoricalParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CategoricalParameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">workbench_param</span><span class="o">.</span><span class="n">CategoricalParameter</span><span class="p">):</span>
+
+    <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;cat&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">categories</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">multivalue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">singleton_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">shortname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abbrev</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">randint</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">upper_bound</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">singleton_ok</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;there should be more than 1 category&#39;</span><span class="p">)</span>
+
+        <span class="n">Parameter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">dist</span><span class="o">=</span><span class="n">dist</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="n">pff</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+            <span class="n">shortname</span><span class="o">=</span><span class="n">shortname</span><span class="p">,</span>
+            <span class="n">abbrev</span><span class="o">=</span><span class="n">abbrev</span><span class="p">,</span>
+            <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">cats</span> <span class="o">=</span> <span class="p">[</span><span class="n">workbench_param</span><span class="o">.</span><span class="n">create_category</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span> <span class="k">for</span> <span class="n">cat</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_categories</span> <span class="o">=</span> <span class="n">workbench_param</span><span class="o">.</span><span class="n">NamedObjectMap</span><span class="p">(</span><span class="n">workbench_param</span><span class="o">.</span><span class="n">Category</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="n">cats</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categories</span><span class="p">))]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multivalue</span> <span class="o">=</span> <span class="n">multivalue</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List: The possible discrete values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">categories</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;None: Categorical parameters are not characterized by a lower bound.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;None: Categorical parameters are not characterized by an upper bound.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distdef</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;None: Categorical parameters distribution is not implemented.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dist_description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Uniform Distribution&quot;</span></div>
+
+
+<span class="c1">#############</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">OLD_Parameter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Definitions for a particular input for a model.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): A name for this parameter. The name must be a `str`</span>
+<span class="sd">            and ideally a valid Python identifier (i.e., begins with</span>
+<span class="sd">            a letter or underscore, contains only letters, numerals, and</span>
+<span class="sd">            underscores).</span>
+<span class="sd">        ptype (str, default &#39;constant&#39;): The type for this parameter, one</span>
+<span class="sd">            of {&#39;constant&#39;, &#39;uncertainty&#39;, &#39;lever&#39;}.</span>
+<span class="sd">        min (numeric, optional): The minimum value for this parameter.</span>
+<span class="sd">        max (numeric, optional): The maximum value for this parameter.</span>
+<span class="sd">        dist (str or Mapping, optional): A definition of a distribution</span>
+<span class="sd">            to use for this parameter, which is only relevant for uncertainty</span>
+<span class="sd">            parameters.  Can be specified just as the name of the distribution</span>
+<span class="sd">            when that distribution is parameterized only by the min and max</span>
+<span class="sd">            (e.g., &#39;uniform&#39;). If the distribution requires other parameters,</span>
+<span class="sd">            this argument should be a Mapping, with keys including &#39;name&#39; for</span>
+<span class="sd">            the name of the distribution, as well as giving one or more</span>
+<span class="sd">            named distributional parameters as appropriate.</span>
+<span class="sd">        default (Any, optional): A default value for this parameter. The default</span>
+<span class="sd">            value is used as the actual value for constant parameters. It is also</span>
+<span class="sd">            used during univariate sensitivity testing as the value for this</span>
+<span class="sd">            parameter when other parameters are being evaluated at non-default</span>
+<span class="sd">            values.</span>
+<span class="sd">        corr (dict, optional): A correlation definition that relates this parameter</span>
+<span class="sd">            to others. Only applicable for uncertainty parameters.</span>
+<span class="sd">        address (Any, optional): The address to use to access this parameter in</span>
+<span class="sd">            the model.  This is an implementation-specific detail. For example,</span>
+<span class="sd">            in an Excel-based model, the address could be a sheet and cell reference</span>
+<span class="sd">            given as a string.</span>
+<span class="sd">        dtype (str, default &#39;infer&#39;): A dtype for this parameter, one</span>
+<span class="sd">            of {&#39;cat&#39;, &#39;int&#39;, &#39;real&#39;, &#39;bool&#39;} or some sub-class variant or specialization</span>
+<span class="sd">            thereof (e.g., int64).</span>
+<span class="sd">        values (Collection, optional): A collection of possible values, relevant only</span>
+<span class="sd">            for categorical parameters.</span>
+<span class="sd">        resolution (Collection, optional): A collection of possible particular values,</span>
+<span class="sd">            used to set the possible values considered when sampling with factorial-based</span>
+<span class="sd">            designs.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">ptype</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;missing description&#39;</span><span class="p">,</span>
+            <span class="nb">min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="nb">max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">address</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;infer&#39;</span><span class="p">,</span>
+            <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: Parameter name, used to identify parameter.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ptype</span> <span class="o">=</span> <span class="n">standardize_parameter_type</span><span class="p">(</span><span class="n">ptype</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: Parameter type, one of {&#39;constant&#39;, &#39;uncertainty&#39;, &#39;lever&#39;}&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: Human readable description of this parameter, for reference only&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="nb">min</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;numeric: Lower bound for this parameter, or None&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="nb">max</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;numeric: Upper bound for this parameter, or None&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">dist</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dict: definition of a distribution to use for this parameter&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A default value for this parameter, used for constants or in univariate sensitivity testing&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">corr</span> <span class="o">=</span> <span class="n">corr</span> <span class="k">if</span> <span class="n">corr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">standardize_data_type</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="n">resolution</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">}:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;bool&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;cat&#39;</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;bool&#39;</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;int&#39;</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Real</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;real&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;bool&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;cat&#39;</span><span class="p">,</span><span class="s1">&#39;int&#39;</span><span class="p">,</span><span class="s1">&#39;real&#39;</span><span class="p">,</span><span class="s1">&#39;bool&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid dtype </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Data checks</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;dist must be a dict for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ptype</span> <span class="ow">is</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;constant&#39;</span><span class="p">}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;constant cannot have non-constant distribution for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;bool&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;min of bool must be False for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="o">!=</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;max of bool must be True for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;int&#39;</span><span class="p">,</span><span class="s1">&#39;real&#39;</span><span class="p">}:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;min of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s1"> is required for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;max of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s1"> is required for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get an ema_workbench.Parameter from this emat.Parameter.</span>
+
+<span class="sd">        This method returns an</span>
+<span class="sd">        :class:`ema_workbench.Parameter &lt;ema_workbench.em_framework.parameters.Parameter&gt;`</span>
+<span class="sd">        of the correct type for this :class:`emat.Parameter`.  This will be one of:</span>
+
+<span class="sd">        * :class:`Constant &lt;ema_workbench.em_framework.parameters.Constant&gt;`</span>
+<span class="sd">        * :class:`CategoricalParameter &lt;ema_workbench.em_framework.parameters.CategoricalParameter&gt;`</span>
+<span class="sd">        * :class:`IntegerParameter &lt;ema_workbench.em_framework.parameters.IntegerParameter&gt;`</span>
+<span class="sd">        * :class:`RealParameter &lt;ema_workbench.em_framework.parameters.RealParameter&gt;`</span>
+<span class="sd">        * :class:`BooleanParameter &lt;ema_workbench.em_framework.parameters.BooleanParameter&gt;`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ptype</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;cat&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">CategoricalParameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">,)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;int&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">IntegerParameter</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;real&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+                <span class="n">_d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">distname</span> <span class="o">=</span> <span class="n">_d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;uniform&#39;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">distname</span> <span class="o">==</span> <span class="s1">&#39;uniform&#39;</span><span class="p">:</span>
+                    <span class="n">_d</span><span class="p">[</span><span class="s1">&#39;loc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span>
+                    <span class="n">_d</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span>
+                <span class="k">elif</span> <span class="n">distname</span> <span class="o">==</span> <span class="s1">&#39;triangle&#39;</span><span class="p">:</span>
+                    <span class="n">_d</span><span class="p">[</span><span class="s1">&#39;lower_bound&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span>
+                    <span class="n">_d</span><span class="p">[</span><span class="s1">&#39;upper_bound&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span>
+                <span class="k">elif</span> <span class="n">distname</span> <span class="o">==</span> <span class="s1">&#39;pert&#39;</span><span class="p">:</span>
+                    <span class="n">_d</span><span class="p">[</span><span class="s1">&#39;lower_bound&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span>
+                    <span class="n">_d</span><span class="p">[</span><span class="s1">&#39;upper_bound&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span>
+
+                <span class="n">dist_gen</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">distributions</span><span class="p">,</span> <span class="n">distname</span><span class="p">)</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">dist_gen</span><span class="p">(</span><span class="o">**</span><span class="n">_d</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">RealParameter</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">,</span>
+                <span class="n">dist</span><span class="o">=</span><span class="n">dist</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;bool&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BooleanParameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid dtype </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">classname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">rep</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">classname</span><span class="si">}</span><span class="s2">(&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;, dtype=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">, ptype=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ptype</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+        <span class="n">rep</span> <span class="o">+=</span> <span class="s1">&#39;)&#39;</span>
+        <span class="k">return</span> <span class="n">rep</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;ptype&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;dist&#39;</span><span class="p">,</span> <span class="s1">&#39;corr&#39;</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;address&#39;</span><span class="p">,</span> <span class="s1">&#39;resolution&#39;</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

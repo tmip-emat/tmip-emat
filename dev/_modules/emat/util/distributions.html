@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.util.distributions &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.util.distributions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.util.distributions</h1><div class="highlight"><pre>
+<span></span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy._lib._util</span><span class="w"> </span><span class="kn">import</span> <span class="n">_lazyselect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats._distn_infrastructure</span><span class="w"> </span><span class="kn">import</span> <span class="n">rv_frozen</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_bounds</span><span class="p">(</span><span class="n">rv</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Get the lower and upper bounds for a distribution.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		rv: A frozen distribution that has a ppf method,</span>
+<span class="sd">			or an object with a `dist` attribute that is as such.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		tuple: (lower_bound, upper_bound)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rv</span><span class="p">,</span> <span class="n">rv_frozen</span><span class="p">):</span>
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">rv</span><span class="p">,</span> <span class="s1">&#39;dist&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">rv_frozen</span><span class="p">):</span>
+			<span class="n">rv</span> <span class="o">=</span> <span class="n">rv</span><span class="o">.</span><span class="n">dist</span>
+
+	<span class="n">ppf_zero</span> <span class="o">=</span> <span class="mi">0</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">rv_discrete</span><span class="p">):</span>
+		<span class="c1"># ppf at actual zero for rv_discrete gives lower bound - 1</span>
+		<span class="c1"># due to a quirk in the scipy.stats implementation</span>
+		<span class="c1"># so we use the smallest positive float instead</span>
+		<span class="n">ppf_zero</span> <span class="o">=</span> <span class="mf">5e-324</span>
+
+	<span class="k">return</span> <span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ppf_zero</span><span class="p">),</span> <span class="n">rv</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_peaked_distribution_args</span><span class="p">(</span>
+		<span class="n">lower_bound</span><span class="p">,</span>
+		<span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">rel_peak</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">peak</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+	<span class="k">if</span> <span class="n">peak</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rel_peak</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">rel_peak</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+	<span class="k">if</span> <span class="n">peak</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rel_peak</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot give both peak and rel_peak&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">width</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must give upper_bound or width&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">width</span> <span class="o">=</span> <span class="n">upper_bound</span> <span class="o">-</span> <span class="n">lower_bound</span>
+
+	<span class="k">if</span> <span class="n">rel_peak</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">rel_peak</span> <span class="o">=</span> <span class="p">(</span><span class="n">peak</span><span class="o">-</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">/</span> <span class="n">width</span>
+
+	<span class="k">if</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot have negative width&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">upper_bound</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">upper_bound</span> <span class="o">=</span> <span class="n">lower_bound</span> <span class="o">+</span> <span class="n">width</span>
+
+	<span class="k">if</span> <span class="n">peak</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">peak</span> <span class="o">=</span> <span class="p">(</span><span class="n">rel_peak</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span> <span class="o">+</span> <span class="n">lower_bound</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">lower_bound</span> <span class="o">&lt;=</span> <span class="n">peak</span> <span class="o">&lt;=</span> <span class="n">upper_bound</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;peak must be between lower and upper bounds&#39;</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> <span class="n">rel_peak</span><span class="p">,</span> <span class="n">peak</span><span class="p">,</span> <span class="n">width</span>
+
+
+<div class="viewcode-block" id="triangle">
+<a class="viewcode-back" href="../../../source/emat.scope/continuous_distributions.html#emat.util.distributions.triangle">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">triangle</span><span class="p">(</span>
+		<span class="n">lower_bound</span><span class="p">,</span>
+		<span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="o">*</span><span class="p">,</span>
+		<span class="n">rel_peak</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">peak</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Generate a frozen scipy.stats.triang distribution.</span>
+
+<span class="sd">	This function provides the same actual distribution as ``triang``,</span>
+<span class="sd">	but offers multiple intuitive ways to identify the peak and upper bound of the</span>
+<span class="sd">	distribution, while ``triang`` is less flexible and intuitive (it must be defined</span>
+<span class="sd">	using arguments labeled as &#39;c&#39;, &#39;loc&#39;, and &#39;scale&#39;).</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		lower_bound (numeric):</span>
+<span class="sd">			The lower bound of the distribution.</span>
+<span class="sd">		upper_bound (numeric, optional):</span>
+<span class="sd">			The upper bound of the distribution.  Can be inferred</span>
+<span class="sd">			from `width` if not given.</span>
+<span class="sd">		rel_peak (numeric, optional):</span>
+<span class="sd">			The relative position of the peak of the triangle.  Must</span>
+<span class="sd">			be in the range (0,1).  If neither `peak` nor `rel_peak`</span>
+<span class="sd">			is given, a default value of 0.5 is used.</span>
+<span class="sd">		peak (numeric, optional):</span>
+<span class="sd">			The location of the peak of the triangle, given as a particular</span>
+<span class="sd">			value, which must be between the lower and upper bounds inclusive.</span>
+<span class="sd">		width (numeric, optional):</span>
+<span class="sd">			The distance between the lower and upper bounds.</span>
+<span class="sd">			Can be inferred from those values if not given.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		scipy.stats.rv_frozen</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> <span class="n">rel_peak</span><span class="p">,</span> <span class="n">peak</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">_peaked_distribution_args</span><span class="p">(</span>
+		<span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> <span class="n">rel_peak</span><span class="p">,</span> <span class="n">peak</span><span class="p">,</span> <span class="n">width</span>
+	<span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">triang</span><span class="p">(</span><span class="n">c</span><span class="o">=</span><span class="n">rel_peak</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">width</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="pert">
+<a class="viewcode-back" href="../../../source/emat.scope/continuous_distributions.html#emat.util.distributions.pert">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pert</span><span class="p">(</span>
+		<span class="n">lower_bound</span><span class="p">,</span>
+		<span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="o">*</span><span class="p">,</span>
+		<span class="n">rel_peak</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">peak</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">gamma</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Generate a frozen scipy.stats.beta PERT distribution.</span>
+
+<span class="sd">	For details on the PERT distribution see</span>
+<span class="sd">	`wikipedia &lt;https://en.wikipedia.org/wiki/PERT_distribution&gt;`_.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		lower_bound (numeric):</span>
+<span class="sd">			The lower bound of the distribution.</span>
+<span class="sd">		upper_bound (numeric, optional):</span>
+<span class="sd">			The upper bound of the distribution.  Can be inferred</span>
+<span class="sd">			from `width` if not given.</span>
+<span class="sd">		rel_peak (numeric, optional):</span>
+<span class="sd">			The relative position of the peak of the triangle.  Must</span>
+<span class="sd">			be in the range (0,1).  If neither `peak` nor `rel_peak`</span>
+<span class="sd">			is given, a default value of 0.5 is used.</span>
+<span class="sd">		peak (numeric, optional):</span>
+<span class="sd">			The location of the peak of the triangle, given as a particular</span>
+<span class="sd">			value, which must be between the lower and upper bounds inclusive.</span>
+<span class="sd">		width (numeric, optional):</span>
+<span class="sd">			The distance between the lower and upper bounds.</span>
+<span class="sd">			Can be inferred from those values if not given.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		scipy.stats.rv_frozen</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> <span class="n">rel_peak</span><span class="p">,</span> <span class="n">peak</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">_peaked_distribution_args</span><span class="p">(</span>
+		<span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> <span class="n">rel_peak</span><span class="p">,</span> <span class="n">peak</span><span class="p">,</span> <span class="n">width</span>
+	<span class="p">)</span>
+
+	<span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">peak</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">]]</span>
+	<span class="k">if</span> <span class="n">gamma</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;gamma must be non-negative&#39;</span><span class="p">)</span>
+	<span class="n">mu</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">mu</span> <span class="o">==</span> <span class="n">b</span><span class="p">:</span>
+		<span class="n">a1</span> <span class="o">=</span> <span class="n">a2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">gamma</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">a1</span> <span class="o">=</span> <span class="p">((</span><span class="n">mu</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">b</span> <span class="o">-</span> <span class="n">a</span> <span class="o">-</span> <span class="n">c</span><span class="p">))</span> <span class="o">/</span> <span class="p">((</span><span class="n">b</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="n">a</span><span class="p">))</span>
+		<span class="n">a2</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">*</span> <span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">mu</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">a2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Beta &quot;alpha&quot; and &quot;beta&quot; parameters must be greater than zero&#39;</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">beta</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">a1</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">a2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">c</span><span class="o">-</span><span class="n">a</span><span class="p">)</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">binary</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">p_true</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">p_false</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Generate a frozen scipy.stats.bernoulli distribution.</span>
+
+<span class="sd">	The bernoulli distribution is for True/False outcomes,</span>
+<span class="sd">	but allows for weighted (i.e. not 50%) probability of True.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		p (numeric, default 0.5):</span>
+<span class="sd">			The probability of a &#39;True&#39; outcome.</span>
+<span class="sd">		p_true (numeric, optional):</span>
+<span class="sd">			Alias for `p`.</span>
+<span class="sd">		p_false (numeric, optional):</span>
+<span class="sd">			Alternative argument, will set `p` to the complement.  Ignored if</span>
+<span class="sd">			`p_true` is also given.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		scipy.stats.rv_frozen</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">p_true</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">p</span> <span class="o">=</span> <span class="n">p_true</span>
+	<span class="k">elif</span> <span class="n">p_false</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">p</span> <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="n">p_false</span>
+	<span class="k">return</span> <span class="n">bernoulli</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">constant</span><span class="p">(</span>
+		<span class="n">lower_bound</span><span class="p">,</span>
+		<span class="n">upper_bound</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="o">*</span><span class="p">,</span>
+		<span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+		<span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+	<span class="n">v</span> <span class="o">=</span> <span class="n">value</span>
+	<span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">v</span> <span class="o">=</span> <span class="n">default</span>
+	<span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">v</span> <span class="o">=</span> <span class="n">lower_bound</span>
+	<span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">v</span> <span class="o">=</span> <span class="n">upper_bound</span>
+	<span class="k">return</span> <span class="n">uniform</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">truncated</span><span class="p">:</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frozen_dist</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">frozen_dist</span> <span class="o">=</span> <span class="n">frozen_dist</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span> <span class="o">=</span> <span class="n">lower_bound</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span> <span class="o">=</span> <span class="n">upper_bound</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">mass_below_lower_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frozen_dist</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span>
+		<span class="n">total_truncated_mass</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">frozen_dist</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span>
+								<span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_below_lower_bound</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">untruncated_mass</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">total_truncated_mass</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">rvs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="n">u</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">ppf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frozen_dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span>
+			<span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">untruncated_mass</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_below_lower_bound</span>
+		<span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">cdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+		<span class="n">r</span> <span class="o">=</span> <span class="n">_lazyselect</span><span class="p">([</span><span class="n">x</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">,</span>
+						 <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span> <span class="o">&lt;=</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">,</span>
+						 <span class="n">x</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">],</span>
+						<span class="p">[</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+						 <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">frozen_dist</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_below_lower_bound</span><span class="p">)</span>
+									<span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">untruncated_mass</span><span class="p">),</span>
+						 <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">1</span><span class="p">],</span>
+						<span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">))</span>
+		<span class="k">return</span> <span class="n">r</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">sf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+		<span class="k">return</span> <span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+		<span class="n">r</span> <span class="o">=</span> <span class="n">_lazyselect</span><span class="p">([</span><span class="n">x</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">,</span>
+						 <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">),</span>
+						 <span class="n">x</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">],</span>
+						<span class="p">[</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+						 <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">frozen_dist</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">untruncated_mass</span><span class="p">,</span>
+						 <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">],</span>
+						<span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">))</span>
+		<span class="k">return</span> <span class="n">r</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+		<span class="n">r</span> <span class="o">=</span> <span class="n">_lazyselect</span><span class="p">([</span><span class="n">x</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">,</span>
+						 <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">),</span>
+						 <span class="n">x</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">],</span>
+						<span class="p">[</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+						 <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">frozen_dist</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">untruncated_mass</span><span class="p">),</span>
+						 <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">],</span>
+						<span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">))</span>
+		<span class="k">return</span> <span class="n">r</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;not implemented for truncated&quot;</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;not implemented for truncated&quot;</span><span class="p">)</span>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">is_discrete_dist</span><span class="p">(</span><span class="n">rv</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;Check if the (frozen) distribution is discrete.&quot;&quot;&quot;</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rv</span><span class="p">,</span> <span class="n">truncated</span><span class="p">):</span>
+		<span class="n">rv</span> <span class="o">=</span> <span class="n">rv</span><span class="o">.</span><span class="n">frozen_dist</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rv</span><span class="p">,</span> <span class="n">rv_frozen</span><span class="p">):</span>
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">rv</span><span class="p">,</span> <span class="s1">&#39;dist&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">rv_frozen</span><span class="p">):</span>
+			<span class="n">rv</span> <span class="o">=</span> <span class="n">rv</span><span class="o">.</span><span class="n">dist</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rv</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">rv_discrete</span><span class="p">):</span>
+		<span class="k">return</span> <span class="kc">True</span>
+
+	<span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_distribution_bounds</span><span class="p">(</span><span class="n">rv</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;Get the bounds of a (frozen) distribution.&quot;&quot;&quot;</span>
+	<span class="n">ppf_zero</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">if</span> <span class="n">is_discrete_dist</span><span class="p">(</span><span class="n">rv</span><span class="p">):</span>
+		<span class="c1"># ppf at actual zero for rv_discrete gives lower bound - 1</span>
+		<span class="c1"># due to a quirk in the scipy.stats implementation</span>
+		<span class="c1"># so we use the smallest positive float instead</span>
+		<span class="n">ppf_zero</span> <span class="o">=</span> <span class="mf">5e-324</span>
+	<span class="k">return</span> <span class="n">rv</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ppf_zero</span><span class="p">),</span> <span class="n">rv</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

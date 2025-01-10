@@ -1,0 +1,222 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Files-Based Model &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="TableParser Example" href="table_parse_example.html" />
+    <link rel="prev" title="Excel-Based Models" href="excel.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Core Models</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="abstract.html">Basic EMAT Model API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_based.html">Python-Based Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="excel.html">Excel-Based Models</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Files-Based Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="table_parse_example.html">TableParser Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mapping_parse_example.html">MappingParser Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html">Files-Based Model API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gbnrtc.html">GBNRTC Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Core Models</a></li>
+      <li class="breadcrumb-item active">Files-Based Model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.models/files.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="files-based-model">
+<h1>Files-Based Model<a class="headerlink" href="#files-based-model" title="Link to this heading">¶</a></h1>
+<p>You can connect any bespoke transportation model to TMIP-EMAT as long
+as it satisfies these requirements:</p>
+<ul class="simple">
+<li><p>You can prepare a model run by manipulating files from within Python,
+including tasks such as copying or renaming files, editing the text
+of script or configuration files, or executing one or more “command line”
+programs (e.g. batch files) with defined arguments.</p></li>
+<li><p>You can execute a model run, including any necessary post-processing,
+either directly from Python, or by executing one or more “command line”
+programs (e.g. batch files) with defined arguments.</p></li>
+<li><p>You can extract individual performance measures of interest by reading
+and parsing one or more output files (which can be output from the main
+model or any post-processing routines) from within Python.</p></li>
+</ul>
+<p>The ability to tap into other programs via the command line allows TMIP-EMAT
+to be used with nearly any transportation modeling tool, including most
+commercial software.</p>
+<p>To actually create the linkage between TMIP-EMAT and your bespoke transportation
+model, you must define a new Python <cite>class</cite> that derives from the
+<a class="reference internal" href="files-api.html#emat.model.FilesCoreModel" title="emat.model.FilesCoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilesCoreModel</span></code></a> class, and at a minimum write implementations for
+these methods:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="abstract.html#emat.model.AbstractCoreModel.setup" title="emat.model.AbstractCoreModel.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">AbstractCoreModel.setup()</span></code></a></p></li>
+<li><p><a class="reference internal" href="abstract.html#emat.model.AbstractCoreModel.run" title="emat.model.AbstractCoreModel.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">AbstractCoreModel.run()</span></code></a></p></li>
+<li><p><a class="reference internal" href="abstract.html#emat.model.AbstractCoreModel.archive" title="emat.model.AbstractCoreModel.archive"><code class="xref py py-meth docutils literal notranslate"><span class="pre">AbstractCoreModel.archive()</span></code></a></p></li>
+</ul>
+<p>The <a class="reference internal" href="files-api.html#emat.model.FilesCoreModel" title="emat.model.FilesCoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilesCoreModel</span></code></a> class also includes default implementations for
+<cite>get_experiment_archive_path</cite> and <cite>post_process</cite>, but it may be appropriate
+to overload these methods into a custom class as well.</p>
+<p>A walk-through for building and using a <a class="reference internal" href="files-api.html#emat.model.FilesCoreModel" title="emat.model.FilesCoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilesCoreModel</span></code></a> subclass
+in your own module is provided below, although with a more detailed
+reference for the methods defined for the <a class="reference internal" href="files-api.html#emat.model.FilesCoreModel" title="emat.model.FilesCoreModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilesCoreModel</span></code></a> class.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="table_parse_example.html">TableParser Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="table_parse_example.html#Parsing-a-Labeled-Table">Parsing a Labeled Table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="table_parse_example.html#Parsing-Labeled-Values">Parsing Labeled Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="table_parse_example.html#id1">Parsing Labeled Values</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mapping_parse_example.html">MappingParser Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mapping_parse_example.html#Parsing-a-YAML-File">Parsing a YAML File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mapping_parse_example.html#Parsing-a-JSON-File">Parsing a JSON File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mapping_parse_example.html#Parsing-other-File-Formats">Parsing other File Formats</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="files-api.html">Files-Based Model API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.archive_path"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.archive_path</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.get_parser"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.local_directory"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.local_directory</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.model_path"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.model_path</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.rel_output_path"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.rel_output_path</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.resolved_archive_path"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.resolved_archive_path</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.resolved_model_path"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.resolved_model_path</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.add_parser"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.add_parser()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.load_measures"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.load_measures()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="files-api.html#emat.model.FilesCoreModel.load_archived_measures"><code class="docutils literal notranslate"><span class="pre">FilesCoreModel.load_archived_measures()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="files-api.html#parsing-files">Parsing Files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.FileParser"><code class="docutils literal notranslate"><span class="pre">FileParser</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.FileParser.measure_names"><code class="docutils literal notranslate"><span class="pre">FileParser.measure_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.FileParser.read"><code class="docutils literal notranslate"><span class="pre">FileParser.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.TableParser"><code class="docutils literal notranslate"><span class="pre">TableParser</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.TableParser.measure_names"><code class="docutils literal notranslate"><span class="pre">TableParser.measure_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.TableParser.raw"><code class="docutils literal notranslate"><span class="pre">TableParser.raw()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.TableParser.read"><code class="docutils literal notranslate"><span class="pre">TableParser.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.MappingParser"><code class="docutils literal notranslate"><span class="pre">MappingParser</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.MappingParser.measure_names"><code class="docutils literal notranslate"><span class="pre">MappingParser.measure_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.MappingParser.raw"><code class="docutils literal notranslate"><span class="pre">MappingParser.raw()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.MappingParser.read"><code class="docutils literal notranslate"><span class="pre">MappingParser.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="files-api.html#emat.model.core_files.parsers.Getter"><code class="docutils literal notranslate"><span class="pre">Getter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="excel.html" class="btn btn-neutral float-left" title="Excel-Based Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="table_parse_example.html" class="btn btn-neutral float-right" title="TableParser Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

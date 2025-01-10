@@ -1,0 +1,1118 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.model.meta_model &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+
+  
+      <script src="../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.model.meta_model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.model.meta_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..learn.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">clone_or_construct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..learn.boosting</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearAndGaussian</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.one_hot</span><span class="w"> </span><span class="kn">import</span> <span class="n">OneHotCatEncoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.variance_threshold</span><span class="w"> </span><span class="kn">import</span> <span class="n">VarianceThreshold</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..experiment.experimental_design</span><span class="w"> </span><span class="kn">import</span> <span class="n">batch_pick_new_experiments</span><span class="p">,</span> <span class="n">minimum_weighted_distance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..database.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..scope.scope</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scope</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReadOnlyDatabaseError</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.loggers</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_module_logger</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">get_module_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_metamodel">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.create_metamodel">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_metamodel</span><span class="p">(</span>
+        <span class="n">scope</span><span class="p">,</span>
+        <span class="n">experiments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">metamodel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">include_measures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">exclude_measures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">experiment_stratification</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">suppress_converge_warnings</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">regressor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">find_best_metamodeltype</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a MetaModel from a set of input and output observations.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scope (emat.Scope): The scope for this model.</span>
+<span class="sd">        experiments (pandas.DataFrame): This dataframe</span>
+<span class="sd">            should contain all of the experimental inputs and outputs,</span>
+<span class="sd">            including values for each uncertainty, level, constant, and</span>
+<span class="sd">            performance measure.</span>
+<span class="sd">        metamodel_id (int, optional): An identifier for this meta-model.</span>
+<span class="sd">            If not given, a unique id number will be created randomly</span>
+<span class="sd">            (if not `db` is given) or sequentially based on any existing</span>
+<span class="sd">            metamodels already stored in the database.</span>
+<span class="sd">        db (Database, optional): The database to use for loading and</span>
+<span class="sd">            saving metamodels. If none is given here, the metamodel will</span>
+<span class="sd">            not be stored in a database otherwise, the metamodel is</span>
+<span class="sd">            automatically saved to the database after it is created.</span>
+<span class="sd">        include_measures (Collection[str], optional): If provided, only</span>
+<span class="sd">            output performance measures with names in this set will be included.</span>
+<span class="sd">        exclude_measures (Collection[str], optional): If provided, only</span>
+<span class="sd">            output performance measures with names not in this set will be included.</span>
+<span class="sd">        random_state (int, optional): A random state to use in the metamodel</span>
+<span class="sd">            regression fitting.</span>
+<span class="sd">        experiment_stratification (pandas.Series, optional):</span>
+<span class="sd">            A stratification of experiments, used in cross-validation.</span>
+<span class="sd">        suppress_converge_warnings (bool, default False):</span>
+<span class="sd">            Suppress convergence warnings during metamodel fitting.</span>
+<span class="sd">        regressor (Estimator, optional): A scikit-learn estimator implementing a</span>
+<span class="sd">            multi-target regression.  If not given, a detrended simple Gaussian</span>
+<span class="sd">            process regression is used.</span>
+<span class="sd">        name (str, optional): A descriptive name for this metamodel.</span>
+<span class="sd">        design_name (str, optional): The name of the design of experiments</span>
+<span class="sd">            from `db` to use to create the metamodel. Only used if `experiments`</span>
+<span class="sd">            is not given explicitly.</span>
+<span class="sd">        find_best_metamodeltype (int, default 0):</span>
+<span class="sd">            Run a search to find the best metamodeltype for each</span>
+<span class="sd">            performance measure, repeating each cross-validation</span>
+<span class="sd">            step this many times.  For more stable results, choose</span>
+<span class="sd">            3 or more, although larger numbers will be slow.  If</span>
+<span class="sd">            domain knowledge about the normal expected range and</span>
+<span class="sd">            behavior of each performance measure is available,</span>
+<span class="sd">            it is better to give the metamodeltype explicitly in</span>
+<span class="sd">            the Scope.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        PythonCoreModel:</span>
+<span class="sd">            a callable object that, when called as if a</span>
+<span class="sd">            function, accepts keyword arguments as inputs and</span>
+<span class="sd">            returns a dictionary of (measure name: value) pairs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;creating metamodel from data&quot;</span><span class="p">)</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.core_python</span><span class="w"> </span><span class="kn">import</span> <span class="n">PythonCoreModel</span>
+
+    <span class="k">if</span> <span class="n">experiments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">design_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;must give `experiments` as a DataFrame or both `db` and `design_name`&#39;</span><span class="p">)</span>
+        <span class="n">experiments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">read_experiment_all</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">design_name</span><span class="p">,</span> <span class="n">only_with_measures</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">experiments</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">ensure_dtypes</span><span class="p">(</span><span class="n">experiments</span><span class="p">)</span>
+    <span class="n">_actually_excluded_measures</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">meas</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">include_measures</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">include_measures</span><span class="p">:</span>
+            <span class="n">_actually_excluded_measures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">exclude_measures</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">exclude_measures</span><span class="p">:</span>
+            <span class="n">_actually_excluded_measures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">experiments</span><span class="p">:</span>
+            <span class="n">_actually_excluded_measures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">j_na_count</span> <span class="o">=</span> <span class="n">experiments</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">j_na_count</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">experiments</span><span class="p">[</span><span class="n">j</span><span class="p">]):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;measure &#39;</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">&#39; is all missing data, excluding it from the metamodel&quot;</span><span class="p">)</span>
+            <span class="n">_actually_excluded_measures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">j_na_count</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;measure &#39;</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">&#39; has some missing data, excluding it from the metamodel&quot;</span><span class="p">)</span>
+            <span class="n">_actually_excluded_measures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="k">continue</span> <span class="c1"># TODO: allow for development of meta-models with the non-missing parts</span>
+        <span class="n">meas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+    <span class="n">experiment_outputs</span> <span class="o">=</span> <span class="n">experiments</span><span class="p">[</span><span class="n">meas</span><span class="p">]</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_parameter_names</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">experiments</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+    <span class="n">experiment_inputs</span> <span class="o">=</span> <span class="n">experiments</span><span class="p">[</span><span class="n">params</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">metamodel_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">metamodel_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_new_metamodel_id</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">metamodel_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">metamodel_id</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">32</span><span class="p">,</span> <span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">63</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">find_best_metamodeltype</span><span class="p">:</span>
+        <span class="n">output_transforms</span><span class="p">,</span> <span class="n">metamodeltype_tabulation</span> <span class="o">=</span> <span class="n">select_best_metamodeltype</span><span class="p">(</span>
+            <span class="n">experiment_inputs</span><span class="p">,</span> <span class="n">experiment_outputs</span><span class="p">,</span> <span class="n">return_tabulation</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">output_transforms</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">output_transforms</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_transforms</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">metamodeltype</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_measures</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">meas</span>
+        <span class="p">}</span>
+        <span class="n">metamodeltype_tabulation</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># change log tranforms to log1p when the experimental minimum is</span>
+    <span class="c1"># non-positive but not less than -1</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">i_transform</span> <span class="ow">in</span> <span class="n">output_transforms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">i_transform</span> <span class="o">==</span> <span class="s1">&#39;log&#39;</span> <span class="ow">and</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">experiment_outputs</span><span class="p">:</span>
+            <span class="n">i_min</span> <span class="o">=</span> <span class="n">experiment_outputs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="k">if</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="n">i_min</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">output_transforms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;log1p&#39;</span>
+
+    <span class="n">disabled_outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_measure_names</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">experiment_outputs</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+
+    <span class="n">func</span> <span class="o">=</span> <span class="n">MetaModel</span><span class="p">(</span>
+        <span class="n">experiment_inputs</span><span class="p">,</span>
+        <span class="n">experiment_outputs</span><span class="p">,</span>
+        <span class="n">metamodel_types</span><span class="o">=</span><span class="n">output_transforms</span><span class="p">,</span>
+        <span class="n">disabled_outputs</span><span class="o">=</span><span class="n">disabled_outputs</span><span class="p">,</span>
+        <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+        <span class="n">sample_stratification</span><span class="o">=</span><span class="n">experiment_stratification</span><span class="p">,</span>
+        <span class="n">suppress_converge_warnings</span><span class="o">=</span><span class="n">suppress_converge_warnings</span><span class="p">,</span>
+        <span class="n">regressor</span><span class="o">=</span><span class="n">regressor</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">metamodeltype_tabulation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">func</span><span class="o">.</span><span class="n">metamodeltype_tabulation</span> <span class="o">=</span> <span class="n">metamodeltype_tabulation</span>
+
+    <span class="n">scope_</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">duplicate</span><span class="p">(</span>
+        <span class="n">strip_measure_transforms</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">include_measures</span><span class="o">=</span><span class="n">include_measures</span><span class="p">,</span>
+        <span class="n">exclude_measures</span><span class="o">=</span><span class="n">_actually_excluded_measures</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">PythonCoreModel</span><span class="p">(</span>
+        <span class="n">func</span><span class="p">,</span>
+        <span class="n">configuration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">scope</span><span class="o">=</span><span class="n">scope_</span><span class="p">,</span>
+        <span class="n">safe</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;MetaModel</span><span class="si">{</span><span class="n">metamodel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">metamodel_id</span><span class="o">=</span><span class="n">metamodel_id</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">write_metamodel</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ReadOnlyDatabaseError</span><span class="p">:</span>
+            <span class="k">pass</span> <span class="c1"># read only database, don&#39;t store</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;exception in storing metamodel in database&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="MetaModel">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MetaModel</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A gaussian process regression-based meta-model.</span>
+
+<span class="sd">    The MetaModel is a callable object that provides an EMA Workbench standard</span>
+<span class="sd">    python interface, taking keyword arguments for parameters and returning a python</span>
+<span class="sd">    dictionary of named outcomes.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_sample (pandas.DataFrame): A set of experimental parameters, where</span>
+<span class="sd">            each row in the dataframe is an experiment that has already been evaluated</span>
+<span class="sd">            using the core model.  Each column will be a required keyword parameter</span>
+<span class="sd">            when calling this meta-model.</span>
+<span class="sd">        output_sample (pandas.DataFrame): A set of experimental performance measures, where</span>
+<span class="sd">            each row in the dataframe is the results of the experiment evaluated using the</span>
+<span class="sd">            core model.  Each column of this dataframe will be a named output value</span>
+<span class="sd">            in the returned dictionary from calling this meta-model.</span>
+<span class="sd">        metamodel_types (Mapping, optional): If given, the keys of this mapping should</span>
+<span class="sd">            include a subset of the columns in `output_sample`, and the values indicate</span>
+<span class="sd">            the metamodel type for each performance measure, given as `str`.  Available</span>
+<span class="sd">            metamodel types include:</span>
+
+<span class="sd">            + *log*: The natural log of the performance measure is taken before</span>
+<span class="sd">              fitting the regression model.  This is appropriate only when the performance</span>
+<span class="sd">              measure will always give a strictly positive outcome. If the performance</span>
+<span class="sd">              measure can take on non-positive values, this may result in errors.</span>
+
+<span class="sd">            + *log1p*: The natural log of 1 plus the performance measure is taken before</span>
+<span class="sd">              fitting the regression model.  This is preferred to log-linear when the</span>
+<span class="sd">              performance measure is only guaranteed to be non-negative, rather than</span>
+<span class="sd">              strictly positive.</span>
+
+<span class="sd">            + *logxp(X)*: The natural log of X plus the performance measure is taken before</span>
+<span class="sd">              fitting the regression model.  This allows shifting the position of the</span>
+<span class="sd">              regression intercept to a point other than 0.</span>
+
+<span class="sd">            + *clip(LO,HI)*: A linear model is used, but results are truncated to the range</span>
+<span class="sd">              (LO,HI). Set either value as None to have a one-sided truncation range.</span>
+
+<span class="sd">            + *linear*: No transforms are made.  This is the default when a performance</span>
+<span class="sd">              measure is not included in `metamodel_types`.</span>
+
+<span class="sd">        disabled_outputs (Collection, optional): A collection of disabled outputs. All names</span>
+<span class="sd">            included in this collection will be returned in the resulting outcomes dictionary</span>
+<span class="sd">            when this meta-model is evaluated, but with a value of `None`.  It is valid to</span>
+<span class="sd">            include names in `disabled_outputs` that are included in the columns</span>
+<span class="sd">            of `output_sample`, although the principal use of this argument is to include</span>
+<span class="sd">            names that are *not* included, as disabling outputs that are included will not</span>
+<span class="sd">            prevent these values from being included in the computational process.</span>
+
+<span class="sd">        random_state (int, optional): A random state, passed to the created regression</span>
+<span class="sd">            (but only if that regressor includes a &#39;random_state&#39; parameter).</span>
+
+<span class="sd">        regressor (Estimator, optional): A scikit-learn estimator implementing a</span>
+<span class="sd">            multi-target regression.  If not given, a detrended simple Gaussian</span>
+<span class="sd">            process regression is used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_metamodel_types</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">),</span>
+        <span class="s1">&#39;log-linear&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">),</span>
+        <span class="s1">&#39;ln&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">),</span>
+        <span class="s1">&#39;log1p&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log1p</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">expm1</span><span class="p">),</span>
+        <span class="s1">&#39;log1p-linear&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log1p</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">expm1</span><span class="p">),</span>
+        <span class="s1">&#39;exp&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">),</span>
+        <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="p">)),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)),</span>
+        <span class="c1"># x is applied immediate from arguments in metamodeltype string, y is the eventual data</span>
+        <span class="s1">&#39;logxp&#39;</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">x</span><span class="p">)),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span><span class="p">)),</span>
+        <span class="s1">&#39;logxp-linear&#39;</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">x</span><span class="p">)),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span><span class="p">)),</span>
+        <span class="s1">&#39;clip&#39;</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">y</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="p">))),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">input_sample</span><span class="p">,</span>
+            <span class="n">output_sample</span><span class="p">,</span>
+            <span class="n">metamodel_types</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">disabled_outputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">sample_stratification</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">suppress_converge_warnings</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">regressor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">use_best_cv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_sample</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;input_sample must be DataFrame&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_sample</span><span class="p">,</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;output_sample must be DataFrame&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw_input_columns</span> <span class="o">=</span> <span class="n">input_sample</span><span class="o">.</span><span class="n">columns</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">disabled_outputs</span> <span class="o">=</span> <span class="n">disabled_outputs</span>
+
+        <span class="c1"># One-hot encode here and save the mapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cat_encoder</span> <span class="o">=</span> <span class="n">OneHotCatEncoder</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">input_sample</span><span class="p">)</span>
+        <span class="n">input_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cat_encoder</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">input_sample</span><span class="p">)</span>
+        <span class="n">input_sample</span> <span class="o">=</span> <span class="n">input_sample</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_thresh</span> <span class="o">=</span> <span class="n">VarianceThreshold</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">input_sample</span><span class="p">)</span>
+        <span class="n">input_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_thresh</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">input_sample</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span> <span class="o">=</span> <span class="n">input_sample</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_sample</span> <span class="o">=</span> <span class="n">output_sample</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="p">(</span><span class="n">metamodel_types</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_stratification</span> <span class="o">=</span> <span class="n">sample_stratification</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_transforms</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">metamodel_types</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metamodel_types</span> <span class="o">=</span> <span class="n">metamodel_types</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">t</span> <span class="ow">in</span> <span class="n">metamodel_types</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="s2">&quot;(&quot;</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span>
+                    <span class="n">t</span><span class="p">,</span> <span class="n">t_args</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
+                    <span class="n">t_args</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">t_args</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;()&quot;</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">t</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metamodel_types</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;unknown metamodeltype &quot;</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s1">&quot; for output &quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">output_transforms</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_metamodel_types</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="mi">0</span><span class="p">](</span><span class="n">t_args</span><span class="p">),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_metamodel_types</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="n">t_args</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">t</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metamodel_types</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;unknown metamodeltype &quot;</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s1">&quot; for output &quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">output_transforms</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metamodel_types</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">v_func</span><span class="p">,</span><span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_transforms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output_sample</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_sample</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">regressor</span> <span class="o">=</span> <span class="n">LinearAndGaussian</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">regression</span> <span class="o">=</span> <span class="n">clone_or_construct</span><span class="p">(</span><span class="n">regressor</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">random_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;random_state&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">get_params</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">set_params</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">suppress_converge_warnings</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvergenceWarning</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+            <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">ConvergenceWarning</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_sample</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_sample</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">use_best_cv</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">..learn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">take_best</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regression</span> <span class="o">=</span> <span class="n">take_best</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MetaModel.preprocess_raw_input">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel.preprocess_raw_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">preprocess_raw_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">to_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Preprocess raw data input.</span>
+
+<span class="sd">        This convenience method provides batch-processing of a</span>
+<span class="sd">        raw data input DataFrame into the format used for regression.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pandas.DataFrame):</span>
+<span class="sd">                The raw input data to process, which can include input</span>
+<span class="sd">                values for multiple experiments.</span>
+<span class="sd">            to_type (dtype, optional):</span>
+<span class="sd">                If given, the entire resulting DataFrame is cast to</span>
+<span class="sd">                this data type.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cat_encoder</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_input_columns</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">to_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">to_type</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_thresh</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="MetaModel.__call__">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluate the meta-model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs:</span>
+<span class="sd">                All defined (meta)model parameters are passed as keyword</span>
+<span class="sd">                arguments, including both uncertainties and levers.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict:</span>
+<span class="sd">                A single dictionary containing all performance measure outcomes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">**</span><span class="n">x</span><span class="p">)),</span>
+                    <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;mm(...) optionally takes a DataFrame as a &#39;</span>
+                                <span class="sa">f</span><span class="s1">&#39;positional argument, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;mm(...) takes at most one &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;positional argument, not </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">input_row</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_input_columns</span><span class="p">]</span>
+        <span class="n">input_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_raw_input</span><span class="p">(</span><span class="n">input_row</span><span class="p">,</span> <span class="n">to_type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">output_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_row</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">output_row</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># undo the output transforms</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="n">v_func</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_transforms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_func</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">disabled_outputs</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="MetaModel.compute_std">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel.compute_std">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluate standard deviations of estimates generated by the meta-model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pandas.DataFrame, optional)</span>
+<span class="sd">            **kwargs:</span>
+<span class="sd">                All defined (meta)model parameters are passed as keyword</span>
+<span class="sd">                arguments, including both uncertainties and levers.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict:</span>
+<span class="sd">                A single dictionary containing the standard deviaition of the</span>
+<span class="sd">                estimate of all performance measure outcomes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compute_std</span><span class="p">(</span><span class="o">**</span><span class="n">x</span><span class="p">)),</span>
+                    <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;compute_std() optionally takes a DataFrame as a &#39;</span>
+                                <span class="sa">f</span><span class="s1">&#39;positional argument, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;compute_std() takes at most one &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;positional argument, not </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">input_row</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_input_columns</span><span class="p">]</span>
+        <span class="n">input_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_raw_input</span><span class="p">(</span><span class="n">input_row</span><span class="p">,</span> <span class="n">to_type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">output_row</span><span class="p">,</span> <span class="n">output_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_row</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">output_std</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># DO NOT undo the output transforms</span>
+        <span class="c1"># for k, (_,v_func) in self.output_transforms.items():</span>
+        <span class="c1">#     result[k] = v_func(result[k])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">disabled_outputs</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="MetaModel.predict">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel.predict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">trend_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">residual_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate predictions using the meta-model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pandas.DataFrame, optional)</span>
+<span class="sd">            trend_only, residual_only (bool)</span>
+<span class="sd">            **kwargs:</span>
+<span class="sd">                All defined (meta)model parameters are passed as keyword</span>
+<span class="sd">                arguments, including both uncertainties and levers.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict:</span>
+<span class="sd">                A single dictionary containing the standard deviaition of the</span>
+<span class="sd">                estimate of all performance measure outcomes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+
+                <span class="n">input_row</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_input_columns</span><span class="p">]</span>
+                <span class="n">input_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_raw_input</span><span class="p">(</span><span class="n">input_row</span><span class="p">,</span> <span class="n">to_type</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">trend_only</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">lr</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_row</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">residual_only</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">gpr</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_row</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_row</span><span class="p">)</span>
+
+                <span class="c1"># undo the output transforms</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">v_func</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_transforms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_func</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">disabled_outputs</span><span class="p">:</span>
+                    <span class="n">drop_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">disabled_outputs</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">drop_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">result</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;predict() optionally takes a DataFrame as a &#39;</span>
+                                <span class="sa">f</span><span class="s1">&#39;positional argument, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;predict() takes at most one &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;positional argument, not </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">input_row</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_input_columns</span><span class="p">]</span>
+        <span class="n">input_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_raw_input</span><span class="p">(</span><span class="n">input_row</span><span class="p">,</span> <span class="n">to_type</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">trend_only</span><span class="p">:</span>
+            <span class="n">output_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">detrend_predict</span><span class="p">(</span><span class="n">input_row</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">residual_only</span><span class="p">:</span>
+            <span class="n">output_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">residual_predict</span><span class="p">(</span><span class="n">input_row</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_row</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">output_row</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># undo the output transforms</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="n">v_func</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_transforms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_func</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">disabled_outputs</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="MetaModel.cross_val_scores">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel.cross_val_scores">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cross_val_scores</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">gpr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;styled&#39;</span><span class="p">,</span>
+            <span class="n">shortnames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">suppress_converge_warnings</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the cross validation scores for this meta-model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cv (int, default 5): The number of folds to use in</span>
+<span class="sd">                cross-validation.</span>
+<span class="sd">            gpr_only (bool, default False): Whether to limit the</span>
+<span class="sd">                cross-validation analysis to only the GPR step (i.e.,</span>
+<span class="sd">                to measure the improvement in meta-model fit from</span>
+<span class="sd">                using the GPR-based meta-model, over and above</span>
+<span class="sd">                using the linear regression meta-model alone.)</span>
+<span class="sd">            use_cache (bool, default True): Use cached cross</span>
+<span class="sd">                validation results if available.  All other arguments</span>
+<span class="sd">                are ignored if a cached results if available.</span>
+<span class="sd">            return_type ({&#39;styled&#39;, &#39;raw&#39;}):  How to return the</span>
+<span class="sd">                results.</span>
+<span class="sd">            shortnames (Scope or callable):</span>
+<span class="sd">                If given, use this function to convert the measure</span>
+<span class="sd">                names into more readable `shortname` values from the</span>
+<span class="sd">                scope, or by using a function that maps measures</span>
+<span class="sd">                names to something else.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.Series: The cross-validation scores, by output.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+            <span class="n">cached_value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_cv_cache&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cached_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">cached_value</span>
+
+        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_stratification</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">..learn.splits</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExogenouslyStratifiedKFold</span>
+                <span class="n">cv</span> <span class="o">=</span> <span class="n">ExogenouslyStratifiedKFold</span><span class="p">(</span><span class="n">exo_data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_stratification</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="n">cv</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">gpr_only</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+                <span class="c1"># residuals = self.regression.residual_predict(self.input_sample)</span>
+                <span class="c1"># regression = multitarget.MultipleTargetRegression()</span>
+                <span class="c1"># return regression.cross_val_scores(self.input_sample, residuals, cv=cv)</span>
+
+            <span class="k">if</span> <span class="n">suppress_converge_warnings</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvergenceWarning</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+                <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">ConvergenceWarning</span><span class="p">)</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">cross_val_scores</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_sample</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">cross_val_scores</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_sample</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Cross Validation Score&quot;</span>
+
+        <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv_cache</span> <span class="o">=</span> <span class="n">result</span>
+
+        <span class="k">if</span> <span class="n">shortnames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shortnames</span><span class="p">,</span> <span class="n">Scope</span><span class="p">):</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">shortnames</span><span class="o">.</span><span class="n">shortname</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">shortnames</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s1">&#39;styled&#39;</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">..util.styling</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_validation_styling</span>
+            <span class="k">return</span> <span class="n">cross_validation_styling</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="MetaModel.cross_val_predicts">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel.cross_val_predicts">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cross_val_predicts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate cross validated predictions using this meta-model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cv (int, default 5): The number of folds to use in</span>
+<span class="sd">                cross-validation. Set to zero for leave-one-out</span>
+<span class="sd">                (i.e., the maximum number of folds), which may be</span>
+<span class="sd">                quite slow.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame: The cross-validated predictions.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cv</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">cv</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">cross_val_predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_sample</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">)</span></div>
+
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">in_dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_input_columns</span><span class="p">)</span>
+        <span class="n">out_dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_sample</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">disabled_outputs</span><span class="p">:</span>
+            <span class="n">out_dims</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dim</span><span class="si">}</span><span class="s2"> active and </span><span class="si">{</span><span class="n">out_dim</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disabled_outputs</span><span class="p">)</span><span class="si">}</span><span class="s2"> total outputs&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out_dims</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dim</span><span class="si">}</span><span class="s2"> outputs&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;emat.MetaModel </span><span class="si">{</span><span class="n">in_dim</span><span class="si">}</span><span class="s2"> inputs -&gt; </span><span class="si">{</span><span class="n">out_dims</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
+
+<div class="viewcode-block" id="MetaModel.get_length_scales">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel.get_length_scales">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_length_scales</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the length scales from the GPR kernels of this metamodel.</span>
+
+<span class="sd">        This MetaModel must already be `fit` to use this method, although</span>
+<span class="sd">        the fit process is generally completed when the MetaModel is</span>
+<span class="sd">        instantiated.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame:</span>
+<span class="sd">                The columns correspond to the columns of pre-processed</span>
+<span class="sd">                input (not raw input) and the rows correspond to the</span>
+<span class="sd">                outputs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">est</span><span class="o">.</span><span class="n">kernel_</span><span class="o">.</span><span class="n">length_scale</span>
+                <span class="k">for</span> <span class="n">est</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">step1</span><span class="o">.</span><span class="n">estimators_</span>
+            <span class="p">],</span>
+            <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">Y_columns</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="MetaModel.mix_length_scales">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel.mix_length_scales">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mix_length_scales</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">balance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mix the length scales from the GPR kernels of this metamodel.</span>
+
+<span class="sd">        This MetaModel must already be `fit` to use this method, although</span>
+<span class="sd">        the fit process is generally completed when the MetaModel is</span>
+<span class="sd">        instantiated.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            balance (Mapping or Collection, optional):</span>
+<span class="sd">                When given as a mapping, the keys are the output measures</span>
+<span class="sd">                that are included in the mix, and the values are the</span>
+<span class="sd">                relative weights to use for mixing.</span>
+<span class="sd">                When given as a collection, the items are the output</span>
+<span class="sd">                measures that are included in the mix, all with equal</span>
+<span class="sd">                weight.</span>
+<span class="sd">            inv (bool, default True):</span>
+<span class="sd">                Take the inverse of the length scales before mixing.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray:</span>
+<span class="sd">                The columns correspond to the columns of pre-processed</span>
+<span class="sd">                input (not raw input) and the rows correspond to the</span>
+<span class="sd">                outputs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_length_scales</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">inv</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">rtruediv</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># s = 1/s</span>
+        <span class="k">if</span> <span class="n">balance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="mf">1.0</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">balance</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+                <span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">balance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+            <span class="n">balance</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">balance</span><span class="p">)</span>
+            <span class="n">each_w</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">balance</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+                <span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">each_w</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">balance</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MetaModel.pick_new_experiments">
+<a class="viewcode-back" href="../../../source/emat.metamodels/api.html#emat.MetaModel.pick_new_experiments">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pick_new_experiments</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">possible_experiments</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">output_focus</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">db</span><span class="p">:</span> <span class="n">Database</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">design_name</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">debug</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">future_experiments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">future_experiments_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Select a set of new experiments to perform from a pool of candidates.</span>
+
+<span class="sd">        This method implements the &quot;maximin&quot; approach described by Johnson et al (1990),</span>
+<span class="sd">        as proposed for batch-sequential augmentation of designs by Loeppky et al (2010).</span>
+<span class="sd">        New experiments are selected from a pool of possible new experiments by</span>
+<span class="sd">        maximizing the minimum distance between the set of selected experiments,</span>
+<span class="sd">        with distances between experiments scaled by the correlation parameters</span>
+<span class="sd">        from a GP regression fitted to the initial experimental results. Note that</span>
+<span class="sd">        the &quot;binning&quot; aspect of Loeppky is not presently implemented here,</span>
+<span class="sd">        instead favoring the analyst&#39;s capability to manually focus the new experiments</span>
+<span class="sd">        by manipulating the input `possible_experiments`.</span>
+
+<span class="sd">        We also extend Loeppky et al by allowing for multiple output models, mixing the</span>
+<span class="sd">        results from a selected set of outputs, to potentially focus the information</span>
+<span class="sd">        from the new experiments on a subset of output measures.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            possible_experiments:</span>
+<span class="sd">                A pool of possible experiments.  All selected experiments will</span>
+<span class="sd">                be selected from this pool, so the pool should be sufficiently</span>
+<span class="sd">                large and diverse to provide requried support for this process.</span>
+<span class="sd">            batch_size (int):</span>
+<span class="sd">                How many experiments to select from `possible_experiments`.</span>
+<span class="sd">            output_focus (Mapping or Collection, optional):</span>
+<span class="sd">                 A subset of output measures that will be the focus of these new</span>
+<span class="sd">                 experiments. The length scales of these measures will be mixed</span>
+<span class="sd">                 when developing relative weights.</span>
+<span class="sd">            scope (Scope, optional): The exploratory scope to use for writing the</span>
+<span class="sd">                design to a database. Ignored unless `db` is also given.</span>
+<span class="sd">            db (Database, optional): If provided, this design will be stored in the</span>
+<span class="sd">                database indicated.  Ignored unless `scope` is also given.</span>
+<span class="sd">            design_name (str, optional): A name for this design, to identify it in the</span>
+<span class="sd">                database. If not given, a unique name will be generated.  Has no effect</span>
+<span class="sd">                if no `db` or `scope` is given.</span>
+<span class="sd">            debug (Tuple[str,str], optional): The names of x and y axis to plot for</span>
+<span class="sd">                debugging.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame:</span>
+<span class="sd">                A subset of rows from `possible_experiments`</span>
+
+<span class="sd">        References:</span>
+<span class="sd">            - Johnson, M.E., Moore, L.M., and Ylvisaker, D., 1990. &quot;Minimax and maximin</span>
+<span class="sd">              distance designs.&quot; Journal of Statistical Planning and Inference 26, 131–148.</span>
+<span class="sd">            - Loeppky, J., Moore, L., and Williams, B.J., 2010. &quot;Batch sequential designs</span>
+<span class="sd">              for computer experiments.&quot; Journal of Statistical Planning and Inference 140,</span>
+<span class="sd">              1452–1464.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">dimension_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mix_length_scales</span><span class="p">(</span><span class="n">output_focus</span><span class="p">,</span> <span class="n">inv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;output_focus = </span><span class="si">{</span><span class="n">output_focus</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;length_scales =</span><span class="se">\n</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_length_scales</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;dimension_weights = </span><span class="si">{</span><span class="n">dimension_weights</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">possible_experiments_processed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_raw_input</span><span class="p">(</span><span class="n">possible_experiments</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">picks</span> <span class="o">=</span> <span class="n">batch_pick_new_experiments</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">,</span>
+                <span class="n">possible_experiments_processed</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">dimension_weights</span><span class="p">,</span>
+                <span class="n">future_experiments</span><span class="p">,</span>
+                <span class="n">future_experiments_std</span><span class="p">,</span>
+                <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">design</span> <span class="o">=</span> <span class="n">possible_experiments</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">picks</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="c1"># If using the default design_name, append the design_name with a number</span>
+        <span class="c1"># until a new unused name is found.</span>
+        <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">scope</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">design_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">proposed_design_name</span> <span class="o">=</span> <span class="s1">&#39;augment&#39;</span>
+            <span class="n">existing_design_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">read_design_names</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">proposed_design_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing_design_names</span><span class="p">:</span>
+                <span class="n">design_name</span> <span class="o">=</span> <span class="n">proposed_design_name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="k">while</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">proposed_design_name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">existing_design_names</span><span class="p">:</span>
+                    <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">design_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">proposed_design_name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span>
+
+        <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">scope</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">experiment_ids</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">write_experiment_parameters</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">design_name</span><span class="p">,</span> <span class="n">design</span><span class="p">)</span>
+            <span class="n">design</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">experiment_ids</span>
+            <span class="n">design</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;experiment&#39;</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">debug_x</span><span class="p">,</span> <span class="n">debug_y</span> <span class="o">=</span> <span class="n">debug</span>
+            <span class="n">mwd</span> <span class="o">=</span> <span class="n">minimum_weighted_distance</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">,</span>
+                <span class="n">possible_experiments</span><span class="p">,</span>
+                <span class="n">dimension_weights</span>
+            <span class="p">)</span>
+
+            <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">possible_experiments</span><span class="p">[</span><span class="n">debug_x</span><span class="p">],</span> <span class="n">possible_experiments</span><span class="p">[</span><span class="n">debug_y</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">mwd</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">[</span><span class="n">debug_x</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_sample</span><span class="p">[</span><span class="n">debug_y</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">design</span><span class="p">[</span><span class="n">debug_x</span><span class="p">],</span> <span class="n">design</span><span class="p">[</span><span class="n">debug_y</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">design</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">heuristic_pick_experiment</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">candidate_experiments</span><span class="p">,</span>
+            <span class="n">poorness_of_fit</span><span class="p">,</span>
+            <span class="n">candidate_density</span><span class="p">,</span>
+            <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">candidate_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_std</span><span class="p">(</span><span class="n">candidate_experiments</span><span class="p">)</span>
+        <span class="n">candidate_raw_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">poorness_of_fit</span> <span class="o">*</span> <span class="n">candidate_std</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">candidate_wgt_value</span> <span class="o">=</span> <span class="n">candidate_raw_value</span> <span class="o">*</span> <span class="n">candidate_density</span>
+        <span class="n">proposed_experiment</span> <span class="o">=</span> <span class="n">candidate_wgt_value</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+            <span class="n">axs</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+                <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="n">c</span><span class="o">=</span><span class="n">candidate_wgt_value</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">axs</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+                <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">proposed_experiment</span><span class="p">],</span>
+                <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">proposed_experiment</span><span class="p">],</span>
+                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">proposed_experiment</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">heuristic_batch_pick_experiment</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">candidate_experiments</span><span class="p">,</span>
+            <span class="n">scope</span><span class="p">,</span>
+            <span class="n">poorness_of_fit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;computing density&quot;</span><span class="p">)</span>
+        <span class="n">candidate_density</span> <span class="o">=</span> <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">scope</span><span class="o">.</span><span class="n">get_density</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">poorness_of_fit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;computing poorness of fit&quot;</span><span class="p">)</span>
+            <span class="n">crossval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cross_val_scores</span><span class="p">()</span>
+            <span class="n">poorness_of_fit</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">crossval</span><span class="p">)</span>
+
+        <span class="n">proposed_candidate_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">proposed_candidates</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;populating initial batch&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">set_hypothetical_training_points</span><span class="p">(</span><span class="n">proposed_candidates</span><span class="p">)</span>
+            <span class="n">proposed_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heuristic_pick_experiment</span><span class="p">(</span>
+                <span class="n">candidate_experiments</span><span class="p">,</span>
+                <span class="n">poorness_of_fit</span><span class="p">,</span>
+                <span class="n">candidate_density</span><span class="p">,</span>
+                <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">proposed_candidate_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">proposed_id</span><span class="p">)</span>
+            <span class="n">proposed_candidates</span> <span class="o">=</span> <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">proposed_candidate_ids</span><span class="p">]</span>
+
+        <span class="n">proposed_candidate_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">proposed_candidate_ids</span><span class="p">)</span>
+
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;initial batch complete, checking for exchanges&quot;</span><span class="p">)</span>
+        <span class="c1"># Exchanges</span>
+        <span class="n">n_exchanges</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="n">n_exchanges</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n_exchanges</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">provisionally_dropping</span> <span class="o">=</span> <span class="n">proposed_candidate_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">set_hypothetical_training_points</span><span class="p">(</span>
+                    <span class="n">candidate_experiments</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">proposed_candidate_ids</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="n">provisionally_dropping</span><span class="p">}]</span>
+                <span class="p">)</span>
+                <span class="n">provisional_replacement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heuristic_pick_experiment</span><span class="p">(</span>
+                    <span class="n">candidate_experiments</span><span class="p">,</span>
+                    <span class="n">poorness_of_fit</span><span class="p">,</span>
+                    <span class="n">candidate_density</span><span class="p">,</span>
+                    <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">provisional_replacement</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">proposed_candidate_ids</span><span class="p">:</span>
+                    <span class="n">n_exchanges</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">proposed_candidate_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">provisional_replacement</span>
+                    <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;replacing </span><span class="si">{</span><span class="n">provisionally_dropping</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">provisional_replacement</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_exchanges</span><span class="si">}</span><span class="s2"> exchanges completed.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">regression</span><span class="o">.</span><span class="n">clear_hypothetical_training_points</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">proposed_candidates</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">select_best_metamodeltype</span><span class="p">(</span>
+        <span class="n">params</span><span class="p">,</span>
+        <span class="n">measures</span><span class="p">,</span>
+        <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">suppress_converge_warnings</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">possible_types</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_repeats</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">regressor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_tabulation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">possible_types</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">possible_types</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;log1p&#39;</span><span class="p">,</span> <span class="s1">&#39;logit&#39;</span><span class="p">,</span> <span class="s1">&#39;exp&#39;</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..learn.boosting</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearAndGaussian</span>
+        <span class="n">regressor</span> <span class="o">=</span> <span class="n">LinearAndGaussian</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_metamodel_scores</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">filter_cols</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">possible_types</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">filter_cols</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">MetaModel</span><span class="p">(</span>
+                <span class="n">params</span><span class="p">,</span>
+                <span class="n">measures</span><span class="p">[</span><span class="n">filter_cols</span><span class="p">],</span>
+                <span class="p">{</span>
+                    <span class="n">i</span><span class="p">:</span> <span class="n">t</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">filter_cols</span>
+                <span class="p">},</span>
+                <span class="n">disabled_outputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+                <span class="n">suppress_converge_warnings</span><span class="o">=</span><span class="n">suppress_converge_warnings</span><span class="p">,</span>
+                <span class="n">regressor</span><span class="o">=</span><span class="n">LinearAndGaussian</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">cross_val_scores</span><span class="p">(</span>
+                <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+                <span class="n">n_repeats</span><span class="o">=</span><span class="n">n_repeats</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">filter_cols</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">measures</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">)]</span>
+    <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_metamodel_scores</span><span class="p">(</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">measures</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+
+    <span class="n">check_log</span> <span class="o">=</span> <span class="n">measures</span><span class="o">.</span><span class="n">columns</span><span class="p">[(</span><span class="n">measures</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)]</span>
+    <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_metamodel_scores</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">check_log</span><span class="p">))</span>
+
+    <span class="n">check_log1p</span> <span class="o">=</span> <span class="n">measures</span><span class="o">.</span><span class="n">columns</span><span class="p">[(</span><span class="n">measures</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_metamodel_scores</span><span class="p">(</span><span class="s1">&#39;log1p&#39;</span><span class="p">,</span> <span class="n">check_log1p</span><span class="p">))</span>
+
+    <span class="n">check_logit</span> <span class="o">=</span> <span class="n">measures</span><span class="o">.</span><span class="n">columns</span><span class="p">[(</span><span class="n">measures</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">measures</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_metamodel_scores</span><span class="p">(</span><span class="s1">&#39;logit&#39;</span><span class="p">,</span> <span class="n">check_logit</span><span class="p">))</span>
+
+    <span class="n">check_exp</span> <span class="o">=</span> <span class="n">measures</span><span class="o">.</span><span class="n">columns</span><span class="p">[(</span><span class="n">measures</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)]</span>
+    <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_metamodel_scores</span><span class="p">(</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span> <span class="n">check_exp</span><span class="p">))</span>
+
+    <span class="n">tabulation</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_tabulation</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tabulation</span><span class="o">.</span><span class="n">idxmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">tabulation</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tabulation</span><span class="o">.</span><span class="n">idxmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

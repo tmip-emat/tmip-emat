@@ -1,0 +1,323 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installing using Anaconda &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+
+  
+      <script src="../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Installing from Source" href="emat.git.html" />
+    <link rel="prev" title="Installation and Configuration" href="emat.install.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="emat.install.html">Installation and Configuration</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Installing using Anaconda</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#quick-start">Quick Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installing-python">Installing Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#managing-environments">Managing Environments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#creating-a-new-environment-for-tmip-emat">Creating a New Environment for TMIP-EMAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installing-tmip-emat-in-an-existing-environment">Installing TMIP-EMAT in an Existing Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-an-environment">Using an Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#running-jupyter">Running Jupyter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="emat.git.html">Installing from Source</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="emat.install.html">Installation and Configuration</a></li>
+      <li class="breadcrumb-item active">Installing using Anaconda</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/emat.conda.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installing-using-anaconda">
+<h1>Installing using Anaconda<a class="headerlink" href="#installing-using-anaconda" title="Link to this heading">¶</a></h1>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
+<p>To get started with TMIP-EMAT, you’ll need to follow a few simple steps.</p>
+<ol class="arabic simple">
+<li><p>Install <a class="reference external" href="https://github.com/conda-forge/miniforge?tab=readme-ov-file#install">Miniforge</a>.</p></li>
+<li><p>Open the ‘Miniforge Prompt’ that was installed and run the following
+commands:</p></li>
+</ol>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda env create -n EMAT -f https://raw.githubusercontent.com/tmip-emat/tmip-emat/refs/heads/main/conda-envs/EMAT.yml</span>
+<span class="go">conda activate EMAT</span>
+<span class="go">jupyter lab</span>
+</pre></div>
+</div>
+<p>More detailed instructions appear below.</p>
+</section>
+<section id="installing-python">
+<h2>Installing Python<a class="headerlink" href="#installing-python" title="Link to this heading">¶</a></h2>
+<p>To use TMIP-EMAT, you’ll need to have Python 3.7 or later, plus a handful
+of other useful statistical packages.  The easiest way to get the basics
+is to download and install the <a class="reference external" href="https://github.com/conda-forge/miniforge?tab=readme-ov-file#install">Miniforge</a>
+version of Python. This comes with everything you’ll need to get started,
+and the Anaconda folks have helpfully curated a selection of useful tools for you,
+so you don’t have the sort through the huge selection of tools, both good and bad,
+that are available for Python.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>TMIP-EMAT is compatible <em>only</em> with Python version 3.</p>
+</div>
+<p>You should usually install Anaconda for the local user,
+which does not require administrator permissions.
+You can also install Anaconda system wide, which does require
+administrator permissions – but even if you have those permissions,
+you may find that installing only for one user prevents problems
+arising over multiple users editing common packages.</p>
+<p>If you already have Python installed, either by itself or
+as a companion to any one of a variety of common transportation planning
+tools (e.g., ArcGIS), you can still install and use Anaconda.
+You do not need to uninstall, move, or change any existing
+Python installation.  Just use the standard Anaconda installer
+and let the installer add the conda installation of Python
+to your PATH environment variable. There is no need to set the
+PYTHONPATH environment variable.</p>
+<p>Once Anaconda is installed, it can be accessed from the
+Anaconda Prompt (on Windows) or the Terminal (linux and macOS).</p>
+</section>
+<section id="managing-environments">
+<h2>Managing Environments<a class="headerlink" href="#managing-environments" title="Link to this heading">¶</a></h2>
+<p>When you use conda to install Python, by default a <cite>base</cite> environment is
+created and packages are installed in that environment.  However, in general you should
+almost never undertake project work in the <cite>base</cite> environment, especially if your
+project involves installing any custom Python packages.  Instead,
+you should create a new environment for each project, and install the
+necessary packages and dependencies in that environment.  This will help
+prevent software conflicts, and ensure that tools installed for one project
+will not break another project.</p>
+<p>The instructions below provide only the most basic steps to
+set up and use an environment.  Much more extensive documentation
+on <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html" title="(in conda v24.11.4.dev33)"><span class="xref std std-doc">managing environments</span></a>
+is available in the conda documentation itself.</p>
+<section id="creating-a-new-environment-for-tmip-emat">
+<h3>Creating a New Environment for TMIP-EMAT<a class="headerlink" href="#creating-a-new-environment-for-tmip-emat" title="Link to this heading">¶</a></h3>
+<p>If you’d like one command to just install TMIP-EMAT and
+the suite of related tools relevant for exploratory modeling and analysis
+analysis, you can create a new environment for EMAT with one line.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda env create -f https://raw.githubusercontent.com/tmip-emat/tmip-emat/refs/heads/main/conda-envs/EMAT.yml</span>
+</pre></div>
+</div>
+<p>If you’ve already installed the <em>EMAT</em> environment and want to update it to the latest
+version, you can use:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda env update -f https://raw.githubusercontent.com/tmip-emat/tmip-emat/refs/heads/main/conda-envs/EMAT.yml --prune</span>
+</pre></div>
+</div>
+<p>The <em>prune</em> option here will remove packages that are not ordinarily included in the
+<em>EMAT</em> environment; omit that function if you’ve installed extra packages that you
+want to keep.</p>
+</section>
+<section id="installing-tmip-emat-in-an-existing-environment">
+<h3>Installing TMIP-EMAT in an Existing Environment<a class="headerlink" href="#installing-tmip-emat-in-an-existing-environment" title="Link to this heading">¶</a></h3>
+<p>If you already have an existing environment you want to use, or if you’d like to
+skip the advice above and install TMIP-EMAT into the base environment, you can
+do so using the regular <cite>pip install</cite> tool.  Activate the environment you want
+to install into, and then run:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install emat</span>
+</pre></div>
+</div>
+<p>Because TMIP-EMAT has a bunch of specific dependencies, there
+is a fair chance that installing TMIP-EMAT into an existing environment may
+cause incompatibilities with other tools, so installing in this manner is not
+recommended.</p>
+</section>
+<section id="using-an-environment">
+<h3>Using an Environment<a class="headerlink" href="#using-an-environment" title="Link to this heading">¶</a></h3>
+<p>When using the terminal (MacOS/Linux) or an Anaconda Prompt (Windows), the
+current environment name will be shown as part of the prompt:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(base)</span> <span class="go">C:\Users\cfinley&gt;</span>
+</pre></div>
+</div>
+<p>By default, when opening a new terminal the environment is set as the
+<code class="docutils literal notranslate"><span class="pre">base</span></code> environment, although this is typically not where you want to
+be if you have followed the advice above.  Instead, to switch environments
+use the <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span></code> command.  For example, to activate the <code class="docutils literal notranslate"><span class="pre">EMAT</span></code>
+environment installed in the quick start, run:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(base)</span> <span class="go">C:\Users\cfinley&gt; conda activate EMAT</span>
+<span class="gp gp-VirtualEnv">(EMAT)</span> <span class="go">C:\Users\cfinley&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="running-jupyter">
+<h2>Running Jupyter<a class="headerlink" href="#running-jupyter" title="Link to this heading">¶</a></h2>
+<p>The most convenient interface for interactive use of TMIP-EMAT is within
+a <a class="reference external" href="https://jupyter.org">Jupyter Notebook</a>. The notebook provides a
+convenient interactive interface, allowing you to enter Python commands
+and see (and interact with) the output in a web browser.
+To use Jupyter Notebook, open the terminal (MacOS/Linux) or an Anaconda
+Prompt (Windows), activate the EMAT environment, navigate to the
+directory where you can find your notebook file, and run it the the
+<cite>jupyter-notebook</cite> command.  For example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(base)</span> <span class="go">C:\Users\cfinley&gt; conda activate EMAT</span>
+<span class="gp gp-VirtualEnv">(EMAT)</span> <span class="go">C:\Users\cfinley&gt; cd Documents\Modeling</span>
+<span class="gp gp-VirtualEnv">(EMAT)</span> <span class="go">C:\Users\cfinley\Documents\Modeling&gt; jupyter-notebook myfilename.ipynb</span>
+</pre></div>
+</div>
+<p>If you don’t already have a notebook file to work with (they are
+identifiable by the “.ipynb” at the end of the filename) you
+can simply start jupyter-notebook with no file name, and you’ll
+be presented with an interface to create one in the current directory.</p>
+<p>Alternatively, the next generation interface of Jupyter is called
+<a class="reference external" href="https://jupyterlab.readthedocs.io/en/stable/">JupyterLab</a>.
+JupyterLab integrates many more features and provides for running
+multiple notebooks, and multiple views of the same notebook.
+It is in general compatible with TMIP-EMAT, although some of the
+interactive exploratory visualizations may be less responsive in
+JupyterLab than the Notebook interface alone.  You may also need
+to install one or more JupyterLab extensions to enable the full
+suite of TMIP-EMAT functionality.</p>
+<p>If it’s not already installed in your base or working
+environments, you can install JupyterLab using conda:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda install -c conda-forge jupyterlab</span>
+</pre></div>
+</div>
+<p>Then to start JupyterLab,</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">jupyter lab</span>
+</pre></div>
+</div>
+<p>JupyterLab will open automatically in your browser.</p>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
+<p>A common reason for problems encountered in the installation process
+is an out-of-date <em>conda</em> installation.  If your main conda
+installation is out of date, you
+may need to install or update the <em>conda</em> and <em>anaconda-client</em> packages
+before the installation of new environments or packages will work:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda install -n base -c defaults conda anaconda-client</span>
+</pre></div>
+</div>
+<p>If you are running TMIP-EMAT successfully but the interface seems
+sluggish in the jupyter notebook interface, your problem might be
+caused by your browser.  You can try using a different browser –
+Google’s Chrome browser has been found to be much more performant
+for running the interactive visualizations.  If you don’t want to
+make chrome your default browser for everything, but just make it
+the default for jupyter notebooks, you can do so in the configurations
+for the notebook server. If you haven’t already, create a notebook
+config file by running</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">jupyter notebook --generate-config</span>
+</pre></div>
+</div>
+<p>Then, edit the file <cite>jupyter_notebook_config.py</cite> found in the
+<cite>.jupyter</cite> folder of your home directory. You need to change the line:</p>
+<blockquote>
+<div><p># c.NotebookApp.browser = ‘’</p>
+</div></blockquote>
+<p>to</p>
+<blockquote>
+<div><p>c.NotebookApp.browser = ‘C:/path/to/your/chrome.exe %s’</p>
+</div></blockquote>
+<p>On Windows, Chrome is usually located at
+“C:/Program Files (x86)/Google/Chrome/Application/chrome.exe” but
+you should check on your system to confirm.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="emat.install.html" class="btn btn-neutral float-left" title="Installation and Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="emat.git.html" class="btn btn-neutral float-right" title="Installing from Source" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

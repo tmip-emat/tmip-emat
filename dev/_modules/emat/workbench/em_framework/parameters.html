@@ -1,0 +1,985 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.workbench.em_framework.parameters &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/thebelab.css" />
+
+  
+      <script src="../../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.workbench.em_framework.parameters</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.workbench.em_framework.parameters</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;parameters and collections of parameters&#39;&#39;&#39;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numbers</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">NamedObject</span><span class="p">,</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">NamedObjectMap</span><span class="p">,</span> <span class="n">Counter</span><span class="p">,</span>
+                   <span class="n">NamedDict</span><span class="p">,</span> <span class="n">combine</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_module_logger</span>
+
+<span class="c1"># Created on Jul 14, 2016</span>
+<span class="c1">#</span>
+<span class="c1"># .. codeauthor::jhkwakkel &lt;j.h.kwakkel (at) tudelft (dot) nl&gt;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Constant&#39;</span><span class="p">,</span> <span class="s1">&#39;RealParameter&#39;</span><span class="p">,</span> <span class="s1">&#39;IntegerParameter&#39;</span><span class="p">,</span> <span class="s1">&#39;CategoricalParameter&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BooleanParameter&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Policy&#39;</span><span class="p">,</span> <span class="s1">&#39;Scenario&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;parameters_from_csv&#39;</span><span class="p">,</span> <span class="s1">&#39;parameters_to_csv&#39;</span><span class="p">,</span> <span class="s1">&#39;experiment_generator&#39;</span>
+    <span class="s1">&#39;create_parameters&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;experiment_generator&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Policy&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Scenario&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Experiment&#39;</span><span class="p">]</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">get_module_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Bound</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">bound</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">internal_name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">bound</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">get_bound</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">bound</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bound</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">instance</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">internal_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_name__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">internal_name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">UpperBound</span><span class="p">(</span><span class="n">Bound</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bound</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LowerBound</span><span class="p">(</span><span class="n">Bound</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
+        <span class="n">ppf_zero</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">owner</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rv_discrete</span><span class="p">):</span>  <span class="c1"># @UndefinedVariable</span>
+            <span class="c1"># ppf at actual zero for rv_discrete gives lower bound - 1</span>
+            <span class="c1"># due to a quirk in the scipy.stats implementation</span>
+            <span class="c1"># so we use the smallest positive float instead</span>
+            <span class="n">ppf_zero</span> <span class="o">=</span> <span class="mf">5e-324</span>
+    
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">owner</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ppf_zero</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bound</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Constant</span><span class="p">(</span><span class="n">NamedObject</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Constant class,</span>
+
+<span class="sd">    can be used for any parameter that has to be set to a fixed value</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Constant</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">(</span><span class="se">\&#39;</span><span class="si">{}</span><span class="se">\&#39;</span><span class="s1">, </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Category</span><span class="p">(</span><span class="n">Constant</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Category</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Category</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Constant</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_category</span><span class="p">(</span><span class="n">cat</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span> <span class="n">Category</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cat</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Category</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cat</span><span class="p">),</span> <span class="n">cat</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Parameter</span><span class="p">(</span><span class="n">Variable</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Base class for any model input parameter</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">    lower_bound : int or float</span>
+<span class="sd">    upper_bound : int or float</span>
+<span class="sd">    resolution : collection</span>
+<span class="sd">    pff : bool</span>
+<span class="sd">          if true, sample over this parameter using resolution in case of</span>
+<span class="sd">          partial factorial sampling</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        if lower bound is larger than upper bound</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        if entries in resolution are outside range of lower_bound and</span>
+<span class="sd">        upper_bound</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">LowerBound</span><span class="p">()</span>
+    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">UpperBound</span><span class="p">()</span>
+    <span class="n">default</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="nd">@property</span>    
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span>
+    
+    <span class="nd">@resolution</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;resolution not consistent with lower and &#39;</span>
+                                  <span class="s1">&#39;upper bound&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span> <span class="o">=</span> <span class="n">value</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Parameter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span> <span class="o">=</span> <span class="n">lower_bound</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span> <span class="o">=</span> <span class="n">upper_bound</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="n">resolution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable_name</span> <span class="o">=</span> <span class="n">variable_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pff</span> <span class="o">=</span> <span class="n">pff</span>
+        
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dist</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;alternative constructor for creating a parameter from a frozen</span>
+<span class="sd">        scipy.stats distribution directly</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dist : scipy stats frozen dist</span>
+<span class="sd">        **kwargs : valid keyword arguments for Parameter instance</span>
+<span class="sd">        </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">_distn_infrastructure</span><span class="o">.</span><span class="n">rv_frozen</span><span class="p">))</span>  <span class="c1"># @UndefinedVariable</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ppf</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;resolution&quot;</span><span class="p">,</span> <span class="s2">&quot;variable_name&quot;</span><span class="p">,</span> <span class="s2">&quot;pff&quot;</span><span class="p">}:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown property </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> for Parameter&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="n">self_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">other_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">self_keys</span> <span class="o">-</span> <span class="n">other_keys</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">self_keys</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;dist&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># name, parameters</span>
+                    <span class="n">self_dist</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="n">other_dist</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">self_dist</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">other_dist</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+                    <span class="k">if</span> <span class="n">self_dist</span><span class="o">.</span><span class="n">args</span> <span class="o">!=</span> <span class="n">other_dist</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+                    
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+<span class="c1">#     def __repr__(self, *args, **kwargs):</span>
+<span class="c1">#         start = &#39;{}(\&#39;{}\&#39;, {}, {}&#39;.format(self.__class__.__name__,</span>
+<span class="c1">#                                            self.name,</span>
+<span class="c1">#                                            self.lower_bound, self.upper_bound)</span>
+<span class="c1"># </span>
+<span class="c1">#         if self.resolution:</span>
+<span class="c1">#             start += &#39;, resolution={}&#39;.format(self.resolution)</span>
+<span class="c1">#         if self.default:</span>
+<span class="c1">#             start += &#39;, default={}&#39;.format(self.default)</span>
+<span class="c1">#         if self.variable_name != [self.name]:</span>
+<span class="c1">#             start += &#39;, variable_name={}&#39;.format(self.variable_name)</span>
+<span class="c1">#         if self.pff:</span>
+<span class="c1">#             start += &#39;, pff={}&#39;.format(self.pff)</span>
+<span class="c1"># </span>
+<span class="c1">#         start += &#39;)&#39;</span>
+<span class="c1"># </span>
+<span class="c1">#         return start</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RealParameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; real valued model input parameter</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">    lower_bound : int or float</span>
+<span class="sd">    upper_bound : int or float</span>
+<span class="sd">    resolution : iterable</span>
+<span class="sd">    variable_name : str, or list of str</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        if lower bound is larger than upper bound</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        if entries in resolution are outside range of lower_bound and</span>
+<span class="sd">        upper_bound</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span>
+            <span class="n">RealParameter</span><span class="p">,</span>
+            <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">lower_bound</span><span class="p">,</span>
+            <span class="n">upper_bound</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+            <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span>
+            <span class="n">pff</span><span class="o">=</span><span class="n">pff</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">-</span><span class="n">lower_bound</span><span class="p">)</span>  <span class="c1"># @UndefinedVariable</span>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dist</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rv_continuous</span><span class="p">):</span>  <span class="c1"># @UndefinedVariable</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dist should be instance of rv_continouos&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">RealParameter</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">from_dist</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">IntegerParameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; integer valued model input parameter</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">    lower_bound : int</span>
+<span class="sd">    upper_bound : int</span>
+<span class="sd">    resolution : iterable</span>
+<span class="sd">    variable_name : str, or list of str</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        if lower bound is larger than upper bound</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        if entries in resolution are outside range of lower_bound and</span>
+<span class="sd">        upper_bound, or not an numbers.Integral instance</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        if lower_bound or upper_bound is not an numbers.Integral instance</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">IntegerParameter</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">,</span>
+                                        <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+                                        <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="n">pff</span><span class="p">)</span>
+
+        <span class="n">lb_int</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span>
+        <span class="n">up_int</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">lb_int</span> <span class="ow">or</span> <span class="n">up_int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;lower bound and upper bound must be integers&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># @UndefinedVariable</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dist</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rv_discrete</span><span class="p">):</span>  <span class="c1"># @UndefinedVariable</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dist should be instance of rv_discrete&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">IntegerParameter</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">from_dist</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CategoricalParameter</span><span class="p">(</span><span class="n">IntegerParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; categorical model input parameter</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">    categories : collection of obj</span>
+<span class="sd">    variable_name : str, or list of str</span>
+<span class="sd">    multivalue : boolean</span>
+<span class="sd">                 if categories have a set of values, for each variable_name</span>
+<span class="sd">                 a different one.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">categories</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_categories</span>
+
+    <span class="nd">@categories</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">categories</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_categories</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">categories</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">multivalue</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">upper_bound</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;there should be more than 1 category&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span>
+            <span class="n">CategoricalParameter</span><span class="p">,</span>
+            <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">lower_bound</span><span class="p">,</span>
+            <span class="n">upper_bound</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+            <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span>
+            <span class="n">pff</span><span class="o">=</span><span class="n">pff</span><span class="p">)</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_category</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span> <span class="k">for</span> <span class="n">cat</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_categories</span> <span class="o">=</span> <span class="n">NamedObjectMap</span><span class="p">(</span><span class="n">Category</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="n">cats</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categories</span><span class="p">))]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multivalue</span> <span class="o">=</span> <span class="n">multivalue</span>
+
+<div class="viewcode-block" id="CategoricalParameter.index_for_cat">
+<a class="viewcode-back" href="../../../../source/emat.scope/parameters.html#emat.scope.parameter.CategoricalParameter.index_for_cat">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">index_for_cat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;return index of category</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        category : object</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cat</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categories</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">category</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">i</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;category not found&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CategoricalParameter.cat_for_index">
+<a class="viewcode-back" href="../../../../source/emat.scope/parameters.html#emat.scope.parameter.CategoricalParameter.cat_for_index">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cat_for_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;return category given index</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index  : int</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        object</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">categories</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="CategoricalParameter.invert">
+<a class="viewcode-back" href="../../../../source/emat.scope/parameters.html#emat.scope.parameter.CategoricalParameter.invert">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; invert a category to an integer</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : obj</span>
+<span class="sd">               category</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            if category is not found</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;deprecated, use index_for_cat instead&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_for_cat</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">template1</span> <span class="o">=</span> <span class="s1">&#39;CategoricalParameter(</span><span class="se">\&#39;</span><span class="si">{}</span><span class="se">\&#39;</span><span class="s1">, </span><span class="si">{}</span><span class="s1">, default=</span><span class="si">{}</span><span class="s1">)&#39;</span>
+        <span class="n">template2</span> <span class="o">=</span> <span class="s1">&#39;CategoricalParameter(</span><span class="se">\&#39;</span><span class="si">{}</span><span class="se">\&#39;</span><span class="s1">, </span><span class="si">{}</span><span class="s1">)&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">:</span>
+            <span class="n">representation</span> <span class="o">=</span> <span class="n">template1</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">representation</span> <span class="o">=</span> <span class="n">template2</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">representation</span>
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dist</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># TODO:: how to handle this</span>
+        <span class="c1"># probebly need to pass categories as list and zip</span>
+        <span class="c1"># categories to integers implied by dist</span>
+        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="n">CategoricalParameter</span><span class="p">:</span>
+            <span class="c1"># only not implemented if it is CategoricalParameter</span>
+            <span class="c1"># allow BooleanParameter to pass through correctly.</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">((</span><span class="s2">&quot;custom distributions over categories &quot;</span>
+                                       <span class="s2">&quot;not supported yet&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rv_discrete</span><span class="p">):</span>  <span class="c1"># @UndefinedVariable</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dist should be instance of rv_discrete&quot;</span><span class="p">)</span>
+        <span class="n">categories</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;categories&#39;</span><span class="p">)</span>
+        <span class="n">multivalue</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;multivalue&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CategoricalParameter</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">from_dist</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_category</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span> <span class="k">for</span> <span class="n">cat</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_categories</span> <span class="o">=</span> <span class="n">NamedObjectMap</span><span class="p">(</span><span class="n">Category</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="n">cats</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categories</span><span class="p">))]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multivalue</span> <span class="o">=</span> <span class="n">multivalue</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BooleanParameter</span><span class="p">(</span><span class="n">CategoricalParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; boolean model input parameter</span>
+
+<span class="sd">    A BooleanParameter is similar to a CategoricalParameter, except</span>
+<span class="sd">    the category values can only be True or False.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">    variable_name : str, or list of str</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">pff</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BooleanParameter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+            <span class="n">variable_name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">pff</span><span class="o">=</span><span class="n">pff</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dist</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rv_discrete</span><span class="p">):</span>  <span class="c1"># @UndefinedVariable</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dist should be instance of rv_discrete&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">5e-324</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dist should have minimum value of 0&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dist</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dist should have maximum value of 1&quot;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">from_dist</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="n">dist</span><span class="p">,</span>
+                                   <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># cats = [create_category(cat) for cat in [False, True]]</span>
+        <span class="c1"># result._categories = NamedObjectMap(Category)</span>
+        <span class="c1"># result.categories = cats</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+<span class="c1">#     def __repr__(self, *args, **kwargs):</span>
+<span class="c1">#         template1 = &#39;BooleanParameter(\&#39;{}\&#39;, default={})&#39;</span>
+<span class="c1">#         template2 = &#39;BooleanParameter(\&#39;{}\&#39;, )&#39;</span>
+<span class="c1"># </span>
+<span class="c1">#         if self.default:</span>
+<span class="c1">#             representation = template1.format(self.name,</span>
+<span class="c1">#                                               self.default)</span>
+<span class="c1">#         else:</span>
+<span class="c1">#             representation = template2.format(self.name, )</span>
+<span class="c1"># </span>
+<span class="c1">#         return representation</span>
+<span class="c1"># class BinaryParameter(CategoricalParameter):</span>
+<span class="c1">#     &#39;&#39;&#39; a categorical model input parameter that is only True or False</span>
+<span class="c1"># </span>
+<span class="c1">#     Parameters</span>
+<span class="c1">#     ----------</span>
+<span class="c1">#     name : str</span>
+<span class="c1">#     &#39;&#39;&#39;</span>
+<span class="c1"># </span>
+<span class="c1">#     def __init__(self, name, default=None, ):</span>
+<span class="c1">#         super(</span>
+<span class="c1">#             BinaryParameter,</span>
+<span class="c1">#             self).__init__(</span>
+<span class="c1">#             name,</span>
+<span class="c1">#             categories=[</span>
+<span class="c1">#                 False,</span>
+<span class="c1">#                 True],</span>
+<span class="c1">#             default=default)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Policy</span><span class="p">(</span><span class="n">NamedDict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Helper class representing a policy</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str, int, or float</span>
+<span class="sd">    id : int</span>
+<span class="sd">    </span>
+<span class="sd">    all keyword arguments are wrapped into a dict.</span>
+<span class="sd">    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># TODO:: separate id and name</span>
+    <span class="c1"># if name is not provided fall back on id</span>
+    <span class="c1"># id will always be a number and can be generated by</span>
+    <span class="c1"># a counter</span>
+    <span class="c1"># the new experiment class can than take the names from</span>
+    <span class="c1"># policy and scenario to create a unique name while also</span>
+    <span class="c1"># multiplying the ID&#39;s (assuming we count from 1 onward) to get</span>
+    <span class="c1"># a unique experiment ID</span>
+    <span class="n">id_counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">Counter</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># TODO: perhaps move this to seperate function that internally uses</span>
+        <span class="c1"># counter</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;policy </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Policy</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">Policy</span><span class="o">.</span><span class="n">id_counter</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;get list like representation of policy where the</span>
+<span class="sd">        parameters are in the order of levers&#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Policy(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">Policy</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Scenario</span><span class="p">(</span><span class="n">NamedDict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Helper class representing a scenario</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str, int, or float</span>
+<span class="sd">    id : int</span>
+<span class="sd">    </span>
+<span class="sd">    all keyword arguments are wrapped into a dict.</span>
+<span class="sd">    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="c1"># we need to start from 1 so scenario id is known</span>
+    <span class="n">id_counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">Counter</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Scenario</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">Scenario</span><span class="o">.</span><span class="n">id_counter</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Scenario(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">Scenario</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Case</span><span class="p">(</span><span class="n">NamedObject</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;A convenience object that contains a specification</span>
+<span class="sd">    of the model, policy, and scenario to run</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<span class="c1">#     TODO:: we need a better name for this. probably this should be</span>
+<span class="c1">#     named Experiment, while Experiment should be</span>
+<span class="c1">#     ExperimentReplication</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Case</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">experiment_id</span> <span class="o">=</span> <span class="n">experiment_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="n">policy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">model_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">=</span> <span class="n">scenario</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Experiment</span><span class="p">(</span><span class="n">NamedDict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;helper class that combines scenario, policy, any constants, and</span>
+<span class="sd">    replication information (seed etc) into a single dictionary.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">constants</span><span class="p">,</span> <span class="n">replication</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">scenario_id</span> <span class="o">=</span> <span class="n">scenario</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">policy_id</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">id</span>
+
+        <span class="k">if</span> <span class="n">replication</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">replication_id</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">replication_id</span> <span class="o">=</span> <span class="n">replication</span><span class="o">.</span><span class="n">id</span>
+            <span class="n">constants</span> <span class="o">=</span> <span class="n">combine</span><span class="p">(</span><span class="n">constants</span><span class="p">,</span> <span class="n">replication</span><span class="p">)</span>
+
+        <span class="c1"># this is a unique identifier for an experiment</span>
+        <span class="c1"># we might also create a better looking name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">scenario_id</span> <span class="o">*</span> <span class="n">policy_id</span> <span class="o">*</span> <span class="n">replication_id</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">scenario</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">replication_id</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Experiment</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">combine</span><span class="p">(</span><span class="n">scenario</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">constants</span><span class="p">))</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">zip_cycle</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">maxlen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">islice</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)),</span> <span class="n">maxlen</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">experiment_generator</span><span class="p">(</span><span class="n">scenarios</span><span class="p">,</span> <span class="n">model_structures</span><span class="p">,</span> <span class="n">policies</span><span class="p">,</span> <span class="n">zip_over</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    generator function which yields experiments</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    designs : iterable of dicts</span>
+<span class="sd">    model_structures : list</span>
+<span class="sd">    policies : list</span>
+<span class="sd">    zip_over : Collection[str], optional</span>
+<span class="sd">        A collection that contains exactly two or three members of the set</span>
+<span class="sd">        {&#39;scenarios&#39;, &#39;policies&#39;, &#39;models&#39;}.  If a set is given, the length</span>
+<span class="sd">        of all other arguments that are indicated in this set must be the</span>
+<span class="sd">        same, and the experiment generator will create experiments based on</span>
+<span class="sd">        a `zip` through the values in these collections, instead of creating</span>
+<span class="sd">        experiments across all possible combinations of the values.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    When called with zip_over as None, this generator is essentially</span>
+<span class="sd">    three nested loops: for each model structure,</span>
+<span class="sd">    for each policy, for each scenario, return the experiment. This means</span>
+<span class="sd">    that designs should not be a generator because this will be exhausted after</span>
+<span class="sd">    the running the first policy on the first model.  If zip_over contains</span>
+<span class="sd">    two items, then those two will be paired up, but there will still be</span>
+<span class="sd">    two nested loops.</span>
+
+<span class="sd">    When called with zip_over set as not None, if the length of the lists</span>
+<span class="sd">    identified in zip_over is unbalanced, the shorter list(s) will be</span>
+<span class="sd">    recycled in the same order after they have been exhausted until the</span>
+<span class="sd">    longest list is exhausted. If lists are randomly shuffled before being</span>
+<span class="sd">    passed to this generator, this is equivalent to sampling (without</span>
+<span class="sd">    replacement) from each space.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">zip_over</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">zip_over</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">zip_over</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">zip_over</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">zip_over</span><span class="o">.</span><span class="n">issubset</span><span class="p">({</span><span class="s1">&#39;scenarios&#39;</span><span class="p">,</span> <span class="s1">&#39;policies&#39;</span><span class="p">,</span> <span class="s1">&#39;models&#39;</span><span class="p">}):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;zip_over must be subset of {&#39;scenarios&#39;, &#39;policies&#39;, &#39;models&#39;} or None&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zip_over</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;zip_over cannot be one item&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">zip_over</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;scenarios&#39;</span><span class="p">,</span> <span class="s1">&#39;policies&#39;</span><span class="p">,</span> <span class="s1">&#39;models&#39;</span><span class="p">}:</span>
+        <span class="n">jobs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">m_</span><span class="p">,</span> <span class="n">p_</span><span class="p">,</span> <span class="n">s_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">m_</span><span class="p">,</span> <span class="n">p_</span><span class="p">,</span> <span class="n">s_</span> <span class="ow">in</span> <span class="n">zip_cycle</span><span class="p">(</span>
+                <span class="n">model_structures</span><span class="p">,</span> <span class="n">policies</span><span class="p">,</span> <span class="n">scenarios</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">zip_over</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;scenarios&#39;</span><span class="p">,</span> <span class="s1">&#39;policies&#39;</span><span class="p">}:</span>
+        <span class="n">jobs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">m_</span><span class="p">,</span> <span class="n">p_</span><span class="p">,</span> <span class="n">s_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">m_</span><span class="p">,</span> <span class="p">(</span><span class="n">p_</span><span class="p">,</span> <span class="n">s_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span>
+                <span class="n">model_structures</span><span class="p">,</span> <span class="n">zip_cycle</span><span class="p">(</span><span class="n">policies</span><span class="p">,</span> <span class="n">scenarios</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">zip_over</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;scenarios&#39;</span><span class="p">,</span> <span class="s1">&#39;models&#39;</span><span class="p">}:</span>
+        <span class="n">jobs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">m_</span><span class="p">,</span> <span class="n">p_</span><span class="p">,</span> <span class="n">s_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">p_</span><span class="p">,</span> <span class="p">(</span><span class="n">m_</span><span class="p">,</span> <span class="n">s_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span>
+                <span class="n">policies</span><span class="p">,</span> <span class="n">zip_cycle</span><span class="p">(</span><span class="n">model_structures</span><span class="p">,</span> <span class="n">scenarios</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">zip_over</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;policies&#39;</span><span class="p">,</span> <span class="s1">&#39;models&#39;</span><span class="p">}:</span>
+        <span class="n">jobs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">m_</span><span class="p">,</span> <span class="n">p_</span><span class="p">,</span> <span class="n">s_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">s_</span><span class="p">,</span> <span class="p">(</span><span class="n">m_</span><span class="p">,</span> <span class="n">p_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span>
+                <span class="n">scenarios</span><span class="p">,</span> <span class="n">zip_cycle</span><span class="p">(</span><span class="n">model_structures</span><span class="p">,</span> <span class="n">policies</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">jobs</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">model_structures</span><span class="p">,</span> <span class="n">policies</span><span class="p">,</span> <span class="n">scenarios</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">job</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">jobs</span><span class="p">):</span>
+        <span class="n">msi</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">scenario</span> <span class="o">=</span> <span class="n">job</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msi</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">case</span> <span class="o">=</span> <span class="n">Case</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">msi</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">case</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parameters_to_csv</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Helper function for writing a collection of parameters to a csv file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : collection of Parameter instances</span>
+<span class="sd">    file_name :  str</span>
+
+
+<span class="sd">    The function iterates over the collection and turns these into a data</span>
+<span class="sd">    frame prior to storing them. The resulting csv can be loaded using the</span>
+<span class="sd">    create_parameters function. Note that currently we don&#39;t store resolution</span>
+<span class="sd">    and default attributes.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parameters</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">CategoricalParameter</span><span class="p">):</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">resolution</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">upper_bound</span>
+
+        <span class="n">dict_repr</span> <span class="o">=</span> <span class="p">{</span><span class="n">j</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">)}</span>
+        <span class="n">dict_repr</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="n">params</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dict_repr</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
+
+    <span class="c1"># for readability it is nice if name is the first column, so let&#39;s</span>
+    <span class="c1"># ensure this</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">cols</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cols</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">cols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)))</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">cols</span><span class="p">)</span>
+
+    <span class="c1"># we can now safely write the dataframe to a csv</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parameters_from_csv</span><span class="p">(</span><span class="n">uncertainties</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Helper function for creating many Parameters based on a DataFrame</span>
+<span class="sd">    or csv file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    uncertainties : str, DataFrame</span>
+<span class="sd">    **kwargs : dict, arguments to pass to pandas.read_csv</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of Parameter instances</span>
+
+
+<span class="sd">    This helper function creates uncertainties. It assumes that the</span>
+<span class="sd">    DataFrame or csv file has a column titled &#39;name&#39;, optionally a type column</span>
+<span class="sd">    {int, real, cat}, can be included as well. the remainder of the columns</span>
+<span class="sd">    are handled as values for the parameters. If type is not specified,</span>
+<span class="sd">    the function will try to infer type from the values.</span>
+
+<span class="sd">    Note that this function does not support the resolution and default kwargs</span>
+<span class="sd">    on parameters.</span>
+
+<span class="sd">    An example of a csv:</span>
+
+<span class="sd">    NAME,TYPE,,,</span>
+<span class="sd">    a_real,real,0,1.1,</span>
+<span class="sd">    an_int,int,1,9,</span>
+<span class="sd">    a_categorical,cat,a,b,c</span>
+
+<span class="sd">    this CSV file would result in</span>
+
+<span class="sd">    [RealParameter(&#39;a_real&#39;, 0, 1.1, resolution=[], default=None),</span>
+<span class="sd">     IntegerParameter(&#39;an_int&#39;, 1, 9, resolution=[], default=None),</span>
+<span class="sd">     CategoricalParameter(&#39;a_categorical&#39;, [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;], default=None)]</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">uncertainties</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">uncertainties</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">uncertainties</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">uncertainties</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">uncertainties</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">uncertainties</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uncertainties</span> <span class="o">=</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">parameter_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;int&#39;</span><span class="p">:</span> <span class="n">IntegerParameter</span><span class="p">,</span>
+                     <span class="s1">&#39;real&#39;</span><span class="p">:</span> <span class="n">RealParameter</span><span class="p">,</span>
+                     <span class="s1">&#39;cat&#39;</span><span class="p">:</span> <span class="n">CategoricalParameter</span><span class="p">,</span>
+                     <span class="s1">&#39;bool&#39;</span><span class="p">:</span> <span class="n">BooleanParameter</span><span class="p">,</span>
+                     <span class="p">}</span>
+
+    <span class="c1"># check if names column is there</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;NAME&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">uncertainties</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">uncertainties</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s1">&#39;name column missing&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="s1">&#39;NAME&#39;</span> <span class="ow">in</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">ix</span><span class="p">[:,</span> <span class="s1">&#39;NAME&#39;</span><span class="p">]</span>
+        <span class="n">uncertainties</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">ix</span><span class="p">[:,</span> <span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">uncertainties</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># check if type column is there</span>
+    <span class="n">infer_type</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;TYPE&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">uncertainties</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;type&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">uncertainties</span><span class="p">):</span>
+        <span class="n">infer_type</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="s1">&#39;TYPE&#39;</span> <span class="ow">in</span> <span class="n">uncertainties</span><span class="p">):</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">ix</span><span class="p">[:,</span> <span class="s1">&#39;TYPE&#39;</span><span class="p">]</span>
+        <span class="n">uncertainties</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;TYPE&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">ix</span><span class="p">[:,</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span>
+        <span class="n">uncertainties</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">uncs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">uncertainties</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">notnull</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># @ReservedAssignment</span>
+
+        <span class="k">if</span> <span class="n">infer_type</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;cat&#39;</span>  <span class="c1"># @ReservedAssignment</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">l</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">values</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+                        <span class="n">l</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+                        <span class="n">u</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">):</span>
+                    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;int&#39;</span>  <span class="c1"># @ReservedAssignment</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;real&#39;</span>  <span class="c1"># @ReservedAssignment</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">type</span> <span class="o">=</span> <span class="n">types</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>  <span class="c1"># @ReservedAssignment</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nb">type</span> <span class="o">!=</span> <span class="s1">&#39;cat&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;too many values specified for </span><span class="si">{}</span><span class="s1">, is </span><span class="si">{}</span><span class="s1">, should be 2&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;cat&#39;</span><span class="p">:</span>
+            <span class="n">uncs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parameter_map</span><span class="p">[</span><span class="nb">type</span><span class="p">](</span><span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">uncs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parameter_map</span><span class="p">[</span><span class="nb">type</span><span class="p">](</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">uncs</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

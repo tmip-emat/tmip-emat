@@ -1,0 +1,781 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Visualizer &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Feature Scoring" href="feature-scoring.html" />
+    <link rel="prev" title="Identifying Model Problems" href="corruption.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Analysis</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#visualization">Visualization</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="splom.html">Scatter Plot Matrix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="corruption.html">Identifying Model Problems</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Interactive Visualizer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#single-dimension-figures">Single Dimension Figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changing-selections">Changing Selections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#two-dimension-figures">Two Dimension Figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dynamic-feature-scoring">Dynamic Feature Scoring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#interactive-prim">Interactive PRIM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#visualizer-api">Visualizer API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#scenario-discovery">Scenario Discovery</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#directed-search">Directed Search</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Analysis</a></li>
+      <li class="breadcrumb-item active">Interactive Visualizer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.analysis/interactive-explorer-v2.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="interactive-visualizer">
+<h1>Interactive Visualizer<a class="headerlink" href="#interactive-visualizer" title="Link to this heading">¶</a></h1>
+<p>TMIP-EMAT includes an interactive visualizer, inspired by a
+<a class="reference external" href="https://htmlpreview.github.io/?https://github.com/VisionEval/VisionEval/blob/master/sources/VEScenarioViewer/verpat.html">similar tool</a>
+provided with the <a class="reference external" href="https://visioneval.org">VisionEval</a> package.
+To demonstrate the interactive visualizer, we will use the Road Test example model.
+First, we need to develop and run a design of experiments to have some
+data to explore.  We’ll run 5,000 experiments to get a good size sample of
+data points to visualize.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">emat.examples</span>
+<span class="n">scope</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">road_test</span><span class="p">()</span>
+<span class="n">design</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">design_experiments</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run_experiments</span><span class="p">(</span><span class="n">design</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>One feature of the visualizer is the ability to display not only a number of results,
+but also to contrast those results against a given “reference” model that represents
+a more traditional single-point forecast of inputs and results.  We’ll prepare a
+reference point here using the
+<a class="reference internal" href="../emat.models/abstract.html#emat.model.AbstractCoreModel.run_reference_experiment" title="emat.model.AbstractCoreModel.run_reference_experiment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_reference_experiment</span></code></a>
+method, which reads the input parameter defaults (as defined in the scope),
+and returns both inputs and outputs in a DataFrame (essentially, an experimental
+design with only a single experiment), suitable for use as the reference point marker in our
+visualizations.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">refpoint</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run_reference_experiment</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The interactive visualizer class can be imported from the <code class="xref py py-mod docutils literal notranslate"><span class="pre">emat.analysis</span></code> package.
+To use it, we create an <a class="reference internal" href="#emat.analysis.Visualizer" title="emat.analysis.Visualizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Visualizer</span></code></a> instance, giving a scope and a set of
+experimental results, as well as the reference point.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">emat.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
+<span class="n">viz</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">results</span><span class="p">,</span> <span class="n">reference_point</span><span class="o">=</span><span class="n">refpoint</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="single-dimension-figures">
+<h2>Single Dimension Figures<a class="headerlink" href="#single-dimension-figures" title="Link to this heading">¶</a></h2>
+<p>To build a complete interactive workspace similar to that provided by VisionEval, we
+can use the <a class="reference internal" href="#emat.analysis.Visualizer.complete" title="emat.analysis.Visualizer.complete"><code class="xref py py-meth docutils literal notranslate"><span class="pre">complete</span></code></a> method on the <cite>viz</cite> instance we created above. This will
+create a set of histograms illustrating the data in the results computed above. There
+is one histogram for each policy lever, exogenous uncertainty, and performance measure.</p>
+<img alt="policy levers from the &quot;complete&quot; set of histograms" src="../../_images/complete1.png" />
+<img alt="uncertainties from the &quot;complete&quot; set of histograms" src="../../_images/complete2.png" />
+<img alt="performance measures from the &quot;complete&quot; set of histograms" src="../../_images/complete3.png" />
+<p>A range of data in each histogram can be selected by dragging horizonatally across the
+figure. For continuous parameters (i.e. float or integer valued parameters) you can
+select a single contiguous range by dragging across that range, and deselect by double
+clicking on the figure (or by selecting the entire possible range).  For discrete
+parameters (i.e. boolean or categorical parameters, identifiable by the larger gaps
+between the bars in the figure) dragging across the center of any bar toggles whether
+that bar is selected or not.  This allows non-contiguous selections in categories that
+have 3 or more possible values.  Like the other figures, any selection can be cleared
+by double-clicking.</p>
+<img alt="selecting and deselecting from policy lever histograms" src="../../_images/select-from-histograms-.gif" />
+<p>Selections can be made simultaneously over any combination of uncertainties, policy levers,
+and performance measures.  The combination of controls offered can
+be used interactively to select and highlight only a subset of the experiments in
+the complete data set.  By manipulating these controls, users can explore the
+interaction across various inputs and outputs.</p>
+<p>It is also possible to display just a small subset of the figures of this interactive viewer.
+This could be convenient, for example, if there are a very large number of performance measures.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viz</span><span class="o">.</span><span class="n">selectors</span><span class="p">([</span><span class="s1">&#39;input_flow&#39;</span><span class="p">,</span> <span class="s1">&#39;expand_capacity&#39;</span><span class="p">,</span> <span class="s1">&#39;net_benefits&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="a limited display of histograms" src="../../_images/three-histograms.png" />
+</section>
+<section id="changing-selections">
+<h2>Changing Selections<a class="headerlink" href="#changing-selections" title="Link to this heading">¶</a></h2>
+<p>In addition to manipulating the controls interactively within the Jupyter notebook, they can also be
+set programatically from Python code.  To do so, we can define a new <a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">emat.Box</span></code></a>
+that declares lower and/or upper bounds for any continuous dimensions,
+as well as the set of allowed (included) value for any discrete dimensions,
+and then add that new box to this visualizer using the
+<a class="reference internal" href="#emat.analysis.Visualizer.add_box" title="emat.analysis.Visualizer.add_box"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_box</span></code></a> command.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">box</span> <span class="o">=</span> <span class="n">emat</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="s2">&quot;Passable&quot;</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">)</span>
+<span class="n">box</span><span class="o">.</span><span class="n">set_upper_bound</span><span class="p">(</span><span class="s1">&#39;cost_of_capacity_expansion&#39;</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+<span class="n">box</span><span class="o">.</span><span class="n">set_lower_bound</span><span class="p">(</span><span class="s1">&#39;time_savings&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">box</span><span class="o">.</span><span class="n">remove_from_allowed_set</span><span class="p">(</span><span class="s1">&#39;debt_type&#39;</span><span class="p">,</span> <span class="s1">&#39;GO Bond&#39;</span><span class="p">)</span>
+<span class="n">viz</span><span class="o">.</span><span class="n">add_box</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, a new box can be created and added to the Visualier
+with a single <a class="reference internal" href="#emat.analysis.Visualizer.new_box" title="emat.analysis.Visualizer.new_box"><code class="xref py py-meth docutils literal notranslate"><span class="pre">new_box</span></code></a> command, which
+passes most keyword arguments through to the <a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">emat.Box</span></code></a> constuctor.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viz</span><span class="o">.</span><span class="n">new_box</span><span class="p">(</span><span class="s1">&#39;Profitable&#39;</span><span class="p">,</span> <span class="n">lower_bounds</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;net_benefits&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Each of these new boxes is added to the <a class="reference internal" href="#emat.analysis.Visualizer" title="emat.analysis.Visualizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Visualizer</span></code></a> seperately. You can
+switch between different active boxes using the dropdown selector at the top
+of the <cite>complete</cite> interface – this same selector is available within the
+smaller <a class="reference internal" href="#emat.analysis.Visualizer.status" title="emat.analysis.Visualizer.status"><code class="xref py py-meth docutils literal notranslate"><span class="pre">status</span></code></a> widget:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viz</span><span class="o">.</span><span class="n">status</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="the visualizer status display after creating the profitable box" src="../../_images/viz-status-profitable.png" />
+<p>You can also programatically find and change the active box from Python.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">viz</span><span class="o">.</span><span class="n">active_selection_name</span><span class="p">()</span>
+<span class="go">&#39;Profitable&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">viz</span><span class="o">.</span><span class="n">set_active_selection_name</span><span class="p">(</span><span class="s2">&quot;Passable&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">viz</span><span class="o">.</span><span class="n">active_selection_name</span><span class="p">()</span>
+<span class="go">&#39;Passable&#39;</span>
+</pre></div>
+</div>
+<p>When interactively changing bounds by dragging on figures, the currently
+“active” box is modified with the revised bounds.  The entire set of
+bounds can be cleared at once with the <a class="reference internal" href="#emat.analysis.Visualizer.clear_box" title="emat.analysis.Visualizer.clear_box"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clear_box</span></code></a>
+method, which by default
+clears the settings on the active box selection; give a name to clear the
+settings from a different box selection.</p>
+<p>If instead we want to manipulate an existing box selection, we can access the
+<a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code></a> object, manipulate it
+(e.g. by using <a class="reference internal" href="../emat.scope/boxes.html#emat.Box.remove_from_allowed_set" title="emat.Box.remove_from_allowed_set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove_from_allowed_set</span></code></a>
+or <a class="reference internal" href="../emat.scope/boxes.html#emat.Box.add_to_allowed_set" title="emat.Box.add_to_allowed_set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_to_allowed_set</span></code></a>),
+and write it back into the Visualizer.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">box</span> <span class="o">=</span> <span class="n">viz</span><span class="p">[</span><span class="s1">&#39;Profitable&#39;</span><span class="p">]</span>
+<span class="n">box</span><span class="o">.</span><span class="n">remove_from_allowed_set</span><span class="p">(</span><span class="s1">&#39;debt_type&#39;</span><span class="p">,</span> <span class="s1">&#39;Rev Bond&#39;</span><span class="p">)</span>
+<span class="n">viz</span><span class="p">[</span><span class="s1">&#39;Profitable&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">box</span>
+</pre></div>
+</div>
+<p>Selections can also be made that are not rectangular boxes.  One way to
+do this is to write out an expression that can be evaulated using the
+underlying DataFrame of experiments (with pandas’ build in <cite>eval</cite> method).
+We can pass any string that can be evaluated to <a class="reference internal" href="#emat.analysis.Visualizer.new_selection" title="emat.analysis.Visualizer.new_selection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">new_selection</span></code></a>
+to create a new static selection.  When static selections are active, the
+“selected” color of the figures changes from orange, to highlight the
+fact that the selection is not a simple rectangular <a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code></a>
+and cannot be modified by dragging on figures as shown before.  But we can
+still view this static selection in a number of ways, and use if for certain
+types of analysis (e.g. as a target for PRIM, see below).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viz</span><span class="o">.</span><span class="n">new_selection</span><span class="p">(</span>
+    <span class="s2">&quot;time_savings * input_flow &gt; 1000 &amp; cost_of_capacity_expansion &lt; 300&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;TimeSaved&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="two-dimension-figures">
+<h2>Two Dimension Figures<a class="headerlink" href="#two-dimension-figures" title="Link to this heading">¶</a></h2>
+<p>The <a class="reference internal" href="#emat.analysis.Visualizer" title="emat.analysis.Visualizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Visualizer</span></code></a> object can also create an interactive two-dimensional scatter plot,
+using the <a class="reference internal" href="#emat.analysis.Visualizer.two_way" title="emat.analysis.Visualizer.two_way"><code class="xref py py-meth docutils literal notranslate"><span class="pre">two_way</span></code></a> method. This method allows the user to specify the variables
+for both the <cite>x</cite> and <cite>y</cite> axis, and either can be any policy lever, exogenous
+uncertainty, or performance measure.  These dimensions can be changed interactively
+later as well.  The resulting scatter plot is linked to the same selection of
+experiments in the interactive one-dimensional figures shown above, and by default
+the same experiments are highlighted in the same color scheme in all of these related
+figures.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viz</span><span class="o">.</span><span class="n">set_active_selection_name</span><span class="p">(</span><span class="s2">&quot;Profitable&quot;</span><span class="p">)</span>
+<span class="n">viz</span><span class="o">.</span><span class="n">two_way</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;expand_capacity&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;time_savings&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="two way widget" src="../../_images/two-way-profitable.png" />
+<p>One useful feature of the <a class="reference internal" href="#emat.analysis.Visualizer.two_way" title="emat.analysis.Visualizer.two_way"><code class="xref py py-meth docutils literal notranslate"><span class="pre">two_way</span></code></a> is the ability to manually “lasso” a selection of
+data points. This lasso selection does <em>not</em> need to be anything like a rectangular
+box selection, as we have seen so far.  Once a lasso selection of data points is made
+in the figure above, you can choose “Use Manual Selection” from the <cite>Edit Selection…</cite>
+menu at right, which will create a new <a class="reference internal" href="#emat.analysis.Visualizer" title="emat.analysis.Visualizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Visualizer</span></code></a> selection from the selected data.
+The highlight color changes to signify that this is not an editable rectangular box,
+and the selected data will be highlighted in <em>all</em> figures linked to this <a class="reference internal" href="#emat.analysis.Visualizer" title="emat.analysis.Visualizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Visualizer</span></code></a>,
+including the histograms above.</p>
+<img alt="lasso selection" src="../../_images/lasso-selection-.gif" />
+<p>In addition to the <cite>two_way</cite>, which offers a feature-packed view of two dimensions at a time,
+there is also a scatter plot matrix <a class="reference internal" href="#emat.analysis.Visualizer.splom" title="emat.analysis.Visualizer.splom"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Visualizer.splom()</span></code></a> option, which displays a configurable matrix of similar
+two dimensional views.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viz</span><span class="o">.</span><span class="n">splom</span><span class="p">(</span>
+    <span class="n">rows</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;expand_capacity&#39;</span><span class="p">,</span><span class="s1">&#39;time_savings&#39;</span><span class="p">,</span><span class="s1">&#39;net_benefits&#39;</span><span class="p">),</span>
+    <span class="n">cols</span><span class="o">=</span><span class="s1">&#39;L&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<img alt="lasso selection" src="../../_images/splom.png" />
+</section>
+<section id="dynamic-feature-scoring">
+<h2>Dynamic Feature Scoring<a class="headerlink" href="#dynamic-feature-scoring" title="Link to this heading">¶</a></h2>
+<p>EMAT can score the relative importance of inputs for an experiment being within the
+selection, either for a typical rectangular selection based on thresholds, or for any
+arbitrary selection. These scores are recomputed and updated in near-real-time as the
+thresholds are adjusted.</p>
+<p>When the selection includes rectangular thresholds set on both inputs and outputs, the
+thresholded inputs are automatically excluded from the scoring algorithm.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">viz</span><span class="o">.</span><span class="n">selection_feature_scores</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="dynamic feature scoring" src="../../_images/dyn-feature-scoring-.gif" />
+</section>
+<section id="interactive-prim">
+<h2>Interactive PRIM<a class="headerlink" href="#interactive-prim" title="Link to this heading">¶</a></h2>
+<p>The PRIM tools are available directly within the interactive explorer. You can use
+any existing named selection as the target, whether it be created as a <a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">Box</span></code></a>,
+lasso, or from an expression. Or, you can write a new expression as the PRIM target.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prim</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">prim</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">&quot;net_benefits &gt;= 0&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The tradeoff selector is directly integrated into the explorer.  In addition
+to the information visible by hovering over any point in the tradeoff selector
+figure, clicking on that point will create a two new selection in the explorer,
+a “Target” selection which highlights the PRIM target with the selected <a class="reference internal" href="prim.html#emat.analysis.PrimBox" title="emat.analysis.PrimBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrimBox</span></code></a>
+bounds overlaid, and a “Solution” selection which converts the selected <a class="reference internal" href="prim.html#emat.analysis.PrimBox" title="emat.analysis.PrimBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrimBox</span></code></a>
+into a standard <a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">emat.Box</span></code></a>, settinh all of the interactive constraints to the
+bounds given by that particular point.  This highlights all the data points that are inside the
+box, instead of those in the original target.  In this manner you can use PRIM to
+manipulate the constraints on parameters to achieve a particular set of goals in a soft
+manner, instead of putting hard constraints directly as the performance measure
+goals.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prim</span><span class="o">.</span><span class="n">tradeoff_selector</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="tradeoff selector" src="../../_images/tradeoff-selector-.gif" />
+<p>We can also use PRIM to explore solutions based only on manipulating the
+policy levers, and not the combination of all inputs (levers &amp; uncertainties).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prim_levers</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">prim</span><span class="p">(</span><span class="s1">&#39;levers&#39;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s2">&quot;Profitable&quot;</span><span class="p">)</span>
+<span class="n">prim_levers</span><span class="o">.</span><span class="n">tradeoff_selector</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="tradeoff selector with only levers" src="../../_images/tradeoff-selector-levers.png" />
+</section>
+<section id="visualizer-api">
+<h2>Visualizer API<a class="headerlink" href="#visualizer-api" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">emat.analysis.</span></span><span class="sig-name descname"><span class="pre">Visualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_selection_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer" title="Link to this definition">¶</a></dt>
+<dd><p>A data visualization framework.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The base data to visualize.  Give the data directly as a
+DataFrame, or give the name of a design that can be loaded
+from the <cite>db</cite> Database.</p></li>
+<li><p><strong>selections</strong> (<em>Mapping</em><em> or </em><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a><em>, </em><em>optional</em>) – Any pre-existing selections. Each selection should be a
+boolean pandas.Series indexed the same as the data.</p></li>
+<li><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>emat.Scope</em></a><em>, </em><em>optional</em>) – The scope that describes the data.</p></li>
+<li><p><strong>active_selection_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the selection to activate.</p></li>
+<li><p><strong>reference_point</strong> (<em>Mapping</em><em> or </em><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a>) – An optional reference point to visualize.  Give as a simple
+mapping, or as a one-row DataFrame with the same columns as
+<cite>data</cite>, or give the name of a one-row design that can be loaded
+from the <cite>db</cite> Database.</p></li>
+<li><p><strong>db</strong> (<em>emat.Database</em><em>, </em><em>optional</em>) – A database from which to read content.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.set_active_selection_color">
+<span class="sig-name descname"><span class="pre">set_active_selection_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.set_active_selection_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.set_active_selection_color" title="Link to this definition">¶</a></dt>
+<dd><p>A color to associate with the active selection.</p>
+<p>The color should be a plotly-compatible representation
+of the color, although no validation is done and any
+value will be accepted.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.three_way">
+<span class="sig-name descname"><span class="pre">three_way</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.three_way"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.three_way" title="Link to this definition">¶</a></dt>
+<dd><p>Create or display a three-way widget.</p>
+</dd></dl>
+
+</dd></dl>
+
+<section id="manipulating-selections">
+<h3>Manipulating Selections<a class="headerlink" href="#manipulating-selections" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.add_box">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">add_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.add_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.add_box" title="Link to this definition">¶</a></dt>
+<dd><p>Add an existing Box to this Visualizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>box</strong> (<a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><em>emat.Box</em></a>) – The box to add.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.new_box">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">new_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.new_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.new_box" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new Box and add it to this Visualizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the selection box to add.
+If this name already exists in this
+Visualizer, it will be overwritten.</p></li>
+<li><p><strong>activate</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Immediately make this new box the active
+selection in this Visualizer.</p></li>
+<li><p><strong>**kwargs</strong> – All other keyword arguments are
+forwarded to the <a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">emat.Box</span></code></a>
+constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The newly created box.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box">emat.Box</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.clear_box">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">clear_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.clear_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.clear_box" title="Link to this definition">¶</a></dt>
+<dd><p>Clear the contents of an editable selection box.</p>
+<p>If the selection to be cleared is not editable
+(i.e. if it is not based on an <a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><code class="xref py py-class docutils literal notranslate"><span class="pre">emat.Box</span></code></a>)
+this method does nothing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the box to clear. If not
+specified, the currently active selection
+is cleared.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.new_selection">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">new_selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.new_selection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.new_selection" title="Link to this definition">¶</a></dt>
+<dd><p>Add a new selection set to the Visualizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<a class="reference internal" href="../emat.scope/boxes.html#emat.Box" title="emat.Box"><em>Box</em></a><em>, </em><a class="reference internal" href="prim.html#emat.analysis.PrimBox" title="emat.analysis.PrimBox"><em>PrimBox</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, or </em><em>array-like</em>) – The new selection.  If given as an <cite>emat.Box</cite>,
+the selection is defined entirely by the boundaries of the
+box, as applied to the visualizer data.
+If given as a <cite>PrimBox</cite>, the box boundaries are defined
+by the selected point on the peeling trajectory (and
+are immutable within the Visualizer interface), but the
+selection is taken from the Prim target.
+If given as a <cite>str</cite>, a new immutable selection array is created
+by evaluating the string in the context of the visualizer data.
+If given as an array-like, the array is used to explicitly
+define an immutable selection.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – A name for this selection.  If not given, the name is inferred
+from the <cite>name</cite> attribute of the <cite>value</cite> argument, if possible.</p></li>
+<li><p><strong>color</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – A color to use for this selection, in “rgb(n,n,n)” format.
+If not provided, a default color is selected based on the
+type of <cite>value</cite>.</p></li>
+<li><p><strong>activate</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Whether to immediately make this new selection as the “active”
+selection for this visualizer.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.7/library/exceptions.html#TypeError" title="(in Python v3.7)"><strong>TypeError</strong></a> – If <cite>name</cite> is not a string or cannot be inferred.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="single-dimension-views">
+<h3>Single Dimension Views<a class="headerlink" href="#single-dimension-views" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.complete">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">complete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">measures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.complete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.complete" title="Link to this definition">¶</a></dt>
+<dd><p>Display status and selector widgets for all dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ipywidgets.Box</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.status">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.status" title="Link to this definition">¶</a></dt>
+<dd><p>Display the status widget.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.selectors">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">selectors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.selectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.selectors" title="Link to this definition">¶</a></dt>
+<dd><p>Display selector widgets for certain dimensions.</p>
+<p>This method returns an ipywidgets Box containing
+the selector widgets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>names</strong> (<em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em>) – These names will included in this set of
+widgets.  If the name is not found in the
+scope or this visualizer’s data, a warning
+is issued but the remaining valid widgets
+are still returned.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ipywidgets.Box</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.lever_selectors">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">lever_selectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.lever_selectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.lever_selectors" title="Link to this definition">¶</a></dt>
+<dd><p>Display selector widgets for all policy levers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ipywidgets.Box</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.uncertainty_selectors">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">uncertainty_selectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.uncertainty_selectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.uncertainty_selectors" title="Link to this definition">¶</a></dt>
+<dd><p>Display selector widgets for all uncertainties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ipywidgets.Box</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.measure_selectors">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">measure_selectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.measure_selectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.measure_selectors" title="Link to this definition">¶</a></dt>
+<dd><p>Display selector widgets for all performance measures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ipywidgets.Box</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="multi-dimension-views">
+<h3>Multi Dimension Views<a class="headerlink" href="#multi-dimension-views" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.two_way">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">two_way</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_marker_opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.two_way"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.two_way" title="Link to this definition">¶</a></dt>
+<dd><p>Create or display a two-way widget.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>hashable</em><em>, </em><em>optional</em>) – A hashable key value (e.g. <cite>str</cite>) to identify
+this two_way widget.  Subsequent calls to
+this command with he same key will return
+references to the same widget, instead of
+creating new widgets.</p></li>
+<li><p><strong>reset</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to reset the two_way widget for the
+given key.  Doing so will create a new two_way
+widget, and will break any other existing references
+to the same keyed widget (they will no longer live
+update with this visualizer).</p></li>
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The names of the initial x- and y-axis dimensions to
+display.  Because the resulting figure widget is
+interactive, these dimensions may be changed later.</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The names of the initial x- and y-axis dimensions to
+display.  Because the resulting figure widget is
+interactive, these dimensions may be changed later.</p></li>
+<li><p><strong>use_gl</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Use Plotly’s <cite>Scattergl</cite> instead of <cite>Scatter</cite>, which may
+provide some performance benefit for large data sets.</p></li>
+<li><p><strong>minimum_marker_opacity</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>default 0.25</em>) – This is the minimum marker opacity used,
+notwithstanding any transparency level implied
+by <cite>target_marker_opacity</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TwoWayFigure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="emat.analysis.TwoWayFigure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">emat.analysis.</span></span><span class="sig-name descname"><span class="pre">TwoWayFigure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/typing.html#typing.Any" title="(in Python v3.7)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/twoway.html#TwoWayFigure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.TwoWayFigure" title="Link to this definition">¶</a></dt>
+<dd><p>The two-way visualizer widget.</p>
+<p>This class encapsulates a TMIP-EMAT interactive widget
+that displays a configurable two dimensional scatter
+plot of Visualizer data.  Dropdown menus allow the user
+to change the data dimensions displayed on the x and
+y axes, as well as create and manipulate new selection
+sets directly from the interactive widget.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>viz</strong> (<em>emat.Visualizer</em>) – The visualizer object to link for this two-way.</p></li>
+<li><p><strong>target_marker_opacity</strong> (<em>numeric</em><em>, </em><em>default 1000</em>) – The number of scatter point markers to display
+fully opaque.  If the number of markers displayed
+exceeds this value, each marker is rendered
+partially transparent, such that the total marker
+weight (opacity * number of markers) is loosely
+approximate to this total value.</p></li>
+<li><p><strong>minimum_marker_opacity</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>default 0.25</em>) – This is the minimum marker opacity used,
+notwithstanding any transparency level implied
+by <cite>target_marker_opacity</cite>.</p></li>
+<li><p><strong>use_gl</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Use Plotly’s <cite>Scattergl</cite> instead of <cite>Scatter</cite>, which
+may provide some performance benefit for large data
+sets.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.splom">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">splom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'M'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.splom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.splom" title="Link to this definition">¶</a></dt>
+<dd><p>Create or display a scatter plot matrix widget.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>hashable</em><em>, </em><em>optional</em>) – A hashable key value (e.g. <cite>str</cite>) to identify
+this splom widget.  Subsequent calls to
+this command with he same key will return
+references to the same widget, instead of
+creating new widgets.</p></li>
+<li><p><strong>reset</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to reset the two_way widget for the
+given key.  Doing so will create a new splom
+widget, and will break any other existing references
+to the same keyed widget (they will no longer live
+update with this visualizer).</p></li>
+<li><p><strong>cols</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em>) – The dimensions to display across each of the
+columns (rows) of the scatter plot matrix.
+Can be given as a list of dimension names, or
+a single string that is some subset of ‘XLM’ to
+include all uncertainties, policy levers, and/or
+performance measures respectively.</p></li>
+<li><p><strong>rows</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em>) – The dimensions to display across each of the
+columns (rows) of the scatter plot matrix.
+Can be given as a list of dimension names, or
+a single string that is some subset of ‘XLM’ to
+include all uncertainties, policy levers, and/or
+performance measures respectively.</p></li>
+<li><p><strong>use_gl</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Use Plotly’s <cite>Scattergl</cite> instead of <cite>Scatter</cite>, which may
+provide some performance benefit for large data sets.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>plotly.FigureWidget</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.hmm">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">hmm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'M'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emph_selected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_hover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.hmm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.hmm" title="Link to this definition">¶</a></dt>
+<dd><p>Create or display a heat map matrix widget.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>hashable</em><em>, </em><em>optional</em>) – A hashable key value (e.g. <cite>str</cite>) to identify
+this hmm widget.  Subsequent calls to
+this command with he same key will return
+references to the same widget, instead of
+creating new widgets.</p></li>
+<li><p><strong>reset</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to reset the two_way widget for the
+given key.  Doing so will create a new hmm
+widget, and will break any other existing references
+to the same keyed widget (they will no longer live
+update with this visualizer).</p></li>
+<li><p><strong>cols</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em>) – The dimensions to display across each of the
+columns (rows) of the heat map matrix.
+Can be given as a list of dimension names, or
+a single string that is some subset of ‘XLM’ to
+include all uncertainties, policy levers, and/or
+performance measures respectively.</p></li>
+<li><p><strong>rows</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em>) – The dimensions to display across each of the
+columns (rows) of the heat map matrix.
+Can be given as a list of dimension names, or
+a single string that is some subset of ‘XLM’ to
+include all uncertainties, policy levers, and/or
+performance measures respectively.</p></li>
+<li><p><strong>emph_selected</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Emphasize selected points, using a variety of
+techniques to ensure that small sized selections
+remain visible.  If disabled, when small sized
+selections are shown from large visualization
+datasets, the selected points will typically
+become washed out and undetectable.</p></li>
+<li><p><strong>show_points</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>default 30</em>) – If <cite>emph_selected</cite> is true and the number of
+selected points is less than this threshold,
+the selection will be overlaid on the heatmap
+as a scatter plot instead of a heatmap colorization.</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>default 150</em>) – The plot size for each heatmap.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>plotly.FigureWidget</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.parcoords">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">parcoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'XLM'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.parcoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.parcoords" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>hashable</em><em>, </em><em>optional</em>) – A hashable key value (e.g. <cite>str</cite>) to identify
+this parcoords widget.  Subsequent calls to
+this command with he same key will return
+references to the same widget, instead of
+creating new widgets.</p></li>
+<li><p><strong>reset</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to reset the parcoords widget for the
+given key.  Doing so will create a new parcoords
+widget, and will break any other existing references
+to the same keyed widget (they will no longer live
+update with this visualizer).</p></li>
+<li><p><strong>coords</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em>) – Names of the visualizer dimensions to display
+in this parcoords widget.  Give a list-like set
+of named dimensions, or a string that is some
+subset of ‘XLM’ to include all uncertainties,
+policy levers, and/or performance measures
+respectively.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A parallel coordinates plot.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>plotly.FigureWidget</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="analytical-tools">
+<h3>Analytical Tools<a class="headerlink" href="#analytical-tools" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.prim">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">prim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'parameters'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.prim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.prim" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new Prim search for this Visualizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>{'parameters'</em><em>, </em><em>'levers'</em><em>, </em><em>'uncertainties'</em><em>, </em><em>'measures'</em><em>, </em><em>'all'}</em>) – Limit the restricted dimensions to only be drawn
+from this subset of possible dimensions from the scope.
+Defaults to ‘parameters` (i.e. levers and uncertainties).</p></li>
+<li><p><strong>target</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – If not given, the current active selection is used as the
+target for Prim.  Otherwise, give the name of an existing
+selection, or an expression to be evaluated on the visualizer
+data to create a new target.</p></li>
+<li><p><strong>**kwargs</strong> – All other keyword arguments are forwarded to the
+<cite>emat.analysis.Prim</cite> constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>emat.analysis.Prim</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.analysis.Visualizer.selection_feature_scores">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">selection_feature_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/analysis/explore_2/explore_visualizer.html#Visualizer.selection_feature_scores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.analysis.Visualizer.selection_feature_scores" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="corruption.html" class="btn btn-neutral float-left" title="Identifying Model Problems" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="feature-scoring.html" class="btn btn-neutral float-right" title="Feature Scoring" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

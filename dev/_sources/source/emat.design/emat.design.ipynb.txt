@@ -1,0 +1,420 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f2a1233c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import emat\n",
+    "emat.versions()"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "5bfbbaf2",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. _methodology-experimental-design:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b284bcf0",
+   "metadata": {},
+   "source": [
+    "# Experimental Designs"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5579941f",
+   "metadata": {},
+   "source": [
+    "A fundamental part of TMIP-EMAT is the development of a \"design of experiments\"\n",
+    "to use in conjunction with a model. The experimental design lays out a list of \n",
+    "model experiments to be conducted, and can be constructed in a number of different \n",
+    "ways: it can be a systematic design, a random design, or something in between.\n",
+    "\n",
+    "Developing an experimental design using TMIP-EMAT requires that an exploratory\n",
+    "scope is defined, to identify the model inputs and their potential values.  To \n",
+    "illustrate designs, we'll work with the scope from the road test model."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "34ed14ec",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import emat.examples\n",
+    "scope, db, model = emat.examples.road_test()"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "ccba0845",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. _methodology-univariate-sensitivity:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "be839df1",
+   "metadata": {},
+   "source": [
+    "## Univariate Sensitivity Tests"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "faeaac68",
+   "metadata": {},
+   "source": [
+    "One of the simplest experimental designs, and one used often in practice for \n",
+    "transportation models, is a series of univariate sensitivity tests.  In this \n",
+    "design, a set of baseline or default model inputs is used as a starting point,\n",
+    "and then input parameters are changed one at a time to non-default values.\n",
+    "Univariate sensitivity tests are excellent tools for debugging and quality checking\n",
+    "the model code, as they allow modelers to confirm that each modeled input is \n",
+    "(or is intentionally not) triggering some change in the model outputs.\n",
+    "\n",
+    "TMIP-EMAT provides the `design_sensitivity_tests` function to automatically \n",
+    "generate a design of univariate sensitivity tests, given an exploratory scope.\n",
+    "This tool will systematically generate experiments where all of the inputs but one are\n",
+    "set to their default values, and the holdout input is then set to alternative values.\n",
+    "For numerical inputs, the alternative values are the minimum or maximum\n",
+    "value (one experiment for each, if they are different from the default). For categorical\n",
+    "and boolean inputs, one experiment is created for each possible input value."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "10fbcd5f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from emat.experiment.experimental_design import design_sensitivity_tests\n",
+    "ust = design_sensitivity_tests(scope, design_name='univariate_tests')\n",
+    "ust"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "da3f4558",
+   "metadata": {},
+   "source": [
+    "The output of this function is an `emat.ExperimentalDesign`, which is a subclass of \n",
+    "a typical pandas DataFrame.  The `emat.ExperimentalDesign` subclass attaches some useful metadata to the \n",
+    "actual contents of the design, namely: \n",
+    "\n",
+    "- `sampler_name`, which for univariate sensitivity test is `'uni'`, \n",
+    "- `design_name`, a descriptive name for storing and retrieving experiments and results in a database, and\n",
+    "- `scope`, which contains a reference to the scope used to define this design."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1d51140a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ust.scope is scope"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f8950105",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ust.sampler_name"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "dcb88bce",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ust.design_name"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "fab7dbeb",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. _methodology-latin-hypercube:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5ecb683d",
+   "metadata": {},
+   "source": [
+    "## Efficient Designs"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5689dfd6",
+   "metadata": {},
+   "source": [
+    "The univariate tests, while useful for model debugging and testing, are not the best choice for exploratory modeling, where we want to consider changing many input factors at once. To support multivariate exploratation, TMIP-EMAT includes a design_experiments function that offers several different multivariate samplers."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f086b572",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from emat.experiment.experimental_design import design_experiments"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7a50272e",
+   "metadata": {},
+   "source": [
+    "The default multivariate sampler is a basic Latin Hypercube sampler. Meta-models for deterministic simulation experiments, such as a TDM, are best supported by a “space filling” design of experiments, such as Latin Hypercube draws (Sacks, Welch, Mitchell, & Wynn, 1989). \n",
+    "\n",
+    "A Latin Hypercube sample for one dimension is constructed by subdividing the distribution of each input factor into N equally probable ranges, and drawing one random sample within each range. For example, if an input factor is assumed to be uniformly distributed between 0.1 and 0.2, that distribution can be divided into four regions (0.1-0.125, 0.125-0.15, 0.15-0.175, and 0.175-0.2), and one random draw can be made in each region. In the example below, we illustrate exactly this, for the \"alpha\" parameter in the demo scope."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b5aac55f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "n=4\n",
+    "design = design_experiments(scope, n_samples=n, random_seed=0)\n",
+    "ax = design.plot.scatter(x='alpha', y='initial_capacity', grid=True, figsize=(6,1))\n",
+    "xlim = design.scope['alpha'].range\n",
+    "ax.set_xlim(xlim)\n",
+    "ax.set_xticks(np.linspace(*xlim, n+1))\n",
+    "ax.set_ylabel('')\n",
+    "ax.set_yticks([]);"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3bb7dce5",
+   "metadata": {},
+   "source": [
+    "This ensures better coverage of the entire input range than making four random draws from the full space, which could easily result in a cluster of observations in one part of the space and large void elsewhere. \n",
+    "\n",
+    "Generating a multi-dimensional Latin Hypercube sample for use with multiple input variables follows this same basic technique, although the various draws in each dimension are randomly reordered before being joined with draws in other dimensions, to avoid unintended correlation. Various techniques exist to conduct this random reordering, although there is no agreement in the literature about the “best” orthogonal Latin hypercube design. In most instances, a simple random reordering is sufficient to get pretty good coverage of the space; this is the default in TMIP-EMAT. If a greater degree of orthogonality is desired, one simple method to achieve it is to generate numerous possible sets of random draws, and greedily select the set that minimizes the maximum correlation.\n",
+    "\n",
+    "In the figure below, we can see the result across two dimensions for the design of four draws we made previously.  Each dimension is divided in 4, so that each grid row and each grid column has exactly one experiment. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "49d4bf19",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ax = design.plot.scatter(x='expand_capacity', y='input_flow', grid=True)\n",
+    "xlim = design.scope['expand_capacity'].range\n",
+    "ylim = design.scope['input_flow'].range\n",
+    "ax.set_xlim(xlim)\n",
+    "ax.set_ylim(ylim)\n",
+    "ax.set_xticks(np.linspace(*xlim, n+1))\n",
+    "ax.set_yticks(np.linspace(*ylim, n+1));"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "16d61237",
+   "metadata": {},
+   "source": [
+    "The Latin Hypercube design of experiments is advantageous over a factorial or grid-based design, as every experimental observation can provide useful information, even when some input factors are potentially unimportant or spurious. \n",
+    "\n",
+    "As an example, consider the illustration below: 16 experiments are designed, either by making an evenly spaced grid over a two dimensional design space (i.e. a \"full factorial\" design) or by making the same number of latin hypercube draws."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d5e55b0f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import itertools\n",
+    "factorial = pd.DataFrame(\n",
+    "    itertools.product(np.linspace(*design.scope['alpha'].range, 4),\n",
+    "                      np.linspace(*design.scope['beta'].range, 4)), \n",
+    "    columns=['alpha', 'beta']\n",
+    ")\n",
+    "lhs = design_experiments(scope, n_samples=16, random_seed=4)\n",
+    "\n",
+    "ax = factorial.plot.scatter('alpha', 'beta', color='r', s=40)\n",
+    "lhs.plot.scatter('alpha', 'beta', marker='s', s=40, ax=ax);"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "30fea122",
+   "metadata": {},
+   "source": [
+    "If it turns out that the \"beta\" input is not particularly important for some model outputs,\n",
+    "the information we are actually getting on those outputs will have been derived from inputs that\n",
+    "look like this:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ea1178b2",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "factorial['beta'] = 0\n",
+    "lhs['beta'] = 1\n",
+    "ax = factorial.plot.scatter('alpha', 'beta', color='r', s=40, figsize=(6,1))\n",
+    "lhs.plot.scatter('alpha', 'beta', marker='s', s=40, ax=ax)\n",
+    "ax.set_ylim(-1,2)\n",
+    "ax.set_ylabel('')\n",
+    "ax.set_yticks([]);"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c894d8ff",
+   "metadata": {},
+   "source": [
+    "Essentially only four unique experiments remain under the full factorial design,\n",
+    "while the Latin hypercube design still offers useful variance over all 16 experiments."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "635e8c4d",
+   "metadata": {},
+   "source": [
+    "As for the sensitivity tests, the return type for the `design_experiments` function is `emat.ExperimentalDesign`.\n",
+    "The result can be manipulated, saved, or reloaded as any other pandas DataFrame, which allows the the modeler to\n",
+    "review an experimental design before actually running experiments."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ad9222b4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "lhs"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "7ab7ad92",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. _methodology-monte-carlo-design:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "469a736b",
+   "metadata": {},
+   "source": [
+    "In addition to the default Latin Hypercube sampler, TMIP-EMAT also includes several other samplers,\n",
+    "which can be invoked through the `sampler` argument of the `design_experiments` function:\n",
+    "\n",
+    "- `'ulhs'` is a \"uniform\" latin hypercube sampler, which ignores all defined distribution shapes and\n",
+    "  correlations from the scope, instead using independent uniform distributions for all inputs. This \n",
+    "  sampler is useful when designing experiments to support a meta-model for a risk analysis that \n",
+    "  includes well characterized non-uniform uncertainties and correlations.\n",
+    "- `'mc'` is a simple Monte Carlo sampler, which does not make attempts to ensure good coverage of the \n",
+    "  sampling space. This sampler minimizes overhead and is useful when running a very large number of\n",
+    "  simulations\n",
+    "  \n"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "f773c443",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. _methodology-reference-design:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c54144e3",
+   "metadata": {},
+   "source": [
+    "## Reference Designs"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e46e28c9",
+   "metadata": {},
+   "source": [
+    "An additional convenience tool is included in TMIP-EMAT to create a \"reference\" design, which contains only a single experiment that has every input set at the default value.  Although this one experiment is also included in the univariate sensitivity test design, an analyst may not need or want to run that full design. Having the reference case available can be helpful to add context to some exploratory visualizations.  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8385a7e3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from emat.experiment.experimental_design import design_refpoint_test\n",
+    "design_refpoint_test(scope)"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "8a278ec3",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. include:: design-api.irst"
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "encoding": "# -*- coding: utf-8 -*-",
+   "formats": "ipynb,py:percent"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

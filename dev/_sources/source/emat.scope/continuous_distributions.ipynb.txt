@@ -1,0 +1,457 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import emat\n",
+    "import numpy\n",
+    "from matplotlib import pyplot as plt"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from emat.util.distributions import pert, triangle, uniform, get_bounds"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    "This page reviews some common continuous distributions used for exploratory and risk analysis.\n",
+    "EMAT can also use any named continuous distribution from the :any:`scipy.stats` module."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Uniform Distribution\n",
+    "\n",
+    "The uniform distribution is defined by a probability density function that is a rectangle.\n",
+    "It is parameterized using two parameters (minimum, maximum).  It is a simple \n",
+    "distribution that is easy to understand and explain, and is often assumed as the\n",
+    "implied default distribution for exploratory analysis."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y = \"\"\"---\n",
+    "scope:\n",
+    "    name: demonstration\n",
+    "inputs:\n",
+    "    uncertain_variable_name:\n",
+    "        ptype: uncertainty\n",
+    "        desc: Slightly More Verbose Description\n",
+    "        default: 4\n",
+    "        min: 1\n",
+    "        max: 4\n",
+    "        dist: uniform\n",
+    "        dtype: float\n",
+    "outputs:\n",
+    "    performance_measure_name:\n",
+    "        kind: maximize\n",
+    "...\n",
+    "\"\"\"\n",
+    "s = emat.Scope('t.yaml', scope_def=y)\n",
+    "bounds = (0,5)\n",
+    "x = numpy.linspace(*bounds)\n",
+    "y = s['uncertain_variable_name'].dist.pdf(x)\n",
+    "_=plt.plot(x,y)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "It is also valid to include the `min` and `max` values under the `dist` key, instead of \n",
+    "as top level keys for the parameter definition."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y = \"\"\"---\n",
+    "scope:\n",
+    "    name: demonstration\n",
+    "inputs:\n",
+    "    uncertain_variable_name:\n",
+    "        ptype: uncertainty\n",
+    "        desc: Slightly More Verbose Description\n",
+    "        default: 4\n",
+    "        dist: \n",
+    "            name: uniform\n",
+    "            min: 1\n",
+    "            max: 4\n",
+    "        dtype: float\n",
+    "outputs:\n",
+    "    performance_measure_name:\n",
+    "        kind: maximize\n",
+    "...\n",
+    "\"\"\"\n",
+    "s = emat.Scope('t.yaml', scope_def=y)\n",
+    "bounds = (0,5)\n",
+    "x = numpy.linspace(*bounds)\n",
+    "y = s['uncertain_variable_name'].dist.pdf(x)\n",
+    "_=plt.plot(x,y)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Triangle Distribution"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The triangle distribution is defined by a probability density function that is a triangle.\n",
+    "It is parameterized using three parameters (minimum, peak, maximum).  It is a simple \n",
+    "distribution that is easy to understand and explain, and unlike the uniform distribution,\n",
+    "it allow more likelihood to be directed towards some particular value."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x = numpy.linspace(0,5)\n",
+    "plt.plot(x, triangle(lower_bound=0, upper_bound=5, peak=0.0).pdf(x), label='Peak=0.0')\n",
+    "plt.plot(x, triangle(lower_bound=0, upper_bound=5, peak=0.5).pdf(x), label='Peak=0.5')\n",
+    "plt.plot(x, triangle(lower_bound=0, upper_bound=5, peak=1.0).pdf(x), label='Peak=1.0')\n",
+    "plt.plot(x, triangle(lower_bound=0, upper_bound=5, peak=2.5).pdf(x), label='Peak=2.5')\n",
+    "_=plt.legend()"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. autofunction:: emat.util.distributions.triangle"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y = \"\"\"---\n",
+    "scope:\n",
+    "    name: demonstration\n",
+    "inputs:\n",
+    "    uncertain_variable_name:\n",
+    "        ptype: uncertainty\n",
+    "        desc: Slightly More Verbose Description\n",
+    "        default: 4\n",
+    "        min: 0\n",
+    "        max: 5\n",
+    "        dist: \n",
+    "            name: triangle\n",
+    "            peak: 4\n",
+    "outputs:\n",
+    "    performance_measure_name:\n",
+    "        kind: maximize\n",
+    "...\n",
+    "\"\"\"\n",
+    "s = emat.Scope('t.yaml', scope_def=y)\n",
+    "bounds = get_bounds(s['uncertain_variable_name'])\n",
+    "x = numpy.linspace(*bounds)\n",
+    "y = s['uncertain_variable_name'].dist.pdf(x)\n",
+    "_=plt.plot(x,y)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "It is also valid to include the `min` and `max` values under the `dist` key, instead of \n",
+    "as top level keys for the parameter definition."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y = \"\"\"---\n",
+    "scope:\n",
+    "    name: demonstration\n",
+    "inputs:\n",
+    "    uncertain_variable_name:\n",
+    "        ptype: uncertainty\n",
+    "        desc: Slightly More Verbose Description\n",
+    "        default: 4\n",
+    "        dist: \n",
+    "            name: triangle\n",
+    "            min: 0\n",
+    "            peak: 4\n",
+    "            max: 5\n",
+    "outputs:\n",
+    "    performance_measure_name:\n",
+    "        kind: maximize\n",
+    "...\n",
+    "\"\"\"\n",
+    "s = emat.Scope('t.yaml', scope_def=y)\n",
+    "bounds = get_bounds(s['uncertain_variable_name'])\n",
+    "x = numpy.linspace(*bounds)\n",
+    "y = s['uncertain_variable_name'].dist.pdf(x)\n",
+    "_=plt.plot(x,y)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## PERT Distribution\n",
+    "\n",
+    "The PERT distrubution (\"PERT\" is an acronym for \"project evaluation and review techniques\")\n",
+    "is a generally bell-shaped curve that, unlike the normal distribution, has finite minimum and\n",
+    "maximum values.  It can be parameterized similar to the triangular distribution, using\n",
+    "three parameters (minimum, peak, maximum).  This allows a skew to be introduced, by setting \n",
+    "the peak value to be other-than the midpoint between maximum and minimum values."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, peak=0.0).pdf(x), label='Peak=0.0')\n",
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, peak=0.5).pdf(x), label='Peak=0.5')\n",
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, peak=1.0).pdf(x), label='Peak=1.0')\n",
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, peak=2.5).pdf(x), label='Peak=2.5')\n",
+    "_=plt.legend()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The relative peakiness (i.e., kurtosis) of the distribution can be controlled \n",
+    "using the gamma parameter.  The default value of gamma for a PERT distrubution is 4.0,\n",
+    "but other positive numbers can be used as well, with\n",
+    "higher numbers for a distribution that more favors outcomes\n",
+    "near the peak, or smaller numbers for a distribution that gives less pronounced\n",
+    "weight to value near the peak, and relatively more weight to the tails.  In the limit,\n",
+    "setting gamma to zero results in a uniform distribution."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, gamma=1).pdf(x), label='gamma=1')\n",
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, gamma=2).pdf(x), label='gamma=2')\n",
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, gamma=3).pdf(x), label='gamma=3')\n",
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, gamma=4).pdf(x), label='gamma=4', lw=3.0)\n",
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, gamma=5).pdf(x), label='gamma=5')\n",
+    "plt.plot(x, pert(lower_bound=0, upper_bound=5, gamma=10).pdf(x), label='gamma=10')\n",
+    "_=plt.legend()"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    ".. autofunction:: emat.util.distributions.pert"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The PERT distribution can be indicated in a yaml scope file using the name \"pert\",\n",
+    "with optional values for other named arguments outlined in the function docstring\n",
+    "shown above."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y = \"\"\"---\n",
+    "scope:\n",
+    "    name: demonstration\n",
+    "inputs:\n",
+    "    uncertain_variable_name:\n",
+    "        ptype: uncertainty\n",
+    "        desc: Slightly More Verbose Description\n",
+    "        default: 1.0\n",
+    "        min: 0\n",
+    "        max: 5\n",
+    "        dist: \n",
+    "            name: pert\n",
+    "            peak: 4\n",
+    "            gamma: 3\n",
+    "outputs:\n",
+    "    performance_measure_name:\n",
+    "        kind: maximize\n",
+    "...\n",
+    "\"\"\"\n",
+    "s = emat.Scope('t.yaml', scope_def=y)\n",
+    "bounds = get_bounds(s['uncertain_variable_name'])\n",
+    "x = numpy.linspace(*bounds)\n",
+    "y = s['uncertain_variable_name'].dist.pdf(x)\n",
+    "_=plt.plot(x,y)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "It is also valid to include the `min` and `max` values under the `dist` key, instead of \n",
+    "as top level keys for the parameter definition."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y = \"\"\"---\n",
+    "scope:\n",
+    "    name: demonstration\n",
+    "inputs:\n",
+    "    uncertain_variable_name:\n",
+    "        ptype: uncertainty\n",
+    "        desc: Slightly More Verbose Description\n",
+    "        default: 1.0\n",
+    "        dist: \n",
+    "            name: pert\n",
+    "            min: 0\n",
+    "            max: 5\n",
+    "            peak: 4\n",
+    "            gamma: 3\n",
+    "outputs:\n",
+    "    performance_measure_name:\n",
+    "        kind: maximize\n",
+    "...\n",
+    "\"\"\"\n",
+    "s = emat.Scope('t.yaml', scope_def=y)\n",
+    "bounds = get_bounds(s['uncertain_variable_name'])\n",
+    "x = numpy.linspace(*bounds)\n",
+    "y = s['uncertain_variable_name'].dist.pdf(x)\n",
+    "_=plt.plot(x,y)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Other Distributions"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {
+    "raw_mimetype": "text/restructuredtext"
+   },
+   "source": [
+    "It is possible to use any other continuous distribution provided in the :any:`scipy.stats` module.\n",
+    "As a demonstration, below we define a trapezoidal distribution for an uncertainty.  Instead of \n",
+    "using the more intuitively named keys shown above, it is necessary to fall back to the standard\n",
+    ":any:`scipy.stats` names for each of the distribution parameters, and they must all be defined within\n",
+    "the `dist` key, which may be less intuitive than the suggested distributions above.  For example,\n",
+    "note in the example below that the upper bound of the distribution is implictly set to 7 based \n",
+    "on the parameters, and that upper bound is not explicitly identified in the yaml file."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y = \"\"\"---\n",
+    "scope:\n",
+    "    name: demonstration\n",
+    "inputs:\n",
+    "    uncertain_variable_name:\n",
+    "        ptype: uncertainty\n",
+    "        desc: Slightly More Verbose Description\n",
+    "        default: 1.0\n",
+    "        dist: \n",
+    "            name: trapz\n",
+    "            c: 0.2\n",
+    "            d: 0.5\n",
+    "            loc: 2\n",
+    "            scale: 5\n",
+    "outputs:\n",
+    "    performance_measure_name:\n",
+    "        kind: maximize\n",
+    "...\n",
+    "\"\"\"\n",
+    "s = emat.Scope('t.yaml', scope_def=y)\n",
+    "bounds = get_bounds(s['uncertain_variable_name'])\n",
+    "x = numpy.linspace(*bounds)\n",
+    "y = s['uncertain_variable_name'].dist.pdf(x)\n",
+    "_=plt.plot(x,y)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.6"
+  },
+  "toc": {
+   "base_numbering": 1,
+   "nav_menu": {},
+   "number_sections": true,
+   "sideBar": true,
+   "skip_h1_title": false,
+   "title_cell": "Table of Contents",
+   "title_sidebar": "Contents",
+   "toc_cell": false,
+   "toc_position": {},
+   "toc_section_display": true,
+   "toc_window_display": false
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

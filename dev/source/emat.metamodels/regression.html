@@ -1,0 +1,236 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meta-Model Regression &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Databases" href="../emat.database/index.html" />
+    <link rel="prev" title="Meta-Model API" href="api.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Meta Models</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="creation.html">Meta-Model Creation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html">Meta-Model API</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Meta-Model Regression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#emat.learn.LinearAndGaussian"><code class="docutils literal notranslate"><span class="pre">LinearAndGaussian()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Meta Models</a></li>
+      <li class="breadcrumb-item active">Meta-Model Regression</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.metamodels/regression.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="meta-model-regression">
+<h1>Meta-Model Regression<a class="headerlink" href="#meta-model-regression" title="Link to this heading">¶</a></h1>
+<p>TMIP-EMAT currently implements meta-modeling by default using a de-trended multi-target
+Gaussian process regression model.  The contents of this meta-model is provided
+transparently for inspection and review as desired, and documentation is provided
+here to facilitate this.  Alternate regressors can be used by passing any <cite>scikit-learn</cite>
+compatible regressor object as the <cite>regressor</cite> argument in the <cite>create_metamodel</cite> function.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="emat.learn.LinearAndGaussian">
+<span class="sig-prename descclassname"><span class="pre">emat.learn.</span></span><span class="sig-name descname"><span class="pre">LinearAndGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fit_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats_on_fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_generator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fmin_l_bfgs_b'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_restarts_optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">250</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardize_before_fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_X_train</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cv_predict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/learn/boosting.html#LinearAndGaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.learn.LinearAndGaussian" title="Link to this definition">¶</a></dt>
+<dd><p>Create a detrended Gaussian process regressor.</p>
+<p>This is the default regressor used in TMIP-EMAT.
+This two stage regressor first fits a simple linear regression
+model, then fits a Gaussian process regression on the
+<em>residuals</em> of the linear regression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fit_intercept</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default True</em>) – Whether to calculate the intercept for the linear
+regression step in this model. If set
+to False, no intercept will be used in calculations
+(e.g. data is expected to be already centered).</p></li>
+<li><p><strong>n_jobs</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em><em> (</em><em>default=None</em><em>)</em>) – The number of jobs to use for the computation of the linear model.
+This will only provide
+speedups for n_targets &gt; 1 and sufficiently large problems.
+<code class="docutils literal notranslate"><span class="pre">None</span></code> means 1 unless in a <code class="xref py py-obj docutils literal notranslate"><span class="pre">joblib.parallel_backend</span></code> context.
+<code class="docutils literal notranslate"><span class="pre">-1</span></code> means using all processors. See <a class="reference external" href="https://scikit-learn.org/stable/glossary.html#term-n_jobs" title="(in scikit-learn v1.6)"><span class="xref std std-term">Glossary</span></a>
+for more details.</p></li>
+<li><p><strong>stats_on_fit</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default True</em>) – Whether to calculate a number of statistical measures for the linear
+regression model when it is fit, including standard errors and
+t-stats for coefficients and R^2 goodness of fit for overall
+models.</p></li>
+<li><p><strong>kernel_generator</strong> (<em>Callable</em><em>, </em><em>optional</em>) – A function that takes the number of input features, and returns
+a kernel function to be used in the Gaussian regression model.
+See <cite>AnisotropicGaussianProcessRegressor</cite> for details.</p></li>
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em> or </em><em>array-like</em><em>, </em><em>optional</em><em> (</em><em>default: 1e-10</em><em>)</em>) – Value added to the diagonal of the kernel matrix during fitting.
+Larger values correspond to increased noise level in the observations.
+This can also prevent a potential numerical issue during fitting, by
+ensuring that the calculated values form a positive definite matrix.
+If an array is passed, it must have the same number of entries as the
+data used for fitting and is used as datapoint-dependent noise level.
+Note that this is equivalent to adding a WhiteKernel with c=alpha.
+Allowing to specify the noise level directly as a parameter is mainly
+for convenience and for consistency with Ridge.</p></li>
+<li><p><strong>optimizer</strong> (<em>string</em><em> or </em><em>callable</em><em>, </em><em>optional</em><em> (</em><em>default: &quot;fmin_l_bfgs_b&quot;</em><em>)</em>) – <p>Can either be one of the internally supported optimizers for optimizing
+the kernel’s parameters, specified by a string, or an externally
+defined optimizer passed as a callable. If a callable is passed, it
+must have the signature:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">optimizer</span><span class="p">(</span><span class="n">obj_func</span><span class="p">,</span> <span class="n">initial_theta</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+        <span class="c1"># * &#39;obj_func&#39; is the objective function to be minimized, which</span>
+        <span class="c1">#   takes the hyperparameters theta as parameter and an</span>
+        <span class="c1">#   optional flag eval_gradient, which determines if the</span>
+        <span class="c1">#   gradient is returned additionally to the function value</span>
+        <span class="c1"># * &#39;initial_theta&#39;: the initial value for theta, which can be</span>
+        <span class="c1">#   used by local optimizers</span>
+        <span class="c1"># * &#39;bounds&#39;: the bounds on the values of theta</span>
+        <span class="o">....</span>
+        <span class="c1"># Returned are the best found hyperparameters theta and</span>
+        <span class="c1"># the corresponding value of the target function.</span>
+        <span class="k">return</span> <span class="n">theta_opt</span><span class="p">,</span> <span class="n">func_min</span>
+</pre></div>
+</div>
+<p>Per default, the ‘fmin_l_bfgs_b’ algorithm from scipy.optimize
+is used. If None is passed, the kernel’s parameters are kept fixed.
+Available internal optimizers are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;fmin_l_bfgs_b&#39;</span>
+</pre></div>
+</div>
+</p></li>
+<li><p><strong>n_restarts_optimizer</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em> (</em><em>default: 0</em><em>)</em>) – The number of restarts of the optimizer for finding the kernel’s
+parameters which maximize the log-marginal likelihood. The first run
+of the optimizer is performed from the kernel’s initial parameters,
+the remaining ones (if any) from thetas sampled log-uniform randomly
+from the space of allowed theta-values. If greater than 0, all bounds
+must be finite. Note that n_restarts_optimizer == 0 implies that one
+run is performed.</p></li>
+<li><p><strong>normalize_y</strong> (<em>boolean</em><em>, </em><em>optional</em><em> (</em><em>default: False</em><em>)</em>) – Whether the target values y are normalized, i.e., the mean of the
+observed target values become zero. This parameter should be set to
+True if the target values’ mean is expected to differ considerable from
+zero. When enabled, the normalization effectively modifies the GP’s
+prior based on the data, which contradicts the likelihood principle;
+normalization is thus disabled per default.</p></li>
+<li><p><strong>standardize_before_fit</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em><em> (</em><em>default: True</em><em>)</em>) – Whether to standardize by scaling the target values of the Gaussian
+regression so they have unit variance.  This is replaces the inclusion
+of a scalar term in the kernel function, and may help increase the
+stability of results, especially with smaller sized datasets.</p></li>
+<li><p><strong>copy_X_train</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em><em> (</em><em>default: True</em><em>)</em>) – If True, a persistent copy of the training data is stored in the
+object. Otherwise, just a reference to the training data is stored,
+which might cause predictions to change if the data is modified
+externally.</p></li>
+<li><p><strong>random_state</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>RandomState instance</em><em> or </em><em>None</em><em>, </em><em>optional</em><em> (</em><em>default: None</em><em>)</em>) – The generator used to initialize the centers. If int, random_state is
+the seed used by the random number generator; If RandomState instance,
+random_state is the random number generator; If None, the random number
+generator is the RandomState instance used by <cite>np.random</cite>.</p></li>
+<li><p><strong>use_cv_predict</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em><em> (</em><em>default: False</em><em>)</em>) – Whether to use cross-validated predictors to create residuals from the
+linear regression during model fitting.</p></li>
+<li><p><strong>single_target</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em><em> (</em><em>default: False</em><em>)</em>) – Whether the target values will be a single dimension or multi-dimensional.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>BoostedRegressor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api.html" class="btn btn-neutral float-left" title="Meta-Model API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../emat.database/index.html" class="btn btn-neutral float-right" title="Databases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

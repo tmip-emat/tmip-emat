@@ -1,0 +1,375 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TMIP-EMAT documentation &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="_static/thebelab.css" />
+
+  
+      <script src="_static/documentation_options.js?v=ff12c608"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction to EMAT" href="source/emat.intro.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">TMIP-EMAT documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <a class="reference external image-reference" href="https://www.fhwa.dot.gov/planning/tmip/"><img alt="TMIP" class="banner align-left" src="_images/TMIP.png" />
+</a>
+<a class="reference external image-reference" href="https://www.fhwa.dot.gov/planning/tmip/"><img alt="Better Methods, Better Outcomes" class="banner align-left" src="_images/BetterMethodsBetterOutcomes.png" />
+</a>
+<section id="tmip-emat-documentation">
+<h1>TMIP-EMAT documentation<a class="headerlink" href="#tmip-emat-documentation" title="Link to this heading">¶</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The views expressed in this documentation do not necessarily
+represent the opinions of FHWA, and do not constitute an endorsement,
+recommendation, or specification by FHWA.</p>
+</div>
+<p>TMIP-EMAT is a <em>methodological approach</em> to exploratory modeling and analysis.
+It provides a window to rigorous analytical methods for handling uncertainty
+and making well informed decisions using travel forecasting models of all
+types. It is designed to integrate with an existing transportation model or
+tool to perform exploratory analysis of a range of possible scenarios.</p>
+<p>TMIP-EMAT provides the following features to enhance the functionality of the
+underlying core model:</p>
+<ul class="simple">
+<li><p>A structure to formalize and distill an exploratory <strong>scope</strong>, in a manner
+suitable for translating the abstraction of the “XLRM” robust decision making
+framework into a concrete, application-specific form,</p></li>
+<li><p>A systematic process for <strong>designing experiments</strong> to be evaluated
+using the core model, and support for running those experiments in an
+automated fashion.</p></li>
+<li><p>A <strong>database</strong> structure to organize and store the results from a large
+number of experiments.</p></li>
+<li><p>A facility to automatically create a <strong>metamodel</strong> from experimental
+results, which uses machine learning techniques to rapidly approximate
+new outputs of the core model for without actually running it for every
+relevant combination of inputs.</p></li>
+<li><p>A suite a <strong>analytical and visualization tools</strong> to explore the relationships
+between modeled inputs and outputs, and develop robust policy strategies that
+might be effective across a range of possible future scenarios.</p></li>
+</ul>
+<p>The methodologies demonstrated in this toolset build on and extend the
+capabilities of the <a class="reference external" href="https://github.com/quaquel/EMAworkbench/tree/v2">EMA Workbench, version 2</a>.
+A brief discussion of the differences between these projects is
+<a class="reference internal" href="source/emat.vs.workbench.html"><span class="doc">available</span></a>.</p>
+<p>For an introduction to the concepts and tools contained in TMIP-EMAT,
+you can view our TMIP Webinars and Screencasts:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://tmip.org/content/tmip-webinar-introducing-exploratory-modeling-and-analysis-tool-tmip-emat">Introducing the Exploratory Modeling and Analysis Tool</a></p></li>
+<li><p><a class="reference external" href="https://tmip.org/content/using-tmip-emat-exploratory-analysis">Using TMIP-EMAT for Exploratory Analysis</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=bQ5ITYb_uHU">TMIP-EMAT: Setting up a Model</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=UwmHeRO2tXg">TMIP-EMAT: Running a Model</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=e_ZDBFxRC6g">TMIP-EMAT: Scatter Plot Matrixes and Feature Scoring</a></p></li>
+<li><p><a class="reference external" href="https://tmip.org/content/how-get-started-tmip-emat">How to Get Started with TMIP-EMAT</a></p></li>
+<li><p><a class="reference external" href="https://tmip.org/content/tmip-dmdu-project-meeting-tmip-emat">Using TMIP-EMAT for Decision Making under Deep Uncertainty</a></p></li>
+<li><p><a class="reference external" href="https://tmip.org/content/connecting-tmip-ematand-visioneval-exploratoryanalysis">Connecting TMIP-EMAT and VisionEval for Exploratory Analysis</a></p></li>
+</ul>
+<p>In addition to this documentation, there are several helpful example
+repositories hosted on GitHub:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/tmip-emat/tmip-emat">TMIP-EMAT Source</a>
+The main repository for TMIP-EMAT source code that demonstrates various
+aspects of the exploratory modeling methodological approach.</p></li>
+<li><p><a class="reference external" href="https://github.com/tmip-emat/tmip-emat-ve">Using TMIP-EMAT with VisionEval</a>
+This repository demonstrates the use of TMIP-EMAT with the VisionEval’s
+Regional Strategic Planning Model (RSPM).</p></li>
+<li><p><a class="reference external" href="https://github.com/tmip-emat/tmip-emat-bespoke-demo">Using TMIP-EMAT with a Bespoke External Model</a>
+This repository demonstrates connecting TMIP-EMAT with an arbitrary
+custom model that is controlled by configuration files and invoked on
+the command line. A similar approach can be used to connect TMIP-EMAT
+to most commercial and proprietary travel demand models.</p></li>
+</ul>
+<p>TMIP-EMAT is provided under a <a class="reference external" href="https://github.com/tmip-emat/tmip-emat/blob/master/LICENSE">BSD 3-Clause License license</a>.
+It also includes similarly licensed code from the <a class="reference external" href="https://github.com/quaquel/EMAworkbench">EMA Workbench</a>.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.intro.html">Introduction to EMAT</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.intro.html#the-core-model">The Core Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.intro.html#end-user-requirements">End User Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.intro.html#model-inputs-outputs-and-configurations">Model Inputs, Outputs, and Configurations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.intro.html#inputs">Inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.intro.html#outputs">Outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.intro.html#configurations">Configurations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.install.html">Installation and Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.conda.html">Installing using Anaconda</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.conda.html#quick-start">Quick Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.conda.html#installing-python">Installing Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.conda.html#managing-environments">Managing Environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.conda.html#running-jupyter">Running Jupyter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.conda.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.git.html">Installing from Source</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.git.html#using-github-to-fork-tmip-emat">Using Github to Fork TMIP-EMAT</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.scope/index.html">Exploratory Scoping</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.scope/scope.html">Scope</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/scope.html#emat.Scope"><code class="docutils literal notranslate"><span class="pre">Scope</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/scope.html#read-write">Read / Write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/scope.html#feature-access">Feature Access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/scope.html#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.scope/parameters.html">Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/parameters.html#emat.make_parameter"><code class="docutils literal notranslate"><span class="pre">make_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/parameters.html#emat.Parameter"><code class="docutils literal notranslate"><span class="pre">Parameter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/parameters.html#emat.Constant"><code class="docutils literal notranslate"><span class="pre">Constant</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/parameters.html#float-valued-parameters">Float-Valued Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/parameters.html#integer-parameters">Integer Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/parameters.html#boolean-parameters">Boolean Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/parameters.html#categorical-parameters">Categorical Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.scope/measures.html">Performance Measures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/measures.html#emat.Measure"><code class="docutils literal notranslate"><span class="pre">Measure</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.scope/boxes.html">Boxes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/boxes.html#box">Box</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/boxes.html#id1">Boxes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/boxes.html#chainedbox">ChainedBox</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.scope/scope.file.html">Scope File</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/scope.file.html#scope-name-and-description">Scope Name and Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/scope.file.html#inputs">Inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.scope/scope.file.html#outputs">Outputs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.design/emat.design.html">Experimental Designs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.design/emat.design.html#Univariate-Sensitivity-Tests">Univariate Sensitivity Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.design/emat.design.html#Efficient-Designs">Efficient Designs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.design/emat.design.html#Reference-Designs">Reference Designs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.design/emat.design.html#Experimental-Design-API">Experimental Design API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.design/emat.design.html#emat.experiment.experimental_design.design_experiments"><code class="docutils literal notranslate"><span class="pre">design_experiments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.design/emat.design.html#emat.experiment.experimental_design.design_sensitivity_tests"><code class="docutils literal notranslate"><span class="pre">design_sensitivity_tests()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.design/emat.design.html#emat.experiment.experimental_design.design_refpoint_test"><code class="docutils literal notranslate"><span class="pre">design_refpoint_test()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.models/index.html">Core Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.models/abstract.html">Basic EMAT Model API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/abstract.html#emat.model.AbstractCoreModel"><code class="docutils literal notranslate"><span class="pre">AbstractCoreModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/abstract.html#abstract-methods">Abstract Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/abstract.html#data-management">Data Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/abstract.html#model-execution">Model Execution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/abstract.html#meta-model-construction">Meta-Model Construction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.models/python_based.html">Python-Based Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/python_based.html#emat.model.PythonCoreModel"><code class="docutils literal notranslate"><span class="pre">PythonCoreModel</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.models/excel.html">Excel-Based Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/excel.html#emat.model.ExcelCoreModel"><code class="docutils literal notranslate"><span class="pre">ExcelCoreModel</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.models/files.html">Files-Based Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/table_parse_example.html">TableParser Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/mapping_parse_example.html">MappingParser Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/files-api.html">Files-Based Model API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.models/gbnrtc.html">GBNRTC Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/gbnrtc.html#emat.model.GBNRTCModel"><code class="docutils literal notranslate"><span class="pre">GBNRTCModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.models/gbnrtc.html#implementation-specific-methods">Implementation-Specific Methods</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.metamodels/index.html">Meta Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.metamodels/creation.html">Meta-Model Creation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.metamodels/creation.html#Design-Sizing">Design Sizing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.metamodels/creation.html#Partial-Metamodels">Partial Metamodels</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.metamodels/api.html">Meta-Model API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.metamodels/api.html#emat.create_metamodel"><code class="docutils literal notranslate"><span class="pre">create_metamodel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.metamodels/api.html#emat.MetaModel"><code class="docutils literal notranslate"><span class="pre">MetaModel</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.metamodels/regression.html">Meta-Model Regression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.metamodels/regression.html#emat.learn.LinearAndGaussian"><code class="docutils literal notranslate"><span class="pre">LinearAndGaussian()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.database/index.html">Databases</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.database/abstract.html">Basic EMAT Database API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/abstract.html#emat.database.Database"><code class="docutils literal notranslate"><span class="pre">Database</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/abstract.html#scopes">Scopes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/abstract.html#boxes">Boxes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/abstract.html#experiments">Experiments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/abstract.html#meta-models">Meta-Models</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.database/sqlitedb.html">SQLite Database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/sqlitedb.html#emat.database.SQLiteDB"><code class="docutils literal notranslate"><span class="pre">SQLiteDB</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/sqlitedb.html#scopes">Scopes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/sqlitedb.html#boxes">Boxes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/sqlitedb.html#experiments">Experiments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/sqlitedb.html#meta-models">Meta-Models</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.database/database-walkthrough.html">Database Walkthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/database-walkthrough.html#Single-Design-Datasets">Single-Design Datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/database-walkthrough.html#Multiple-Design-Datasets">Multiple-Design Datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.database/database-walkthrough.html#Re-running-Experiments">Re-running Experiments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.analysis/index.html">Analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.analysis/index.html#visualization">Visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.analysis/splom.html">Scatter Plot Matrix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.analysis/corruption.html">Identifying Model Problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.analysis/interactive-explorer-v2.html">Interactive Visualizer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.analysis/index.html#scenario-discovery">Scenario Discovery</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.analysis/feature-scoring.html">Feature Scoring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.analysis/prim.html">PRIM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.analysis/cart.html">CART</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/emat.analysis/index.html#directed-search">Directed Search</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.analysis/policy-contrast.html">Policy Contrast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.analysis/optimization.html">Optimization Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/emat.analysis/optimization.html#Mechanics-of-Using-Optimization">Mechanics of Using Optimization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.examples/index.html">Examples</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/emat.references.html">References</a></li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="source/emat.intro.html" class="btn btn-neutral float-right" title="Introduction to EMAT" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

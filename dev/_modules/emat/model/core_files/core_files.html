@@ -1,0 +1,658 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emat.model.core_files.core_files &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/thebelab.css" />
+
+  
+      <script src="../../../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.metamodels/index.html">Meta Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">emat.model.core_files.core_files</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for emat.model.core_files.core_files</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...model.core_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractCoreModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...scope.scope</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scope</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...database.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...util.docstrings</span><span class="w"> </span><span class="kn">import</span> <span class="n">copydoc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...util.loggers</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_module_logger</span>
+
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">get_module_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">copy_model_outputs_1</span><span class="p">(</span>
+		<span class="n">local_model</span><span class="p">,</span>
+		<span class="n">remote_repository</span><span class="p">,</span>
+		<span class="n">file</span>
+<span class="p">):</span>
+	<span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_model</span><span class="p">,</span> <span class="s2">&quot;Outputs&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">),</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">remote_repository</span><span class="p">,</span> <span class="s2">&quot;Outputs&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+	<span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">copy_model_outputs_ext</span><span class="p">(</span>
+		<span class="n">local_model</span><span class="p">,</span>
+		<span class="n">remote_repository</span><span class="p">,</span>
+		<span class="n">basename</span><span class="p">,</span>
+		<span class="n">ext</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;.bin&#39;</span><span class="p">,</span> <span class="s1">&#39;.dcb&#39;</span><span class="p">)</span>
+<span class="p">):</span>
+	<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ext</span><span class="p">:</span>
+		<span class="n">copy_model_outputs_1</span><span class="p">(</span>
+			<span class="n">local_model</span><span class="p">,</span>
+			<span class="n">remote_repository</span><span class="p">,</span>
+			<span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span>
+		<span class="p">)</span>
+
+<span class="n">ALL</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="FilesCoreModel">
+<a class="viewcode-back" href="../../../../source/emat.models/files-api.html#emat.model.FilesCoreModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilesCoreModel</span><span class="p">(</span><span class="n">AbstractCoreModel</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Setup connections and paths to a file reading core model</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		configuration:</span>
+<span class="sd">			The configuration for this</span>
+<span class="sd">			core model. This can be passed as a dict, or as a str</span>
+<span class="sd">			which gives the filename of a YAML file that will be</span>
+<span class="sd">			loaded.</span>
+<span class="sd">		scope:</span>
+<span class="sd">			The exploration scope, as a Scope object or as</span>
+<span class="sd">			a str which gives the filename of a YAML file that will be</span>
+<span class="sd">			loaded.</span>
+<span class="sd">		safe:</span>
+<span class="sd">			Load the configuration YAML file in &#39;safe&#39; mode.</span>
+<span class="sd">			This can be disabled if the configuration requires</span>
+<span class="sd">			custom Python types or is otherwise not compatible with</span>
+<span class="sd">			safe mode. Loading configuration files with safe mode</span>
+<span class="sd">			off is not secure and should not be done with files from</span>
+<span class="sd">			untrusted sources.</span>
+<span class="sd">		db:</span>
+<span class="sd">			An optional Database to store experiments and results.</span>
+<span class="sd">		name:</span>
+<span class="sd">			A name for this model, given as an alphanumeric string.</span>
+<span class="sd">			The name is required by ema_workbench operations.</span>
+<span class="sd">			If not given, &quot;FilesCoreModel&quot; is used.</span>
+<span class="sd">		local_directory:</span>
+<span class="sd">			Optionally explicitly give this local_directory to use,</span>
+<span class="sd">			overriding any directory set in the config file. If not</span>
+<span class="sd">			given either here or in the config file, then Python&#39;s</span>
+<span class="sd">			cwd is used.</span>
+
+
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+				 <span class="n">configuration</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">],</span>
+				 <span class="n">scope</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Scope</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+				 <span class="n">safe</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+				 <span class="n">db</span><span class="p">:</span> <span class="n">Database</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+				 <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;FilesCoreModel&#39;</span><span class="p">,</span>
+				 <span class="n">local_directory</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+				 <span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+			<span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="p">,</span>
+			<span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span>
+			<span class="n">safe</span><span class="o">=</span><span class="n">safe</span><span class="p">,</span>
+			<span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">,</span>
+			<span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+			<span class="n">metamodel_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+		<span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_local_directory</span> <span class="o">=</span> <span class="n">local_directory</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">model_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;model_path&#39;</span><span class="p">])</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;Path: The directory of the &#39;live&#39; model instance, relative to the local_directory.&quot;&quot;&quot;</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">rel_output_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rel_output_path&#39;</span><span class="p">,</span> <span class="s1">&#39;Outputs&#39;</span><span class="p">)</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;Path: The path to &#39;live&#39; model outputs, relative to `model_path`.&quot;&quot;&quot;</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">archive_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;model_archive&#39;</span><span class="p">])</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;Path: The directory where archived models are stored.&quot;&quot;&quot;</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_parsers</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">local_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;Path: The current local working directory for this model.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;local_directory&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+
+	<span class="nd">@local_directory</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">local_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_local_directory</span> <span class="o">=</span> <span class="n">value</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">()</span>
+		<span class="c1"># The SQLite Database does not serialize for usage in other</span>
+		<span class="c1"># threads or processes, so we will pass through the database path</span>
+		<span class="c1"># to open another new connection on the other end, assuming it is</span>
+		<span class="c1"># a file object that can be re-opened for other connections.</span>
+		<span class="n">db</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;db&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+		<span class="kn">from</span><span class="w"> </span><span class="nn">...database</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLiteDB</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">SQLiteDB</span><span class="p">):</span>
+			<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">database_path</span><span class="p">):</span>
+				<span class="n">state</span><span class="p">[</span><span class="s1">&#39;_sqlitedb_path_&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">database_path</span>
+				<span class="n">state</span><span class="p">[</span><span class="s1">&#39;_sqlitedb_readonly_&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">readonly</span>
+		<span class="k">return</span> <span class="n">state</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+		<span class="c1"># When we are running on a dask worker, functions</span>
+		<span class="c1"># are executed in a different thread from the worker</span>
+		<span class="c1"># itself, even if there is only one thread.  To prevent</span>
+		<span class="c1"># problems with SQLite, we check if this is a worker and</span>
+		<span class="c1"># if there is only one thread, in which case we can</span>
+		<span class="c1"># safely ignore the fact that the database is accessed</span>
+		<span class="c1"># from a different thread than where it is created.</span>
+		<span class="kn">from</span><span class="w"> </span><span class="nn">dask.distributed</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_worker</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">worker</span> <span class="o">=</span> <span class="n">get_worker</span><span class="p">()</span>
+		<span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+			<span class="n">n_threads</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">n_threads</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">nthreads</span>
+		<span class="n">database_path</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_sqlitedb_path_&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+		<span class="n">database_readonly</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_sqlitedb_readonly_&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">state</span>
+		<span class="k">if</span> <span class="n">database_path</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">database_readonly</span><span class="p">:</span>
+			<span class="kn">from</span><span class="w"> </span><span class="nn">...database</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLiteDB</span>
+			<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">database_path</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">SQLiteDB</span><span class="p">(</span>
+					<span class="n">database_path</span><span class="p">,</span>
+					<span class="n">initialize</span><span class="o">=</span><span class="s1">&#39;skip&#39;</span><span class="p">,</span>
+					<span class="n">readonly</span><span class="o">=</span><span class="n">database_readonly</span><span class="p">,</span>
+					<span class="n">check_same_thread</span><span class="o">=</span><span class="p">(</span><span class="n">n_threads</span><span class="o">!=</span><span class="mi">1</span><span class="p">),</span>
+				<span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">resolved_model_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		The model path to use.</span>
+
+<span class="sd">		If `model_path` is set to an absolute path, then that path is returned,</span>
+<span class="sd">		otherwise the `model_path` is joined onto the `local_directory`.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			str</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">MissingModelPathError</span><span class="p">(</span><span class="s1">&#39;no model_path set for this core model&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">resolved_archive_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		The archive path to use.</span>
+
+<span class="sd">		If `archive_path` is set to an absolute path, then that path is returned,</span>
+<span class="sd">		otherwise the `archive_path` is joined onto the `local_directory`.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			str</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">archive_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">MissingArchivePathError</span><span class="p">(</span><span class="s1">&#39;no archive set for this core model&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archive_path</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">archive_path</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">archive_path</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FilesCoreModel.add_parser">
+<a class="viewcode-back" href="../../../../source/emat.models/files-api.html#emat.model.FilesCoreModel.add_parser">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">add_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Add a FileParser to extract performance measures.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			parser (FileParser): The parser to add.</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">FileParser</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;parser must be an instance of FileParser&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_parsers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FilesCoreModel.get_parser">
+<a class="viewcode-back" href="../../../../source/emat.models/files-api.html#emat.model.FilesCoreModel.get_parser">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Access a FileParser, used to extract performance measures.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			idx (int): The position of the parser to get.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			FileParser</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parsers</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span></div>
+
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">model_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">policy</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">model_init</span><span class="p">(</span><span class="n">policy</span><span class="p">)</span>
+
+
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">get_experiment_archive_path</span><span class="p">(</span>
+			<span class="bp">self</span><span class="p">,</span>
+			<span class="n">experiment_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="n">makedirs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+			<span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="n">run_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+	<span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns a file system location to store model run outputs.</span>
+
+<span class="sd">		For core models with long model run times, it is recommended</span>
+<span class="sd">		to store the complete model run results in an archive.  This</span>
+<span class="sd">		will facilitate adding additional performance measures to the</span>
+<span class="sd">		scope at a later time.</span>
+
+<span class="sd">		Both the scope name and experiment id can be used to create the</span>
+<span class="sd">		folder path.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">		    experiment_id (int):</span>
+<span class="sd">		        The experiment id, which is also the row id of the</span>
+<span class="sd">		        experiment in the database. If this is omitted, an</span>
+<span class="sd">		        experiment id is read or created using the parameters.</span>
+<span class="sd">		    makedirs (bool, default False):</span>
+<span class="sd">		        If this archive directory does not yet exist, create it.</span>
+<span class="sd">		    parameters (dict, optional):</span>
+<span class="sd">		        The parameters for this experiment, used to create or</span>
+<span class="sd">		        lookup an experiment id. The parameters are ignored</span>
+<span class="sd">		        if `experiment_id` is given.</span>
+<span class="sd">		    run_id (UUID, optional):</span>
+<span class="sd">		        The run_id of this model run.  If not given but a</span>
+<span class="sd">		        run_id attribute is stored in this FilesCoreModel</span>
+<span class="sd">		        instance, that value is used.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">		    str: Experiment archive path (no trailing backslashes).</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">experiment_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must give `experiment_id` or `parameters`&quot;</span><span class="p">)</span>
+			<span class="n">db</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;db&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+					<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">MissingIdWarning</span><span class="p">)</span>
+					<span class="n">experiment_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_experiment_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">run_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">run_id</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;run_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">exp_dir_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;exp_</span><span class="si">{</span><span class="n">experiment_id</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span>
+		<span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+			<span class="n">exp_dir_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;exp_</span><span class="si">{</span><span class="n">experiment_id</span><span class="si">}</span><span class="s2">&quot;</span>
+		<span class="k">if</span> <span class="n">run_id</span><span class="p">:</span>
+			<span class="n">exp_dir_name</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2">&quot;</span>
+
+		<span class="n">mod_results_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">resolved_archive_path</span><span class="p">,</span>
+			<span class="sa">f</span><span class="s2">&quot;scp_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+			<span class="n">exp_dir_name</span><span class="p">,</span>
+		<span class="p">)</span>
+		<span class="k">if</span> <span class="n">makedirs</span><span class="p">:</span>
+			<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">mod_results_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">mod_results_path</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Configure the core model with the experiment variable values.</span>
+
+<span class="sd">		This method is the place where the core model set up takes place,</span>
+<span class="sd">		including creating or modifying files as necessary to prepare</span>
+<span class="sd">		for a core model run.  When running experiments, this method</span>
+<span class="sd">		is called once for each core model experiment, where each experiment</span>
+<span class="sd">		is defined by a set of particular values for both the exogenous</span>
+<span class="sd">		uncertainties and the policy levers.  These values are passed to</span>
+<span class="sd">		the experiment only here, and not in the `run` method itself.</span>
+<span class="sd">		This facilitates debugging, as the `setup` method can potentially</span>
+<span class="sd">		be used without the `run` method, allowing the user to manually</span>
+<span class="sd">		inspect the prepared files and ensure they are correct before</span>
+<span class="sd">		actually running a potentially expensive model.</span>
+
+<span class="sd">		Each input exogenous uncertainty or policy lever can potentially</span>
+<span class="sd">		be used to manipulate multiple different aspects of the underlying</span>
+<span class="sd">		core model.  For example, a policy lever that includes a number of</span>
+<span class="sd">		discrete future network &quot;build&quot; options might trigger the replacement</span>
+<span class="sd">		of multiple related network definition files.  Or, a single uncertainty</span>
+<span class="sd">		relating to the cost of fuel might scale both a parameter linked to</span>
+<span class="sd">		the modeled per-mile cost of operating an automobile, as well as the</span>
+<span class="sd">		modeled total cost of fuel used by transit services.</span>
+
+<span class="sd">		At the end of the `setup` method, a core model experiment should be</span>
+<span class="sd">		ready to run using the `run` method.</span>
+
+<span class="sd">		Classes derived from `FilesCoreModel` do not necessarily need to</span>
+<span class="sd">		call `super().setup(params)`, but may find it convenient to do so,</span>
+<span class="sd">		as this implementation provides some standard functionality,</span>
+<span class="sd">		including validation of parameter names, managing existing</span>
+<span class="sd">		archive directories, and logging the start time to the archive.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			params (dict):</span>
+<span class="sd">				experiment variables including both exogenous</span>
+<span class="sd">				uncertainty and policy levers</span>
+
+<span class="sd">		Raises:</span>
+<span class="sd">			KeyError:</span>
+<span class="sd">				if a defined experiment variable is not supported</span>
+<span class="sd">				by the core model</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">experiment_id</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;_experiment_id_&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+		<span class="c1"># Validate parameter names</span>
+		<span class="n">scope_param_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="o">.</span><span class="n">get_parameter_names</span><span class="p">())</span>
+		<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scope_param_names</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+					<span class="sa">f</span><span class="s2">&quot;SETUP ERROR: &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; not found in scope parameters&quot;</span><span class="p">,</span>
+					<span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+				<span class="p">)</span>
+				<span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; not found in scope parameters&quot;</span><span class="p">)</span>
+
+		<span class="c1"># Get the experiment_id if stored</span>
+		<span class="n">db</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;db&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+		<span class="n">run_id</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;run_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">run_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">run_id</span><span class="p">,</span> <span class="n">experiment_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">new_run_id</span><span class="p">(</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">experiment_id</span><span class="o">=</span><span class="n">experiment_id</span>
+				<span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+				<span class="k">if</span> <span class="n">experiment_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">experiment_id</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;experiment_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+				<span class="n">run_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
+
+			<span class="bp">self</span><span class="o">.</span><span class="n">run_id</span> <span class="o">=</span> <span class="n">run_id</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">experiment_id</span> <span class="o">=</span> <span class="n">experiment_id</span>
+
+		<span class="c1"># Rename any existing archive directories</span>
+		<span class="k">if</span> <span class="n">experiment_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">orig_archive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_experiment_archive_path</span><span class="p">(</span><span class="n">experiment_id</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">orig_archive</span><span class="p">):</span>
+				<span class="n">n</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="n">orig_archive</span> <span class="o">=</span> <span class="n">orig_archive</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+				<span class="n">dirpath</span><span class="p">,</span> <span class="n">basepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">orig_archive</span><span class="p">)</span>
+				<span class="n">new_archive</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basepath</span><span class="si">}</span><span class="s2">_OLD_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+				<span class="k">while</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">new_archive</span><span class="p">):</span>
+					<span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="n">new_archive</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basepath</span><span class="si">}</span><span class="s2">_OLD_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+				<span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">orig_archive</span><span class="p">,</span> <span class="n">new_archive</span><span class="p">)</span>
+			<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">orig_archive</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+			<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">orig_archive</span><span class="p">,</span> <span class="s2">&quot;_emat_start_.log&quot;</span><span class="p">),</span> <span class="s1">&#39;at&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+				<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Starting model run at </span><span class="si">{0}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)))</span>
+				<span class="k">if</span> <span class="n">run_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;run_id = </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FilesCoreModel.load_measures">
+<a class="viewcode-back" href="../../../../source/emat.models/files-api.html#emat.model.FilesCoreModel.load_measures">[docs]</a>
+	<span class="nd">@copydoc</span><span class="p">(</span><span class="n">AbstractCoreModel</span><span class="o">.</span><span class="n">load_measures</span><span class="p">)</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">load_measures</span><span class="p">(</span>
+			<span class="bp">self</span><span class="p">,</span>
+			<span class="n">measure_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="o">*</span><span class="p">,</span>
+			<span class="n">rel_output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+			<span class="n">abs_output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+	<span class="p">):</span>
+
+		<span class="k">if</span> <span class="n">rel_output_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">abs_output_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot give both `rel_output_path` and `abs_output_path`&quot;</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">rel_output_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">abs_output_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resolved_model_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rel_output_path</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">rel_output_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resolved_model_path</span><span class="p">,</span> <span class="n">rel_output_path</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span> <span class="c1"># abs_output_path is not None</span>
+			<span class="n">output_path</span> <span class="o">=</span> <span class="n">abs_output_path</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">output_path</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">NotADirectoryError</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">measure_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">is_requested</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="kc">True</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">requested_measure_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">measure_names</span><span class="p">)</span>
+			<span class="n">is_requested</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">requested_measure_names</span>
+
+		<span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+		<span class="k">for</span> <span class="n">parser</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parsers</span><span class="p">:</span>
+			<span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_requested</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parser</span><span class="o">.</span><span class="n">measure_names</span><span class="p">):</span>
+				<span class="k">try</span><span class="p">:</span>
+					<span class="n">measures</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+				<span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+					<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parser</span><span class="o">.</span><span class="n">measure_names</span><span class="p">:</span>
+						<span class="k">if</span> <span class="n">is_requested</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+							<span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> unavailable, </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s1"> not found&#39;</span><span class="p">)</span>
+				<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+					<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parser</span><span class="o">.</span><span class="n">measure_names</span><span class="p">:</span>
+						<span class="k">if</span> <span class="n">is_requested</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+							<span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> unavailable, </span><span class="si">{</span><span class="n">err</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">measures</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+						<span class="k">if</span> <span class="n">is_requested</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+							<span class="n">results</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+		<span class="c1"># Also assign to outcomes_output instead of returning, for ema_workbench compatibility</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">outcomes_output</span> <span class="o">=</span> <span class="n">results</span>
+		<span class="k">return</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="FilesCoreModel.load_archived_measures">
+<a class="viewcode-back" href="../../../../source/emat.models/files-api.html#emat.model.FilesCoreModel.load_archived_measures">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">load_archived_measures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">measure_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Load performance measures from an archived model run.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			experiment_id (int): The id for the experiment to load.</span>
+<span class="sd">			measure_names (Collection, optional): A subset of</span>
+<span class="sd">				performance measure names to load.  If not provided,</span>
+<span class="sd">				all measures will be loaded.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">experiment_archive_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_experiment_archive_path</span><span class="p">(</span><span class="n">experiment_id</span><span class="p">)</span>
+		<span class="n">experiment_archive_zip</span> <span class="o">=</span> <span class="n">experiment_archive_path</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;.zip&quot;</span>
+		<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">experiment_archive_zip</span><span class="p">):</span>
+			<span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;zipped archive found, loading from </span><span class="si">{</span><span class="n">experiment_archive_zip</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+			<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span><span class="o">,</span><span class="w"> </span><span class="nn">zipfile</span>
+			<span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+				<span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">experiment_archive_zip</span><span class="p">)</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+				<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_measures</span><span class="p">(</span>
+					<span class="n">measure_names</span><span class="p">,</span>
+					<span class="n">abs_output_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+						<span class="n">tmpdir</span><span class="p">,</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">rel_output_path</span><span class="p">,</span>
+					<span class="p">)</span>
+				<span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;loading from </span><span class="si">{</span><span class="n">experiment_archive_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_measures</span><span class="p">(</span>
+				<span class="n">measure_names</span><span class="p">,</span>
+				<span class="n">abs_output_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+					<span class="n">experiment_archive_path</span><span class="p">,</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">rel_output_path</span><span class="p">,</span>
+				<span class="p">)</span>
+			<span class="p">)</span></div>
+
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">archive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model_results_path</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">post_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">measure_names</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Runs post processors associated with particular performance measures.</span>
+
+<span class="sd">		This method is the place to conduct automatic post-processing</span>
+<span class="sd">		of core model run results, in particular any post-processing that</span>
+<span class="sd">		is expensive or that will write new output files into the core model&#39;s</span>
+<span class="sd">		output directory.  The core model run should already have</span>
+<span class="sd">		been completed using `setup` and `run`.  If the relevant performance</span>
+<span class="sd">		measures do not require any post-processing to create (i.e. they</span>
+<span class="sd">		can all be read directly from output files created during the core</span>
+<span class="sd">		model run itself) then this method does not need to be overloaded</span>
+<span class="sd">		for a particular core model implementation.</span>
+
+<span class="sd">		The default implementation of this method is a no-op, but it is</span>
+<span class="sd">		available to be overloaded for particular implementations.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			params (dict):</span>
+<span class="sd">				Dictionary of experiment variables, with keys as variable names</span>
+<span class="sd">				and values as the experiment settings. Most post-processing</span>
+<span class="sd">				scripts will not need to know the particular values of the</span>
+<span class="sd">				inputs (exogenous uncertainties and policy levers), but this</span>
+<span class="sd">				method receives the experiment input parameters as an argument</span>
+<span class="sd">				in case one or more of these parameter values needs to be known</span>
+<span class="sd">				in order to complete the post-processing.</span>
+<span class="sd">			measure_names (List[str]):</span>
+<span class="sd">				List of measures to be processed.  Normally for the first pass</span>
+<span class="sd">				of core model run experiments, post-processing will be completed</span>
+<span class="sd">				for all performance measures.  However, it is possible to use</span>
+<span class="sd">				this argument to give only a subset of performance measures to</span>
+<span class="sd">				post-process, which may be desirable if the post-processing</span>
+<span class="sd">				of some performance measures is expensive.  Additionally, this</span>
+<span class="sd">				method may also be called on archived model results, allowing</span>
+<span class="sd">				it to run to generate only a subset of (probably new) performance</span>
+<span class="sd">				measures based on these archived runs.</span>
+<span class="sd">			output_path (str, optional):</span>
+<span class="sd">				Path to model outputs.  If this is not given (typical for the</span>
+<span class="sd">				initial run of core model experiments) then the local/default</span>
+<span class="sd">				model directory is used.  This argument is provided primarily</span>
+<span class="sd">				to facilitate post-processing archived model runs to make new</span>
+<span class="sd">				performance measures (i.e. measures that were not in-scope when</span>
+<span class="sd">				the core model was actually run).</span>
+
+<span class="sd">		Raises:</span>
+<span class="sd">			KeyError:</span>
+<span class="sd">				If post process is not available for specified measure</span>
+<span class="sd">		&quot;&quot;&quot;</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

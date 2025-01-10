@@ -1,0 +1,517 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meta-Model API &mdash; TMIP-EMAT 0.6.4, January 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/tmip_emat.css?v=eec227e2" />
+      <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/thebelab.css" />
+
+  
+      <script src="../../_static/documentation_options.js?v=ff12c608"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/thebelab-helper.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Meta-Model Regression" href="regression.html" />
+    <link rel="prev" title="Meta-Model Creation" href="creation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TMIP-EMAT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../emat.intro.html">Introduction to EMAT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.install.html">Installation and Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.scope/index.html">Exploratory Scoping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.design/emat.design.html">Experimental Designs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.models/index.html">Core Models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Meta Models</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="creation.html">Meta-Model Creation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Meta-Model API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#emat.create_metamodel"><code class="docutils literal notranslate"><span class="pre">create_metamodel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#emat.MetaModel"><code class="docutils literal notranslate"><span class="pre">MetaModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#emat.MetaModel.__call__"><code class="docutils literal notranslate"><span class="pre">MetaModel.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.MetaModel.compute_std"><code class="docutils literal notranslate"><span class="pre">MetaModel.compute_std()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.MetaModel.cross_val_predicts"><code class="docutils literal notranslate"><span class="pre">MetaModel.cross_val_predicts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.MetaModel.cross_val_scores"><code class="docutils literal notranslate"><span class="pre">MetaModel.cross_val_scores()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.MetaModel.get_length_scales"><code class="docutils literal notranslate"><span class="pre">MetaModel.get_length_scales()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.MetaModel.mix_length_scales"><code class="docutils literal notranslate"><span class="pre">MetaModel.mix_length_scales()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.MetaModel.pick_new_experiments"><code class="docutils literal notranslate"><span class="pre">MetaModel.pick_new_experiments()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.MetaModel.predict"><code class="docutils literal notranslate"><span class="pre">MetaModel.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emat.MetaModel.preprocess_raw_input"><code class="docutils literal notranslate"><span class="pre">MetaModel.preprocess_raw_input()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="regression.html">Meta-Model Regression</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.database/index.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.analysis/index.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.method-index.html">Methodology Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emat.references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TMIP-EMAT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Meta Models</a></li>
+      <li class="breadcrumb-item active">Meta-Model API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/source/emat.metamodels/api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="meta-model-api">
+<h1>Meta-Model API<a class="headerlink" href="#meta-model-api" title="Link to this heading">¶</a></h1>
+<p>The <a class="reference internal" href="#emat.MetaModel" title="emat.MetaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaModel</span></code></a> wraps the code required for automatically implementing
+metamodels.  The resulting object is callable in the expected manner for a
+function that is attached to a
+PythonCoreModel (i.e., accepting keyword arguments to set inputs, and returning
+a dictionary of named performance measure outputs).</p>
+<p>It is expected that a user will not instatiate a <a class="reference internal" href="#emat.MetaModel" title="emat.MetaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaModel</span></code></a> directly itself,
+but instead create them implicitly through other tools.
+MetaModels can be created from other existing core models using the
+<a class="reference internal" href="../emat.models/abstract.html#emat.model.AbstractCoreModel.create_metamodel_from_design" title="emat.model.AbstractCoreModel.create_metamodel_from_design"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_metamodel_from_design</span></code></a>
+or <a class="reference internal" href="../emat.models/abstract.html#emat.model.AbstractCoreModel.create_metamodel_from_data" title="emat.model.AbstractCoreModel.create_metamodel_from_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_metamodel_from_data</span></code></a>
+methods of a core model, or by using the <a class="reference internal" href="#emat.create_metamodel" title="emat.create_metamodel"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_metamodel()</span></code></a> function, which can
+create a MetaModel directly from a scope and experimental results, without requiring
+a core model instance.  Each of these functions returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">PythonCoreModel</span></code> that
+already wraps the MetaModel in an interface ready for use with other TMIP-EMAT tools,
+so that in typical cases the user does not need to interact with or know anything
+about the <a class="reference internal" href="#emat.MetaModel" title="emat.MetaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaModel</span></code></a> class itself, unless they care to dive in to the underlying
+core or mathematical structures.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="emat.create_metamodel">
+<span class="sig-prename descclassname"><span class="pre">emat.</span></span><span class="sig-name descname"><span class="pre">create_metamodel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metamodel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_measures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_measures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_stratification</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppress_converge_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">find_best_metamodeltype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#create_metamodel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.create_metamodel" title="Link to this definition">¶</a></dt>
+<dd><p>Create a MetaModel from a set of input and output observations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>emat.Scope</em></a>) – The scope for this model.</p></li>
+<li><p><strong>experiments</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a>) – This dataframe
+should contain all of the experimental inputs and outputs,
+including values for each uncertainty, level, constant, and
+performance measure.</p></li>
+<li><p><strong>metamodel_id</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – An identifier for this meta-model.
+If not given, a unique id number will be created randomly
+(if not <cite>db</cite> is given) or sequentially based on any existing
+metamodels already stored in the database.</p></li>
+<li><p><strong>db</strong> (<a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.Database"><em>Database</em></a><em>, </em><em>optional</em>) – The database to use for loading and
+saving metamodels. If none is given here, the metamodel will
+not be stored in a database otherwise, the metamodel is
+automatically saved to the database after it is created.</p></li>
+<li><p><strong>include_measures</strong> (<em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – If provided, only
+output performance measures with names in this set will be included.</p></li>
+<li><p><strong>exclude_measures</strong> (<em>Collection</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – If provided, only
+output performance measures with names not in this set will be included.</p></li>
+<li><p><strong>random_state</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – A random state to use in the metamodel
+regression fitting.</p></li>
+<li><p><strong>experiment_stratification</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.html#pandas.Series" title="(in pandas v2.2.3)"><em>pandas.Series</em></a><em>, </em><em>optional</em>) – A stratification of experiments, used in cross-validation.</p></li>
+<li><p><strong>suppress_converge_warnings</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Suppress convergence warnings during metamodel fitting.</p></li>
+<li><p><strong>regressor</strong> (<em>Estimator</em><em>, </em><em>optional</em>) – A scikit-learn estimator implementing a
+multi-target regression.  If not given, a detrended simple Gaussian
+process regression is used.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – A descriptive name for this metamodel.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the design of experiments
+from <cite>db</cite> to use to create the metamodel. Only used if <cite>experiments</cite>
+is not given explicitly.</p></li>
+<li><p><strong>find_best_metamodeltype</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>default 0</em>) – Run a search to find the best metamodeltype for each
+performance measure, repeating each cross-validation
+step this many times.  For more stable results, choose
+3 or more, although larger numbers will be slow.  If
+domain knowledge about the normal expected range and
+behavior of each performance measure is available,
+it is better to give the metamodeltype explicitly in
+the Scope.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a callable object that, when called as if a
+function, accepts keyword arguments as inputs and
+returns a dictionary of (measure name: value) pairs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../emat.models/python_based.html#emat.model.PythonCoreModel" title="emat.model.PythonCoreModel">PythonCoreModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="emat.MetaModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">emat.</span></span><span class="sig-name descname"><span class="pre">MetaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metamodel_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disabled_outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_stratification</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppress_converge_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_best_cv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel" title="Link to this definition">¶</a></dt>
+<dd><p>A gaussian process regression-based meta-model.</p>
+<p>The MetaModel is a callable object that provides an EMA Workbench standard
+python interface, taking keyword arguments for parameters and returning a python
+dictionary of named outcomes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_sample</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a>) – A set of experimental parameters, where
+each row in the dataframe is an experiment that has already been evaluated
+using the core model.  Each column will be a required keyword parameter
+when calling this meta-model.</p></li>
+<li><p><strong>output_sample</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a>) – A set of experimental performance measures, where
+each row in the dataframe is the results of the experiment evaluated using the
+core model.  Each column of this dataframe will be a named output value
+in the returned dictionary from calling this meta-model.</p></li>
+<li><p><strong>metamodel_types</strong> (<em>Mapping</em><em>, </em><em>optional</em>) – <p>If given, the keys of this mapping should
+include a subset of the columns in <cite>output_sample</cite>, and the values indicate
+the metamodel type for each performance measure, given as <cite>str</cite>.  Available
+metamodel types include:</p>
+<ul>
+<li><p><em>log</em>: The natural log of the performance measure is taken before
+fitting the regression model.  This is appropriate only when the performance
+measure will always give a strictly positive outcome. If the performance
+measure can take on non-positive values, this may result in errors.</p></li>
+<li><p><em>log1p</em>: The natural log of 1 plus the performance measure is taken before
+fitting the regression model.  This is preferred to log-linear when the
+performance measure is only guaranteed to be non-negative, rather than
+strictly positive.</p></li>
+<li><p><em>logxp(X)</em>: The natural log of X plus the performance measure is taken before
+fitting the regression model.  This allows shifting the position of the
+regression intercept to a point other than 0.</p></li>
+<li><p><em>clip(LO,HI)</em>: A linear model is used, but results are truncated to the range
+(LO,HI). Set either value as None to have a one-sided truncation range.</p></li>
+<li><p><em>linear</em>: No transforms are made.  This is the default when a performance
+measure is not included in <cite>metamodel_types</cite>.</p></li>
+</ul>
+</p></li>
+<li><p><strong>disabled_outputs</strong> (<em>Collection</em><em>, </em><em>optional</em>) – A collection of disabled outputs. All names
+included in this collection will be returned in the resulting outcomes dictionary
+when this meta-model is evaluated, but with a value of <cite>None</cite>.  It is valid to
+include names in <cite>disabled_outputs</cite> that are included in the columns
+of <cite>output_sample</cite>, although the principal use of this argument is to include
+names that are <em>not</em> included, as disabling outputs that are included will not
+prevent these values from being included in the computational process.</p></li>
+<li><p><strong>random_state</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – A random state, passed to the created regression
+(but only if that regressor includes a ‘random_state’ parameter).</p></li>
+<li><p><strong>regressor</strong> (<em>Estimator</em><em>, </em><em>optional</em>) – A scikit-learn estimator implementing a
+multi-target regression.  If not given, a detrended simple Gaussian
+process regression is used.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.MetaModel.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel.__call__" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate the meta-model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – All defined (meta)model parameters are passed as keyword
+arguments, including both uncertainties and levers.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A single dictionary containing all performance measure outcomes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.MetaModel.compute_std">
+<span class="sig-name descname"><span class="pre">compute_std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel.compute_std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel.compute_std" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate standard deviations of estimates generated by the meta-model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a><em>, </em><em>optional</em>)</p></li>
+<li><p><strong>**kwargs</strong> – All defined (meta)model parameters are passed as keyword
+arguments, including both uncertainties and levers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A single dictionary containing the standard deviaition of the
+estimate of all performance measure outcomes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.MetaModel.cross_val_predicts">
+<span class="sig-name descname"><span class="pre">cross_val_predicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel.cross_val_predicts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel.cross_val_predicts" title="Link to this definition">¶</a></dt>
+<dd><p>Generate cross validated predictions using this meta-model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cv</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>default 5</em>) – The number of folds to use in
+cross-validation. Set to zero for leave-one-out
+(i.e., the maximum number of folds), which may be
+quite slow.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The cross-validated predictions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.MetaModel.cross_val_scores">
+<span class="sig-name descname"><span class="pre">cross_val_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'styled'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppress_converge_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel.cross_val_scores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel.cross_val_scores" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the cross validation scores for this meta-model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cv</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>default 5</em>) – The number of folds to use in
+cross-validation.</p></li>
+<li><p><strong>gpr_only</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to limit the
+cross-validation analysis to only the GPR step (i.e.,
+to measure the improvement in meta-model fit from
+using the GPR-based meta-model, over and above
+using the linear regression meta-model alone.)</p></li>
+<li><p><strong>use_cache</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Use cached cross
+validation results if available.  All other arguments
+are ignored if a cached results if available.</p></li>
+<li><p><strong>return_type</strong> (<em>{'styled'</em><em>, </em><em>'raw'}</em>) – How to return the
+results.</p></li>
+<li><p><strong>shortnames</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a><em> or </em><em>callable</em>) – If given, use this function to convert the measure
+names into more readable <cite>shortname</cite> values from the
+scope, or by using a function that maps measures
+names to something else.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The cross-validation scores, by output.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.html#pandas.Series" title="(in pandas v2.2.3)">pandas.Series</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.MetaModel.get_length_scales">
+<span class="sig-name descname"><span class="pre">get_length_scales</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel.get_length_scales"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel.get_length_scales" title="Link to this definition">¶</a></dt>
+<dd><p>Get the length scales from the GPR kernels of this metamodel.</p>
+<p>This MetaModel must already be <cite>fit</cite> to use this method, although
+the fit process is generally completed when the MetaModel is
+instantiated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The columns correspond to the columns of pre-processed
+input (not raw input) and the rows correspond to the
+outputs.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.MetaModel.mix_length_scales">
+<span class="sig-name descname"><span class="pre">mix_length_scales</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">balance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel.mix_length_scales"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel.mix_length_scales" title="Link to this definition">¶</a></dt>
+<dd><p>Mix the length scales from the GPR kernels of this metamodel.</p>
+<p>This MetaModel must already be <cite>fit</cite> to use this method, although
+the fit process is generally completed when the MetaModel is
+instantiated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>balance</strong> (<em>Mapping</em><em> or </em><em>Collection</em><em>, </em><em>optional</em>) – When given as a mapping, the keys are the output measures
+that are included in the mix, and the values are the
+relative weights to use for mixing.
+When given as a collection, the items are the output
+measures that are included in the mix, all with equal
+weight.</p></li>
+<li><p><strong>inv</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>default True</em>) – Take the inverse of the length scales before mixing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The columns correspond to the columns of pre-processed
+input (not raw input) and the rows correspond to the
+outputs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.MetaModel.pick_new_experiments">
+<span class="sig-name descname"><span class="pre">pick_new_experiments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">possible_experiments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_focus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.scope.scope.Scope"><span class="pre">Scope</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.7/library/constants.html#None" title="(in Python v3.7)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.database.Database"><span class="pre">Database</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.7/library/constants.html#None" title="(in Python v3.7)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">design_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.7/library/constants.html#None" title="(in Python v3.7)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_experiments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_experiments_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel.pick_new_experiments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel.pick_new_experiments" title="Link to this definition">¶</a></dt>
+<dd><p>Select a set of new experiments to perform from a pool of candidates.</p>
+<p>This method implements the “maximin” approach described by Johnson et al (1990),
+as proposed for batch-sequential augmentation of designs by Loeppky et al (2010).
+New experiments are selected from a pool of possible new experiments by
+maximizing the minimum distance between the set of selected experiments,
+with distances between experiments scaled by the correlation parameters
+from a GP regression fitted to the initial experimental results. Note that
+the “binning” aspect of Loeppky is not presently implemented here,
+instead favoring the analyst’s capability to manually focus the new experiments
+by manipulating the input <cite>possible_experiments</cite>.</p>
+<p>We also extend Loeppky et al by allowing for multiple output models, mixing the
+results from a selected set of outputs, to potentially focus the information
+from the new experiments on a subset of output measures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>possible_experiments</strong> – A pool of possible experiments.  All selected experiments will
+be selected from this pool, so the pool should be sufficiently
+large and diverse to provide requried support for this process.</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – How many experiments to select from <cite>possible_experiments</cite>.</p></li>
+<li><p><strong>output_focus</strong> (<em>Mapping</em><em> or </em><em>Collection</em><em>, </em><em>optional</em>) – A subset of output measures that will be the focus of these new
+experiments. The length scales of these measures will be mixed
+when developing relative weights.</p></li>
+<li><p><strong>scope</strong> (<a class="reference internal" href="../emat.scope/scope.html#emat.Scope" title="emat.Scope"><em>Scope</em></a><em>, </em><em>optional</em>) – The exploratory scope to use for writing the
+design to a database. Ignored unless <cite>db</cite> is also given.</p></li>
+<li><p><strong>db</strong> (<a class="reference internal" href="../emat.database/abstract.html#emat.database.Database" title="emat.database.Database"><em>Database</em></a><em>, </em><em>optional</em>) – If provided, this design will be stored in the
+database indicated.  Ignored unless <cite>scope</cite> is also given.</p></li>
+<li><p><strong>design_name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – A name for this design, to identify it in the
+database. If not given, a unique name will be generated.  Has no effect
+if no <cite>db</cite> or <cite>scope</cite> is given.</p></li>
+<li><p><strong>debug</strong> (<em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>,</em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – The names of x and y axis to plot for
+debugging.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A subset of rows from <cite>possible_experiments</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>Johnson, M.E., Moore, L.M., and Ylvisaker, D., 1990. “Minimax and maximin
+distance designs.” Journal of Statistical Planning and Inference 26, 131–148.</p></li>
+<li><p>Loeppky, J., Moore, L., and Williams, B.J., 2010. “Batch sequential designs
+for computer experiments.” Journal of Statistical Planning and Inference 140,
+1452–1464.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.MetaModel.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trend_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residual_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel.predict" title="Link to this definition">¶</a></dt>
+<dd><p>Generate predictions using the meta-model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a><em>, </em><em>optional</em>)</p></li>
+<li><p><strong>trend_only</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>)</p></li>
+<li><p><strong>residual_only</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>)</p></li>
+<li><p><strong>**kwargs</strong> – All defined (meta)model parameters are passed as keyword
+arguments, including both uncertainties and levers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A single dictionary containing the standard deviaition of the
+estimate of all performance measure outcomes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="emat.MetaModel.preprocess_raw_input">
+<span class="sig-name descname"><span class="pre">preprocess_raw_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/emat/model/meta_model.html#MetaModel.preprocess_raw_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#emat.MetaModel.preprocess_raw_input" title="Link to this definition">¶</a></dt>
+<dd><p>Preprocess raw data input.</p>
+<p>This convenience method provides batch-processing of a
+raw data input DataFrame into the format used for regression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>pandas.DataFrame</em></a>) – The raw input data to process, which can include input
+values for multiple experiments.</p></li>
+<li><p><strong>to_type</strong> (<em>dtype</em><em>, </em><em>optional</em>) – If given, the entire resulting DataFrame is cast to
+this data type.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="creation.html" class="btn btn-neutral float-left" title="Meta-Model Creation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="regression.html" class="btn btn-neutral float-right" title="Meta-Model Regression" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
