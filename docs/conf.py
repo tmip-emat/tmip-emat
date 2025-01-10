@@ -128,7 +128,7 @@ nbsphinx_timeout = 300
 import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_theme_options = {}
+html_theme_options = {'display_version': True}
 
 # html4_writer=True  # see https://github.com/readthedocs/sphinx_rtd_theme/issues/766
 
