@@ -6,10 +6,10 @@
     max-width: 1200px !important;
 }
 
-.wy-nav-content .section p,
-.wy-nav-content .section ul,
-.wy-nav-content .section dd,
-.wy-nav-content .section dl,
+.wy-nav-content div[role=main] p,
+.wy-nav-content div[role=main] ul,
+.wy-nav-content div[role=main] dd,
+.wy-nav-content div[role=main] dl,
 .wy-nav-content div.admonition,
 .wy-nav-content div.line-block,
 .wy-nav-content div.highlight-default,

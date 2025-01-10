@@ -21,6 +21,11 @@ jobs:
       - name: Setup Graphviz
         uses: ts-graphviz/setup-graphviz@v2
 
+      - name: Install
+        uses: pandoc/actions/setup@v1
+        with:
+          version: 2.19
+
       - name: Install uv
         uses: astral-sh/setup-uv@v4
         with:
@@ -37,7 +42,7 @@ jobs:
 
       - name: Get Version
         run: |
-          python docs/get_version.py VERSION.txt
+          uv run python docs/get_version.py VERSION.txt
           cat VERSION.txt >> $GITHUB_ENV
 
       - name: Set version major-minor
@@ -49,7 +54,11 @@ jobs:
 
       - name: Build documentation
         run: |
+          uv add sphinx "pygments>=2.2.0" "docutils>=0.14" sphinx_rtd_theme \
+                 sphinxcontrib-restbuilder nbsphinx jupyter_sphinx packaging \
+                 jupytext
           cd docs
+          uv run jupytext --to notebook source/**/*.py
           uv run make html
 
       - name: Push Release Docs to GitHub Pages
