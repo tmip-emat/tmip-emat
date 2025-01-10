@@ -23,18 +23,17 @@ More detailed instructions appear below.
 Installing Python
 -----------------
 
-To use TMIP-EMAT, you'll need to have Python 3.7, plus a handful
+To use TMIP-EMAT, you'll need to have Python 3.7 or later, plus a handful
 of other useful statistical packages.  The easiest way to get the basics
-is to download and install the `Anaconda <https://www.anaconda.com/download>`_
-version of Python 3.7. This comes with everything you'll need to get started,
+is to download and install the `Miniforge <https://github.com/conda-forge/miniforge?tab=readme-ov-file#install>`_
+version of Python. This comes with everything you'll need to get started,
 and the Anaconda folks have helpfully curated a selection of useful tools for you,
 so you don't have the sort through the huge selection of tools, both good and bad,
 that are available for Python.
 
 .. note::
 
-    Python has two versions (2 and 3) that are available.
-    TMIP-EMAT is compatible *only* with version 3.
+    TMIP-EMAT is compatible *only* with Python version 3.
 
 You should usually install Anaconda for the local user,
 which does not require administrator permissions.
@@ -76,17 +75,6 @@ is available in the conda documentation itself.
 
 Creating a New Environment for TMIP-EMAT
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. note::
-
-    If you installed the "Miniconda" version of the anaconda package, or
-    if your main conda installation is a bit out of date, you
-    may need to install or update the *conda* and *anaconda-client* packages
-    before the remote environment installation below will work:
-
-    .. code-block:: console
-
-        conda install -n base -c defaults conda anaconda-client
 
 If you'd like one command to just install TMIP-EMAT and
 the suite of related tools relevant for exploratory modeling and analysis
