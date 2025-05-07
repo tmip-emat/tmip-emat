@@ -56,6 +56,7 @@ dependencies = [
     "packaging",
     "jupytext",
     "statsmodels",
+    "anywidget",
 ]
 
 [project.optional-dependencies]
